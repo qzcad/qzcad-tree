@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Path2DEditor</class>
+ <widget class="QDialog" name="Path2DEditor">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>640</width>
+    <height>480</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <widget class="QDialogButtonBox" name="buttonBox">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>440</y>
+     <width>621</width>
+     <height>32</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+   <property name="standardButtons">
+    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+   </property>
+  </widget>
+  <widget class="QTreeWidget" name="pathTree">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>40</y>
+     <width>281</width>
+     <height>291</height>
+    </rect>
+   </property>
+   <property name="contextMenuPolicy">
+    <enum>Qt::ActionsContextMenu</enum>
+   </property>
+   <column>
+    <property name="text">
+     <string>Елемент контура</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>x</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>y</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>ID</string>
+    </property>
+   </column>
+   <item>
+    <property name="text">
+     <string>Контур</string>
+    </property>
+    <property name="icon">
+     <iconset resource="qzresources.qrc">
+      <normaloff>:/icons/qzicons/path.png</normaloff>:/icons/qzicons/path.png</iconset>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+    <property name="text">
+     <string>200</string>
+    </property>
+    <property name="flags">
+     <set>ItemIsSelectable|ItemIsEnabled</set>
+    </property>
+   </item>
+  </widget>
+  <widget class="QWidget" name="layoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>68</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QToolButton" name="addNodeToolButton">
+      <property name="text">
+       <string extracomment="Добавить узел">Добавить узел</string>
+      </property>
+      <property name="icon">
+       <iconset resource="qzresources.qrc">
+        <normaloff>:/icons/qzicons/add_node.png</normaloff>:/icons/qzicons/add_node.png</iconset>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>16</width>
+        <height>16</height>
+       </size>
+      </property>
+      <attribute name="buttonGroup">
+       <string notr="true">buttonGroup_2</string>
+      </attribute>
+     </widget>
+    </item>
+    <item>
+     <widget class="QToolButton" name="addBezierToolButton">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string>...</string>
+      </property>
+      <property name="icon">
+       <iconset resource="qzresources.qrc">
+        <normaloff>:/icons/qzicons/bezier.png</normaloff>:/icons/qzicons/bezier.png</iconset>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>16</width>
+        <height>16</height>
+       </size>
+      </property>
+      <attribute name="buttonGroup">
+       <string notr="true">buttonGroup_2</string>
+      </attribute>
+     </widget>
+    </item>
+    <item>
+     <widget class="QToolButton" name="delPathElementToolButton">
+      <property name="text">
+       <string>...</string>
+      </property>
+      <property name="icon">
+       <iconset resource="qzresources.qrc">
+        <normaloff>:/icons/qzicons/del_node.png</normaloff>:/icons/qzicons/del_node.png</iconset>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>16</width>
+        <height>16</height>
+       </size>
+      </property>
+      <attribute name="buttonGroup">
+       <string notr="true">buttonGroup_2</string>
+      </attribute>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <action name="actionAddNode">
+   <property name="icon">
+    <iconset resource="qzresources.qrc">
+     <normaloff>:/icons/qzicons/add_node.png</normaloff>:/icons/qzicons/add_node.png</iconset>
+   </property>
+   <property name="text">
+    <string>Добавить узел</string>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="qzresources.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>Path2DEditor</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>Path2DEditor</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>316</x>
+     <y>260</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <buttongroups>
+  <buttongroup name="buttonGroup_2"/>
+ </buttongroups>
+</ui>
