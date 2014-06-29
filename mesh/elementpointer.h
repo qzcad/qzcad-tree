@@ -5,13 +5,12 @@
   */
 #ifndef ELEMENTPOINTER_H
 #define ELEMENTPOINTER_H
-#include <memory>
 #include "element.h"
 namespace msh
 {
 /**
- * @brief "Умный" указатель на элемент (c++11)
+ * @brief Константный указатель на элемент
  */
-typedef std::shared_ptr<Element> ElementPointer;
+typedef const Element* ElementPointer;
 }
 #endif // ELEMENTPOINTER_H

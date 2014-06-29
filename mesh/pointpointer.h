@@ -5,15 +5,14 @@
   */
 #ifndef POINTPOINTER_H
 #define POINTPOINTER_H
-#include <memory>
 #include <point.h>
 
 namespace msh
 {
 /**
- * @brief "Умный" указатель на точку (c++11)
+ * @brief Константный указатель на точку
  */
-typedef std::shared_ptr<Point> PointPointer;
+typedef const Point* PointPointer;
 }
 
 #endif // POINTPOINTER_H

@@ -35,7 +35,8 @@ UInteger Path2D::nodesCount() const
 
 PointPointer Path2D::node(UInteger number) const
 {
-    PointPointer pointPointer(new Point2D(node_[number]));
+//    PointPointer pointPointer(new Point2D(node_[number]));
+    PointPointer pointPointer = &node_[number];
     return pointPointer;
 }
 
@@ -46,7 +47,7 @@ UInteger Path2D::elementsCount() const
     return 0;
 }
 
-ElementPointer Path2D::element(UInteger number) const
+Element *Path2D::element(UInteger number) const
 {
 //    Segment *segmentPtr;
 //    if (number < node_.size() - 1)

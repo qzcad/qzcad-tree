@@ -253,8 +253,7 @@ UInteger HexahedralMesh3D::elementsCount() const
 
 ElementPointer HexahedralMesh3D::element(const UInteger &number) const
 {
-    Hexahedral *hptr = new Hexahedral(element_[number]);
-    ElementPointer elementPtr(hptr);
+    ElementPointer elementPtr = &element_[number];
     return elementPtr;
 }
 

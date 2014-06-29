@@ -61,7 +61,7 @@ public:
      * @param number Номер элемента сетки
      * @return Указатель на элемент - отрезок контура
      */
-    ElementPointer element(UInteger number) const;
+    Element *element(UInteger number) const;
     /**
      * @brief zMin Минимальное значение аппликаты точек сетки
      * @return Минимальное значение аппликаты точек сетки

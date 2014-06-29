@@ -14,7 +14,7 @@ UInteger Mesh2D::nodesCount() const
 
 PointPointer Mesh2D::node(const UInteger &number) const
 {
-    PointPointer pointPtr(new Point2D(node_[number].point));
+    PointPointer pointPtr = &node_[number].point;
     return pointPtr;
 }
 

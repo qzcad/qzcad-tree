@@ -32,7 +32,7 @@ public:
     /**
      * @brief Координаты узла сетки
      * @param number Номер узла сетки
-     * @return Указатель на копию координат узла сетки с номером number
+     * @return Указатель на координаты узла сетки с номером number
      */
     virtual PointPointer node(const UInteger &number) const;
     /**

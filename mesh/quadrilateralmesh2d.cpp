@@ -145,8 +145,7 @@ UInteger QuadrilateralMesh2D::elementsCount() const
 
 ElementPointer QuadrilateralMesh2D::element(const UInteger &number) const
 {
-    Quadrilateral *qptr = new Quadrilateral(element_[number]);
-    ElementPointer elementPtr(qptr);
+    ElementPointer elementPtr = &element_[number];
     return elementPtr;
 }
 
