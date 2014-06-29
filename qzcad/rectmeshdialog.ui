@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>405</width>
-    <height>340</height>
+    <height>303</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,6 +17,9 @@
    <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>2</number>
+   </property>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
@@ -285,24 +288,6 @@
    </item>
   </layout>
   <zorder>buttonBox</zorder>
-  <zorder>layoutWidget</zorder>
-  <zorder>layoutWidget</zorder>
-  <zorder>layoutWidget</zorder>
-  <zorder>widthLabel</zorder>
-  <zorder>heightLabel</zorder>
-  <zorder>depthLable</zorder>
-  <zorder>width</zorder>
-  <zorder>height</zorder>
-  <zorder>depth</zorder>
-  <zorder>depth</zorder>
-  <zorder>xMinLabel</zorder>
-  <zorder>xCountLabel</zorder>
-  <zorder>xCount</zorder>
-  <zorder>yCountLabel</zorder>
-  <zorder>zCountLabel</zorder>
-  <zorder>yCount</zorder>
-  <zorder>zCount</zorder>
-  <zorder>xCountLabel</zorder>
   <zorder>verticalSpacer</zorder>
  </widget>
  <resources/>

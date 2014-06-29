@@ -6,16 +6,22 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>344</width>
-    <height>229</height>
+    <width>396</width>
+    <height>205</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Четырехугольная дискретизация треугольной области</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_3">
+   <property name="spacing">
+    <number>2</number>
+   </property>
    <item>
     <layout class="QVBoxLayout" name="verticalLayout_2">
+     <property name="spacing">
+      <number>2</number>
+     </property>
      <item>
       <widget class="QLabel" name="label_9">
        <property name="text">

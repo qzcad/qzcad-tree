@@ -2,12 +2,15 @@
 <ui version="4.0">
  <class>PointEditorDialog</class>
  <widget class="QDialog" name="PointEditorDialog">
+  <property name="windowModality">
+   <enum>Qt::ApplicationModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>194</width>
-    <height>152</height>
+    <width>202</width>
+    <height>129</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -23,8 +26,14 @@
    <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
+   <property name="spacing">
+    <number>2</number>
+   </property>
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
+     <property name="spacing">
+      <number>2</number>
+     </property>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <property name="spacing">
