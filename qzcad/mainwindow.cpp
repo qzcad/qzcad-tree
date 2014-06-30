@@ -30,6 +30,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
 #endif
     showMaximized();
+//    mesh_ = NULL;
 }
 
 MainWindow::~MainWindow()
@@ -80,6 +81,16 @@ void MainWindow::addElement(const int &id,
     }
 }
 
+//void MainWindow::deleteMesh()
+//{
+//    if (mesh_)
+//    {
+//        ui->pictureControl->resetMesh();
+//        delete mesh_;
+//        mesh_ = NULL;
+//    }
+//}
+
 void MainWindow::on_actionIntersection_triggered()
 {
     addElement(_INTERSECTION_, "Операция", "Пересечение", ":/icons/qzicons/intersection.png");
@@ -117,10 +128,15 @@ void MainWindow::on_actionStructQuads_triggered()
     dialog.exec();
     if (dialog.result() == QDialog::Accepted)
     {
+//        deleteMesh();
+        ui->pictureControl->resetMesh();
         msh::QuadrilateralMesh2D * mesh = new msh::QuadrilateralMesh2D(dialog.xCount(), dialog.yCount(),
                                                                        dialog.xMin(), dialog.yMin(),
                                                                        dialog.rectWidth(), dialog.rectHeight());
         msh::MeshPointer meshPtr(mesh);
+//        mesh_ = new msh::QuadrilateralMesh2D(dialog.xCount(), dialog.yCount(),
+//                                                                       dialog.xMin(), dialog.yMin(),
+//                                                                       dialog.rectWidth(), dialog.rectHeight());
         ui->pictureControl->setMesh(meshPtr);
     }
 }
@@ -131,16 +147,21 @@ void MainWindow::on_actionStructIsoQuads_triggered()
     dialog.exec();
     if (dialog.result() == QDialog::Accepted)
     {
+//        deleteMesh();
+        ui->pictureControl->resetMesh();
+//        mesh_ = new msh::QuadrilateralMesh2D(dialog.xiCount(),
+//                                                                       dialog.etaCount(),
+//                                                                       msh::Point2D(dialog.x0(), dialog.y0()),
+//                                                                       msh::Point2D(dialog.x1(), dialog.y1()),
+//                                                                       msh::Point2D(dialog.x2(), dialog.y2()),
+//                                                                       msh::Point2D(dialog.x3(), dialog.y3()));
+//        ui->pictureControl->setMesh(mesh_);
         msh::QuadrilateralMesh2D * mesh = new msh::QuadrilateralMesh2D(dialog.xiCount(),
                                                                        dialog.etaCount(),
                                                                        msh::Point2D(dialog.x0(), dialog.y0()),
                                                                        msh::Point2D(dialog.x1(), dialog.y1()),
                                                                        msh::Point2D(dialog.x2(), dialog.y2()),
                                                                        msh::Point2D(dialog.x3(), dialog.y3()));
-        //        QuadrilateralMesh2D * mesh = new QuadrilateralMesh2D(dialog.xiCount(),
-        //                                                             Point2D(dialog.x0(), dialog.y0()),
-        //                                                             Point2D(dialog.x1(), dialog.y1()),
-        //                                                             Point2D(dialog.x2(), dialog.y2()));
         msh::MeshPointer meshPtr(mesh);
         ui->pictureControl->setMesh(meshPtr);
     }
@@ -152,6 +173,13 @@ void MainWindow::on_actionBaryQuads_triggered()
     dialog.exec();
     if (dialog.result() == QDialog::Accepted)
     {
+        ui->pictureControl->resetMesh();
+//        deleteMesh();
+//        mesh_ = new msh::QuadrilateralMesh2D(dialog.nodesCount(),
+//                                                                       msh::Point2D(dialog.x0(), dialog.y0()),
+//                                                                       msh::Point2D(dialog.x1(), dialog.y1()),
+//                                                                       msh::Point2D(dialog.x2(), dialog.y2()));
+//        ui->pictureControl->setMesh(mesh_);
         msh::QuadrilateralMesh2D * mesh = new msh::QuadrilateralMesh2D(dialog.nodesCount(),
                                                                        msh::Point2D(dialog.x0(), dialog.y0()),
                                                                        msh::Point2D(dialog.x1(), dialog.y1()),
@@ -167,8 +195,9 @@ void MainWindow::on_actionPolygonalModel_triggered()
     dialog.exec();
     if (dialog.result() == QDialog::Accepted)
     {
+//        deleteMesh();
+        ui->pictureControl->resetMesh();
         msh::QuadrilateralUnion2D * mesh = new msh::QuadrilateralUnion2D();
-
         int quadsCount = dialog.quadsCount();
         for (int i = 0; i < quadsCount; i++)
         {
@@ -191,6 +220,8 @@ void MainWindow::on_actionPolygonalModel_triggered()
         msh::MeshPointer meshPtr(mesh);
 //        msh::MeshPointer meshPtr(hmesh);
         ui->pictureControl->setMesh(meshPtr);
+//        mesh_ = mesh;
+//        ui->pictureControl->setMesh(mesh_);
     }
 }
 
@@ -200,6 +231,12 @@ void MainWindow::on_actionStructHex_triggered()
     dialog.exec();
     if (dialog.result() == QDialog::Accepted)
     {
+//        deleteMesh();
+        ui->pictureControl->resetMesh();
+//        mesh_ = new msh::HexahedralMesh3D(dialog.xCount(), dialog.yCount(), dialog.zCount(),
+//                                                                 dialog.xMin(), dialog.yMin(), dialog.zMin(),
+//                                                                 dialog.rectWidth(), dialog.rectHeight(), dialog.rectDepth());
+//        ui->pictureControl->setMesh(mesh_);
         msh::HexahedralMesh3D * mesh = new msh::HexahedralMesh3D(dialog.xCount(), dialog.yCount(), dialog.zCount(),
                                                                  dialog.xMin(), dialog.yMin(), dialog.zMin(),
                                                                  dialog.rectWidth(), dialog.rectHeight(), dialog.rectDepth());
@@ -239,6 +276,20 @@ void MainWindow::on_actionSaveMesh_triggered()
                 out << element->vertexNode(j) << " ";
             }
             out << '\n';
+        }
+    }
+}
+
+void MainWindow::on_actionRotationBodyMesh_triggered()
+{
+    msh::MeshPointer mesh = ui->pictureControl->getMesh();
+    if (mesh)
+    {
+        std::shared_ptr<msh::QuadrilateralMesh2D> qmesh = std::dynamic_pointer_cast<msh::QuadrilateralMesh2D>(mesh);
+        if (qmesh)
+        {
+            // сетка четырехугольников
+            QMessageBox::information(this, "quads", "QUADS!!!!!!!!!!!");
         }
     }
 }

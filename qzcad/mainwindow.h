@@ -10,6 +10,7 @@
 #include <QMainWindow>
 
 #include <QTreeWidget>
+#include "mesh.h"
 
 namespace Ui {
 class MainWindow;
@@ -57,8 +58,11 @@ private slots:
 
     void on_actionSaveMesh_triggered();
 
+    void on_actionRotationBodyMesh_triggered();
+
 private:
     Ui::MainWindow *ui; //!< Контейнер элементов графического интерфейса
+//    msh::Mesh *mesh_; //!< Указатель на объект с сеткой
 private:
     /**
      * @brief addObjectTreeItem Добавить элемент в дерево на форме
@@ -80,6 +84,10 @@ private:
      * @see addObjectTreeItem;
      */
     void addElement(const int &id, const QString &category, const QString &type, const QString &iconName, QString parameters = "");
+//    /**
+//     * @brief Удалить сетку
+//     */
+//    void deleteMesh();
 };
 
 #endif // MAINWINDOW_H

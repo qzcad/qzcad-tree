@@ -27,7 +27,7 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &xCount, const UInteger 
             Floating y = yMin + (Floating) j * hy;
             Point2D point(x, y);
 
-            if ((i == 0 && j == 0) || (i == 0 & j == yCount - 1) || (i == xCount - 1 && j == 0) || (i == xCount - 1 & j == yCount - 1))
+            if ((i == 0 && j == 0) || (i == 0 && j == yCount - 1) || (i == xCount - 1 && j == 0) || (i == xCount - 1 && j == yCount - 1))
                 pushNode(point, CHARACTER);
             else if (i == 0 || j == 0 || i == xCount - 1 || j == yCount - 1)
                 pushNode(point, BORDER);
@@ -64,7 +64,7 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &xCount, const UInteger 
             Floating eta = -1.0 + (Floating) j * hy;
             Point2D point = isoFunc(0, xi, eta) * v0  + isoFunc(1, xi, eta) * v1 + isoFunc(2, xi, eta) * v2 + isoFunc(3, xi, eta) * v3;
 
-            if ((i == 0 && j == 0) || (i == 0 & j == yCount - 1) || (i == xCount - 1 && j == 0) || (i == xCount - 1 & j == yCount - 1))
+            if ((i == 0 && j == 0) || (i == 0 && j == yCount - 1) || (i == xCount - 1 && j == 0) || (i == xCount - 1 && j == yCount - 1))
                 pushNode(point, CHARACTER);
             else if (i == 0 || j == 0 || i == xCount - 1 || j == yCount - 1)
                 pushNode(point, BORDER);

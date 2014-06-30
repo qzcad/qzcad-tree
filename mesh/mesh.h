@@ -98,6 +98,10 @@ public:
     virtual Floating nodeValue(const UInteger &number) const = 0;
 
     virtual bool isBorderElement(const UInteger &number) const = 0;
+    /**
+     * @brief Виртуальный деструктор
+     */
+    virtual ~Mesh(){}
 };
 }
 #endif // MESH_H

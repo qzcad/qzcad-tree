@@ -37,7 +37,7 @@ msh::MeshPointer GLMeshPicture::getMesh()
 
 void GLMeshPicture::setMesh(msh::MeshPointer mesh)
 {
-    setDefault ();
+    setDefault();
     mesh_ = mesh;
 //    xMin_ = mesh->xMin ();
 //    xMax_ = mesh->xMax ();
@@ -67,7 +67,8 @@ void GLMeshPicture::setMesh(msh::MeshPointer mesh)
 
 void GLMeshPicture::resetMesh()
 {
-    mesh_.reset();
+    if (mesh_)mesh_.reset();
+//    mesh_ = NULL;
     setDefault ();
     updateGL ();
 }

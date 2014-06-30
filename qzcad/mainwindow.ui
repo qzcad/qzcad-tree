@@ -105,6 +105,8 @@
     <addaction name="menuStruct"/>
     <addaction name="separator"/>
     <addaction name="actionPolygonalModel"/>
+    <addaction name="separator"/>
+    <addaction name="actionRotationBodyMesh"/>
    </widget>
    <widget class="QMenu" name="menu">
     <property name="title">
@@ -143,6 +145,8 @@
    <addaction name="actionStructHex"/>
    <addaction name="separator"/>
    <addaction name="actionSaveMesh"/>
+   <addaction name="separator"/>
+   <addaction name="actionRotationBodyMesh"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QDockWidget" name="dockWidgetStruct">
@@ -332,6 +336,15 @@
    </property>
    <property name="text">
     <string>Сохранить дискретную модель...</string>
+   </property>
+  </action>
+  <action name="actionRotationBodyMesh">
+   <property name="icon">
+    <iconset resource="qzresources.qrc">
+     <normaloff>:/icons/qzicons/rotation_body.png</normaloff>:/icons/qzicons/rotation_body.png</iconset>
+   </property>
+   <property name="text">
+    <string>Вращение двумерного профиля...</string>
    </property>
   </action>
  </widget>

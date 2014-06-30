@@ -58,5 +58,6 @@
         <file>qzicons/iso_quads.png</file>
         <file>qzicons/pmodel.png</file>
         <file>qzicons/prism.png</file>
+        <file>qzicons/rotation_body.png</file>
     </qresource>
 </RCC>
