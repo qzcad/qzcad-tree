@@ -13,6 +13,7 @@
 #include "path2deditor.h"
 #include "polygonalmodeldialog.h"
 #include "baryquadsdialog.h"
+#include "rotationbodymeshdialog.h"
 
 #include "quadrilateralmesh2d.h"
 #include "quadrilateralunion2d.h"
@@ -289,7 +290,28 @@ void MainWindow::on_actionRotationBodyMesh_triggered()
         if (qmesh)
         {
             // сетка четырехугольников
-            QMessageBox::information(this, "quads", "QUADS!!!!!!!!!!!");
+            RotationBodyMeshDialog dialog(this);
+            dialog.exec();
+            if (dialog.result() == QDialog::Accepted)
+            {
+                ui->pictureControl->resetMesh();
+                msh::HexahedralMesh3D *hmesh;
+                int axe = dialog.axe();
+                double radius = dialog.radius();
+                int layersCount = dialog.layersCount();
+                bool isClosedBody = dialog.isClosedBody();
+                double angle = dialog.rotationAngle();
+                if (isClosedBody)
+                    hmesh = new msh::HexahedralMesh3D(qmesh.get(), (axe == 0) ? 0.0 : radius, (axe == 0) ? radius : 0.0, layersCount, (axe == 0) ? true : false );
+                else
+                    hmesh = new msh::HexahedralMesh3D(qmesh.get(), (axe == 0) ? 0.0 : radius, (axe == 0) ? radius : 0.0, angle, layersCount, (axe == 0) ? true : false );
+                msh::MeshPointer mesh3d(hmesh);
+                ui->pictureControl->setMesh(mesh3d);
+            }
+        }
+        else
+        {
+            QMessageBox::warning(this, "Построение модели тела вращения для данного типа сетки не предусмотрено", "Построение модели тела вращения для данного типа сетки не предусмотрено");
         }
     }
 }

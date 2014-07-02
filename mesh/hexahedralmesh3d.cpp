@@ -160,7 +160,7 @@ HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating
     zMin_ = 0.0;
     zMax_ = 0.0;
 
-    node_.reserve(baseMesh->nodesCount() * lCount);
+    node_.reserve(baseMesh->nodesCount() * (lCount + 1L));
     element_.reserve(baseMesh->elementsCount() * lCount);
 
     UInteger i;
@@ -172,7 +172,7 @@ HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating
     UInteger baseNodesCount = baseMesh->nodesCount();
 
     // формирование узлов
-    for(int iz = 0; iz < lCount; iz++)
+    for(int iz = 0; iz <= lCount; iz++)
     {
         phi = (Floating)iz * delta_phi;
 
@@ -213,33 +213,38 @@ HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating
             if(zMax_ < spaceNode.z())
                 zMax_ = spaceNode.z();
 
-            pushNode(spaceNode, type);
+            pushNode(spaceNode, (iz == 0 || iz == lCount) ? BORDER : type);
         }
     }
 
     // формирование шестигранников
-    for(int iz = 0; iz < lCount - 1; iz++)
+    for(int iz = 0; iz < lCount; iz++)
     {
         for(i = 0; i < baseMesh->elementsCount(); i++)
         {
             Quadrilateral current_quad = baseMesh->quadrilateral(i);
-//            nodes_pointers[0] = current_quad[0] + iz * baseNodesCount;
-//            nodes_pointers[1] = current_quad[1] + iz * baseNodesCount;
-//            nodes_pointers[2] = current_quad[2] + iz * baseNodesCount;
-//            nodes_pointers[3] = current_quad[3] + iz * baseNodesCount;
-//            nodes_pointers[4] = current_quad[0] + (iz + 1) * baseNodesCount;
-//            nodes_pointers[5] = current_quad[1] + (iz + 1) * baseNodesCount;
-//            nodes_pointers[6] = current_quad[2] + (iz + 1) * baseNodesCount;
-//            nodes_pointers[7] = current_quad[3] + (iz + 1) * baseNodesCount;
-
-            nodes_pointers[1] = current_quad[0] + iz * baseNodesCount;
-            nodes_pointers[2] = current_quad[1] + iz * baseNodesCount;
-            nodes_pointers[6] = current_quad[2] + iz * baseNodesCount;
-            nodes_pointers[5] = current_quad[3] + iz * baseNodesCount;
-            nodes_pointers[0] = current_quad[0] + (iz + 1) * baseNodesCount;
-            nodes_pointers[3] = current_quad[1] + (iz + 1) * baseNodesCount;
-            nodes_pointers[7] = current_quad[2] + (iz + 1) * baseNodesCount;
-            nodes_pointers[4] = current_quad[3] + (iz + 1) * baseNodesCount;
+            if(angle < 0.0)
+            {
+                nodes_pointers[1] = current_quad[0] + iz * baseNodesCount;
+                nodes_pointers[2] = current_quad[1] + iz * baseNodesCount;
+                nodes_pointers[6] = current_quad[2] + iz * baseNodesCount;
+                nodes_pointers[5] = current_quad[3] + iz * baseNodesCount;
+                nodes_pointers[0] = current_quad[0] + (iz + 1) * baseNodesCount;
+                nodes_pointers[3] = current_quad[1] + (iz + 1) * baseNodesCount;
+                nodes_pointers[7] = current_quad[2] + (iz + 1) * baseNodesCount;
+                nodes_pointers[4] = current_quad[3] + (iz + 1) * baseNodesCount;
+            }
+            else
+            {
+                nodes_pointers[0] = current_quad[0] + iz * baseNodesCount;
+                nodes_pointers[1] = current_quad[1] + iz * baseNodesCount;
+                nodes_pointers[2] = current_quad[2] + iz * baseNodesCount;
+                nodes_pointers[3] = current_quad[3] + iz * baseNodesCount;
+                nodes_pointers[4] = current_quad[0] + (iz + 1) * baseNodesCount;
+                nodes_pointers[5] = current_quad[1] + (iz + 1) * baseNodesCount;
+                nodes_pointers[6] = current_quad[2] + (iz + 1) * baseNodesCount;
+                nodes_pointers[7] = current_quad[3] + (iz + 1) * baseNodesCount;
+            }
 
             addElement(nodes_pointers[0], nodes_pointers[1], nodes_pointers[2], nodes_pointers[3], nodes_pointers[4], nodes_pointers[5], nodes_pointers[6], nodes_pointers[7]);
         }
