@@ -67,10 +67,17 @@ void GLMeshPicture::setMesh(msh::MeshPointer mesh)
 
 void GLMeshPicture::resetMesh()
 {
-    if (mesh_)mesh_.reset();
-//    mesh_ = NULL;
+//    if (mesh_)mesh_.reset();
+    mesh_ = NULL;
     setDefault ();
     updateGL ();
+}
+
+msh::MeshPointer GLMeshPicture::releaseMesh()
+{
+    msh::MeshPointer meshPointer = mesh_;
+    resetMesh();
+    return meshPointer;
 }
 
 void GLMeshPicture::setDefault()

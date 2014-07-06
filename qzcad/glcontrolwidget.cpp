@@ -38,6 +38,11 @@ void GLControlWidget::resetMesh()
     ui->picture->resetMesh();
 }
 
+msh::MeshPointer GLControlWidget::releaseMesh()
+{
+    return ui->picture->releaseMesh();
+}
+
 void GLControlWidget::activateDoubleBufferGL(bool activate)
 {
     ui->picture->activateDoubleBufferGL(activate);

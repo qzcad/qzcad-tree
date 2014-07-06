@@ -18,6 +18,7 @@ public:
     msh::MeshPointer getMesh();
     void setMesh(msh::MeshPointer mesh);
     void resetMesh();
+    msh::MeshPointer releaseMesh();
 public slots:
     void activateDoubleBufferGL(bool activate);
 private slots:

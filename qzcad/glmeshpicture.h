@@ -35,7 +35,7 @@ public:
     virtual QSize sizeHint () const;
     /**
      * @brief Получить указатель на сетку
-     * @return "Умный" указатель на актуальную сетку
+     * @return Указатель на актуальную сетку
      */
     msh::MeshPointer getMesh();
     /**
@@ -47,6 +47,11 @@ public:
      * @brief Спросить указатель на сетку в NULL
      */
     void resetMesh();
+    /**
+     * @brief Освободить указатель на сетку (перестать использовать и вернуть его значение)
+     * @return Значение указателя на сетку
+     */
+    msh::MeshPointer releaseMesh();
 
 signals:
     /**

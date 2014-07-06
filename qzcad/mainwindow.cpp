@@ -31,11 +31,12 @@ MainWindow::MainWindow(QWidget *parent) :
     QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
 #endif
     showMaximized();
-//    mesh_ = NULL;
 }
 
 MainWindow::~MainWindow()
 {
+    msh::MeshPointer meshPtr = ui->pictureControl->releaseMesh();
+    if (meshPtr != NULL) delete meshPtr; // чистим старые данные
     delete ui;
 }
 
@@ -82,16 +83,6 @@ void MainWindow::addElement(const int &id,
     }
 }
 
-//void MainWindow::deleteMesh()
-//{
-//    if (mesh_)
-//    {
-//        ui->pictureControl->resetMesh();
-//        delete mesh_;
-//        mesh_ = NULL;
-//    }
-//}
-
 void MainWindow::on_actionIntersection_triggered()
 {
     addElement(_INTERSECTION_, "Операция", "Пересечение", ":/icons/qzicons/intersection.png");
@@ -129,15 +120,12 @@ void MainWindow::on_actionStructQuads_triggered()
     dialog.exec();
     if (dialog.result() == QDialog::Accepted)
     {
-//        deleteMesh();
-        ui->pictureControl->resetMesh();
+        msh::MeshPointer meshPtr = ui->pictureControl->releaseMesh();
+        if (meshPtr != NULL) delete meshPtr; // чистим старые данные
         msh::QuadrilateralMesh2D * mesh = new msh::QuadrilateralMesh2D(dialog.xCount(), dialog.yCount(),
                                                                        dialog.xMin(), dialog.yMin(),
                                                                        dialog.rectWidth(), dialog.rectHeight());
-        msh::MeshPointer meshPtr(mesh);
-//        mesh_ = new msh::QuadrilateralMesh2D(dialog.xCount(), dialog.yCount(),
-//                                                                       dialog.xMin(), dialog.yMin(),
-//                                                                       dialog.rectWidth(), dialog.rectHeight());
+        meshPtr = mesh;
         ui->pictureControl->setMesh(meshPtr);
     }
 }
@@ -148,22 +136,15 @@ void MainWindow::on_actionStructIsoQuads_triggered()
     dialog.exec();
     if (dialog.result() == QDialog::Accepted)
     {
-//        deleteMesh();
-        ui->pictureControl->resetMesh();
-//        mesh_ = new msh::QuadrilateralMesh2D(dialog.xiCount(),
-//                                                                       dialog.etaCount(),
-//                                                                       msh::Point2D(dialog.x0(), dialog.y0()),
-//                                                                       msh::Point2D(dialog.x1(), dialog.y1()),
-//                                                                       msh::Point2D(dialog.x2(), dialog.y2()),
-//                                                                       msh::Point2D(dialog.x3(), dialog.y3()));
-//        ui->pictureControl->setMesh(mesh_);
+        msh::MeshPointer meshPtr = ui->pictureControl->releaseMesh();
+        if (meshPtr != NULL) delete meshPtr; // чистим старые данные
         msh::QuadrilateralMesh2D * mesh = new msh::QuadrilateralMesh2D(dialog.xiCount(),
                                                                        dialog.etaCount(),
                                                                        msh::Point2D(dialog.x0(), dialog.y0()),
                                                                        msh::Point2D(dialog.x1(), dialog.y1()),
                                                                        msh::Point2D(dialog.x2(), dialog.y2()),
                                                                        msh::Point2D(dialog.x3(), dialog.y3()));
-        msh::MeshPointer meshPtr(mesh);
+        meshPtr = mesh;
         ui->pictureControl->setMesh(meshPtr);
     }
 }
@@ -174,18 +155,13 @@ void MainWindow::on_actionBaryQuads_triggered()
     dialog.exec();
     if (dialog.result() == QDialog::Accepted)
     {
-        ui->pictureControl->resetMesh();
-//        deleteMesh();
-//        mesh_ = new msh::QuadrilateralMesh2D(dialog.nodesCount(),
-//                                                                       msh::Point2D(dialog.x0(), dialog.y0()),
-//                                                                       msh::Point2D(dialog.x1(), dialog.y1()),
-//                                                                       msh::Point2D(dialog.x2(), dialog.y2()));
-//        ui->pictureControl->setMesh(mesh_);
+        msh::MeshPointer meshPtr = ui->pictureControl->releaseMesh();
+        if (meshPtr != NULL) delete meshPtr; // чистим старые данные
         msh::QuadrilateralMesh2D * mesh = new msh::QuadrilateralMesh2D(dialog.nodesCount(),
                                                                        msh::Point2D(dialog.x0(), dialog.y0()),
                                                                        msh::Point2D(dialog.x1(), dialog.y1()),
                                                                        msh::Point2D(dialog.x2(), dialog.y2()));
-        msh::MeshPointer meshPtr(mesh);
+        meshPtr = mesh;
         ui->pictureControl->setMesh(meshPtr);
     }
 }
@@ -196,8 +172,8 @@ void MainWindow::on_actionPolygonalModel_triggered()
     dialog.exec();
     if (dialog.result() == QDialog::Accepted)
     {
-//        deleteMesh();
-        ui->pictureControl->resetMesh();
+        msh::MeshPointer meshPtr = ui->pictureControl->releaseMesh();
+        if (meshPtr != NULL) delete meshPtr; // чистим старые данные
         msh::QuadrilateralUnion2D * mesh = new msh::QuadrilateralUnion2D();
         int quadsCount = dialog.quadsCount();
         for (int i = 0; i < quadsCount; i++)
@@ -217,12 +193,8 @@ void MainWindow::on_actionPolygonalModel_triggered()
             msh::QuadrilateralMesh2D qmesh (nodesCount, tri[0], tri[1], tri[2]);
             mesh->addMesh(&qmesh);
         }
-//        msh::HexahedralMesh3D *hmesh = new msh::HexahedralMesh3D(mesh, 0.0, -1990.0, 45.0, 350, true);
-        msh::MeshPointer meshPtr(mesh);
-//        msh::MeshPointer meshPtr(hmesh);
+        meshPtr = mesh;
         ui->pictureControl->setMesh(meshPtr);
-//        mesh_ = mesh;
-//        ui->pictureControl->setMesh(mesh_);
     }
 }
 
@@ -232,16 +204,12 @@ void MainWindow::on_actionStructHex_triggered()
     dialog.exec();
     if (dialog.result() == QDialog::Accepted)
     {
-//        deleteMesh();
-        ui->pictureControl->resetMesh();
-//        mesh_ = new msh::HexahedralMesh3D(dialog.xCount(), dialog.yCount(), dialog.zCount(),
-//                                                                 dialog.xMin(), dialog.yMin(), dialog.zMin(),
-//                                                                 dialog.rectWidth(), dialog.rectHeight(), dialog.rectDepth());
-//        ui->pictureControl->setMesh(mesh_);
+        msh::MeshPointer meshPtr = ui->pictureControl->releaseMesh();
+        if (meshPtr != NULL) delete meshPtr; // чистим старые данные
         msh::HexahedralMesh3D * mesh = new msh::HexahedralMesh3D(dialog.xCount(), dialog.yCount(), dialog.zCount(),
                                                                  dialog.xMin(), dialog.yMin(), dialog.zMin(),
                                                                  dialog.rectWidth(), dialog.rectHeight(), dialog.rectDepth());
-        msh::MeshPointer meshPtr(mesh);
+        meshPtr = mesh;
         ui->pictureControl->setMesh(meshPtr);
     }
 }
@@ -286,7 +254,7 @@ void MainWindow::on_actionRotationBodyMesh_triggered()
     msh::MeshPointer mesh = ui->pictureControl->getMesh();
     if (mesh)
     {
-        std::shared_ptr<msh::QuadrilateralMesh2D> qmesh = std::dynamic_pointer_cast<msh::QuadrilateralMesh2D>(mesh);
+        msh::QuadrilateralMesh2D *qmesh = dynamic_cast<msh::QuadrilateralMesh2D *>(mesh);
         if (qmesh)
         {
             // сетка четырехугольников
@@ -302,11 +270,12 @@ void MainWindow::on_actionRotationBodyMesh_triggered()
                 bool isClosedBody = dialog.isClosedBody();
                 double angle = dialog.rotationAngle();
                 if (isClosedBody)
-                    hmesh = new msh::HexahedralMesh3D(qmesh.get(), (axe == 0) ? 0.0 : radius, (axe == 0) ? radius : 0.0, layersCount, (axe == 0) ? true : false );
+                    hmesh = new msh::HexahedralMesh3D(qmesh, (axe == 0) ? 0.0 : radius, (axe == 0) ? radius : 0.0, layersCount, (axe == 0) ? true : false );
                 else
-                    hmesh = new msh::HexahedralMesh3D(qmesh.get(), (axe == 0) ? 0.0 : radius, (axe == 0) ? radius : 0.0, angle, layersCount, (axe == 0) ? true : false );
+                    hmesh = new msh::HexahedralMesh3D(qmesh, (axe == 0) ? 0.0 : radius, (axe == 0) ? radius : 0.0, angle, layersCount, (axe == 0) ? true : false );
                 msh::MeshPointer mesh3d(hmesh);
                 ui->pictureControl->setMesh(mesh3d);
+                delete qmesh; // !!! удаляем старые данные
             }
         }
         else

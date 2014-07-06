@@ -5,14 +5,13 @@
   */
 #ifndef MESHPOINTER_H
 #define MESHPOINTER_H
-#include <memory>
 #include "mesh.h"
 
 namespace msh
 {
 /**
- * @brief "Умный" указатель на сетку (c++11)
+ * @brief Указатель на сетку
  */
-typedef std::shared_ptr<Mesh> MeshPointer;
+typedef Mesh* MeshPointer;
 }
 #endif // MESHPOINTER_H
