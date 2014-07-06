@@ -257,7 +257,7 @@ Floating QuadrilateralMesh2D::functional(Floating *vars, const std::vector<UInte
         Floating c [][4] = {{xc,    xc,   xc,   xc},
                             {yc,    yc,   yc,   yc}};
         Floating localValue = 0.0;
-        auto sqr = [](Floating v) { return v * v; };
+//        auto sqr = [](Floating v) { return v * v; };
         for (int q = 0; q < 4; q++)
         {
             double l = sqr(c[0][q] - a[0][q]) + sqr(c[1][q] - a[1][q]) + sqr(b[0][q] - a[0][q]) + sqr(b[1][q] - a[1][q]);
