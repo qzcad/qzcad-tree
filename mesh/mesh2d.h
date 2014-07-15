@@ -88,6 +88,14 @@ public:
      * @return Тип узла сетки с номером number
      */
     virtual NodeType nodeType(const UInteger &number) const;
+    /**
+     * @brief Отразить сетку по вертикали
+     */
+    void flipVertically();
+    /**
+     * @brief Отразить сетку по горизонтали
+     */
+    void flipHorizontally();
 protected:
     /**
      * @brief Добавить узел, заданный точкой, без проверки на наличие в массиве узлов

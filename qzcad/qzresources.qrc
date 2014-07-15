@@ -59,5 +59,7 @@
         <file>qzicons/pmodel.png</file>
         <file>qzicons/prism.png</file>
         <file>qzicons/rotation_body.png</file>
+        <file>qzicons/flip_vertically.png</file>
+        <file>qzicons/flip_horizontally.png</file>
     </qresource>
 </RCC>
