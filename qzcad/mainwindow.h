@@ -60,6 +60,8 @@ private slots:
 
     void on_actionRotationBodyMesh_triggered();
 
+    void on_actionFlipVertically_triggered();
+
 private:
     Ui::MainWindow *ui; //!< Контейнер элементов графического интерфейса
 private:

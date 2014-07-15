@@ -102,11 +102,20 @@
      <addaction name="separator"/>
      <addaction name="actionStructHex"/>
     </widget>
+    <widget class="QMenu" name="menuFlip">
+     <property name="title">
+      <string>Отразить</string>
+     </property>
+     <addaction name="actionFlipVertically"/>
+     <addaction name="actionFlipHorizontally"/>
+    </widget>
     <addaction name="menuStruct"/>
     <addaction name="separator"/>
     <addaction name="actionPolygonalModel"/>
     <addaction name="separator"/>
     <addaction name="actionRotationBodyMesh"/>
+    <addaction name="separator"/>
+    <addaction name="menuFlip"/>
    </widget>
    <widget class="QMenu" name="menu">
     <property name="title">
@@ -147,6 +156,9 @@
    <addaction name="actionSaveMesh"/>
    <addaction name="separator"/>
    <addaction name="actionRotationBodyMesh"/>
+   <addaction name="separator"/>
+   <addaction name="actionFlipVertically"/>
+   <addaction name="actionFlipHorizontally"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QDockWidget" name="dockWidgetStruct">
@@ -345,6 +357,36 @@
    </property>
    <property name="text">
     <string>Вращение двумерного профиля...</string>
+   </property>
+  </action>
+  <action name="actionFlipVertically">
+   <property name="icon">
+    <iconset resource="qzresources.qrc">
+     <normaloff>:/icons/qzicons/flip_vertically.png</normaloff>:/icons/qzicons/flip_vertically.png</iconset>
+   </property>
+   <property name="text">
+    <string>По вертикали</string>
+   </property>
+   <property name="iconText">
+    <string>Отразить по вертикали</string>
+   </property>
+   <property name="toolTip">
+    <string>Отразить по вертикали</string>
+   </property>
+  </action>
+  <action name="actionFlipHorizontally">
+   <property name="icon">
+    <iconset resource="qzresources.qrc">
+     <normaloff>:/icons/qzicons/flip_horizontally.png</normaloff>:/icons/qzicons/flip_horizontally.png</iconset>
+   </property>
+   <property name="text">
+    <string>По горизонтали</string>
+   </property>
+   <property name="iconText">
+    <string>Отразить по горизонтали</string>
+   </property>
+   <property name="toolTip">
+    <string>Отразить по горизонтали</string>
    </property>
   </action>
  </widget>

@@ -284,3 +284,9 @@ void MainWindow::on_actionRotationBodyMesh_triggered()
         }
     }
 }
+
+void MainWindow::on_actionFlipVertically_triggered()
+{
+    msh::MeshPointer mesh = ui->pictureControl->getMesh();
+    if
+}
