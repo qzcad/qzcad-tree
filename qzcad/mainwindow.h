@@ -62,6 +62,8 @@ private slots:
 
     void on_actionFlipVertically_triggered();
 
+    void on_actionFlipHorizontally_triggered();
+
 private:
     Ui::MainWindow *ui; //!< Контейнер элементов графического интерфейса
 private:

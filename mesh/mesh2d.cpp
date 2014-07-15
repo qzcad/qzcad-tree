@@ -70,22 +70,22 @@ NodeType Mesh2D::nodeType(const UInteger &number) const
 
 void Mesh2D::flipVertically()
 {
-    for (UInteger i; i < nodesCount(); i++)
+    for (UInteger i = 0; i < nodesCount(); i++)
     {
         Point2D point = node_[i].point;
-        node_[i].point.set(point.x(), -point.y());
+        node_[i].point.set(point.x(), yMin_ + yMax_ - point.y());
     }
-    std::swap(yMin_, yMax_);
+    directionChange();
 }
 
 void Mesh2D::flipHorizontally()
 {
-    for (UInteger i; i < nodesCount(); i++)
+    for (UInteger i = 0; i < nodesCount(); i++)
     {
         Point2D point = node_[i].point;
-        node_[i].point.set(-point.x(), point.y());
+        node_[i].point.set(xMin_ + xMax_ - point.x(), point.y());
     }
-    std::swap(xMin_, xMax_);
+    directionChange();
 }
 
 UInteger Mesh2D:: pushNode(const Point2D &point, const NodeType &type)

@@ -199,6 +199,14 @@ Quadrilateral QuadrilateralMesh2D::quadrilateral(const UInteger &number) const
     return element_[number];
 }
 
+void QuadrilateralMesh2D::directionChange()
+{
+    for (UInteger i = 0; i < elementsCount(); i++)
+    {
+        std::swap(element_[i][0], element_[i][2]);
+    }
+}
+
 void QuadrilateralMesh2D::addElement(const UInteger &node0, const UInteger &node1, const UInteger &node2, const UInteger &node3)
 {
     Quadrilateral quad(node0, node1, node2, node3);

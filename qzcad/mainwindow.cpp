@@ -280,7 +280,8 @@ void MainWindow::on_actionRotationBodyMesh_triggered()
         }
         else
         {
-            QMessageBox::warning(this, "Построение модели тела вращения для данного типа сетки не предусмотрено", "Построение модели тела вращения для данного типа сетки не предусмотрено");
+            QString message = tr("Построение модели тела вращения для данного типа сетки не предусмотрено");
+            QMessageBox::warning(this, message, message);
         }
     }
 }
@@ -288,5 +289,39 @@ void MainWindow::on_actionRotationBodyMesh_triggered()
 void MainWindow::on_actionFlipVertically_triggered()
 {
     msh::MeshPointer mesh = ui->pictureControl->getMesh();
-    if
+    if (mesh)
+    {
+        msh::Mesh2D *mesh2d = dynamic_cast<msh::Mesh2D*>(mesh);
+        if (mesh2d)
+        {
+            ui->pictureControl->resetMesh();
+            mesh2d->flipVertically();
+            ui->pictureControl->setMesh(mesh2d);
+        }
+        else
+        {
+            QString message = tr("Отражение по вертикали для данного типа сетки не предусмотрено");
+            QMessageBox::warning(this, message, message);
+        }
+    }
+}
+
+void MainWindow::on_actionFlipHorizontally_triggered()
+{
+    msh::MeshPointer mesh = ui->pictureControl->getMesh();
+    if (mesh)
+    {
+        msh::Mesh2D *mesh2d = dynamic_cast<msh::Mesh2D*>(mesh);
+        if (mesh2d)
+        {
+            ui->pictureControl->resetMesh();
+            mesh2d->flipHorizontally();
+            ui->pictureControl->setMesh(mesh2d);
+        }
+        else
+        {
+            QString message = tr("Отражение по вертикали для данного типа сетки не предусмотрено");
+            QMessageBox::warning(this, message, message);
+        }
+    }
 }

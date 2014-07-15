@@ -71,6 +71,10 @@ public:
      * @return Четырехугольник с номером number
      */
     Quadrilateral quadrilateral(const UInteger &number) const;
+    /**
+     * @brief Изменить направление обхода во всех элементах сетки
+     */
+    virtual void directionChange();
 protected:
     /**
      * @brief Добавить элемент к  сетке
