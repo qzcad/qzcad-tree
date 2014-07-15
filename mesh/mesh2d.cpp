@@ -88,6 +88,32 @@ void Mesh2D::flipHorizontally()
     directionChange();
 }
 
+void Mesh2D::mirrorVertically()
+{
+    for (UInteger i = 0; i < nodesCount(); i++)
+    {
+        Point2D point = node_[i].point;
+        node_[i].point.set(point.x(), -point.y());
+    }
+    yMax_ = -yMax_;
+    yMin_ = -yMin_;
+    std::swap(yMin_, yMax_);
+    directionChange();
+}
+
+void Mesh2D::mirrorHorizontally()
+{
+    for (UInteger i = 0; i < nodesCount(); i++)
+    {
+        Point2D point = node_[i].point;
+        node_[i].point.set(-point.x(), point.y());
+    }
+    xMin_ = -xMin_;
+    xMax_ = -xMax_;
+    std::swap(xMin_, xMax_);
+    directionChange();
+}
+
 UInteger Mesh2D:: pushNode(const Point2D &point, const NodeType &type)
 {
     Node2D node;

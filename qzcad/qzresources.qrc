@@ -61,5 +61,7 @@
         <file>qzicons/rotation_body.png</file>
         <file>qzicons/flip_vertically.png</file>
         <file>qzicons/flip_horizontally.png</file>
+        <file>qzicons/mirror_horizontally.png</file>
+        <file>qzicons/mirror_vertically.png</file>
     </qresource>
 </RCC>

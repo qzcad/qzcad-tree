@@ -108,6 +108,9 @@
      </property>
      <addaction name="actionFlipVertically"/>
      <addaction name="actionFlipHorizontally"/>
+     <addaction name="separator"/>
+     <addaction name="actionMirrorVertically"/>
+     <addaction name="actionMirrorrHorizontally"/>
     </widget>
     <addaction name="menuStruct"/>
     <addaction name="separator"/>
@@ -159,6 +162,9 @@
    <addaction name="separator"/>
    <addaction name="actionFlipVertically"/>
    <addaction name="actionFlipHorizontally"/>
+   <addaction name="separator"/>
+   <addaction name="actionMirrorVertically"/>
+   <addaction name="actionMirrorrHorizontally"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <widget class="QDockWidget" name="dockWidgetStruct">
@@ -387,6 +393,24 @@
    </property>
    <property name="toolTip">
     <string>Отразить по горизонтали</string>
+   </property>
+  </action>
+  <action name="actionMirrorVertically">
+   <property name="icon">
+    <iconset resource="qzresources.qrc">
+     <normaloff>:/icons/qzicons/mirror_vertically.png</normaloff>:/icons/qzicons/mirror_vertically.png</iconset>
+   </property>
+   <property name="text">
+    <string>Зеркально по вертикали</string>
+   </property>
+  </action>
+  <action name="actionMirrorrHorizontally">
+   <property name="icon">
+    <iconset resource="qzresources.qrc">
+     <normaloff>:/icons/qzicons/mirror_horizontally.png</normaloff>:/icons/qzicons/mirror_horizontally.png</iconset>
+   </property>
+   <property name="text">
+    <string>Зеркально по горизонтали</string>
    </property>
   </action>
  </widget>

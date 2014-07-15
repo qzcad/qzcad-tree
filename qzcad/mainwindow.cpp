@@ -320,7 +320,47 @@ void MainWindow::on_actionFlipHorizontally_triggered()
         }
         else
         {
-            QString message = tr("Отражение по вертикали для данного типа сетки не предусмотрено");
+            QString message = tr("Отражение по горизонтали для данного типа сетки не предусмотрено");
+            QMessageBox::warning(this, message, message);
+        }
+    }
+}
+
+void MainWindow::on_actionMirrorVertically_triggered()
+{
+    msh::MeshPointer mesh = ui->pictureControl->getMesh();
+    if (mesh)
+    {
+        msh::Mesh2D *mesh2d = dynamic_cast<msh::Mesh2D*>(mesh);
+        if (mesh2d)
+        {
+            ui->pictureControl->resetMesh();
+            mesh2d->mirrorVertically();
+            ui->pictureControl->setMesh(mesh2d);
+        }
+        else
+        {
+            QString message = tr("Зеракльное отражение по вертикали для данного типа сетки не предусмотрено");
+            QMessageBox::warning(this, message, message);
+        }
+    }
+}
+
+void MainWindow::on_actionMirrorrHorizontally_triggered()
+{
+    msh::MeshPointer mesh = ui->pictureControl->getMesh();
+    if (mesh)
+    {
+        msh::Mesh2D *mesh2d = dynamic_cast<msh::Mesh2D*>(mesh);
+        if (mesh2d)
+        {
+            ui->pictureControl->resetMesh();
+            mesh2d->mirrorHorizontally();
+            ui->pictureControl->setMesh(mesh2d);
+        }
+        else
+        {
+            QString message = tr("Зеркальное отражение по горизонтали для данного типа сетки не предусмотрено");
             QMessageBox::warning(this, message, message);
         }
     }

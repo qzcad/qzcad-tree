@@ -97,6 +97,14 @@ public:
      */
     void flipHorizontally();
     /**
+     * @brief Зеркально отразить сетку по вертикали
+     */
+    void mirrorVertically();
+    /**
+     * @brief Зеркально отразить сетку по горизонтали
+     */
+    void mirrorHorizontally();
+    /**
      * @brief Изменить направление обхода во всех элементах сетки
      */
     virtual void directionChange() = 0;
