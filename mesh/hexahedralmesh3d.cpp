@@ -43,6 +43,7 @@ HexahedralMesh3D::HexahedralMesh3D(const UInteger &xCount, const UInteger &yCoun
             {
                 addElement(toArray(i, j, k, yCount, zCount), toArray(i, j, k+1, yCount, zCount), toArray(i+1, j, k+1, yCount, zCount), toArray(i+1, j, k, yCount, zCount),
                            toArray(i, j+1, k, yCount, zCount), toArray(i, j+1, k+1, yCount, zCount), toArray(i+1, j+1, k+1, yCount, zCount), toArray(i+1, j+1, k, yCount, zCount));
+                elementValue_.push_back(i + j + k);
             }
         }
     }
@@ -147,6 +148,7 @@ HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating
             }
 
             addElement(nodes_pointers[0], nodes_pointers[1], nodes_pointers[2], nodes_pointers[3], nodes_pointers[4], nodes_pointers[5], nodes_pointers[6], nodes_pointers[7]);
+            elementValue_.push_back(baseMesh->elementValue(i));
         }
     }
 }
@@ -247,6 +249,7 @@ HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating
             }
 
             addElement(nodes_pointers[0], nodes_pointers[1], nodes_pointers[2], nodes_pointers[3], nodes_pointers[4], nodes_pointers[5], nodes_pointers[6], nodes_pointers[7]);
+            elementValue_.push_back(baseMesh->elementValue(i));
         }
     }
 }
@@ -270,6 +273,11 @@ bool HexahedralMesh3D::isBorderElement(const UInteger &number) const
             return true;
     }
     return false;
+}
+
+Floating HexahedralMesh3D::elementValue(const UInteger &number) const
+{
+    return elementValue_[number];
 }
 
 void HexahedralMesh3D::addElement(const UInteger &node0, const UInteger &node1, const UInteger &node2, const UInteger &node3, const UInteger &node4, const UInteger &node5, const UInteger &node6, const UInteger &node7)

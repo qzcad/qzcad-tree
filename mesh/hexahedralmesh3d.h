@@ -58,6 +58,12 @@ public:
      */
     virtual ElementPointer element(const UInteger &number) const;
     virtual bool isBorderElement(const UInteger &number) const;
+    /**
+     * @brief Значение некоторой функции, определенной на элементе
+     * @param number Номер элемента
+     * @return Значение, соответствующее элементу
+     */
+    virtual Floating elementValue(const UInteger &number) const;
 protected:
     /**
      * @brief Добавить элемент к  сетке
@@ -75,6 +81,7 @@ protected:
     UInteger toArray(UInteger i, UInteger j, UInteger k, UInteger yCount, UInteger zCount) { return i * yCount * zCount + j * zCount + k; }
 private:
     std::vector<Hexahedral> element_; //!< Массив шестигранных элементов
+    std::vector<Floating> elementValue_; //!< Значение на элементе
 };
 }
 
