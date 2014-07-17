@@ -75,6 +75,12 @@ public:
      * @brief Изменить направление обхода во всех элементах сетки
      */
     virtual void directionChange();
+    /**
+     * @brief area Подсчитать площадь элемента
+     * @param number Номер элемента
+     * @return Площадь элемента
+     */
+    virtual Floating area(const UInteger &number);
 protected:
     /**
      * @brief Добавить элемент к  сетке

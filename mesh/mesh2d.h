@@ -108,6 +108,17 @@ public:
      * @brief Изменить направление обхода во всех элементах сетки
      */
     virtual void directionChange() = 0;
+    /**
+     * @brief Подсчитать площадь дискретной модели
+     * @return Сумма площадей конечных элементов
+     */
+    virtual Floating area();
+    /**
+     * @brief area Подсчитать площадь конечного элемента
+     * @param number Номер элемента
+     * @return Площадь элемента
+     */
+    virtual Floating area(const UInteger &number) = 0;
 protected:
     /**
      * @brief Добавить узел, заданный точкой, без проверки на наличие в массиве узлов

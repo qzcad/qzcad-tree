@@ -365,3 +365,22 @@ void MainWindow::on_actionMirrorrHorizontally_triggered()
         }
     }
 }
+
+void MainWindow::on_actionArea_triggered()
+{
+    msh::MeshPointer mesh = ui->pictureControl->getMesh();
+    if (mesh)
+    {
+        msh::Mesh2D *mesh2d = dynamic_cast<msh::Mesh2D*>(mesh);
+        if (mesh2d)
+        {
+            QString message = tr("Площадь модели равна %1").arg(mesh2d->area());
+            QMessageBox::information(this, message, message);
+        }
+        else
+        {
+            QString message = tr("Зеркальное отражение по горизонтали для данного типа сетки не предусмотрено");
+            QMessageBox::warning(this, message, message);
+        }
+    }
+}

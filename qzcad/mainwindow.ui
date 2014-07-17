@@ -119,6 +119,7 @@
     <addaction name="actionRotationBodyMesh"/>
     <addaction name="separator"/>
     <addaction name="menuFlip"/>
+    <addaction name="actionArea"/>
    </widget>
    <widget class="QMenu" name="menu">
     <property name="title">
@@ -411,6 +412,15 @@
    </property>
    <property name="text">
     <string>Зеркально по горизонтали</string>
+   </property>
+  </action>
+  <action name="actionArea">
+   <property name="icon">
+    <iconset resource="qzresources.qrc">
+     <normaloff>:/icons/qzicons/area.png</normaloff>:/icons/qzicons/area.png</iconset>
+   </property>
+   <property name="text">
+    <string>Площадь дискретной модели</string>
    </property>
   </action>
  </widget>

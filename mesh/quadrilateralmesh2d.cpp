@@ -207,6 +207,24 @@ void QuadrilateralMesh2D::directionChange()
     }
 }
 
+Floating QuadrilateralMesh2D::area(const UInteger &number)
+{
+    Quadrilateral quad = element_[number];
+    Point2D p0 = node_[quad[0]].point;
+    Point2D p1 = node_[quad[1]].point;
+    Point2D p2 = node_[quad[2]].point;
+    Point2D p3 = node_[quad[3]].point;
+    // стороны
+    Floating a = p0.distanceTo(p1);
+    Floating b = p1.distanceTo(p2);
+    Floating c = p2.distanceTo(p3);
+    Floating d = p3.distanceTo(p0);
+    // диагонали
+    Floating d1 = p0.distanceTo(p2);
+    Floating d2 = p1.distanceTo(p3);
+    return sqrt(4.0 * sqr(d1) * sqr(d2) - sqr(sqr(b) + sqr(d) - sqr(a) - sqr(c))) / 4.0;
+}
+
 void QuadrilateralMesh2D::addElement(const UInteger &node0, const UInteger &node1, const UInteger &node2, const UInteger &node3)
 {
     Quadrilateral quad(node0, node1, node2, node3);

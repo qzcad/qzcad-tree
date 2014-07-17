@@ -68,6 +68,8 @@ private slots:
 
     void on_actionMirrorrHorizontally_triggered();
 
+    void on_actionArea_triggered();
+
 private:
     Ui::MainWindow *ui; //!< Контейнер элементов графического интерфейса
 private:

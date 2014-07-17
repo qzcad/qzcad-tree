@@ -114,6 +114,14 @@ void Mesh2D::mirrorHorizontally()
     directionChange();
 }
 
+Floating Mesh2D::area()
+{
+    Floating sum = 0.0;
+    for (UInteger i = 0; i < elementsCount(); i++)
+        sum += area(i);
+    return sum;
+}
+
 UInteger Mesh2D:: pushNode(const Point2D &point, const NodeType &type)
 {
     Node2D node;
