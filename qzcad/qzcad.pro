@@ -25,7 +25,8 @@ SOURCES += main.cpp\
     highlighter.cpp \
     colorvaluemap.cpp \
     rectmeshdialog.cpp \
-    rotationbodymeshdialog.cpp
+    rotationbodymeshdialog.cpp \
+    exportmeshdialog.cpp
 
 HEADERS  += mainwindow.h \
     globalconsts.h \
@@ -39,7 +40,8 @@ HEADERS  += mainwindow.h \
     highlighter.h \
     colorvaluemap.h \
     rectmeshdialog.h \
-    rotationbodymeshdialog.h
+    rotationbodymeshdialog.h \
+    exportmeshdialog.h
 
 FORMS    += mainwindow.ui \
     glcontrolwidget.ui \
@@ -49,7 +51,8 @@ FORMS    += mainwindow.ui \
     pointeditordialog.ui \
     baryquadsdialog.ui \
     rectmeshdialog.ui \
-    rotationbodymeshdialog.ui
+    rotationbodymeshdialog.ui \
+    exportmeshdialog.ui
 
 RESOURCES += \
     qzresources.qrc

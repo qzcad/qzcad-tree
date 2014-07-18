@@ -18,6 +18,7 @@
 #include "quadrilateralmesh2d.h"
 #include "quadrilateralunion2d.h"
 #include "hexahedralmesh3d.h"
+#include "exportmeshdialog.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -223,28 +224,35 @@ void MainWindow::on_actionSaveMesh_triggered()
         QFile file(fileName);
         if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
             return;
-
-        QTextStream out(&file);
-        int dim = mesh->dimesion();
-        out << dim << '\n';
-        out << mesh->nodesCount() << '\n';
-        for (msh::UInteger i = 0; i < mesh->nodesCount(); i++)
+        ExportMeshDialog dialog(this);
+        dialog.exec();
+        if (dialog.result() == QDialog::Accepted)
         {
-            msh::PointPointer point = mesh->node(i);
-            out << point->x() << " " << point->y() << " ";
-            if (dim == 3)
-                out << point->z() << " ";
-            out << mesh->nodeType(i) << '\n';
-        }
-        out << mesh->elementsCount() << '\n';
-        for (msh::UInteger i = 0; i < mesh->elementsCount(); i++)
-        {
-            msh::ElementPointer element = mesh->element(i);
-            for (int j = 0; j < element->verticesCount(); j++)
+            QTextStream out(&file);
+            int dim = mesh->dimesion();
+            out << dim << '\n';
+            out << mesh->nodesCount() << '\n';
+            for (msh::UInteger i = 0; i < mesh->nodesCount(); i++)
             {
-                out << element->vertexNode(j) << " ";
+                msh::PointPointer point = mesh->node(i);
+                out << point->x() << " " << point->y() << " ";
+                if (dim == 3)
+                    out << point->z() << " ";
+                out << mesh->nodeType(i);
+                if (dialog.isNodeValue()) out << " " << mesh->nodeValue(i);
+                out << '\n';
             }
-            out << '\n';
+            out << mesh->elementsCount() << '\n';
+            for (msh::UInteger i = 0; i < mesh->elementsCount(); i++)
+            {
+                msh::ElementPointer element = mesh->element(i);
+                for (int j = 0; j < element->verticesCount(); j++)
+                {
+                    out << element->vertexNode(j) << " ";
+                }
+                if (dialog.isElementValue()) out << mesh->elementValue(i);
+                out << '\n';
+            }
         }
     }
 }
