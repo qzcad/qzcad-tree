@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>677</width>
-    <height>501</height>
+    <height>514</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -502,6 +502,13 @@
        </property>
       </widget>
      </item>
+     <item>
+      <widget class="QCheckBox" name="showColorBar">
+       <property name="text">
+        <string>Контрольная цветная полоса</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
   </layout>
@@ -534,6 +541,7 @@
     <slot>setXTranslation(double)</slot>
     <slot>setYTranslation(double)</slot>
     <slot>setZTranslation(double)</slot>
+    <slot>setShowColorBar(bool)</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -546,12 +554,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>527</x>
-     <y>214</y>
+     <x>523</x>
+     <y>210</y>
     </hint>
     <hint type="destinationlabel">
-     <x>527</x>
-     <y>190</y>
+     <x>523</x>
+     <y>186</y>
     </hint>
    </hints>
   </connection>
@@ -562,12 +570,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>527</x>
-     <y>190</y>
+     <x>523</x>
+     <y>186</y>
     </hint>
     <hint type="destinationlabel">
-     <x>527</x>
-     <y>214</y>
+     <x>523</x>
+     <y>210</y>
     </hint>
    </hints>
   </connection>
@@ -578,12 +586,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>595</x>
-     <y>214</y>
+     <x>593</x>
+     <y>210</y>
     </hint>
     <hint type="destinationlabel">
-     <x>595</x>
-     <y>190</y>
+     <x>593</x>
+     <y>186</y>
     </hint>
    </hints>
   </connection>
@@ -594,12 +602,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>595</x>
-     <y>190</y>
+     <x>593</x>
+     <y>186</y>
     </hint>
     <hint type="destinationlabel">
-     <x>595</x>
-     <y>214</y>
+     <x>593</x>
+     <y>210</y>
     </hint>
    </hints>
   </connection>
@@ -646,8 +654,8 @@
      <y>139</y>
     </hint>
     <hint type="destinationlabel">
-     <x>527</x>
-     <y>190</y>
+     <x>523</x>
+     <y>186</y>
     </hint>
    </hints>
   </connection>
@@ -658,8 +666,8 @@
    <slot>setXRotation(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>527</x>
-     <y>190</y>
+     <x>523</x>
+     <y>186</y>
     </hint>
     <hint type="destinationlabel">
      <x>280</x>
@@ -678,8 +686,8 @@
      <y>80</y>
     </hint>
     <hint type="destinationlabel">
-     <x>595</x>
-     <y>190</y>
+     <x>593</x>
+     <y>186</y>
     </hint>
    </hints>
   </connection>
@@ -690,8 +698,8 @@
    <slot>setYRotation(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>595</x>
-     <y>190</y>
+     <x>593</x>
+     <y>186</y>
     </hint>
     <hint type="destinationlabel">
      <x>262</x>
@@ -787,7 +795,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>666</x>
-     <y>469</y>
+     <y>461</y>
     </hint>
     <hint type="destinationlabel">
      <x>268</x>
@@ -803,7 +811,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>666</x>
-     <y>490</y>
+     <y>482</y>
     </hint>
     <hint type="destinationlabel">
      <x>254</x>
@@ -819,7 +827,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>665</x>
-     <y>316</y>
+     <y>310</y>
     </hint>
     <hint type="destinationlabel">
      <x>443</x>
@@ -839,7 +847,7 @@
     </hint>
     <hint type="destinationlabel">
      <x>665</x>
-     <y>316</y>
+     <y>310</y>
     </hint>
    </hints>
   </connection>
@@ -850,8 +858,8 @@
    <slot>setVisualisationMode(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>560</x>
-     <y>446</y>
+     <x>557</x>
+     <y>438</y>
     </hint>
     <hint type="destinationlabel">
      <x>315</x>
@@ -867,7 +875,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>664</x>
-     <y>446</y>
+     <y>438</y>
     </hint>
     <hint type="destinationlabel">
      <x>417</x>
@@ -968,6 +976,22 @@
     <hint type="destinationlabel">
      <x>614</x>
      <y>388</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>showColorBar</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>picture</receiver>
+   <slot>setShowColorBar(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>470</x>
+     <y>498</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>425</x>
+     <y>499</y>
     </hint>
    </hints>
   </connection>

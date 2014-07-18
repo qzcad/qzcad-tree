@@ -1,4 +1,5 @@
 #include "mesh2d.h"
+#include <math.h>
 namespace msh
 {
 Mesh2D::Mesh2D()
@@ -40,12 +41,12 @@ Floating Mesh2D::yMax() const
 
 Floating Mesh2D::zMin() const
 {
-    return -1.0;
+    return -std::min(std::max(fabs(xMax_), fabs(xMin_)), std::max(fabs(yMax_), fabs(yMin_)));
 }
 
 Floating Mesh2D::zMax() const
 {
-    return 1.0;
+    return std::min(std::max(fabs(xMax_), fabs(xMin_)), std::max(fabs(yMax_), fabs(yMin_)));
 }
 
 int Mesh2D::dimesion() const

@@ -14,6 +14,7 @@ GLMeshPicture::GLMeshPicture(QWidget *parent) :
 //    colorMapName_ = ColorValueMap::WINTER;
     setDefault();
     isMousePressed = false;
+    showColorBar_ = false;
 }
 
 GLMeshPicture::~GLMeshPicture()
@@ -248,6 +249,32 @@ void GLMeshPicture::pointToGLVertex(const msh::PointPointer &point) const
     glVertex3d(x, y, z);
 }
 
+void GLMeshPicture::drawColorBar()
+{
+    double min = map_.min();
+    double max = map_.max();
+    double minVal = qMin(xMin_, qMin(yMin_, zMin_));
+    double maxVal = qMax(xMax_, qMax(yMax_, zMax_));
+    const double width = 0.05 * (maxVal - minVal);
+    const double length = 0.2 * (maxVal - minVal);
+    const double top = yMin_ + length;
+    const double left = maxVal;
+
+    qglColor (textColor_);
+    renderText (left - width, top - length, zMax_, QString::number(min));
+    renderText (left - width, top, zMax_, QString::number(max));
+    glDisable(GL_LIGHTING);
+    glBegin(GL_POLYGON);
+        qglColor(map_.color(min));
+        glVertex3d(left - width, top - length, zMax_);
+        glVertex3d(left, top - length, zMax_);
+        qglColor(map_.color(max));
+        glVertex3d(left, top, zMax_);
+        glVertex3d(left - width, top, zMax_);
+    glEnd();
+    glEnable(GL_LIGHTING);
+}
+
 void GLMeshPicture::setXRotation(int angle)
 {
     int normalized = normalizedViewAngle(angle);
@@ -339,6 +366,12 @@ void GLMeshPicture::setShowMesh(bool show)
 void GLMeshPicture::setShowCube(bool show)
 {
     showCube_ = show;
+    updateGL();
+}
+
+void GLMeshPicture::setShowColorBar(bool show)
+{
+    showColorBar_ = show;
     updateGL();
 }
 
@@ -466,6 +499,8 @@ void GLMeshPicture::paintGL()
     glLoadIdentity();
     // сохранение состояния матрицы
     glPushMatrix();
+
+    if (showColorBar_) drawColorBar();
 
     // зум
     glScaled(zoom_, zoom_, zoom_);

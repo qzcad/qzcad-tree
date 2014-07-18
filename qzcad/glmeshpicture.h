@@ -153,6 +153,11 @@ public slots:
      */
     void setShowCube (bool show);
     /**
+     * @brief Установить значение флага видимости контрольной цветной полосы
+     * @param show Значение флага
+     */
+    void setShowColorBar(bool show);
+    /**
      * @brief Установить цвет фона
      * @param color Цвет фона
      */
@@ -239,6 +244,7 @@ private:
     double zMax_; //!< Максимальное значение аппликаты области видимости
     bool showMesh_; //!< Показать или нет сетку элементов
     bool showCube_; //!< Показать или нет куб видимости
+    bool showColorBar_; //!< Показать или нет контрольную цветную полосу
     QColor backgroundColor_; //!< Цвет фона
     QColor textColor_; //!< Цвет текста
     QColor elementColor_; //!< Цвет элемента
@@ -258,8 +264,8 @@ private:
      */
     enum VisualizationMode { USER_COLOR = 0, NODE_VALUE = 1, ELEMENT_VALUE = 2 };
     VisualizationMode visualizationMode_; //!< Индикатор включения цветовой визуализации значений, определенных на элементе
-//    ColorValueMap::ColorMapName colorMapName_; //!< Используемая цветовая схема
-    bool isMousePressed;
+    bool isMousePressed; //!< Флаг нажатия кнопки мышки
+
 private:
     /**
      * @brief Установить настройки изображения по умолчанию
@@ -284,6 +290,10 @@ private:
      * @param point Указатель на точку сетки
      */
     void pointToGLVertex(const msh::PointPointer &point) const;
+    /**
+     * @brief Нарисовать контрольную цветную полосу
+     */
+    void drawColorBar();
 };
 
 #endif // GLMESHPICTURE_H
