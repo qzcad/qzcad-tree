@@ -9,7 +9,7 @@ QT       -= core gui
 TARGET = mesh
 TEMPLATE = lib
 CONFIG += staticlib
-#QMAKE_CXXFLAGS += -std=c++0x
+QMAKE_CXXFLAGS += -std=c++0x
 
 SOURCES += mesh.cpp \
     point.cpp \

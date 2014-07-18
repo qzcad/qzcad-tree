@@ -42,10 +42,21 @@ public:
      * @param xDelta Смещение вдоль оси ординат
      * @param yDelta Смещение вдоль оси абсцисс
      * @param lCount Количество слоев элементов
-     * @param x_axes ось вращения (x_axes == true, то вращение вокруг оси ординат; иначе - абсцисс)
+     * @param x_axes Ось вращения (x_axes == true, то вращение вокруг оси ординат; иначе - абсцисс)
+     * @param withElementValue Учеть значения, опредедленные на элементе
      */
-    HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating& xDelta, const Floating& yDelta, const int& lCount, bool x_axes);
-    HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating& xDelta, const Floating& yDelta, const Floating& angle, const int& lCount, bool x_axes);
+    HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating& xDelta, const Floating& yDelta, const int& lCount, bool x_axes, bool withElementValue = true);
+    /**
+     * @brief HexahedralMesh3D Конструктор, который строит сетку как тело вращения на заданный угол
+     * @param baseMesh Указатель на базовую двумерную сетку четырехугольных элементов
+     * @param xDelta Смещение вдоль оси ординат
+     * @param yDelta Смещение вдоль оси абсцисс
+     * @param angle Угол поворота профиля
+     * @param lCount Количество слоев элементов
+     * @param x_axes Ось вращения (x_axes == true, то вращение вокруг оси ординат; иначе - абсцисс)
+     * @param withElementValue Учеть значения, опредедленные на элементе
+     */
+    HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating& xDelta, const Floating& yDelta, const Floating& angle, const int& lCount, bool x_axes, bool withElementValue = true);
     /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
@@ -78,7 +89,7 @@ protected:
      */
     void addElement(const UInteger &node0, const UInteger &node1, const UInteger &node2, const UInteger &node3,
                     const UInteger &node4, const UInteger &node5, const UInteger &node6, const UInteger &node7);
-    UInteger toArray(UInteger i, UInteger j, UInteger k, UInteger yCount, UInteger zCount) { return i * yCount * zCount + j * zCount + k; }
+//    UInteger toArray(UInteger i, UInteger j, UInteger k, UInteger yCount, UInteger zCount) { return i * yCount * zCount + j * zCount + k; }
 private:
     std::vector<Hexahedral> element_; //!< Массив шестигранных элементов
     std::vector<Floating> elementValue_; //!< Значение на элементе

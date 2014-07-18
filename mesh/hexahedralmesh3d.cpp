@@ -33,7 +33,8 @@ HexahedralMesh3D::HexahedralMesh3D(const UInteger &xCount, const UInteger &yCoun
             }
         }
     }
-//    auto toArray = [](UInteger i, UInteger j, UInteger k, UInteger yCount, UInteger zCount) { return i * yCount * zCount + j * zCount + k; };
+    // функция для определения индекса в одномерном массиве, который соответствует индексам трехмерной матрицы (C++0x)
+    auto toArray = [](UInteger i, UInteger j, UInteger k, UInteger yCount, UInteger zCount) { return i * yCount * zCount + j * zCount + k; };
     // формирование массива элементов
     for (UInteger i = 0; i < xCount - 1; i++)
     {
@@ -43,7 +44,6 @@ HexahedralMesh3D::HexahedralMesh3D(const UInteger &xCount, const UInteger &yCoun
             {
                 addElement(toArray(i, j, k, yCount, zCount), toArray(i, j, k+1, yCount, zCount), toArray(i+1, j, k+1, yCount, zCount), toArray(i+1, j, k, yCount, zCount),
                            toArray(i, j+1, k, yCount, zCount), toArray(i, j+1, k+1, yCount, zCount), toArray(i+1, j+1, k+1, yCount, zCount), toArray(i+1, j+1, k, yCount, zCount));
-                elementValue_.push_back(i + j + k);
             }
         }
     }
@@ -56,7 +56,7 @@ HexahedralMesh3D::HexahedralMesh3D(const UInteger &xCount, const UInteger &yCoun
     //    minimizeFunctional();
 }
 
-HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating &xDelta, const Floating &yDelta, const int &lCount, bool x_axes)
+HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating &xDelta, const Floating &yDelta, const int &lCount, bool x_axes, bool withElementValue)
 {
     xMin_ = baseMesh->xMin();
     xMax_ = baseMesh->xMax();
@@ -148,12 +148,13 @@ HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating
             }
 
             addElement(nodes_pointers[0], nodes_pointers[1], nodes_pointers[2], nodes_pointers[3], nodes_pointers[4], nodes_pointers[5], nodes_pointers[6], nodes_pointers[7]);
-            elementValue_.push_back(baseMesh->elementValue(i));
+            if (withElementValue)
+                elementValue_.push_back(baseMesh->elementValue(i));
         }
     }
 }
 
-HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating &xDelta, const Floating &yDelta, const Floating &angle, const int &lCount, bool x_axes)
+HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating &xDelta, const Floating &yDelta, const Floating &angle, const int &lCount, bool x_axes, bool withElementValue)
 {
     xMin_ = baseMesh->xMin();
     xMax_ = baseMesh->xMax();
@@ -249,7 +250,8 @@ HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating
             }
 
             addElement(nodes_pointers[0], nodes_pointers[1], nodes_pointers[2], nodes_pointers[3], nodes_pointers[4], nodes_pointers[5], nodes_pointers[6], nodes_pointers[7]);
-            elementValue_.push_back(baseMesh->elementValue(i));
+            if (withElementValue)
+                elementValue_.push_back(baseMesh->elementValue(i));
         }
     }
 }
@@ -277,7 +279,9 @@ bool HexahedralMesh3D::isBorderElement(const UInteger &number) const
 
 Floating HexahedralMesh3D::elementValue(const UInteger &number) const
 {
-    return elementValue_[number];
+    if (0 <= number && number < elementValue_.size())
+        return elementValue_[number];
+    return (Floating)number;
 }
 
 void HexahedralMesh3D::addElement(const UInteger &node0, const UInteger &node1, const UInteger &node2, const UInteger &node3, const UInteger &node4, const UInteger &node5, const UInteger &node6, const UInteger &node7)

@@ -222,6 +222,8 @@ Floating QuadrilateralMesh2D::area(const UInteger &number)
     // диагонали
     Floating d1 = p0.distanceTo(p2);
     Floating d2 = p1.distanceTo(p3);
+    // функция для вычисления квадрата числа (C++0x)
+    auto sqr = [](Floating value) { return value * value; };
     return sqrt(4.0 * sqr(d1) * sqr(d2) - sqr(sqr(b) + sqr(d) - sqr(a) - sqr(c))) / 4.0;
 }
 
@@ -283,7 +285,8 @@ Floating QuadrilateralMesh2D::functional(Floating *vars, const std::vector<UInte
         Floating c [][4] = {{xc,    xc,   xc,   xc},
                             {yc,    yc,   yc,   yc}};
         Floating localValue = 0.0;
-//        auto sqr = [](Floating v) { return v * v; };
+        // функция для вычисления квадрата числа (C++0x)
+        auto sqr = [](Floating value) { return value * value; };
         for (int q = 0; q < 4; q++)
         {
             double l = sqr(c[0][q] - a[0][q]) + sqr(c[1][q] - a[1][q]) + sqr(b[0][q] - a[0][q]) + sqr(b[1][q] - a[1][q]);
