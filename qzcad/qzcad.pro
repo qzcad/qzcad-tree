@@ -67,3 +67,6 @@ DEPENDPATH += $$PWD/../mesh
 win32:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../mesh/release/mesh.lib
 else:win32:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../mesh/debug/mesh.lib
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../mesh/libmesh.a
+
+OTHER_FILES += \
+    license.txt

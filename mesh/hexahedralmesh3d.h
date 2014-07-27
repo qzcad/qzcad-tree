@@ -68,6 +68,11 @@ public:
      * @return Указатель на копию элемента сетки
      */
     virtual ElementPointer element(const UInteger &number) const;
+    /**
+     * @brief Определить принадлежность элемента границе
+     * @param number Номер элемента
+     * @return true - граничный элемент; false - внутренний
+     */
     virtual bool isBorderElement(const UInteger &number) const;
     /**
      * @brief Значение некоторой функции, определенной на элементе
