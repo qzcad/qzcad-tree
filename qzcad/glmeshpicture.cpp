@@ -253,26 +253,39 @@ void GLMeshPicture::drawColorBar()
 {
     double min = map_.min();
     double max = map_.max();
-    double minVal = qMin(xMin_, qMin(yMin_, zMin_));
-    double maxVal = qMax(xMax_, qMax(yMax_, zMax_));
+    double minVal = -1.0;
+    double maxVal = 1.0;
     const double width = 0.05 * (maxVal - minVal);
     const double length = 0.2 * (maxVal - minVal);
-    const double top = yMin_ + length;
+    const double top = -1.0 + length;
     const double left = maxVal;
-
+    glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+    #ifdef QT_OPENGL_ES_1
+        glOrthof(-1.0, 1.0,
+                -1.0, 1.0,
+                -1.0, 1.0);
+    #else
+        glOrtho(-1.0, 1.0,
+                -1.0, 1.0,
+                -1.0, 1.0);
+    #endif
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
     qglColor (textColor_);
-    renderText (left - width, top - length, zMax_, QString::number(min));
-    renderText (left - width, top, zMax_, QString::number(max));
+    renderText (left - width, top - length, 1.0, QString::number(min));
+    renderText (left - width, top, 1.0, QString::number(max));
     glDisable(GL_LIGHTING);
     glBegin(GL_POLYGON);
         qglColor(map_.color(min));
-        glVertex3d(left - width, top - length, zMax_);
-        glVertex3d(left, top - length, zMax_);
+        glVertex3d(left - width, top - length, 1.0);
+        glVertex3d(left, top - length, 1.0);
         qglColor(map_.color(max));
-        glVertex3d(left, top, zMax_);
-        glVertex3d(left - width, top, zMax_);
+        glVertex3d(left, top, 1.0);
+        glVertex3d(left - width, top, 1.0);
     glEnd();
     glEnable(GL_LIGHTING);
+    resetProjectionMatrix();
 }
 
 void GLMeshPicture::setXRotation(int angle)
@@ -497,11 +510,6 @@ void GLMeshPicture::paintGL()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     // загрузка единичной матрицы
     glLoadIdentity();
-    // сохранение состояния матрицы
-    glPushMatrix();
-
-    if (showColorBar_) drawColorBar();
-
     // зум
     glScaled(zoom_, zoom_, zoom_);
     // вращение
@@ -577,8 +585,9 @@ void GLMeshPicture::paintGL()
             }
         }
     }
-    // исходное состояние
-    glPopMatrix();
+
+    if (showColorBar_) drawColorBar();
+
     glFlush();
     swapBuffers();
 }
