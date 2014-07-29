@@ -283,6 +283,52 @@ Floating HexahedralMesh3D::elementValue(const UInteger &number) const
     return (Floating)number;
 }
 
+Floating HexahedralMesh3D::faceArea(const UIntegerVector &face) const
+{
+    Point2D p0 = node_[face[0]].point;
+    Point2D p1 = node_[face[1]].point;
+    Point2D p2 = node_[face[2]].point;
+    Point2D p3 = node_[face[3]].point;
+    // стороны
+    Floating a = p0.distanceTo(p1);
+    Floating b = p1.distanceTo(p2);
+    Floating c = p2.distanceTo(p3);
+    Floating d = p3.distanceTo(p0);
+    // диагонали
+    Floating d1 = p0.distanceTo(p2);
+    Floating d2 = p1.distanceTo(p3);
+    // функция для вычисления квадрата числа (C++0x)
+    auto sqr = [](Floating value) { return value * value; };
+    return sqrt(4.0 * sqr(d1) * sqr(d2) - sqr(sqr(b) + sqr(d) - sqr(a) - sqr(c))) / 4.0;
+}
+
+Floating HexahedralMesh3D::surfaceArea() const
+{
+    Floating area = 0.0;
+    for (UInteger i = 0; i < elementsCount(); i++)
+    {
+        Hexahedral hex = element_[i];
+        for (int j = 0; j < hex.facesCount(); j++)
+        {
+            UIntegerVector face = hex.face(j);
+            bool isBorderFace = true;
+            for (int k = 0; k < 4; k++)
+            {
+                if (node_[face[k]].type == INNER)
+                {
+                    isBorderFace = false;
+                    break;
+                }
+            }
+            if (isBorderFace)
+            {
+                area += faceArea(face);
+            }
+        }
+    }
+    return area;
+}
+
 void HexahedralMesh3D::addElement(const UInteger &node0, const UInteger &node1, const UInteger &node2, const UInteger &node3, const UInteger &node4, const UInteger &node5, const UInteger &node6, const UInteger &node7)
 {
     Hexahedral hex(node0, node1, node2, node3, node4, node5, node6, node7);

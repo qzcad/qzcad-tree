@@ -80,6 +80,17 @@ public:
      * @return Значение, соответствующее элементу
      */
     virtual Floating elementValue(const UInteger &number) const;
+    /**
+     * @brief Вычислить площадь грани (грань - четырехугольник)
+     * @param face Список номеров узлов, определяющих грань
+     * @return Площадь грани
+     */
+    Floating faceArea(const UIntegerVector &face) const;
+    /**
+     * @brief Вычислить площадь поверхности дискретной модели
+     * @return Площадь поверхности дискретной модели
+     */
+    virtual Floating surfaceArea() const;
 protected:
     /**
      * @brief Добавить элемент к  сетке
