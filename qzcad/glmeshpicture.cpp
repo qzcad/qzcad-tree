@@ -11,7 +11,7 @@ GLMeshPicture::GLMeshPicture(QWidget *parent) :
     textColor_ = QColor (Qt::blue);
     mouseMode_ = ROTATION;
     visualizationMode_ = USER_COLOR;
-//    colorMapName_ = ColorValueMap::WINTER;
+    //    colorMapName_ = ColorValueMap::WINTER;
     setDefault();
     isMousePressed = false;
     showColorBar_ = false;
@@ -40,12 +40,12 @@ void GLMeshPicture::setMesh(msh::MeshPointer mesh)
 {
     setDefault();
     mesh_ = mesh;
-//    xMin_ = mesh->xMin ();
-//    xMax_ = mesh->xMax ();
-//    yMin_ = mesh->yMin ();
-//    yMax_ = mesh->yMax ();
-//    zMin_ = mesh->zMin ();
-//    zMax_ = mesh->zMax ();
+    //    xMin_ = mesh->xMin ();
+    //    xMax_ = mesh->xMax ();
+    //    yMin_ = mesh->yMin ();
+    //    yMax_ = mesh->yMax ();
+    //    zMin_ = mesh->zMin ();
+    //    zMax_ = mesh->zMax ();
     double dx = mesh->xMax () - mesh->xMin ();
     double dy = mesh->yMax () - mesh->yMin ();
     double dz = mesh->zMax () - mesh->zMin ();
@@ -55,12 +55,12 @@ void GLMeshPicture::setMesh(msh::MeshPointer mesh)
     zMin_ = -1.0 * dz / dx;
     zMax_ = 1.0 * dz / dx;
 
-//    emit xMinChanged(xMin_);
-//    emit xMaxChanged(xMax_);
-//    emit yMinChanged(yMin_);
-//    emit yMaxChanged(yMax_);
-//    emit zMinChanged(zMin_);
-//    emit zMaxChanged(zMax_);
+    //    emit xMinChanged(xMin_);
+    //    emit xMaxChanged(xMax_);
+    //    emit yMinChanged(yMin_);
+    //    emit yMaxChanged(yMax_);
+    //    emit zMinChanged(zMin_);
+    //    emit zMaxChanged(zMax_);
     resetProjectionMatrix ();
     setVisualisationMode(visualizationMode_); // необходимо обновить цветовую карту
     updateGL ();
@@ -68,7 +68,7 @@ void GLMeshPicture::setMesh(msh::MeshPointer mesh)
 
 void GLMeshPicture::resetMesh()
 {
-//    if (mesh_)mesh_.reset();
+    //    if (mesh_)mesh_.reset();
     mesh_ = NULL;
     setDefault ();
     updateGL ();
@@ -226,19 +226,19 @@ void GLMeshPicture::drawRegionBorders()
 void GLMeshPicture::resetProjectionMatrix()
 {
     glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-    #ifdef QT_OPENGL_ES_1
-        glOrthof(xMin_, xMax_,
-                yMin_, yMax_,
-                zMin_, zMax_);
-    #else
-        double minVal = qMin(xMin_, qMin(yMin_, zMin_));
-        double maxVal = qMax(xMax_, qMax(yMax_, zMax_));
-        glOrtho(minVal, maxVal,
-                minVal, maxVal,
-                minVal, maxVal);
-    #endif
-        glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+#ifdef QT_OPENGL_ES_1
+    glOrthof(xMin_, xMax_,
+             yMin_, yMax_,
+             zMin_, zMax_);
+#else
+    double minVal = qMin(xMin_, qMin(yMin_, zMin_));
+    double maxVal = qMax(xMax_, qMax(yMax_, zMax_));
+    glOrtho(minVal, maxVal,
+            minVal, maxVal,
+            minVal, maxVal);
+#endif
+    glMatrixMode(GL_MODELVIEW);
 }
 
 void GLMeshPicture::pointToGLVertex(const msh::PointPointer &point) const
@@ -255,36 +255,39 @@ void GLMeshPicture::drawColorBar()
     double max = map_.max();
     double minVal = -1.0;
     double maxVal = 1.0;
-    const double width = 0.05 * (maxVal - minVal);
+    const double width = 0.04 * (maxVal - minVal);
     const double length = 0.2 * (maxVal - minVal);
     const double top = -1.0 + length;
-    const double left = maxVal;
+    const double right = minVal + width;
+    // изменение режима проекции для отрисовки контрольной полосы
     glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-    #ifdef QT_OPENGL_ES_1
-        glOrthof(-1.0, 1.0,
-                -1.0, 1.0,
-                -1.0, 1.0);
-    #else
-        glOrtho(-1.0, 1.0,
-                -1.0, 1.0,
-                -1.0, 1.0);
-    #endif
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
+    glLoadIdentity();
+#ifdef QT_OPENGL_ES_1
+    glOrthof(minVal, maxVal,
+             minVal, maxVal,
+             minVal, maxVal);
+#else
+    glOrtho(minVal, maxVal,
+            minVal, maxVal,
+            minVal, maxVal);
+#endif
+    // отрисовка котрольной полосы
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
     qglColor (textColor_);
-    renderText (left - width, top - length, 1.0, QString::number(min));
-    renderText (left - width, top, 1.0, QString::number(max));
+    renderText (right, top - length, maxVal, QString::number(min));
+    renderText (right, top, maxVal, QString::number(max));
     glDisable(GL_LIGHTING);
     glBegin(GL_POLYGON);
-        qglColor(map_.color(min));
-        glVertex3d(left - width, top - length, 1.0);
-        glVertex3d(left, top - length, 1.0);
-        qglColor(map_.color(max));
-        glVertex3d(left, top, 1.0);
-        glVertex3d(left - width, top, 1.0);
+    qglColor(map_.color(min));
+    glVertex3d(right - width, top - length, maxVal);
+    glVertex3d(right, top - length, maxVal);
+    qglColor(map_.color(max));
+    glVertex3d(right, top, maxVal);
+    glVertex3d(right - width, top, maxVal);
     glEnd();
     glEnable(GL_LIGHTING);
+    // востановление исходного режима проекции
     resetProjectionMatrix();
 }
 
@@ -472,7 +475,7 @@ void GLMeshPicture::initializeGL()
     glEnable(GL_LIGHTING);
     // вкдючаем нулевой источник света
     glEnable(GL_LIGHT0);
-//    glEnable(GL_LIGHT1);
+    //    glEnable(GL_LIGHT1);
 
     // включаем пересчет нормалей при масштабировании
 #if defined(GL_RESCALE_NORMAL)
@@ -502,12 +505,12 @@ void GLMeshPicture::paintGL()
 {
     // координаты источника света
     float light_position0[] = {0.0f, 0.0f, -10.0f * (float)qMax(xMax_, qMax(yMax_, zMax_)), 0.0f};
-//    float light_position1[] = {0.0f, 0.0f, 10.0f * (float)qMax(xMax_, qMax(yMax_, zMax_)), 0.0f};
+    // Для трехмерных объектов оставляем камеру неподвижной
     if (mesh_ && mesh_->dimesion() == 3)
         glLightfv (GL_LIGHT0, GL_POSITION, light_position0);
-//    glLightfv (GL_LIGHT1, GL_POSITION, light_position1);
     // сброс буферов
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glPushMatrix();
     // загрузка единичной матрицы
     glLoadIdentity();
     // зум
@@ -518,7 +521,7 @@ void GLMeshPicture::paintGL()
     glRotatef(zRot_, 0.0, 0.0, 1.0);
     // движение
     glTranslated(xTranslate_, yTranslate_, zTranslate_);
-    // расположение источника света
+    // для двумерных объетов камера двигается одновременно со сценой
     if (mesh_ && mesh_->dimesion() == 2)
         glLightfv (GL_LIGHT0, GL_POSITION, light_position0);
     // границы области
@@ -585,6 +588,7 @@ void GLMeshPicture::paintGL()
             }
         }
     }
+    glPopMatrix();
 
     if (showColorBar_) drawColorBar();
 
