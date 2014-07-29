@@ -53,7 +53,6 @@ HexahedralMesh3D::HexahedralMesh3D(const UInteger &xCount, const UInteger &yCoun
     yMax_ = yMin + height;
     zMin_ = zMin;
     zMax_ = xMin + depth;
-    //    minimizeFunctional();
 }
 
 HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating &xDelta, const Floating &yDelta, const int &lCount, bool x_axes, bool withElementValue)
@@ -279,7 +278,7 @@ bool HexahedralMesh3D::isBorderElement(const UInteger &number) const
 
 Floating HexahedralMesh3D::elementValue(const UInteger &number) const
 {
-    if (0 <= number && number < elementValue_.size())
+    if (number < elementValue_.size())
         return elementValue_[number];
     return (Floating)number;
 }
