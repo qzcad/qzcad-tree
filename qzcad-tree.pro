@@ -2,4 +2,5 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
     mesh \
-    qzcad
+    qzcad \
+    qzfem
