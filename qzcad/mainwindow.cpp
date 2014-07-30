@@ -387,8 +387,17 @@ void MainWindow::on_actionArea_triggered()
         }
         else
         {
-            QString message = tr("Зеркальное отражение по горизонтали для данного типа сетки не предусмотрено");
-            QMessageBox::warning(this, message, message);
+            msh::Mesh3D *mesh3d = dynamic_cast<msh::Mesh3D*>(mesh);
+            if (mesh3d)
+            {
+                QString message = tr("Площадь поверхности модели равна %1").arg(mesh3d->surfaceArea());
+                QMessageBox::information(this, message, message);
+            }
+            else
+            {
+                QString message = tr("Вычисление площади для данного типа сетки не предусмотрено");
+                QMessageBox::warning(this, message, message);
+            }
         }
     }
 }

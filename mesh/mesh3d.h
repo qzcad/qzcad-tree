@@ -87,6 +87,11 @@ public:
      * @return Значение, соответствующее узлу
      */
     virtual Floating nodeValue(const UInteger &number) const;
+    /**
+     * @brief Вычислить площадь поверхности дискретной модели
+     * @return Площадь поверхности дискретной модели
+     */
+    virtual Floating surfaceArea() const = 0;
 protected:
     /**
      * @brief Добавить узел, заданный точкой, без проверки на наличие в массиве узлов

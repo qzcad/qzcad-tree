@@ -285,10 +285,10 @@ Floating HexahedralMesh3D::elementValue(const UInteger &number) const
 
 Floating HexahedralMesh3D::faceArea(const UIntegerVector &face) const
 {
-    Point2D p0 = node_[face[0]].point;
-    Point2D p1 = node_[face[1]].point;
-    Point2D p2 = node_[face[2]].point;
-    Point2D p3 = node_[face[3]].point;
+    Point3D p0 = node_[face[0]].point;
+    Point3D p1 = node_[face[1]].point;
+    Point3D p2 = node_[face[2]].point;
+    Point3D p3 = node_[face[3]].point;
     // стороны
     Floating a = p0.distanceTo(p1);
     Floating b = p1.distanceTo(p2);
@@ -317,7 +317,7 @@ Floating HexahedralMesh3D::surfaceArea() const
                 if (node_[face[k]].type == INNER)
                 {
                     isBorderFace = false;
-                    break;
+//                    break;
                 }
             }
             if (isBorderFace)
