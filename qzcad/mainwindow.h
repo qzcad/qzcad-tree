@@ -11,6 +11,7 @@
 
 #include <QTreeWidget>
 #include "mesh.h"
+#include "qstdredirector.h"
 
 namespace Ui {
 class MainWindow;
@@ -72,6 +73,7 @@ private slots:
 
 private:
     Ui::MainWindow *ui; //!< Контейнер элементов графического интерфейса
+    QStdRedirector<> *stdRedirector; //!< Перехватчик сообщений стандартного потока
 private:
     /**
      * @brief addObjectTreeItem Добавить элемент в дерево на форме

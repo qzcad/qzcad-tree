@@ -19,6 +19,7 @@
 #include "quadrilateralunion2d.h"
 #include "hexahedralmesh3d.h"
 #include "exportmeshdialog.h"
+#include "qstdredirector.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -32,12 +33,16 @@ MainWindow::MainWindow(QWidget *parent) :
     QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
 #endif
     showMaximized();
+    stdRedirector = new QStdRedirector<>(std::cout, this);
+    connect(stdRedirector, SIGNAL(messageChanged(QString)), ui->terminalText, SLOT(insertPlainText(QString)));
+    std::cout << "Система успешно запущена и готова к использованию" << std::endl;
 }
 
 MainWindow::~MainWindow()
 {
     msh::MeshPointer meshPtr = ui->pictureControl->releaseMesh();
     if (meshPtr != NULL) delete meshPtr; // чистим старые данные
+    delete stdRedirector;
     delete ui;
 }
 

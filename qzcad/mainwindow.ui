@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>943</width>
-    <height>421</height>
+    <height>614</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -202,6 +202,32 @@
          <string>ID</string>
         </property>
        </column>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="terminalDock">
+   <property name="windowIcon">
+    <iconset resource="qzresources.qrc">
+     <normaloff>:/icons/qzicons/24x24/terminal.png</normaloff>:/icons/qzicons/24x24/terminal.png</iconset>
+   </property>
+   <property name="windowTitle">
+    <string>Терминал</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>8</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_2">
+    <layout class="QVBoxLayout" name="verticalLayout_2">
+     <item>
+      <widget class="QTextEdit" name="terminalText">
+       <property name="documentTitle">
+        <string>Сообщения системы</string>
+       </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
       </widget>
      </item>
     </layout>

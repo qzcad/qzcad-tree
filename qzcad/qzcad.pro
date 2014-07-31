@@ -27,7 +27,8 @@ SOURCES += main.cpp\
     rectmeshdialog.cpp \
     rotationbodymeshdialog.cpp \
     exportmeshdialog.cpp \
-    qtxtsender.cpp
+    qtxtsender.cpp \
+    qstdredirector.cpp
 
 HEADERS  += mainwindow.h \
     globalconsts.h \
@@ -43,7 +44,8 @@ HEADERS  += mainwindow.h \
     rectmeshdialog.h \
     rotationbodymeshdialog.h \
     exportmeshdialog.h \
-    qtxtsender.h
+    qtxtsender.h \
+    qstdredirector.h
 
 FORMS    += mainwindow.ui \
     glcontrolwidget.ui \
