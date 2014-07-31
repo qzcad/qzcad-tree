@@ -26,7 +26,8 @@ SOURCES += main.cpp\
     colorvaluemap.cpp \
     rectmeshdialog.cpp \
     rotationbodymeshdialog.cpp \
-    exportmeshdialog.cpp
+    exportmeshdialog.cpp \
+    qtxtsender.cpp
 
 HEADERS  += mainwindow.h \
     globalconsts.h \
@@ -41,7 +42,8 @@ HEADERS  += mainwindow.h \
     colorvaluemap.h \
     rectmeshdialog.h \
     rotationbodymeshdialog.h \
-    exportmeshdialog.h
+    exportmeshdialog.h \
+    qtxtsender.h
 
 FORMS    += mainwindow.ui \
     glcontrolwidget.ui \
