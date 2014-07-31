@@ -1,5 +1,6 @@
 #include "hexahedralmesh3d.h"
 #include <math.h>
+#include <iostream>
 
 namespace msh {
 HexahedralMesh3D::HexahedralMesh3D()
@@ -53,6 +54,7 @@ HexahedralMesh3D::HexahedralMesh3D(const UInteger &xCount, const UInteger &yCoun
     yMax_ = yMin + height;
     zMin_ = zMin;
     zMax_ = xMin + depth;
+    std::cout << "Создана равномерная сетка шестигранных элементов: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
 HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating &xDelta, const Floating &yDelta, const int &lCount, bool x_axes, bool withElementValue)
@@ -151,6 +153,7 @@ HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating
                 elementValue_.push_back(baseMesh->elementValue(i));
         }
     }
+    std::cout << "Создана сетка шестигранных элементов вращением плоского профиля: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
 HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating &xDelta, const Floating &yDelta, const Floating &angle, const int &lCount, bool x_axes, bool withElementValue)
@@ -253,6 +256,7 @@ HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating
                 elementValue_.push_back(baseMesh->elementValue(i));
         }
     }
+    std::cout << "Создана сетка шестигранных элементов вращением плоского профиля: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
 UInteger HexahedralMesh3D::elementsCount() const

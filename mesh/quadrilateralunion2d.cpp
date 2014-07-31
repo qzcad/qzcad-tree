@@ -1,4 +1,5 @@
 #include "quadrilateralunion2d.h"
+#include <iostream>
 
 namespace msh
 {
@@ -6,6 +7,7 @@ QuadrilateralUnion2D::QuadrilateralUnion2D()
 {
     isFirstRegion_ = true;
     layerNumber_ = 0;
+    std::cout << "Создана сетка - объединение сеток четырехугольных элементов..." << std::endl;
 }
 
 void QuadrilateralUnion2D::addQuadRegion(const UInteger &xCount, const UInteger &yCount, const Point2D &v0, const Point2D &v1, const Point2D &v2, const Point2D &v3)
@@ -166,6 +168,9 @@ void QuadrilateralUnion2D::addMesh(QuadrilateralMesh2D *mesh)
         yMin_ = std::min(yMin_, mesh->yMin());
         yMax_ = std::max(yMax_, mesh->yMax());
     }
+
+    std::cout << "Добавлена сетка четырехугольных элементов: узлов - " << mesh->nodesCount() << ", элементов - " << mesh->elementsCount() << "; номер слоя - " << layerNumber_ << "." << std::endl;
+    std::cout << "Объединенная дискретная модель: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 
     layerNumber_++;
 }

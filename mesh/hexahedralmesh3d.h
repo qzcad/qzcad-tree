@@ -91,7 +91,6 @@ public:
      * @return Площадь поверхности дискретной модели
      */
     virtual Floating surfaceArea() const;
-protected:
     /**
      * @brief Добавить элемент к  сетке
      * @param node0 Номер узла в вершине 0

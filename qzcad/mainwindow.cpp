@@ -35,7 +35,7 @@ MainWindow::MainWindow(QWidget *parent) :
     showMaximized();
     stdRedirector = new QStdRedirector<>(std::cout, this);
     connect(stdRedirector, SIGNAL(messageChanged(QString)), ui->terminalText, SLOT(insertPlainText(QString)));
-    std::cout << "Система успешно запущена и готова к использованию" << std::endl;
+    std::cout << "Система успешно запущена и готова к использованию..." << std::endl;
 }
 
 MainWindow::~MainWindow()

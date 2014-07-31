@@ -48,6 +48,7 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &xCount, const UInteger 
     yMin_ = yMin;
     yMax_ = yMin + height;
     minimizeFunctional();
+    std::cout << "Создана равномерная сетка четырехугольных элементов: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
 QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &xCount, const UInteger &yCount,
@@ -84,6 +85,7 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &xCount, const UInteger 
     xMax_ = std::max(std::max(v0.x(), v1.x()), std::max(v2.x(), v3.x()));
     yMin_ = std::min(std::min(v0.y(), v1.y()), std::min(v2.y(), v3.y()));
     yMax_ = std::max(std::max(v0.y(), v1.y()), std::max(v2.y(), v3.y()));
+    std::cout << "Создана равномерная (изопараметрическое преобразование) сетка четырехугольных элементов: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
 QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &count, const Point2D &v0, const Point2D &v1, const Point2D &v2)
@@ -136,6 +138,7 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &count, const Point2D &v
     xMax_ = std::max(std::max(v0.x(), v1.x()), v2.x());
     yMin_ = std::min(std::min(v0.y(), v1.y()), v2.y());
     yMax_ = std::max(std::max(v0.y(), v1.y()), v2.y());
+    std::cout << "Создана равномерная сетка четырехугольных элементов для тругольной области: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
 UInteger QuadrilateralMesh2D::elementsCount() const
