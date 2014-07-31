@@ -92,7 +92,6 @@ public:
      * @return Площадь поверхности дискретной модели
      */
     virtual Floating surfaceArea() const = 0;
-protected:
     /**
      * @brief Добавить узел, заданный точкой, без проверки на наличие в массиве узлов
      * @param point Координаты узла для вставки

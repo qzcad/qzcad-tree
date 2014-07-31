@@ -86,7 +86,6 @@ public:
      * @return Площадь элемента
      */
     virtual Floating area(const UInteger &number);
-protected:
     /**
      * @brief Добавить элемент к  сетке
      * @param node0 Номер узла в вершине 0
@@ -95,6 +94,7 @@ protected:
      * @param node3 Номер узла в вершине 3
      */
     void addElement(const UInteger &node0, const UInteger &node1, const UInteger &node2, const UInteger &node3);
+protected:
     /**
      * @brief Функция формы изопараметрического четырехугольного элемента
      * @param i Номер узла
@@ -113,7 +113,7 @@ protected:
     Floating norm2(const UInteger &size, Floating *x);
     void conjugateGradient(const UInteger &size, Floating *x0, Floating *xMin,
                            const std::vector<UInteger> &nodeVariable, Floating epsilon = 0.0001, UInteger maxIter = 300);
-//    double sqr(const Floating &a) { return a * a; }
+    //    double sqr(const Floating &a) { return a * a; }
 protected:
     std::vector<Quadrilateral> element_; //!< Массив элементов
 };

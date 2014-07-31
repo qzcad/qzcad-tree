@@ -119,7 +119,6 @@ public:
      * @return Площадь элемента
      */
     virtual Floating area(const UInteger &number) = 0;
-protected:
     /**
      * @brief Добавить узел, заданный точкой, без проверки на наличие в массиве узлов
      * @param point Координаты узла для вставки
