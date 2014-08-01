@@ -3,4 +3,5 @@ TEMPLATE = subdirs
 SUBDIRS += \
     mesh \
     qzcad \
-    qzfem
+    qzfem \
+    console_test

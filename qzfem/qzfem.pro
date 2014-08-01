@@ -13,7 +13,9 @@ CONFIG += staticlib
 SOURCES += hexahedralfem.cpp
 
 HEADERS += hexahedralfem.h \
-    globalmatrix.h
+    globalmatrix.h \
+    floatingvector.h \
+    floatingmatrix.h
 unix {
     target.path = /usr/lib
     INSTALLS += target

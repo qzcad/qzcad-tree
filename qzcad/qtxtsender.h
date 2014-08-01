@@ -3,8 +3,8 @@
   * @date 31/07/08
   * @version 1.0.0
   **/
-#ifndef QSTDSENDER_H
-#define QSTDSENDER_H
+#ifndef QTXTSENDER_H
+#define QTXTSENDER_H
 
 #include <QObject>
 /**
@@ -37,4 +37,4 @@ protected:
 
 };
 
-#endif // QSTDSENDER_H
+#endif // QTXTSENDER_H
