@@ -73,8 +73,17 @@ int main()
 
     cout << "Средний слой: E = " << innerE << "; nu = " << innerNu << ";" << endl;
     cout << "D = " << endl << innerD << endl;
-    cout << "Внешние слоя: E = " << outerE << "; nu = " << outerNu << "." << endl;
 
+    outerD(0, 0) = 1.0; outerD(0, 1) = outerNu / (1.0 - outerNu); outerD(0, 2) = outerNu / (1.0 - outerNu);
+    outerD(1, 0) = outerNu / (1.0 - outerNu); outerD(1, 1) = 1.0; outerD(1, 2) = outerNu / (1.0 - outerNu);
+    outerD(2, 0) = outerNu / (1.0 - outerNu); outerD(2, 1) = outerNu / (1.0 - outerNu); outerD(2, 2) = 1.0;
+    outerD(3, 3) = (1.0 - 2.0 * outerNu) / (2.0 * (1.0 - outerNu));
+    outerD(4, 4) = (1.0 - 2.0 * outerNu) / (2.0 * (1.0 - outerNu));
+    outerD(5, 5) = (1.0 - 2.0 * outerNu) / (2.0 * (1.0 - outerNu));
+    outerD = outerE * (1.0 - outerNu) / ((1.0 + outerNu) * (1.0 - 2.0 * outerNu)) * outerD;
+
+    cout << "Внешние слоя: E = " << outerE << "; nu = " << outerNu << ";" << endl;
+    cout << "D = " << endl << outerD << endl;
 
 
     return 0;
