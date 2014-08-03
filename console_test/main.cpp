@@ -5,8 +5,11 @@
 #include <fstream>
 #include <iomanip>
 #include <boost/numeric/ublas/io.hpp>
+#include <boost/progress.hpp>
 #include "hexahedralmesh3d.h"
 #include "floatingmatrix.h"
+#include "globalmatrix.h"
+#include "floatingvector.h"
 
 using namespace std;
 using namespace msh;
@@ -17,6 +20,7 @@ int main()
     fstream input;
     UInteger nodesCount;
     int freedom = 0;
+    const int elementNodes = 8;
     HexahedralMesh3D mesh;
     UInteger elementsCount;
 
@@ -56,8 +60,8 @@ int main()
     cout << "Элементов - " << elementsCount << "; загрузка элементов..." << endl;
     for (UInteger i = 0; i < elementsCount; i++)
     {
-        UInteger p[8];
-        for (int j = 0; j < 8; j++)
+        UInteger p[elementNodes];
+        for (int j = 0; j < elementNodes; j++)
             input >> p[j];
         mesh.addElement(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);
     }
@@ -85,6 +89,41 @@ int main()
     cout << "Внешние слоя: E = " << outerE << "; nu = " << outerNu << ";" << endl;
     cout << "D = " << endl << outerD << endl;
 
+    cout << "Построение глобальной матрицы..." << endl;
+
+    UInteger systemDimension = nodesCount * freedom;
+    GlobalMatrix globalMatrix (systemDimension, systemDimension);
+    FloatingVector force(systemDimension);
+    FloatingVector displacement(systemDimension);
+
+    boost::progress_display progressBar(elementsCount);
+    for (UInteger elementNumber = 0; elementNumber < elementsCount; elementNumber++)
+    {
+        ++progressBar;
+
+        Floating x[elementNodes];
+        Floating y[elementNodes];
+        Floating z[elementNodes];
+        FloatingMatrix localMatrix(elementNodes * freedom, elementNodes * freedom);
+        UInteger index_i = 0;
+        UInteger index_j = 0;
+        for (int i = 0; i < elementNodes * freedom; i++)
+        {
+            for (int j = 0; j < elementNodes * freedom; j++)
+            {
+                localMatrix(i, j) = 0.0;
+            }
+        }
+        // извлечение координат узлов
+        ElementPointer element = mesh.element(elementNumber);
+        for (int i = 0; i < elementNodes; i++)
+        {
+            PointPointer point = mesh.node(element->vertexNode(i));
+            x[i] = point->x();
+            y[i] = point->y();
+            z[i] = point->z();
+        }
+    }
 
     return 0;
 }
