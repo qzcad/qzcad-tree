@@ -15,7 +15,10 @@ SOURCES += hexahedralfem.cpp
 HEADERS += hexahedralfem.h \
     globalmatrix.h \
     floatingvector.h \
-    floatingmatrix.h
+    floatingmatrix.h \
+    invertmatrix.hpp \
+    determinant.hpp \
+    conjugategradient.hpp
 unix {
     target.path = /usr/lib
     INSTALLS += target
