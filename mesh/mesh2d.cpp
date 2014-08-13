@@ -54,14 +54,11 @@ int Mesh2D::dimesion() const
     return 2;
 }
 
-Floating Mesh2D::elementValue(const UInteger &number) const
-{
-    return (Floating)number;
-}
-
 Floating Mesh2D::nodeValue(const UInteger &number) const
 {
-    return node_[number].point.length();
+    if (number < nodeValue_.size())
+        return nodeValue_[number];
+    return (Floating)number;
 }
 
 NodeType Mesh2D::nodeType(const UInteger &number) const
@@ -144,5 +141,32 @@ UInteger Mesh2D::addNode(const Point2D &point, const NodeType &type)
         }
     }
     return pushNode(point, type);
+}
+
+void Mesh2D::clearNodeValues()
+{
+    nodeValue_.clear();
+}
+
+void Mesh2D::pushNodeValue(const Floating &val)
+{
+    nodeValue_.push_back(val);
+}
+
+void Mesh2D::updateDomain()
+{
+    Point2D start = node_[0].point;
+    xMin_ = xMax_ = start.x();
+    yMin_ = yMax_ = start.y();
+    for (UInteger i = 1; i < node_.size(); i++)
+    {
+        Point2D current = node_[i].point;
+        Floating x = current.x();
+        Floating y = current.y();
+        if (xMin_ > x) xMin_ = x;
+        if (xMax_ < x) xMax_ = x;
+        if (yMin_ > y) yMin_ = y;
+        if (yMax_ < y) yMax_ = y;
+    }
 }
 }

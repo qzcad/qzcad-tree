@@ -185,11 +185,6 @@ void QuadrilateralMesh2D::minimizeFunctional()
     }
 }
 
-Floating QuadrilateralMesh2D::nodeValue(const UInteger &number) const
-{
-    return node_[number].type;
-}
-
 bool QuadrilateralMesh2D::isBorderElement(const UInteger &number) const
 {
     if (node_[number].type == BORDER || node_[number].type == CHARACTER)
@@ -239,6 +234,23 @@ void QuadrilateralMesh2D::addElement(const UInteger &node0, const UInteger &node
     node_[node1].adjacent.insert(element_.size() - 1);
     node_[node2].adjacent.insert(element_.size() - 1);
     node_[node3].adjacent.insert(element_.size() - 1);
+}
+
+void QuadrilateralMesh2D::clearElementValues()
+{
+    elementValue_.clear();
+}
+
+void QuadrilateralMesh2D::pushElementValue(const Floating &val)
+{
+    elementValue_.push_back(val);
+}
+
+Floating QuadrilateralMesh2D::elementValue(const UInteger &number) const
+{
+    if (number < elementValue_.size())
+        return elementValue_[number];
+    return (Floating)number;
 }
 
 Floating QuadrilateralMesh2D::isoFunc(const UInteger &i, const Floating &xi, const Floating &eta)

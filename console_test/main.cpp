@@ -377,7 +377,7 @@ int main()
         // для сектора цилиндра необходимо зафиксировать грани
         if ( isEquil(point->x(), 0.0) )
         {
-            for (long j = 0; j < systemDimension; j++)
+            for (UInteger j = 0; j < systemDimension; j++)
             {
                 if (globalMatrix(i, j) != 0.0) globalMatrix(i, j) = 0.0;
             }
@@ -386,7 +386,7 @@ int main()
         }
         if ( isEquil(point->z(), 0.0) )
         {
-            for (long j = 0; j < systemDimension; j++)
+            for (UInteger j = 0; j < systemDimension; j++)
             {
                 if (globalMatrix(i + 2L * nodesCount, j) != 0.0) globalMatrix(i + 2L * nodesCount, j) = 0.0;
             }

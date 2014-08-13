@@ -71,13 +71,7 @@ public:
      */
     virtual int dimesion() const;
     /**
-     * @brief Значение некоторой функции, опеределенной на элемента
-     * @param number Номер элемента
-     * @return Значение равное number
-     */
-    virtual Floating elementValue(const UInteger &number) const;
-    /**
-     * @brief Значение некоторой функции, определенной на зле
+     * @brief Значение некоторой функции, определенной в узле
      * @param number Номер узла
      * @return Значение, соответствующее узлу
      */
@@ -133,8 +127,22 @@ public:
      * @return Номер узла в массиве узлов
      */
     UInteger addNode(const Point2D &point, const NodeType &type);
+    /**
+     * @brief Очистить массив значений, определенных в узле
+     */
+    virtual void clearNodeValues();
+    /**
+     * @brief Добавить значение, опеределенное в узле, в массив
+     * @param val Значение, которое необходимо добавить
+     */
+    virtual void pushNodeValue(const Floating &val);
+    /**
+     * @brief Обновить параметры области определения сетки (xMin, xMax, yMin, yMax)
+     */
+    virtual void updateDomain();
 protected:
     std::vector<Node2D> node_; //!< массив узлов
+    std::vector<Floating> nodeValue_; //!< массив значений, определенных в узле
     Floating xMin_; //!< минимальное значение ординаты
     Floating xMax_; //!< максимальное значение ординаты
     Floating yMin_; //!< минимальное значение абсциссы

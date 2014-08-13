@@ -106,8 +106,22 @@ public:
      * @return Номер узла в массиве узлов
      */
     UInteger addNode(const Point3D &point, const NodeType &type);
+    /**
+     * @brief Очистить массив значений, определенных в узле
+     */
+    virtual void clearNodeValues();
+    /**
+     * @brief Добавить значение, опеределенное в узле, в массив
+     * @param val Значение, которое необходимо добавить
+     */
+    virtual void pushNodeValue(const Floating &val);
+    /**
+     * @brief Обновить параметры области определения сетки (xMin, xMax, yMin, yMax, zMin, zMax)
+     */
+    virtual void updateDomain();
 protected:
     std::vector<Node3D> node_; //!< массив узлов
+    std::vector<Floating> nodeValue_; //!< массив значений, определенных в узле
     Floating xMin_; //!< минимальное значение ординаты
     Floating xMax_; //!< максимальное значение ординаты
     Floating yMin_; //!< минимальное значение абсциссы

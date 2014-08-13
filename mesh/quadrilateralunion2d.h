@@ -26,7 +26,7 @@ public:
     virtual Floating elementValue(const UInteger &number) const;
 private:
     bool isFirstRegion_; //!< Признак добавления первой элементарной области
-    std::vector<int> elementValue_; //!< Значение на элементе == номер слоя
+//    std::vector<int> elementValue_; //!< Значение на элементе == номер слоя
     int layerNumber_;
 };
 }

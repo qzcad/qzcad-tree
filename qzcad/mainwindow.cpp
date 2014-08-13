@@ -34,7 +34,7 @@ MainWindow::MainWindow(QWidget *parent) :
 #endif
     showMaximized();
     stdRedirector = new QStdRedirector<>(std::cout, this);
-    connect(stdRedirector, SIGNAL(messageChanged(QString)), ui->terminalText, SLOT(insertPlainText(QString)));
+    connect(stdRedirector, SIGNAL(messageChanged(QString)), this, SLOT(onConsoleMessage(QString)));
     std::cout << "Система успешно запущена и готова к использованию..." << std::endl;
 }
 
@@ -44,6 +44,14 @@ MainWindow::~MainWindow()
     if (meshPtr != NULL) delete meshPtr; // чистим старые данные
     delete stdRedirector;
     delete ui;
+}
+
+void MainWindow::onConsoleMessage(QString message)
+{
+    ui->terminalText->insertPlainText(message);
+    QTextCursor c =  ui->terminalText->textCursor();
+    c.movePosition(QTextCursor::End);
+    ui->terminalText->setTextCursor(c);
 }
 
 void MainWindow::on_actionUnion_triggered()
@@ -226,6 +234,8 @@ void MainWindow::on_actionSaveMesh_triggered()
     if (mesh)
     {
         QString fileName = QFileDialog::getSaveFileName(this, "qMesher: Сохранить дискретную модель", "", tr("Текстовые файлы (*.txt);;Любой файл (*)"));
+        if (fileName.isEmpty())
+            return;
         QFile file(fileName);
         if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
             return;
@@ -235,8 +245,9 @@ void MainWindow::on_actionSaveMesh_triggered()
         {
             QTextStream out(&file);
             int dim = mesh->dimesion();
-            out << dim << '\n';
-            out << mesh->nodesCount() << '\n';
+            int elementNodes = mesh->element(0)->verticesCount(); // определяем количество узлов в элементе
+            out << dim << ' ' << elementNodes << '\n';
+            out << mesh->nodesCount() << ' ' << dialog.isNodeValue() << '\n';
             for (msh::UInteger i = 0; i < mesh->nodesCount(); i++)
             {
                 msh::PointPointer point = mesh->node(i);
@@ -247,7 +258,7 @@ void MainWindow::on_actionSaveMesh_triggered()
                 if (dialog.isNodeValue()) out << " " << mesh->nodeValue(i);
                 out << '\n';
             }
-            out << mesh->elementsCount() << '\n';
+            out << mesh->elementsCount() << ' ' << dialog.isElementValue() << '\n';
             for (msh::UInteger i = 0; i < mesh->elementsCount(); i++)
             {
                 msh::ElementPointer element = mesh->element(i);
@@ -404,5 +415,108 @@ void MainWindow::on_actionArea_triggered()
                 QMessageBox::warning(this, message, message);
             }
         }
+    }
+}
+
+void MainWindow::on_actionLoadMesh_triggered()
+{
+    msh::MeshPointer mesh = ui->pictureControl->releaseMesh();
+    if (mesh)
+        delete mesh;
+    QString fileName = QFileDialog::getOpenFileName(this, "qMesher: Загрузить дискретную модель", "", tr("Текстовые файлы (*.txt);;Любой файл (*)"));
+    if (fileName.isEmpty())
+        return;
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+        return;
+    std::cout << "Загррузка дискретной модели из файла: " << fileName.toAscii().constData() << std::endl;
+    QTextStream in(&file);
+    int dim;
+    int elementNodes;
+    msh::UInteger nodesCount;
+    int isNodeValue;
+    msh::UInteger elementsCount;
+    int isElementValue;
+    in >> dim;
+    in >> elementNodes;
+    in >> nodesCount;
+    in >> isNodeValue;
+    std::cout << "Размерность: " << dim << std::endl << "Количество узлов: " << nodesCount << std::endl;
+    if (dim == 2 && elementNodes == 4) // четырехугольники
+    {
+        msh::QuadrilateralMesh2D *qMesh = new msh::QuadrilateralMesh2D();
+        for (msh::UInteger i = 0; i < nodesCount; i++)
+        {
+            msh::Floating x, y, val;
+            msh::Point2D point;
+            int nodeType;
+            in >> x;
+            in >> y;
+            in >> nodeType;
+            point.set(x, y);
+            qMesh->pushNode(point, static_cast<msh::NodeType>(nodeType));
+            if (isNodeValue)
+            {
+                in >> val;
+                qMesh->pushNodeValue(val);
+            }
+        }
+        in >> elementsCount;
+        in >> isElementValue;
+        std::cout << "Количнство элементов: " << elementsCount << std::endl;
+        for (msh::UInteger i = 0; i < elementsCount; i++)
+        {
+            msh::UInteger p[elementNodes];
+            msh::Floating val;
+            for (int j = 0; j < elementNodes; j++)
+                in >> p[j];
+            qMesh->addElement(p[0], p[1], p[2], p[3]);
+            if (isElementValue)
+            {
+                in >> val;
+                qMesh->pushElementValue(val);
+            }
+        }
+        qMesh->updateDomain();
+        ui->pictureControl->setMesh(qMesh);
+    }
+    if (dim == 3 && elementNodes == 8) // шестигранники
+    {
+        msh::HexahedralMesh3D *hMesh = new msh::HexahedralMesh3D();
+        for (msh::UInteger i = 0; i < nodesCount; i++)
+        {
+            msh::Floating x, y, z, val;
+            msh::Point3D point;
+            int nodeType;
+            in >> x;
+            in >> y;
+            in >> z;
+            in >> nodeType;
+            point.set(x, y, z);
+            hMesh->pushNode(point, static_cast<msh::NodeType>(nodeType));
+            if (isNodeValue == 1)
+            {
+                in >> val;
+                hMesh->pushNodeValue(val);
+            }
+        }
+        in >> elementsCount;
+        in >> isElementValue;
+        std::cout << "Количнство элементов: " << elementsCount << std::endl;
+        for (msh::UInteger i = 0; i < elementsCount; i++)
+        {
+            msh::UInteger p[elementNodes];
+            msh::Floating val;
+            for (int j = 0; j < elementNodes; j++)
+                in >> p[j];
+            hMesh->addElement(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);
+            if (isElementValue == 1)
+            {
+                in >> val;
+                hMesh->pushElementValue(val);
+            }
+        }
+        hMesh->updateDomain();
+        ui->pictureControl->setMesh(hMesh);
     }
 }

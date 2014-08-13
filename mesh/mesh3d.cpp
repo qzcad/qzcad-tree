@@ -65,7 +65,11 @@ Floating Mesh3D::elementValue(const UInteger &number) const
 
 Floating Mesh3D::nodeValue(const UInteger &number) const
 {
-    return node_[number].point.length();
+    if (number < nodeValue_.size())
+    {
+        return nodeValue_[number];
+    }
+    return (Floating)number;
 }
 
 UInteger Mesh3D::pushNode(const Point3D &point, const NodeType &type)
@@ -89,6 +93,37 @@ UInteger Mesh3D::addNode(const Point3D &point, const NodeType &type)
         }
     }
     return pushNode(point, type);
+}
+
+void Mesh3D::clearNodeValues()
+{
+    nodeValue_.clear();
+}
+
+void Mesh3D::pushNodeValue(const Floating &val)
+{
+    nodeValue_.push_back(val);
+}
+
+void Mesh3D::updateDomain()
+{
+    Point3D start = node_[0].point;
+    xMin_ = xMax_ = start.x();
+    yMin_ = yMax_ = start.y();
+    zMin_ = zMax_ = start.z();
+    for (UInteger i = 1; i < node_.size(); i++)
+    {
+        Point3D current = node_[i].point;
+        Floating x = current.x();
+        Floating y = current.y();
+        Floating z = current.z();
+        if (xMin_ > x) xMin_ = x;
+        if (xMax_ < x) xMax_ = x;
+        if (yMin_ > y) yMin_ = y;
+        if (yMax_ < y) yMax_ = y;
+        if (zMin_ > z) zMin_ = z;
+        if (zMax_ < z) zMax_ = z;
+    }
 }
 }
 

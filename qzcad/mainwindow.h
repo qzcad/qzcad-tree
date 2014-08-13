@@ -35,6 +35,7 @@ public:
     ~MainWindow();
     
 private slots:
+    void onConsoleMessage(QString message);
     void on_actionUnion_triggered();
 
     void on_actionIntersection_triggered();
@@ -70,6 +71,8 @@ private slots:
     void on_actionMirrorrHorizontally_triggered();
 
     void on_actionArea_triggered();
+
+    void on_actionLoadMesh_triggered();
 
 private:
     Ui::MainWindow *ui; //!< Контейнер элементов графического интерфейса

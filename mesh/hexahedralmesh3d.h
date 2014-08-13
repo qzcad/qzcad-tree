@@ -105,6 +105,15 @@ public:
     void addElement(const UInteger &node0, const UInteger &node1, const UInteger &node2, const UInteger &node3,
                     const UInteger &node4, const UInteger &node5, const UInteger &node6, const UInteger &node7);
 //    UInteger toArray(UInteger i, UInteger j, UInteger k, UInteger yCount, UInteger zCount) { return i * yCount * zCount + j * zCount + k; }
+    /**
+     * @brief Очистить массив значений, определенных на элементе
+     */
+    virtual void clearElementValues();
+    /**
+     * @brief Добавить значение, определенное на элементе, в массив
+     * @param val Значение, которое необходимо добавить в массив
+     */
+    virtual void pushElementValue(const Floating &val);
 private:
     std::vector<Hexahedral> element_; //!< Массив шестигранных элементов
     std::vector<Floating> elementValue_; //!< Значение на элементе

@@ -347,6 +347,16 @@ void HexahedralMesh3D::addElement(const UInteger &node0, const UInteger &node1, 
     node_[node6].adjacent.insert(element_.size() - 1);
     node_[node7].adjacent.insert(element_.size() - 1);
 }
+
+void HexahedralMesh3D::clearElementValues()
+{
+    elementValue_.clear();
+}
+
+void HexahedralMesh3D::pushElementValue(const Floating &val)
+{
+    elementValue_.push_back(val);
+}
 }
 
 

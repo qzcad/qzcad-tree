@@ -103,6 +103,10 @@ public:
      */
     virtual bool isBorderElement(const UInteger &number) const = 0;
     /**
+     * @brief Обновить параметры области определения сетки (xMin, xMax, yMin, yMax, zMin, zMax)
+     */
+    virtual void updateDomain() = 0;
+    /**
      * @brief Виртуальный деструктор
      */
     virtual ~Mesh(){}
