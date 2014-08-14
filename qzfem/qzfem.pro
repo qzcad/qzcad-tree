@@ -10,7 +10,8 @@ TARGET = qzfem
 TEMPLATE = lib
 CONFIG += staticlib
 
-SOURCES += hexahedralfem.cpp
+SOURCES += hexahedralfem.cpp \
+    mechanicalparameters.cpp
 
 HEADERS += hexahedralfem.h \
     globalmatrix.h \
@@ -18,7 +19,12 @@ HEADERS += hexahedralfem.h \
     floatingmatrix.h \
     invertmatrix.hpp \
     determinant.hpp \
-    conjugategradient.hpp
+    conjugategradient.hpp \
+    mechanicalparameters.h \
+    femcondition.h \
+    femcondition1d.h \
+    femcondition2d.h \
+    femcondition3d.h
 unix {
     target.path = /usr/lib
     INSTALLS += target
