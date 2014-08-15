@@ -87,12 +87,13 @@ public:
     }
 };
 
-class FixedCondition: public FEMCondition3D
+class FixedCondition: public FEMCondition3D // защемление
 {
 public:
     virtual bool isApplied(PointPointer point)
     {
-        return isEquil(point->x() * point->x() + point->z() * point->z(), 0.4 * 0.4);
+//        return isEquil(point->x() * point->x() + point->z() * point->z(), 0.4 * 0.4);
+        return  isEquil(point->x() * point->x() + point->z() * point->z(), 0.2 * 0.2) || isEquil(point->x() * point->x() + point->z() * point->z(), 0.4 * 0.4);
     }
     virtual double u()
     {
@@ -117,6 +118,41 @@ public:
     virtual bool isW()
     {
         return true;
+    }
+};
+
+class RotCondition: public FEMCondition3D // опирание
+{
+public:
+    virtual bool isApplied(PointPointer point)
+    {
+//        return  isEquil(point->y(), 0.0) && isEquil(point->x() * point->x() + point->z() * point->z(), 0.4 * 0.4);
+//        return  isEquil(point->y(), 0.0) && isEquil(point->x() * point->x() + point->z() * point->z(), 0.2 * 0.2);
+        return  isEquil(point->y(), 0.0) && (isEquil(point->x() * point->x() + point->z() * point->z(), 0.2 * 0.2) || isEquil(point->x() * point->x() + point->z() * point->z(), 0.4 * 0.4));
+    }
+    virtual double u()
+    {
+        return 0.0;
+    }
+    virtual bool isU()
+    {
+        return false;
+    }
+    virtual double v()
+    {
+        return 0.0;
+    }
+    virtual bool isV()
+    {
+        return true;
+    }
+    virtual double w()
+    {
+        return 0.0;
+    }
+    virtual bool isW()
+    {
+        return false;
     }
 };
 
@@ -201,12 +237,38 @@ int main()
     XCondition xcond;
     ZCondition zcond;
     FixedCondition fixcond;
+    RotCondition rotcond;
     boundary.push_back(&xcond);
     boundary.push_back(&zcond);
     boundary.push_back(&fixcond);
+//    boundary.push_back(&rotcond);
     ForceCondition force;
 
     HexahedralFEM fem(&mesh, params, &force, boundary);
+
+    fem.setNodeDisplacement(&mesh, 1);
+
+    cout << "Сохранение результатов в файл" << endl;
+    fstream output;
+    output.open("v_inner_outer_radius_fixed.txt", fstream::out);
+    output << freedom << ' ' << elementNodes << endl;
+    output << nodesCount << ' ' << 1 << endl;
+    for (UInteger i = 0; i < nodesCount; i++)
+    {
+        PointPointer point = mesh.node(i);
+        output << point->x() << ' ' << point->y() << ' ' << point->z() << ' ' << mesh.nodeType(i) << ' ' << mesh.nodeValue(i) << endl;
+    }
+    output << elementsCount << ' ' << 0 << endl;
+    for (UInteger i = 0; i < elementsCount; i++)
+    {
+        ElementPointer element = mesh.element(i);
+        for (int j = 0; j < element->verticesCount(); j++)
+        {
+            output << element->vertexNode(j) << " ";
+        }
+        output << endl;
+    }
+    output.close();
 
     return 0;
 }

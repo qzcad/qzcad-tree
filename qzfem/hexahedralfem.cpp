@@ -353,3 +353,19 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters 
     } // for i
     std::cout << "Максимальное перемещение: " << maxW << std::endl;
 }
+
+void HexahedralFEM::setNodeDisplacement(HexahedralMesh3D *mesh, const UInteger &direction)
+{
+    const UInteger nodesCount = mesh->nodesCount();
+    mesh->clearNodeValues();
+    for (UInteger i = 0; i < nodesCount; i++)
+    {
+        mesh->pushNodeValue(displacement[i + direction * nodesCount]);
+    }
+}
+
+Point3D HexahedralFEM::getDisplacemementVector(const UInteger &i, const UInteger &nodesCount)
+{
+    Point3D point(displacement[i], displacement[i + nodesCount], displacement[i + 2L * nodesCount]);
+    return point;
+}

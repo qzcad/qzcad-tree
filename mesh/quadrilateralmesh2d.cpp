@@ -47,7 +47,7 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &xCount, const UInteger 
     xMax_ = xMin + width;
     yMin_ = yMin;
     yMax_ = yMin + height;
-    minimizeFunctional();
+//    minimizeFunctional();
     std::cout << "Создана равномерная сетка четырехугольных элементов: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
