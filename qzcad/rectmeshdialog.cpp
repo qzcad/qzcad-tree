@@ -13,6 +13,8 @@ RectMeshDialog::RectMeshDialog(QWidget *parent, int dimension) :
         ui->zCountLabel->hide();
         ui->zMin->hide();
         ui->zMinLabel->hide();
+        ui->depth->hide();
+        ui->depthLable->hide();
     }
 }
 

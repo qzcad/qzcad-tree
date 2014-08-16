@@ -564,6 +564,7 @@ void GLMeshPicture::paintGL()
                             glNormal3d(nx, ny, nz);
                         else
                             glNormal3d(-nx, -ny, -nz);
+
                         glBegin(GL_POLYGON);
                         for (msh::UInteger j = 0; j < face.size(); j++)
                         {
