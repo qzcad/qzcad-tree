@@ -307,7 +307,7 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters 
                     {
                         if (i != j && globalMatrix(i, j) != 0.0)
                         { // см. Зенкевич, стр. 485
-                            force(j) = force(j) - globalMatrix(i, j) * condition->u();
+                            force(j) = force(j) - globalMatrix(i, j) * condition->w();
                             globalMatrix(i, j) = 0.0; // обнуление строки/столбца
                             globalMatrix(j, i) = 0.0;
                         }
