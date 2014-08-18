@@ -122,16 +122,23 @@
     <addaction name="menuFlip"/>
     <addaction name="actionArea"/>
    </widget>
-   <widget class="QMenu" name="menu">
+   <widget class="QMenu" name="menuSettings">
     <property name="title">
      <string>&amp;Настройки</string>
     </property>
     <addaction name="actionDoubleBufferGL"/>
    </widget>
+   <widget class="QMenu" name="menuFEM">
+    <property name="title">
+     <string>&amp;МКЭ</string>
+    </property>
+    <addaction name="actionElasticFem"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuObject"/>
    <addaction name="menuMesh"/>
-   <addaction name="menu"/>
+   <addaction name="menuSettings"/>
+   <addaction name="menuFEM"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <property name="windowTitle">
@@ -458,6 +465,11 @@
    </property>
    <property name="text">
     <string>Загрузить дискретную модель...</string>
+   </property>
+  </action>
+  <action name="actionElasticFem">
+   <property name="text">
+    <string>Упругий расчет...</string>
    </property>
   </action>
  </widget>

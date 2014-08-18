@@ -14,6 +14,7 @@
 #include "polygonalmodeldialog.h"
 #include "baryquadsdialog.h"
 #include "rotationbodymeshdialog.h"
+#include "elasticfemdialog.h"
 
 #include "quadrilateralmesh2d.h"
 #include "quadrilateralunion2d.h"
@@ -519,4 +520,10 @@ void MainWindow::on_actionLoadMesh_triggered()
         hMesh->updateDomain();
         ui->pictureControl->setMesh(hMesh);
     }
+}
+
+void MainWindow::on_actionElasticFem_triggered()
+{
+    ElasticFemDialog dialog(this);
+    dialog.exec();
 }

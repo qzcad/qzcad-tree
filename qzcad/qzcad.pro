@@ -28,7 +28,9 @@ SOURCES += main.cpp\
     rotationbodymeshdialog.cpp \
     exportmeshdialog.cpp \
     qtxtsender.cpp \
-    qstdredirector.cpp
+    qstdredirector.cpp \
+    boundaryconditionswidget.cpp \
+    elasticfemdialog.cpp
 
 HEADERS  += mainwindow.h \
     globalconsts.h \
@@ -45,7 +47,9 @@ HEADERS  += mainwindow.h \
     rotationbodymeshdialog.h \
     exportmeshdialog.h \
     qtxtsender.h \
-    qstdredirector.h
+    qstdredirector.h \
+    boundaryconditionswidget.h \
+    elasticfemdialog.h
 
 FORMS    += mainwindow.ui \
     glcontrolwidget.ui \
@@ -56,7 +60,9 @@ FORMS    += mainwindow.ui \
     baryquadsdialog.ui \
     rectmeshdialog.ui \
     rotationbodymeshdialog.ui \
-    exportmeshdialog.ui
+    exportmeshdialog.ui \
+    boundaryconditionswidget.ui \
+    elasticfemdialog.ui
 
 RESOURCES += \
     qzresources.qrc
