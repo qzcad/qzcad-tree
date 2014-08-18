@@ -268,21 +268,6 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters 
     {
         ++progressBar;
         PointPointer point = mesh->node(i);
-//        if ( fabs(point->x() * point->x() + point->z() * point->z() - 0.4 * 0.4) < 0.0001 ) // защемление
-//        {
-//            for (long j = 0; j < systemDimension; j++)
-//            {
-//                if (globalMatrix(i, j) != 0.0) globalMatrix(i, j) = 0.0; // защемление
-//                if (globalMatrix(i + nodesCount, j) != 0.0) globalMatrix(i + nodesCount, j) = 0.0; // защемление
-//                if (globalMatrix(i + 2L * nodesCount, j) != 0.0) globalMatrix(i + 2L * nodesCount, j) = 0.0;
-//            }
-//            globalMatrix(i, i) = 1.0; // защемление
-//            force(i) = 0.0; // защемление
-//            globalMatrix(i + nodesCount, i + nodesCount) = 1.0; // защемление
-//            force(i + nodesCount) = 0.0; // защемление
-//            globalMatrix(i + 2L * nodesCount, i + 2L * nodesCount) = 1.0;
-//            force(i + 2L * nodesCount) = 0.0;
-//        }
         for (UInteger b = 0; b < boundary.size(); b++)
         {
             FEMCondition3DPointer condition = boundary[b];
@@ -290,42 +275,42 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters 
             {
                 if (condition->isU())
                 {
-                    Floating k = globalMatrix(i, i);
                     for (UInteger j = 0; j < systemDimension; j++)
                     {
-                        if (globalMatrix(i, j) != 0.0)
-                        {
+                        if (i != j && globalMatrix(i, j) != 0.0)
+                        { // см. Зенкевич, стр. 485
+                            force(j) = force(j) - globalMatrix(i, j) * condition->u();
                             globalMatrix(i, j) = 0.0; // обнуление строки/столбца
+                            globalMatrix(j, i) = 0.0;
                         }
-                        force(j) = force(j) - k * condition->u();
                     }
                     force(i) = condition->u();
                     globalMatrix(i, i) = 1.0;
                 } // if
                 if (condition->isV())
                 {
-                    Floating k = globalMatrix(i + nodesCount, i + nodesCount);
                     for (UInteger j = 0; j < systemDimension; j++)
                     {
-                        if (globalMatrix(i + nodesCount, j) != 0.0)
-                        {
-                            globalMatrix(i + nodesCount, j) = 0.0; // обнуление строки/столбца
+                        if (i != j && globalMatrix(i, j) != 0.0)
+                        { // см. Зенкевич, стр. 485
+                            force(j) = force(j) - globalMatrix(i, j) * condition->v();
+                            globalMatrix(i, j) = 0.0; // обнуление строки/столбца
+                            globalMatrix(j, i) = 0.0;
                         }
-                        force(j) = force(j) - k * condition->v();
                     }
                     force(i + nodesCount) = condition->v();
                     globalMatrix(i + nodesCount, i + nodesCount) = 1.0;
                 } // if
                 if (condition->isW())
                 {
-                    Floating k = globalMatrix(i + 2L * nodesCount, i + 2L * nodesCount);
                     for (UInteger j = 0; j < systemDimension; j++)
                     {
-                        if (globalMatrix(i + 2L * nodesCount, j) != 0.0)
-                        {
-                            globalMatrix(i + 2L * nodesCount, j) = 0.0; // обнуление строки/столбца
+                        if (i != j && globalMatrix(i, j) != 0.0)
+                        { // см. Зенкевич, стр. 485
+                            force(j) = force(j) - globalMatrix(i, j) * condition->u();
+                            globalMatrix(i, j) = 0.0; // обнуление строки/столбца
+                            globalMatrix(j, i) = 0.0;
                         }
-                        force(j) = force(j) - k * condition->w();
                     }
                     force(i + 2L * nodesCount) = condition->w();
                     globalMatrix(i + 2L * nodesCount, i + 2L * nodesCount) = 1.0;
