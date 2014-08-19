@@ -289,31 +289,33 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters 
                 } // if
                 if (condition->isV())
                 {
+                    UInteger rowNumber = i + nodesCount;
                     for (UInteger j = 0; j < systemDimension; j++)
                     {
-                        if (i != j && globalMatrix(i, j) != 0.0)
+                        if (rowNumber != j && globalMatrix(rowNumber, j) != 0.0)
                         { // см. Зенкевич, стр. 485
-                            force(j) = force(j) - globalMatrix(i, j) * condition->v();
-                            globalMatrix(i, j) = 0.0; // обнуление строки/столбца
-                            globalMatrix(j, i) = 0.0;
+                            force(j) = force(j) - globalMatrix(rowNumber, j) * condition->v();
+                            globalMatrix(rowNumber, j) = 0.0; // обнуление строки/столбца
+                            globalMatrix(j, rowNumber) = 0.0;
                         }
                     }
-                    force(i + nodesCount) = condition->v();
-                    globalMatrix(i + nodesCount, i + nodesCount) = 1.0;
+                    force(rowNumber) = condition->v();
+                    globalMatrix(rowNumber, rowNumber) = 1.0;
                 } // if
                 if (condition->isW())
                 {
+                    UInteger rowNumber = i + 2L * nodesCount;
                     for (UInteger j = 0; j < systemDimension; j++)
                     {
-                        if (i != j && globalMatrix(i, j) != 0.0)
+                        if (rowNumber != j && globalMatrix(rowNumber, j) != 0.0)
                         { // см. Зенкевич, стр. 485
-                            force(j) = force(j) - globalMatrix(i, j) * condition->w();
-                            globalMatrix(i, j) = 0.0; // обнуление строки/столбца
-                            globalMatrix(j, i) = 0.0;
+                            force(j) = force(j) - globalMatrix(rowNumber, j) * condition->w();
+                            globalMatrix(rowNumber, j) = 0.0; // обнуление строки/столбца
+                            globalMatrix(j, rowNumber) = 0.0;
                         }
                     }
-                    force(i + 2L * nodesCount) = condition->w();
-                    globalMatrix(i + 2L * nodesCount, i + 2L * nodesCount) = 1.0;
+                    force(rowNumber) = condition->w();
+                    globalMatrix(rowNumber, rowNumber) = 1.0;
                 } // if
             } // if
         } // for b

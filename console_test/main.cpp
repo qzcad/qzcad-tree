@@ -92,8 +92,8 @@ class FixedCondition: public FEMCondition3D // защемление
 public:
     virtual bool isApplied(PointPointer point)
     {
-//        return isEquil(point->x() * point->x() + point->z() * point->z(), 0.4 * 0.4);
-        return  isEquil(point->x() * point->x() + point->z() * point->z(), 0.2 * 0.2) || isEquil(point->x() * point->x() + point->z() * point->z(), 0.4 * 0.4);
+        return isEquil(point->x() * point->x() + point->z() * point->z(), 0.4 * 0.4);
+//        return  isEquil(point->x() * point->x() + point->z() * point->z(), 0.2 * 0.2) || isEquil(point->x() * point->x() + point->z() * point->z(), 0.4 * 0.4);
     }
     virtual double u()
     {
@@ -126,9 +126,9 @@ class RotCondition: public FEMCondition3D // опирание
 public:
     virtual bool isApplied(PointPointer point)
     {
-//        return  isEquil(point->y(), 0.0) && isEquil(point->x() * point->x() + point->z() * point->z(), 0.4 * 0.4);
+        return  isEquil(point->y(), 0.0) && isEquil(point->x() * point->x() + point->z() * point->z(), 0.4 * 0.4);
 //        return  isEquil(point->y(), 0.0) && isEquil(point->x() * point->x() + point->z() * point->z(), 0.2 * 0.2);
-        return  isEquil(point->y(), 0.0) && (isEquil(point->x() * point->x() + point->z() * point->z(), 0.2 * 0.2) || isEquil(point->x() * point->x() + point->z() * point->z(), 0.4 * 0.4));
+//        return  isEquil(point->y(), 0.0) && (isEquil(point->x() * point->x() + point->z() * point->z(), 0.2 * 0.2) || isEquil(point->x() * point->x() + point->z() * point->z(), 0.4 * 0.4));
     }
     virtual double u()
     {
@@ -240,8 +240,8 @@ int main()
     RotCondition rotcond;
     boundary.push_back(&xcond);
     boundary.push_back(&zcond);
-    boundary.push_back(&fixcond);
-//    boundary.push_back(&rotcond);
+//    boundary.push_back(&fixcond);
+    boundary.push_back(&rotcond);
     ForceCondition force;
 
     HexahedralFEM fem(&mesh, params, &force, boundary);
@@ -250,7 +250,7 @@ int main()
 
     cout << "Сохранение результатов в файл" << endl;
     fstream output;
-    output.open("v_inner_outer_radius_fixed.txt", fstream::out);
+    output.open("v.txt", fstream::out);
     output << freedom << ' ' << elementNodes << endl;
     output << nodesCount << ' ' << 1 << endl;
     for (UInteger i = 0; i < nodesCount; i++)
