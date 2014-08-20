@@ -11,10 +11,10 @@ GLMeshPicture::GLMeshPicture(QWidget *parent) :
     textColor_ = QColor (Qt::blue);
     mouseMode_ = ROTATION;
     visualizationMode_ = USER_COLOR;
-    //    colorMapName_ = ColorValueMap::WINTER;
-    setDefault();
-    isMousePressed = false;
+    isMousePressed_ = false;
     showColorBar_ = false;
+    isLighting_ = true;
+    setDefault();
 }
 
 GLMeshPicture::~GLMeshPicture()
@@ -277,7 +277,7 @@ void GLMeshPicture::drawColorBar()
     qglColor (textColor_);
     renderText (right, top - length, maxVal, QString::number(min));
     renderText (right, top, maxVal, QString::number(max));
-    glDisable(GL_LIGHTING);
+    if (isLighting_) glDisable(GL_LIGHTING);
     glBegin(GL_POLYGON);
     qglColor(map_.color(min));
     glVertex3d(right - width, top - length, maxVal);
@@ -286,7 +286,7 @@ void GLMeshPicture::drawColorBar()
     glVertex3d(right, top, maxVal);
     glVertex3d(right - width, top, maxVal);
     glEnd();
-    glEnable(GL_LIGHTING);
+    if (isLighting_) glEnable(GL_LIGHTING);
     // востановление исходного режима проекции
     resetProjectionMatrix();
 }
@@ -468,13 +468,23 @@ void GLMeshPicture::setColormapName(int mapID)
     updateGL();
 }
 
+void GLMeshPicture::setIsLighting(bool isLighting)
+{
+    isLighting_ = isLighting;
+    if (isLighting_)
+        glEnable(GL_LIGHTING);
+    else
+        glDisable(GL_LIGHTING);
+    updateGL();
+}
+
 void GLMeshPicture::initializeGL()
 {
     qglClearColor(backgroundColor_);
     // включаем освещение
-    glEnable(GL_LIGHTING);
+    if (isLighting_) glEnable(GL_LIGHTING);
     // вкдючаем нулевой источник света
-    glEnable(GL_LIGHT0);
+    if (isLighting_) glEnable(GL_LIGHT0);
     //    glEnable(GL_LIGHT1);
 
     // включаем пересчет нормалей при масштабировании
@@ -539,12 +549,12 @@ void GLMeshPicture::paintGL()
                     msh::PointPointer b = mesh_->node(face[0]);
                     msh::PointPointer c = mesh_->node(face[2]);
 
-                    if (showMesh_ && !isMousePressed)
+                    if (showMesh_ && !isMousePressed_)
                     {
                         glEnable(GL_POLYGON_OFFSET_FILL);
                         glPolygonOffset(1.0, 1.0);
                     }
-                    if (!isMousePressed)
+                    if (!isMousePressed_)
                     {
                         // вычисление нормали к грани
                         msh::Floating nx = (b->y() - a->y()) * (c->z() - a->z()) - (b->z() - a->z()) * (c->y() - a->y());
@@ -574,7 +584,7 @@ void GLMeshPicture::paintGL()
                         }
                         glEnd();
                     }
-                    if(showMesh_ || isMousePressed)
+                    if(showMesh_ || isMousePressed_)
                     {
                         glDisable(GL_POLYGON_OFFSET_FILL);
                         qglColor(meshColor_);
@@ -607,7 +617,7 @@ void GLMeshPicture::resizeGL(int width, int height)
 void GLMeshPicture::mousePressEvent(QMouseEvent *event)
 {
     mousePressPos_ = event->pos();
-    isMousePressed = true;
+    isMousePressed_ = true;
 }
 
 void GLMeshPicture::mouseMoveEvent(QMouseEvent *event)
@@ -649,6 +659,6 @@ void GLMeshPicture::wheelEvent(QWheelEvent *event)
 
 void GLMeshPicture::mouseReleaseEvent(QMouseEvent *event)
 {
-    isMousePressed = false;
+    isMousePressed_ = false;
     updateGL();
 }

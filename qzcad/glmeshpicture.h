@@ -189,6 +189,11 @@ public slots:
      * @param mapID Номер схемы
      */
     void setColormapName(int mapID);
+    /**
+     * @brief Включить/выключить освещение
+     * @param isLighting true - освещение включено; false - освещение выключено
+     */
+    void setIsLighting(bool isLighting);
 
 protected:
     /**
@@ -264,7 +269,8 @@ private:
      */
     enum VisualizationMode { USER_COLOR = 0, NODE_VALUE = 1, ELEMENT_VALUE = 2 };
     VisualizationMode visualizationMode_; //!< Индикатор включения цветовой визуализации значений, определенных на элементе
-    bool isMousePressed; //!< Флаг нажатия кнопки мышки
+    bool isMousePressed_; //!< Флаг нажатия кнопки мышки
+    bool isLighting_; //!< Флаг включения/выключения освещения
 
 private:
     /**
