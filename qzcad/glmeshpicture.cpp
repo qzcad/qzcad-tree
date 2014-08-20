@@ -40,20 +40,15 @@ void GLMeshPicture::setMesh(msh::MeshPointer mesh)
 {
     setDefault();
     mesh_ = mesh;
-    //    xMin_ = mesh->xMin ();
-    //    xMax_ = mesh->xMax ();
-    //    yMin_ = mesh->yMin ();
-    //    yMax_ = mesh->yMax ();
-    //    zMin_ = mesh->zMin ();
-    //    zMax_ = mesh->zMax ();
-    double dx = mesh->xMax () - mesh->xMin ();
-    double dy = mesh->yMax () - mesh->yMin ();
-    double dz = mesh->zMax () - mesh->zMin ();
-    xMin_ = -1.0; xMax_ = 1.0;
-    yMin_ = -1.0 * dy / dx;
-    yMax_ = 1.0 * dy / dx;
-    zMin_ = -1.0 * dz / dx;
-    zMax_ = 1.0 * dz / dx;
+    xMin_ = mesh->xMin ();
+    xMax_ = mesh->xMax ();
+    yMin_ = mesh->yMin ();
+    yMax_ = mesh->yMax ();
+    zMin_ = mesh->zMin ();
+    zMax_ = mesh->zMax ();
+    centerX_ = (xMax_ + xMin_) / 2.0;
+    centerY_ = (yMax_ + yMin_) / 2.0;
+    centerZ_ = (zMax_ + zMin_) / 2.0;
 
     //    emit xMinChanged(xMin_);
     //    emit xMaxChanged(xMax_);
@@ -89,6 +84,7 @@ void GLMeshPicture::setDefault()
     translateStep_ = 0.01;
     xMin_ = yMin_ = zMin_ = -1.0;
     xMax_ = yMax_ = zMax_ = 1.0;
+    centerX_ = centerY_ = centerZ_ = 0.0;
     emit xRotationChanged(xRot_);
     emit yRotationChanged(yRot_);
     emit zRotationChanged(zRot_);
@@ -113,113 +109,109 @@ int GLMeshPicture::normalizedViewAngle(const int &angle)
 void GLMeshPicture::drawRegionBorders()
 {
     // куб видимости
+    const double xmin = xMin_ - centerX_;
+    const double ymin = yMin_ - centerY_;
+    const double zmin = zMin_ - centerZ_;
+    const double xmax = xMax_ - centerX_;
+    const double ymax = yMax_ - centerY_;
+    const double zmax = zMax_ - centerZ_;
     glBegin (GL_LINE_STRIP);
     glColor3f (0.0f, 0.0f, 0.0f);
-    glVertex3d (xMin_, yMin_, zMin_);
+    glVertex3d (xmin, ymin, zmin);
     glColor3f (1.0f, 0.0f, 0.0f);
-    glVertex3d (xMax_, yMin_, zMin_);
+    glVertex3d (xmax, ymin, zmin);
     glColor3f (1.0f, 1.0f, 0.0f);
-    glVertex3d (xMax_, yMax_, zMin_);
+    glVertex3d (xmax, ymax, zmin);
     glColor3f (0.0f, 1.0f, 0.0f);
-    glVertex3d (xMin_, yMax_, zMin_);
+    glVertex3d (xmin, ymax, zmin);
     glColor3f (0.0f, 0.0f, 0.0f);
-    glVertex3d (xMin_, yMin_, zMin_);
+    glVertex3d (xmin, ymin, zmin);
     glEnd ();
     glBegin (GL_LINE_STRIP);
     glColor3f (0.0f, 0.0f, 1.0f);
-    glVertex3d (xMin_, yMin_, zMax_);
+    glVertex3d (xmin, ymin, zmax);
     glColor3f (1.0f, 0.0f, 1.0f);
-    glVertex3d (xMax_, yMin_, zMax_);
+    glVertex3d (xmax, ymin, zmax);
     glColor3f (1.0f, 1.0f, 1.0f);
-    glVertex3d (xMax_, yMax_, zMax_);
+    glVertex3d (xmax, ymax, zmax);
     glColor3f (0.0f, 1.0f, 1.0f);
-    glVertex3d (xMin_, yMax_, zMax_);
+    glVertex3d (xmin, ymax, zmax);
     glColor3f (0.0f, 0.0f, 1.0f);
-    glVertex3d (xMin_, yMin_, zMax_);
+    glVertex3d (xmin, ymin, zmax);
     glEnd ();
     glBegin (GL_LINES);
     glColor3f (0.0f, 0.0f, 0.0f);
-    glVertex3d (xMin_, yMin_, zMin_);
+    glVertex3d (xmin, ymin, zmin);
     glColor3f (0.0f, 0.0f, 1.0f);
-    glVertex3d (xMin_, yMin_, zMax_);
+    glVertex3d (xmin, ymin, zmax);
     glColor3f (0.0f, 1.0f, 0.0f);
-    glVertex3d (xMin_, yMax_, zMin_);
+    glVertex3d (xmin, ymax, zmin);
     glColor3f (0.0f, 1.0f, 1.0f);
-    glVertex3d (xMin_, yMax_, zMax_);
+    glVertex3d (xmin, ymax, zmax);
     glEnd ();
     glBegin (GL_LINES);
     glColor3f (1.0f, 0.0f, 0.0f);
-    glVertex3d (xMax_, yMin_, zMin_);
+    glVertex3d (xmax, ymin, zmin);
     glColor3f (1.0f, 0.0f, 1.0f);
-    glVertex3d (xMax_, yMin_, zMax_);
+    glVertex3d (xmax, ymin, zmax);
     glColor3f (1.0f, 1.0f, 0.0f);
-    glVertex3d (xMax_, yMax_, zMin_);
+    glVertex3d (xmax, ymax, zmin);
     glColor3f (1.0f, 1.0f, 1.0f);
-    glVertex3d (xMax_, yMax_, zMax_);
+    glVertex3d (xmax, ymax, zmax);
     glEnd ();
     // Отрисовка подписей в углах куба видимости
     //setFont (font().setPointSize(18));
     qglColor (textColor_);
     if (mesh_)
     {
-        renderText (xMin_, yMin_, zMin_,
+        renderText (xmin, ymin, zmin,
                     QString::number(mesh_->xMin()) +
                     "; " +
                     QString::number(mesh_->yMin()) +
                     "; " +
                     QString::number(mesh_->zMin()));
-        renderText (xMax_, yMin_, zMin_,
+        renderText (xmax, ymin, zmin,
                     QString::number(mesh_->xMax()) +
                     "; " +
                     QString::number(mesh_->yMin()) +
                     "; " +
                     QString::number(mesh_->zMin()));
-        renderText (xMin_, yMax_, zMin_,
+        renderText (xmin, ymax, zmin,
                     QString::number(mesh_->xMin()) +
                     "; " +
                     QString::number(mesh_->yMax()) +
                     "; " +
                     QString::number(mesh_->zMin()));
-        renderText (xMin_, yMin_, zMax_,
+        renderText (xmin, ymin, zmax,
                     QString::number(mesh_->xMin()) +
                     "; " +
                     QString::number(mesh_->yMin()) +
                     "; " +
                     QString::number(mesh_->zMax()));
-        renderText (xMax_, yMax_, zMin_,
+        renderText (xmax, ymax, zmin,
                     QString::number(mesh_->xMax()) +
                     "; " +
                     QString::number(mesh_->yMax()) +
                     "; " +
                     QString::number(mesh_->zMin()));
-        renderText (xMax_, yMin_, zMax_,
+        renderText (xmax, ymin, zmax,
                     QString::number(mesh_->xMax()) +
                     "; " +
                     QString::number(mesh_->yMin()) +
                     "; " +
                     QString::number(mesh_->zMax()));
-        renderText (xMin_, yMax_, zMax_,
+        renderText (xmin, ymax, zmax,
                     QString::number(mesh_->xMin()) +
                     "; " +
                     QString::number(mesh_->yMax()) +
                     "; " +
                     QString::number(mesh_->zMax()));
-        renderText (xMax_, yMax_, zMax_,
+        renderText (xmax, ymax, zmax,
                     QString::number(mesh_->xMax()) +
                     "; " +
                     QString::number(mesh_->yMax()) +
                     "; " +
                     QString::number(mesh_->zMax()));
-    }else
-    {
-        renderText (xMin_, yMin_, zMin_, QString::number(xMin_) + "; " + QString::number(yMin_) + "; " + QString::number(zMin_));
-        renderText (xMax_, yMin_, zMin_, QString::number(xMax_) + "; " + QString::number(yMin_) + "; " + QString::number(zMin_));
-        renderText (xMin_, yMax_, zMin_, QString::number(xMin_) + "; " + QString::number(yMax_) + "; " + QString::number(zMin_));
-        renderText (xMin_, yMin_, zMax_, QString::number(xMin_) + "; " + QString::number(yMin_) + "; " + QString::number(zMax_));
-        renderText (xMax_, yMax_, zMin_, QString::number(xMax_) + "; " + QString::number(yMax_) + "; " + QString::number(zMin_));
-        renderText (xMax_, yMin_, zMax_, QString::number(xMax_) + "; " + QString::number(yMin_) + "; " + QString::number(zMax_));
-        renderText (xMin_, yMax_, zMax_, QString::number(xMin_) + "; " + QString::number(yMax_) + "; " + QString::number(zMax_));
-        renderText (xMax_, yMax_, zMax_, QString::number(xMax_) + "; " + QString::number(yMax_) + "; " + QString::number(zMax_));
     }
 }
 
@@ -227,26 +219,25 @@ void GLMeshPicture::resetProjectionMatrix()
 {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
+    double dx = fabs(xMax_ - xMin_);
+    double dy = fabs(yMax_ - yMin_);
+    double dz = fabs(zMax_ - zMin_);
+    double max = qMax(dx, qMax(dy, dz));
 #ifdef QT_OPENGL_ES_1
-    glOrthof(xMin_, xMax_,
-             yMin_, yMax_,
-             zMin_, zMax_);
+    glOrthof(-max, max,
+             -max, max,
+             -max, max);
 #else
-    double minVal = qMin(xMin_, qMin(yMin_, zMin_));
-    double maxVal = qMax(xMax_, qMax(yMax_, zMax_));
-    glOrtho(minVal, maxVal,
-            minVal, maxVal,
-            minVal, maxVal);
+    glOrtho(-max, max,
+            -max, max,
+            -max, max);
 #endif
     glMatrixMode(GL_MODELVIEW);
 }
 
 void GLMeshPicture::pointToGLVertex(const msh::PointPointer &point) const
 {
-    double x = xMin_ + (xMax_ - xMin_) * (point->x() - mesh_->xMin()) / (mesh_->xMax() - mesh_->xMin());
-    double y = yMin_ + (yMax_ - yMin_) * (point->y() - mesh_->yMin()) / (mesh_->yMax() - mesh_->yMin());
-    double z = zMin_ + (zMax_ - zMin_) * (point->z() - mesh_->zMin()) / (mesh_->zMax() - mesh_->zMin());
-    glVertex3d(x, y, z);
+    glVertex3d(point->x() - centerX_, point->y() - centerY_, point->z() - centerZ_);
 }
 
 void GLMeshPicture::drawColorBar()
@@ -549,13 +540,14 @@ void GLMeshPicture::paintGL()
                     msh::PointPointer b = mesh_->node(face[0]);
                     msh::PointPointer c = mesh_->node(face[2]);
 
-                    if (showMesh_ && !isMousePressed_)
-                    {
-                        glEnable(GL_POLYGON_OFFSET_FILL);
-                        glPolygonOffset(1.0, 1.0);
-                    }
+
                     if (!isMousePressed_)
                     {
+                        if (showMesh_)
+                        {
+                            glEnable(GL_POLYGON_OFFSET_FILL);
+                            glPolygonOffset(1.0, 1.0);
+                        }
                         // вычисление нормали к грани
                         msh::Floating nx = (b->y() - a->y()) * (c->z() - a->z()) - (b->z() - a->z()) * (c->y() - a->y());
                         msh::Floating ny = (b->z() - a->z()) * (c->x() - a->x()) - (b->x() - a->x()) * (c->z() - a->z());
@@ -583,12 +575,22 @@ void GLMeshPicture::paintGL()
                             pointToGLVertex(mesh_->node(face[j]));
                         }
                         glEnd();
+                        if(showMesh_)
+                        {
+                            glDisable(GL_POLYGON_OFFSET_FILL);
+                            qglColor(meshColor_);
+                            glBegin(GL_LINE_LOOP);
+                            for (msh::UInteger j = 0; j < face.size(); j++)
+                            {
+                                pointToGLVertex(mesh_->node(face[j]));
+                            }
+                            glEnd();
+                        }
                     }
-                    if(showMesh_ || isMousePressed_)
+                    else
                     {
-                        glDisable(GL_POLYGON_OFFSET_FILL);
                         qglColor(meshColor_);
-                        glBegin(GL_LINE_LOOP);
+                        glBegin(GL_POINTS);
                         for (msh::UInteger j = 0; j < face.size(); j++)
                         {
                             pointToGLVertex(mesh_->node(face[j]));
