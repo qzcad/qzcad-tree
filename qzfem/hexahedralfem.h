@@ -5,6 +5,8 @@
 #include "femcondition3d.h"
 #include "mechanicalparameters.h"
 #include "floatingvector.h"
+#include "floatingmatrix.h"
+#include "globalmatrix.h"
 
 using namespace msh;
 
@@ -41,6 +43,41 @@ public:
      * @return Вектор перемещений
      */
     Point3D getDisplacemementVector(const UInteger &i, const UInteger &nodesCount);
+protected:
+    /**
+     * @brief Процедура построения матрицы упргости
+     * @param E Модуль Юнга
+     * @param nu Коэффициент Пуассона
+     * @param D Матрица упругости (матрица 6*6, перезаписуется)
+     */
+    void buildElasticMatrix(const Floating &E, const Floating &nu, FloatingMatrix &D);
+    /**
+     * @brief Процедура построения глобальной матрицы жесткости
+     * @param mesh Указатель на сетку
+     * @param D Матрица упругости
+     * @param globalMatrix Глобальная матрица жесткости (результат)
+     */
+    void assebly(HexahedralMesh3D* mesh, const FloatingMatrix &D, GlobalMatrix &globalMatrix);
+    /**
+     * @brief Процедура учета поверхностной нагрузокуи
+     * @param mesh Указатель на сетку
+     * @param boundaryForce Параметры поверхностной нагрузки
+     * @param force Вектор сил (должен быть инициализирован нулями, результат процедуры)
+     */
+    void processForce(HexahedralMesh3D* mesh, FEMCondition3DPointer boundaryForce, FloatingVector &force);
+    /**
+     * @brief Процедура учета граничных условий
+     * @param mesh Укзатель на сетку
+     * @param boundaryConditions Массив граничных условий
+     * @param globalMatrix Глобальная матрица жесткости (модифицируется)
+     * @param force Вектор сил (модифицируется)
+     */
+    void processBoundaryConditions(HexahedralMesh3D* mesh, std::vector<FEMCondition3DPointer> boundaryConditions, GlobalMatrix &globalMatrix, FloatingVector &force);
+    /**
+     * @brief Процедура для поиска и вывода на экран экстремальных значений перемещений
+     * @param nodesCount Количество узлов в сетке
+     */
+    void printDisplacementExtremum(const UInteger &nodesCount);
 private:
     FloatingVector displacement;
 };
