@@ -12,7 +12,22 @@ class HexahedralFEM
 {
 
 public:
-    HexahedralFEM(HexahedralMesh3D* mesh, const MechanicalParameters &parameters, FEMCondition3DPointer pressure, std::vector<FEMCondition3DPointer> boundary);
+    /**
+     * @brief Конструктор
+     * @param mesh Указатель на сетку шестигранных элементов
+     * @param parameters Значения механических параметров (модуль Юнга и коэффициент Пуассона)
+     * @param boundaryForce Поверхностная нагрузка
+     * @param boundaryConditions Массмв граничных условий
+     */
+    HexahedralFEM(HexahedralMesh3D* mesh, const MechanicalParameters &parameters, FEMCondition3DPointer boundaryForce, std::vector<FEMCondition3DPointer> boundaryConditions);
+    /**
+     * @brief Конструктор
+     * @param mesh Указатель на сетку шестигранных элементов
+     * @param parameters Значения механических параметров (модуль Юнга и коэффициент Пуассона)
+     * @param boundaryForces Массив поверхностных нагрузок
+     * @param boundaryConditions Массмв граничных условий
+     */
+    HexahedralFEM(HexahedralMesh3D* mesh, const MechanicalParameters &parameters, std::vector<FEMCondition3DPointer> boundaryForces, std::vector<FEMCondition3DPointer> boundaryConditions);
     /**
      * @brief Установить значения перемещения в значения узлах
      * @param mesh Сетка, в которой устанавливается значение в узлах

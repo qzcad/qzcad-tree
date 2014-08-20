@@ -233,18 +233,20 @@ int main()
     }
     input.close();
 
-    std::vector<FEMCondition3DPointer> boundary;
+    std::vector<FEMCondition3DPointer> boundaryConditions;
     XCondition xcond;
     ZCondition zcond;
     FixedCondition fixcond;
     RotCondition rotcond;
-    boundary.push_back(&xcond);
-    boundary.push_back(&zcond);
-//    boundary.push_back(&fixcond);
-    boundary.push_back(&rotcond);
+    boundaryConditions.push_back(&xcond);
+    boundaryConditions.push_back(&zcond);
+//    boundaryConditions.push_back(&fixcond);
+    boundaryConditions.push_back(&rotcond);
     ForceCondition force;
+    std::vector<FEMCondition3DPointer> boundaryForces;
+    boundaryForces.push_back(&force);
 
-    HexahedralFEM fem(&mesh, params, &force, boundary);
+    HexahedralFEM fem(&mesh, params, boundaryForces, boundaryConditions);
 
     fem.setNodeDisplacement(&mesh, 1);
 
