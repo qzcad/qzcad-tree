@@ -202,7 +202,7 @@ int main()
     const Floating G = 8.0E+4;
     const Floating nu = 0.27;
     const Floating E = 2.0 * G * (1.0 + nu);
-    MechanicalParameters params(E, nu);
+    MechanicalParameters3D params(E, nu);
 
     cout << "Загрузка дискретной модели..."<< endl;
     input.open("plate_0_x_04_0_y_0018_0_z_04.txt", fstream::in);

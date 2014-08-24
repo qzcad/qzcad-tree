@@ -3,7 +3,7 @@
 
 #include "hexahedralmesh3d.h"
 #include "femcondition3d.h"
-#include "mechanicalparameters.h"
+#include "mechanicalparameters3d.h"
 #include "floatingvector.h"
 #include "floatingmatrix.h"
 #include "globalmatrix.h"
@@ -21,7 +21,7 @@ public:
      * @param boundaryForce Поверхностная нагрузка
      * @param boundaryConditions Массмв граничных условий
      */
-    HexahedralFEM(HexahedralMesh3D* mesh, const MechanicalParameters &parameters, FEMCondition3DPointer boundaryForce, std::vector<FEMCondition3DPointer> boundaryConditions);
+    HexahedralFEM(HexahedralMesh3D* mesh, const MechanicalParameters3D &parameters, FEMCondition3DPointer boundaryForce, std::vector<FEMCondition3DPointer> boundaryConditions);
     /**
      * @brief Конструктор
      * @param mesh Указатель на сетку шестигранных элементов
@@ -29,7 +29,7 @@ public:
      * @param boundaryForces Массив поверхностных нагрузок
      * @param boundaryConditions Массмв граничных условий
      */
-    HexahedralFEM(HexahedralMesh3D* mesh, const MechanicalParameters &parameters, std::vector<FEMCondition3DPointer> boundaryForces, std::vector<FEMCondition3DPointer> boundaryConditions);
+    HexahedralFEM(HexahedralMesh3D* mesh, const MechanicalParameters3D &parameters, std::vector<FEMCondition3DPointer> boundaryForces, std::vector<FEMCondition3DPointer> boundaryConditions);
     /**
      * @brief Установить значения перемещения в значения узлах
      * @param mesh Сетка, в которой устанавливается значение в узлах
@@ -46,11 +46,10 @@ public:
 protected:
     /**
      * @brief Процедура построения матрицы упргости
-     * @param E Модуль Юнга
-     * @param nu Коэффициент Пуассона
+     * @param params Механические параметры материала
      * @param D Матрица упругости (матрица 6*6, перезаписуется)
      */
-    void buildElasticMatrix(const Floating &E, const Floating &nu, FloatingMatrix &D);
+    void buildElasticMatrix(const MechanicalParameters3D &params, FloatingMatrix &D);
     /**
      * @brief Процедура построения глобальной матрицы жесткости
      * @param mesh Указатель на сетку

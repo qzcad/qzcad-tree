@@ -7,13 +7,12 @@
 #include <boost/progress.hpp>
 #include <iostream>
 
-HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters &parameters, FEMCondition3DPointer boundaryForce, std::vector<FEMCondition3DPointer> boundaryConditions)
+HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3D &parameters, FEMCondition3DPointer boundaryForce, std::vector<FEMCondition3DPointer> boundaryConditions)
 {
     const int freedom = 3;
     const UInteger nodesCount = mesh->nodesCount();
     const UInteger systemDimension = nodesCount * freedom;
-    const Floating E = parameters.E();
-    const Floating nu = parameters.nu();
+
     FloatingMatrix D(6, 6);
 
     GlobalMatrix globalMatrix (systemDimension, systemDimension);
@@ -21,9 +20,9 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters 
 
     displacement.resize(systemDimension);
 
-    std::cout << "E = " << E << " nu = " << nu << std::endl;
+//    std::cout << "E = " << E << " nu = " << nu << std::endl;
 
-    buildElasticMatrix(E, nu, D);
+    buildElasticMatrix(parameters, D);
 
     std::cout << "D:" << std::endl;
     for (int i = 0; i < 6; i++)
@@ -57,13 +56,12 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters 
     printDisplacementExtremum(nodesCount);
 }
 
-HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters &parameters, std::vector<FEMCondition3DPointer> boundaryForces, std::vector<FEMCondition3DPointer> boundaryConditions)
+HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3D &parameters, std::vector<FEMCondition3DPointer> boundaryForces, std::vector<FEMCondition3DPointer> boundaryConditions)
 {
     const int freedom = 3;
     const UInteger nodesCount = mesh->nodesCount();
     const UInteger systemDimension = nodesCount * freedom;
-    const Floating E = parameters.E();
-    const Floating nu = parameters.nu();
+
     FloatingMatrix D(6, 6);
 
     GlobalMatrix globalMatrix (systemDimension, systemDimension);
@@ -71,9 +69,9 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters 
 
     displacement.resize(systemDimension);
 
-    std::cout << "E = " << E << " nu = " << nu << std::endl;
+//    std::cout << "E = " << E << " nu = " << nu << std::endl;
 
-    buildElasticMatrix(E, nu, D);
+    buildElasticMatrix(parameters, D);
 
     std::cout << "D:" << std::endl;
     for (int i = 0; i < 6; i++)
@@ -127,20 +125,36 @@ Point3D HexahedralFEM::getDisplacemementVector(const UInteger &i, const UInteger
     return point;
 }
 
-void HexahedralFEM::buildElasticMatrix(const Floating &E, const Floating &nu, FloatingMatrix &D)
+void HexahedralFEM::buildElasticMatrix(const MechanicalParameters3D &params, FloatingMatrix &D)
 {
-    // Инициализация матрицы D
+    // матрица податливости
+    FloatingMatrix S(6, 6);
+
     for (int i = 0; i < 6; i++)
         for (int j = 0; j < 6; j++)
-            D(i, j) = 0.0;
+            S(i, j) = 0.0;
 
-    D(0, 0) = 1.0; D(0, 1) = nu / (1.0 - nu); D(0, 2) = nu / (1.0 - nu);
-    D(1, 0) = nu / (1.0 - nu); D(1, 1) = 1.0; D(1, 2) = nu / (1.0 - nu);
-    D(2, 0) = nu / (1.0 - nu); D(2, 1) = nu / (1.0 - nu); D(2, 2) = 1.0;
-    D(3, 3) = (1.0 - 2.0 * nu) / (2.0 * (1.0 - nu));
-    D(4, 4) = (1.0 - 2.0 * nu) / (2.0 * (1.0 - nu));
-    D(5, 5) = (1.0 - 2.0 * nu) / (2.0 * (1.0 - nu));
-    D = E * (1.0 - nu) / ((1.0 + nu) * (1.0 - 2.0 * nu)) * D;
+    S(0, 0) = 1.0 / params.E1();    S(0, 1) = - params.nu21() / params.E2();    S(0, 2) = - params.nu31() / params.E3();
+    S(1, 0) = - params.nu12() / params.E1();    S(1, 1) = 1.0 / params.E2();    S(1, 2) = - params.nu32() / params.E3();
+    S(2, 0) = - params.nu13() / params.E1();    S(2, 1) = - params.nu23() / params.E2();    S(2, 2) = 1.0 / params.E3();
+    S(3, 3) = 1.0 / params.G23();
+    S(4, 4) = 1.0 / params.G13();
+    S(5, 5) = 1.0 / params.G12();
+
+    invertMatrix(S, D);
+
+//    // Инициализация матрицы D
+//    for (int i = 0; i < 6; i++)
+//        for (int j = 0; j < 6; j++)
+//            D(i, j) = 0.0;
+
+//    D(0, 0) = 1.0; D(0, 1) = nu / (1.0 - nu); D(0, 2) = nu / (1.0 - nu);
+//    D(1, 0) = nu / (1.0 - nu); D(1, 1) = 1.0; D(1, 2) = nu / (1.0 - nu);
+//    D(2, 0) = nu / (1.0 - nu); D(2, 1) = nu / (1.0 - nu); D(2, 2) = 1.0;
+//    D(3, 3) = (1.0 - 2.0 * nu) / (2.0 * (1.0 - nu));
+//    D(4, 4) = (1.0 - 2.0 * nu) / (2.0 * (1.0 - nu));
+//    D(5, 5) = (1.0 - 2.0 * nu) / (2.0 * (1.0 - nu));
+//    D = E * (1.0 - nu) / ((1.0 + nu) * (1.0 - 2.0 * nu)) * D;
 }
 
 void HexahedralFEM::assebly(HexahedralMesh3D *mesh, const FloatingMatrix &D, GlobalMatrix &globalMatrix)

@@ -11,7 +11,7 @@ TEMPLATE = lib
 CONFIG += staticlib
 
 SOURCES += hexahedralfem.cpp \
-    mechanicalparameters.cpp
+    mechanicalparameters3d.cpp
 
 HEADERS += hexahedralfem.h \
     globalmatrix.h \
@@ -20,11 +20,11 @@ HEADERS += hexahedralfem.h \
     invertmatrix.hpp \
     determinant.hpp \
     conjugategradient.hpp \
-    mechanicalparameters.h \
     femcondition.h \
     femcondition1d.h \
     femcondition2d.h \
-    femcondition3d.h
+    femcondition3d.h \
+    mechanicalparameters3d.h
 unix {
     target.path = /usr/lib
     INSTALLS += target
