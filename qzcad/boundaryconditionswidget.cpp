@@ -17,6 +17,23 @@ BoundaryConditionsWidget::~BoundaryConditionsWidget()
     delete ui;
 }
 
+int BoundaryConditionsWidget::conditionsCount()
+{
+    return ui->boundaryConditionsTable->rowCount();
+}
+
+QtScriptFemCondition3D *BoundaryConditionsWidget::conditionPointer(int i)
+{
+    QString func = ui->boundaryConditionsTable->item(i, 0)->text();
+    bool isU = ui->boundaryConditionsTable->item(i, 1)->checkState() == Qt::CheckState::Checked;
+    double u = ui->boundaryConditionsTable->item(i, 1)->text().toDouble();
+    bool isV = ui->boundaryConditionsTable->item(i, 2)->checkState() == Qt::CheckState::Checked;
+    double v = ui->boundaryConditionsTable->item(i, 2)->text().toDouble();
+    bool isW = ui->boundaryConditionsTable->item(i, 3)->checkState() == Qt::CheckState::Checked;
+    double w = ui->boundaryConditionsTable->item(i, 3)->text().toDouble();
+    return new QtScriptFemCondition3D(func, isU, u, isV, v, isW, w);
+}
+
 void BoundaryConditionsWidget::on_addCondition_clicked()
 {
     ui->boundaryConditionsTable->insertRow(ui->boundaryConditionsTable->rowCount());
