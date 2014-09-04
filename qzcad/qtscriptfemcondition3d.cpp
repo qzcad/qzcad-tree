@@ -1,5 +1,6 @@
 #include "qtscriptfemcondition3d.h"
 #include "iostream"
+#include "qtscriptfunctions.h"
 
 QtScriptFemCondition3D::QtScriptFemCondition3D(QString condition, bool isU, double u, bool isV, double v, bool isW, double w)
 {
@@ -11,6 +12,9 @@ QtScriptFemCondition3D::QtScriptFemCondition3D(QString condition, bool isU, doub
     w_ = w;
     script_ = condition;
     setCondition(script_);
+
+    QScriptValue qsApprox = engine_.newFunction(approx);
+    engine_.globalObject().setProperty("approx", qsApprox);
 }
 
 QtScriptFemCondition3D::QtScriptFemCondition3D(const QtScriptFemCondition3D &femCondition)
@@ -23,6 +27,9 @@ QtScriptFemCondition3D::QtScriptFemCondition3D(const QtScriptFemCondition3D &fem
     w_ = femCondition.w_;
     script_ = femCondition.script_;
     setCondition(script_);
+
+    QScriptValue qsApprox = engine_.newFunction(approx);
+    engine_.globalObject().setProperty("approx", qsApprox);
 }
 
 bool QtScriptFemCondition3D::setCondition(QString script)
@@ -100,7 +107,7 @@ bool QtScriptFemCondition3D::isApplied(msh::PointPointer point)
 {
     QScriptValue func = engine_.globalObject().property("isApplied");
     QScriptValue result = func.call(object_, QScriptValueList() << point->x() << point->y() << point->z());
-    return result.toNumber();
+    return result.toBool();
 }
 
 

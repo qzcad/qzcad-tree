@@ -2,7 +2,7 @@
 #define BOUNDARYCONDITIONSWIDGET_H
 
 #include <QWidget>
-#include "qtscriptfemcondition3d.h"
+#include "femcondition3d.h"
 
 namespace Ui {
 class BoundaryConditionsWidget;
@@ -16,7 +16,8 @@ public:
     explicit BoundaryConditionsWidget(QWidget *parent = 0);
     ~BoundaryConditionsWidget();
     int conditionsCount();
-    QtScriptFemCondition3D *conditionPointer(int i);
+    FEMCondition3DPointer conditionPointer(int i);
+    void setIsForceMode(bool mode);
 private slots:
     void on_addCondition_clicked();
 
@@ -24,6 +25,7 @@ private slots:
 
 private:
     Ui::BoundaryConditionsWidget *ui;
+    bool isForceMode;
 };
 
 #endif // BOUNDARYCONDITIONSWIDGET_H

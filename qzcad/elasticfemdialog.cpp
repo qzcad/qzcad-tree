@@ -6,6 +6,7 @@ ElasticFemDialog::ElasticFemDialog(QWidget *parent) :
     ui(new Ui::ElasticFemDialog)
 {
     ui->setupUi(this);
+    ui->forces->setIsForceMode(true);
 }
 
 ElasticFemDialog::~ElasticFemDialog()

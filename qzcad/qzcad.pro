@@ -31,7 +31,9 @@ SOURCES += main.cpp\
     qstdredirector.cpp \
     boundaryconditionswidget.cpp \
     elasticfemdialog.cpp \
-    qtscriptfemcondition3d.cpp
+    qtscriptfemcondition3d.cpp \
+    qtscriptfunctions.cpp \
+    qtscriptforcecondition3d.cpp
 
 HEADERS  += mainwindow.h \
     globalconsts.h \
@@ -51,7 +53,9 @@ HEADERS  += mainwindow.h \
     qstdredirector.h \
     boundaryconditionswidget.h \
     elasticfemdialog.h \
-    qtscriptfemcondition3d.h
+    qtscriptfemcondition3d.h \
+    qtscriptfunctions.h \
+    qtscriptforcecondition3d.h
 
 FORMS    += mainwindow.ui \
     glcontrolwidget.ui \
