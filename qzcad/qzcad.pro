@@ -33,7 +33,8 @@ SOURCES += main.cpp\
     elasticfemdialog.cpp \
     qtscriptfemcondition3d.cpp \
     qtscriptfunctions.cpp \
-    qtscriptforcecondition3d.cpp
+    qtscriptforcecondition3d.cpp \
+    elasticconstatntswidget.cpp
 
 HEADERS  += mainwindow.h \
     globalconsts.h \
@@ -55,7 +56,8 @@ HEADERS  += mainwindow.h \
     elasticfemdialog.h \
     qtscriptfemcondition3d.h \
     qtscriptfunctions.h \
-    qtscriptforcecondition3d.h
+    qtscriptforcecondition3d.h \
+    elasticconstatntswidget.h
 
 FORMS    += mainwindow.ui \
     glcontrolwidget.ui \
@@ -68,7 +70,8 @@ FORMS    += mainwindow.ui \
     rotationbodymeshdialog.ui \
     exportmeshdialog.ui \
     boundaryconditionswidget.ui \
-    elasticfemdialog.ui
+    elasticfemdialog.ui \
+    elasticconstatntswidget.ui
 
 RESOURCES += \
     qzresources.qrc

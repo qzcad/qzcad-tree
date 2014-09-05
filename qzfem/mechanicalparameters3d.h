@@ -23,7 +23,7 @@ public:
      * @param nu Коэффициент Пуассона
      * @param G Модуль сдвига
      */
-    MechanicalParameters3D(double E, double nu,double G);
+    MechanicalParameters3D(double E, double nu, double G);
     /**
      * @brief Конструктор для анизотропного тела (ортотропия, общий случай, 9 независимых параметров)
      * @param E1 Модуль Юнга для первого направления (x)

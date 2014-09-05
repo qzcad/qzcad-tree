@@ -26,6 +26,11 @@
       <attribute name="title">
        <string>Механические константы</string>
       </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_4">
+       <item>
+        <widget class="ElasticConstatntsWidget" name="widget" native="true"/>
+       </item>
+      </layout>
      </widget>
      <widget class="QWidget" name="tabBoundaryConditions">
       <attribute name="title">
@@ -66,6 +71,12 @@
    <class>BoundaryConditionsWidget</class>
    <extends>QWidget</extends>
    <header>boundaryconditionswidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>ElasticConstatntsWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">elasticconstatntswidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
