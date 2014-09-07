@@ -10,7 +10,7 @@
 #include <QMainWindow>
 
 #include <QTreeWidget>
-#include "mesh.h"
+#include "meshpointer.h"
 #include "qstdredirector.h"
 
 namespace Ui {
@@ -100,6 +100,7 @@ private:
      * @see addObjectTreeItem;
      */
     void addElement(const int &id, const QString &category, const QString &type, const QString &iconName, QString parameters = "");
+    void clearMesh(msh::MeshPointer mesh);
 };
 
 #endif // MAINWINDOW_H

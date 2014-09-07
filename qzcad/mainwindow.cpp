@@ -22,6 +22,10 @@
 #include "exportmeshdialog.h"
 #include "qstdredirector.h"
 
+#include "hexahedralfem.h"
+#include "qtscriptfemcondition3d.h"
+#include "qtscriptforcecondition3d.h"
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -98,6 +102,14 @@ void MainWindow::addElement(const int &id,
     }
 }
 
+void MainWindow::clearMesh(MeshPointer mesh)
+{
+    if (mesh)
+    {
+        delete mesh;
+    }
+}
+
 void MainWindow::on_actionIntersection_triggered()
 {
     addElement(_INTERSECTION_, "Операция", "Пересечение", ":/icons/qzicons/intersection.png");
@@ -136,7 +148,7 @@ void MainWindow::on_actionStructQuads_triggered()
     if (dialog.result() == QDialog::Accepted)
     {
         msh::MeshPointer meshPtr = ui->pictureControl->releaseMesh();
-        if (meshPtr != NULL) delete meshPtr; // чистим старые данные
+        clearMesh(meshPtr);
         msh::QuadrilateralMesh2D * mesh = new msh::QuadrilateralMesh2D(dialog.xCount(), dialog.yCount(),
                                                                        dialog.xMin(), dialog.yMin(),
                                                                        dialog.rectWidth(), dialog.rectHeight());
@@ -152,7 +164,7 @@ void MainWindow::on_actionStructIsoQuads_triggered()
     if (dialog.result() == QDialog::Accepted)
     {
         msh::MeshPointer meshPtr = ui->pictureControl->releaseMesh();
-        if (meshPtr != NULL) delete meshPtr; // чистим старые данные
+        clearMesh(meshPtr);
         msh::QuadrilateralMesh2D * mesh = new msh::QuadrilateralMesh2D(dialog.xiCount(),
                                                                        dialog.etaCount(),
                                                                        msh::Point2D(dialog.x0(), dialog.y0()),
@@ -171,7 +183,7 @@ void MainWindow::on_actionBaryQuads_triggered()
     if (dialog.result() == QDialog::Accepted)
     {
         msh::MeshPointer meshPtr = ui->pictureControl->releaseMesh();
-        if (meshPtr != NULL) delete meshPtr; // чистим старые данные
+        clearMesh(meshPtr);
         msh::QuadrilateralMesh2D * mesh = new msh::QuadrilateralMesh2D(dialog.nodesCount(),
                                                                        msh::Point2D(dialog.x0(), dialog.y0()),
                                                                        msh::Point2D(dialog.x1(), dialog.y1()),
@@ -188,7 +200,7 @@ void MainWindow::on_actionPolygonalModel_triggered()
     if (dialog.result() == QDialog::Accepted)
     {
         msh::MeshPointer meshPtr = ui->pictureControl->releaseMesh();
-        if (meshPtr != NULL) delete meshPtr; // чистим старые данные
+        clearMesh(meshPtr);
         msh::QuadrilateralUnion2D * mesh = new msh::QuadrilateralUnion2D();
         int quadsCount = dialog.quadsCount();
         for (int i = 0; i < quadsCount; i++)
@@ -220,7 +232,7 @@ void MainWindow::on_actionStructHex_triggered()
     if (dialog.result() == QDialog::Accepted)
     {
         msh::MeshPointer meshPtr = ui->pictureControl->releaseMesh();
-        if (meshPtr != NULL) delete meshPtr; // чистим старые данные
+        clearMesh(meshPtr);
         msh::HexahedralMesh3D * mesh = new msh::HexahedralMesh3D(dialog.xCount(), dialog.yCount(), dialog.zCount(),
                                                                  dialog.xMin(), dialog.yMin(), dialog.zMin(),
                                                                  dialog.rectWidth(), dialog.rectHeight(), dialog.rectDepth());
@@ -231,7 +243,7 @@ void MainWindow::on_actionStructHex_triggered()
 
 void MainWindow::on_actionSaveMesh_triggered()
 {
-    msh::MeshPointer mesh = ui->pictureControl->getMesh();
+    msh::MeshPointer mesh = ui->pictureControl->releaseMesh();
     if (mesh)
     {
         QString fileName = QFileDialog::getSaveFileName(this, "qMesher: Сохранить дискретную модель", "", tr("Текстовые файлы (*.txt);;Любой файл (*)"));
@@ -271,6 +283,8 @@ void MainWindow::on_actionSaveMesh_triggered()
                 out << '\n';
             }
         }
+
+        ui->pictureControl->setMesh(mesh);
     }
 }
 
@@ -300,7 +314,9 @@ void MainWindow::on_actionRotationBodyMesh_triggered()
                     hmesh = new msh::HexahedralMesh3D(qmesh, (axe == 0) ? 0.0 : radius, (axe == 0) ? radius : 0.0, angle, layersCount, (axe == 0) ? true : false );
                 msh::MeshPointer mesh3d(hmesh);
                 ui->pictureControl->setMesh(mesh3d);
-                delete qmesh; // !!! удаляем старые данные
+                // !!! удаляем старые данные
+                clearMesh(qmesh);
+
             }
         }
         else
@@ -422,8 +438,9 @@ void MainWindow::on_actionArea_triggered()
 void MainWindow::on_actionLoadMesh_triggered()
 {
     msh::MeshPointer mesh = ui->pictureControl->releaseMesh();
-    if (mesh)
-        delete mesh;
+
+    clearMesh(mesh);
+
     QString fileName = QFileDialog::getOpenFileName(this, "qMesher: Загрузить дискретную модель", "", tr("Текстовые файлы (*.txt);;Любой файл (*)"));
     if (fileName.isEmpty())
         return;
@@ -524,6 +541,67 @@ void MainWindow::on_actionLoadMesh_triggered()
 
 void MainWindow::on_actionElasticFem_triggered()
 {
+    msh::MeshPointer mesh = ui->pictureControl->releaseMesh();
     ElasticFemDialog dialog(this);
-    dialog.exec();
+
+    if (mesh)
+    {
+        msh::Mesh2D *mesh2d = dynamic_cast<msh::Mesh2D*>(mesh);
+        if (mesh2d)
+        {
+            dialog.set2dMode();
+            dialog.exec();
+            // to do
+        }
+        else
+        {
+            msh::HexahedralMesh3D *hexhdralMesh = dynamic_cast<msh::HexahedralMesh3D*>(mesh);
+            if (hexhdralMesh)
+            {
+                dialog.exec();
+                if (dialog.result() == QDialog::Accepted)
+                {
+                    MechanicalParameters3D *params;
+                    if (dialog.isIsotropy())
+                        params = new MechanicalParameters3D(dialog.e(), dialog.nu());
+                    else if (dialog.isOrthotropyENuG())
+                        params = new MechanicalParameters3D(dialog.e(), dialog.nu(), dialog.g());
+                    else
+                        params = new MechanicalParameters3D(dialog.e1(), dialog.e2(), dialog.e3(),
+                                                            dialog.nu12(), dialog.nu13(), dialog.nu23(),
+                                                            dialog.g12(), dialog.g13(), dialog.g23());
+                    std::vector<FEMCondition3DPointer> boundaryConditions;
+                    for (int i = 0; i < dialog.boundaryCount(); i++)
+                    {
+                        boundaryConditions.push_back(new QtScriptFemCondition3D(dialog.boundaryCondition(i),
+                                                                                dialog.boundaryIsU(i),
+                                                                                dialog.boundaryU(i).toDouble(),
+                                                                                dialog.boundaryIsV(i),
+                                                                                dialog.boundaryV(i).toDouble(),
+                                                                                dialog.boundaryIsW(i),
+                                                                                dialog.boundaryW(i).toDouble()));
+                    }
+                    std::vector<FEMCondition3DPointer> forces;
+                    for (int i = 0; i < dialog.forcesCount(); i++)
+                    {
+                        forces.push_back(new QtScriptForceCondition3D(dialog.forceCondition(i),
+                                                                                  dialog.forceU(i),
+                                                                                  dialog.forceV(i),
+                                                                                  dialog.forceW(i)));
+                    }
+                    HexahedralFEM fem(hexhdralMesh, *params, forces, boundaryConditions);
+                    fem.setNodeDisplacement(hexhdralMesh, 1);
+                    // очистка памяти
+                    delete params;
+                    for (int i = 0; i < dialog.boundaryCount(); i++)
+                        delete boundaryConditions[i];
+                    for (int i = 0; i < dialog.forcesCount(); i++)
+                        delete forces[i];
+
+                    ui->pictureControl->setMesh(hexhdralMesh);
+                }
+            }
+        }
+    }
+
 }

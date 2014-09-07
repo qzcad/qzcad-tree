@@ -28,7 +28,7 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_4">
        <item>
-        <widget class="ElasticConstatntsWidget" name="widget" native="true"/>
+        <widget class="ElasticConstatntsWidget" name="constants" native="true"/>
        </item>
       </layout>
      </widget>
