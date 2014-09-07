@@ -132,7 +132,20 @@
     <property name="title">
      <string>&amp;МКЭ</string>
     </property>
+    <widget class="QMenu" name="menuFemNodeValue">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="title">
+      <string>Значение в узлах</string>
+     </property>
+     <addaction name="actionUDirection"/>
+     <addaction name="actionVDirection"/>
+     <addaction name="actionWDirection"/>
+    </widget>
     <addaction name="actionElasticFem"/>
+    <addaction name="separator"/>
+    <addaction name="menuFemNodeValue"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuObject"/>
@@ -231,6 +244,11 @@
     <layout class="QVBoxLayout" name="verticalLayout_2">
      <item>
       <widget class="QTextEdit" name="terminalText">
+       <property name="font">
+        <font>
+         <family>Monospace</family>
+        </font>
+       </property>
        <property name="documentTitle">
         <string>Сообщения системы</string>
        </property>
@@ -470,6 +488,30 @@
   <action name="actionElasticFem">
    <property name="text">
     <string>Упругий расчет...</string>
+   </property>
+  </action>
+  <action name="actionUDirection">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Первое направление (u)</string>
+   </property>
+  </action>
+  <action name="actionVDirection">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Второе направление (v)</string>
+   </property>
+  </action>
+  <action name="actionWDirection">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Третье направление (w)</string>
    </property>
   </action>
  </widget>

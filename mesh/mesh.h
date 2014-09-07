@@ -107,6 +107,15 @@ public:
      */
     virtual void updateDomain() = 0;
     /**
+     * @brief Очистить массив значений, определенных в узле
+     */
+    virtual void clearNodeValues() = 0;
+    /**
+     * @brief Добавить значение, опеределенное в узле, в массив
+     * @param val Значение, которое необходимо добавить
+     */
+    virtual void pushNodeValue(const Floating &val) = 0;
+    /**
      * @brief Виртуальный деструктор
      */
     virtual ~Mesh(){}

@@ -108,6 +108,9 @@ void MainWindow::clearMesh(MeshPointer mesh)
     {
         delete mesh;
     }
+    u_.clear();
+    v_.clear();
+    w_.clear();
 }
 
 void MainWindow::on_actionIntersection_triggered()
@@ -544,6 +547,10 @@ void MainWindow::on_actionElasticFem_triggered()
     msh::MeshPointer mesh = ui->pictureControl->releaseMesh();
     ElasticFemDialog dialog(this);
 
+    ui->actionUDirection->setEnabled(false);
+    ui->actionVDirection->setEnabled(false);
+    ui->actionWDirection->setEnabled(false);
+
     if (mesh)
     {
         msh::Mesh2D *mesh2d = dynamic_cast<msh::Mesh2D*>(mesh);
@@ -590,7 +597,20 @@ void MainWindow::on_actionElasticFem_triggered()
                                                                                   dialog.forceW(i)));
                     }
                     HexahedralFEM fem(hexhdralMesh, *params, forces, boundaryConditions);
-                    fem.setNodeDisplacement(hexhdralMesh, 1);
+                    fem.setNodeDisplacement(hexhdralMesh, 0); // по умолчанию визуализируем первое направление
+                    u_.clear();
+                    v_.clear();
+                    w_.clear();
+                    for (msh::UInteger i = 0; i < hexhdralMesh->nodesCount(); i++)
+                    {
+                        msh::Point3D d = fem.getDisplacemementVector(i, hexhdralMesh->nodesCount());
+                        u_.push_back(d.x());
+                        v_.push_back(d.y());
+                        w_.push_back(d.z());
+                    }
+                    ui->actionUDirection->setEnabled(true);
+                    ui->actionVDirection->setEnabled(true);
+                    ui->actionWDirection->setEnabled(true);
                     // очистка памяти
                     delete params;
                     for (int i = 0; i < dialog.boundaryCount(); i++)
@@ -604,4 +624,55 @@ void MainWindow::on_actionElasticFem_triggered()
         }
     }
 
+}
+
+void MainWindow::on_actionUDirection_triggered()
+{
+    msh::MeshPointer mesh = ui->pictureControl->releaseMesh();
+    if (mesh)
+    {
+        if (mesh->nodesCount() == u_.size())
+        {
+            mesh->clearNodeValues();
+            for (msh::UInteger i = 0; i < mesh->nodesCount(); i++)
+            {
+                mesh->pushNodeValue(u_[i]);
+            }
+        }
+        ui->pictureControl->setMesh(mesh);
+    }
+}
+
+void MainWindow::on_actionVDirection_triggered()
+{
+    msh::MeshPointer mesh = ui->pictureControl->releaseMesh();
+    if (mesh)
+    {
+        if (mesh->nodesCount() == v_.size())
+        {
+            mesh->clearNodeValues();
+            for (msh::UInteger i = 0; i < mesh->nodesCount(); i++)
+            {
+                mesh->pushNodeValue(v_[i]);
+            }
+        }
+        ui->pictureControl->setMesh(mesh);
+    }
+}
+
+void MainWindow::on_actionWDirection_triggered()
+{
+    msh::MeshPointer mesh = ui->pictureControl->releaseMesh();
+    if (mesh)
+    {
+        if (mesh->nodesCount() == w_.size())
+        {
+            mesh->clearNodeValues();
+            for (msh::UInteger i = 0; i < mesh->nodesCount(); i++)
+            {
+                mesh->pushNodeValue(w_[i]);
+            }
+        }
+        ui->pictureControl->setMesh(mesh);
+    }
 }
