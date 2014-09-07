@@ -32,10 +32,39 @@
      <item>
       <widget class="QToolButton" name="delCondition">
        <property name="text">
-        <string extracomment="Удалить выбранное">-</string>
+        <string extracomment="Удалить выбранное">--</string>
        </property>
        <property name="autoRaise">
         <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="Line" name="line">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="loadConditions">
+       <property name="text">
+        <string>Загрузить условия из файла</string>
+       </property>
+       <property name="icon">
+        <iconset resource="qzresources.qrc">
+         <normaloff>:/icons/qzicons/16x16/folder.png</normaloff>:/icons/qzicons/16x16/folder.png</iconset>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="saveConditions">
+       <property name="text">
+        <string>Сохранить условия в файл</string>
+       </property>
+       <property name="icon">
+        <iconset resource="qzresources.qrc">
+         <normaloff>:/icons/qzicons/16x16/save.png</normaloff>:/icons/qzicons/16x16/save.png</iconset>
        </property>
       </widget>
      </item>
@@ -86,6 +115,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="qzresources.qrc"/>
+ </resources>
  <connections/>
 </ui>
