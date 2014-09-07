@@ -18,6 +18,7 @@ ElasticConstatntsWidget::ElasticConstatntsWidget(QWidget *parent) :
     ui->nu13Label->hide();
     ui->nu23->hide();
     ui->nu23Label->hide();
+    ui->shearGroupBox->hide();
     ui->g12->hide();
     ui->g12Label->hide();
     ui->g13->hide();
