@@ -31,6 +31,14 @@ public:
      */
     HexahedralFEM(HexahedralMesh3D* mesh, const MechanicalParameters3D &parameters, std::vector<FEMCondition3DPointer> boundaryForces, std::vector<FEMCondition3DPointer> boundaryConditions);
     /**
+     * @brief Конструктор для расчета многослойных конструкций
+     * @param mesh Указатель на сетку шестигранных элементов
+     * @param parameters Значения механических параметров (модуль Юнга и коэффициент Пуассона) - массив, послойное представление
+     * @param boundaryForces Массив поверхностных нагрузок
+     * @param boundaryConditions Массмв граничных условий
+     */
+    HexahedralFEM(HexahedralMesh3D* mesh, std::vector<MechanicalParameters3D> parameters, std::vector<FEMCondition3DPointer> boundaryForces, std::vector<FEMCondition3DPointer> boundaryConditions);
+    /**
      * @brief Установить значения перемещения в значения узлах
      * @param mesh Сетка, в которой устанавливается значение в узлах
      * @param direction Направление перемещения (0, 1 или 2)
@@ -51,12 +59,25 @@ protected:
      */
     void buildElasticMatrix(const MechanicalParameters3D &params, FloatingMatrix &D);
     /**
+     * @brief Процедура построени матрицы упргости для многослойных конструкций
+     * @param params Массив механических параметров материала
+     * @param D Массив матриц упругости
+     */
+    void buildElasticMatrix(std::vector<MechanicalParameters3D> params, FloatingMatrix D[]);
+    /**
      * @brief Процедура построения глобальной матрицы жесткости
      * @param mesh Указатель на сетку
      * @param D Матрица упругости
      * @param globalMatrix Глобальная матрица жесткости (результат)
      */
     void assebly(HexahedralMesh3D* mesh, const FloatingMatrix &D, GlobalMatrix &globalMatrix);
+    /**
+     * @brief Процедура построения глобальной матрицы жесткости для многослойных конструкций
+     * @param mesh Указатель на сетку
+     * @param D Массив матриц упругости
+     * @param globalMatrix Глобальная матрица жесткости (результат)
+     */
+    void assebly(HexahedralMesh3D* mesh, FloatingMatrix D[], GlobalMatrix &globalMatrix);
     /**
      * @brief Процедура учета поверхностной нагрузокуи
      * @param mesh Указатель на сетку

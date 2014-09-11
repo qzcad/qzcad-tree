@@ -109,6 +109,62 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3
     printDisplacementExtremum(nodesCount);
 }
 
+HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, std::vector<MechanicalParameters3D> parameters, std::vector<FEMCondition3DPointer> boundaryForces, std::vector<FEMCondition3DPointer> boundaryConditions)
+{
+    const int freedom = 3;
+    const UInteger nodesCount = mesh->nodesCount();
+    const UInteger systemDimension = nodesCount * freedom;
+
+    UInteger layersCount = parameters.size(); // количество слоев
+
+    FloatingMatrix D[layersCount];
+    for (UInteger i = 0; i< layersCount; i++) D[i].resize(6, 6);
+
+    GlobalMatrix globalMatrix (systemDimension, systemDimension);
+    FloatingVector force(systemDimension);
+
+    displacement.resize(systemDimension);
+
+
+    buildElasticMatrix(parameters, D);
+
+    std::cout << "D:" << std::endl;
+    for (UInteger p = 0; p < layersCount; p++)
+    for (int i = 0; i < 6; i++)
+    {
+        std::cout << "[\t";
+        for (int j = 0; j < 6; j++)
+        {
+            std::cout << D[p](i, j) << '\t';
+        }
+        std::cout << "\t]" << std::endl;
+    }
+
+    assebly(mesh, D, globalMatrix);
+
+    std::cout << "Построение вектора нагрузок... " << std::endl;
+    for (UInteger i = 0; i < systemDimension; i++)
+        force(i) = 0.0;
+
+    for(UInteger bf = 0; bf < boundaryForces.size(); bf++)
+    {
+        FEMCondition3DPointer forcePointer = boundaryForces[bf];
+        processForce(mesh, forcePointer, force);
+    } // for bf
+
+    processBoundaryConditions(mesh, boundaryConditions, globalMatrix, force);
+
+    std::cout << "Ассоциация и частичная очистка памяти..." << std::endl;
+    compressed_matrix<Floating> CGM(systemDimension, systemDimension);
+    CGM.assign(globalMatrix);
+    globalMatrix.clear();
+    std::cout << "Решение СЛАУ..." << std::endl;
+    int res = conjugateGradient(CGM, displacement,force,row_major_tag());
+    std::cout << "Выполнено итераций в метода сопряженных градиентов: " << res << std::endl;
+
+    printDisplacementExtremum(nodesCount);
+}
+
 void HexahedralFEM::setNodeDisplacement(HexahedralMesh3D *mesh, const UInteger &direction)
 {
     const UInteger nodesCount = mesh->nodesCount();
@@ -154,7 +210,15 @@ void HexahedralFEM::buildElasticMatrix(const MechanicalParameters3D &params, Flo
 //    D(3, 3) = (1.0 - 2.0 * nu) / (2.0 * (1.0 - nu));
 //    D(4, 4) = (1.0 - 2.0 * nu) / (2.0 * (1.0 - nu));
 //    D(5, 5) = (1.0 - 2.0 * nu) / (2.0 * (1.0 - nu));
-//    D = E * (1.0 - nu) / ((1.0 + nu) * (1.0 - 2.0 * nu)) * D;
+    //    D = E * (1.0 - nu) / ((1.0 + nu) * (1.0 - 2.0 * nu)) * D;
+}
+
+void HexahedralFEM::buildElasticMatrix(std::vector<MechanicalParameters3D> params, FloatingMatrix D[])
+{
+    for (UInteger p = 0; p < params.size(); p++)
+    {
+        buildElasticMatrix(params[p], D[p]);
+    }
 }
 
 void HexahedralFEM::assebly(HexahedralMesh3D *mesh, const FloatingMatrix &D, GlobalMatrix &globalMatrix)
@@ -303,6 +367,195 @@ void HexahedralFEM::assebly(HexahedralMesh3D *mesh, const FloatingMatrix &D, Glo
                     BT = trans(B);
 
                     BTD = prod(BT, D);
+
+                    localMatrix += prod(BTD, B) * detJacobian * xiWeight * etaWeight * muWeight;
+
+                } // for iMu
+            } // for iEta
+        } // for iXi
+        // Ансамблирование
+        for (int i = 0; i < elementNodes * freedom; i++)
+        {
+            if (i < elementNodes)
+            {
+                index_i = element->vertexNode(i);
+            }
+            else if (i < 2 * elementNodes)
+            {
+                index_i = element->vertexNode(i - elementNodes) + nodesCount;
+            }
+            else
+            {
+                index_i = element->vertexNode(i - 2L * elementNodes) + 2L * nodesCount;
+            }
+
+            for (int j = 0; j < elementNodes * freedom; j++)
+            {
+                if (j < elementNodes)
+                {
+                    index_j = element->vertexNode(j);
+                }
+                else if (j < 2 * elementNodes)
+                {
+                    index_j = element->vertexNode(j - elementNodes) + nodesCount;
+                }
+                else
+                {
+                    index_j = element->vertexNode(j - 2L * elementNodes) + 2L * nodesCount;
+                }
+                globalMatrix(index_i, index_j) += localMatrix(i, j);
+            } // for j
+        } // for i
+    } // for elementNumber
+}
+
+void HexahedralFEM::assebly(HexahedralMesh3D *mesh, FloatingMatrix D[], GlobalMatrix &globalMatrix)
+{
+    const int freedom = 3;
+    const UInteger nodesCount = mesh->nodesCount();
+    const UInteger elementsCount = mesh->elementsCount();
+    const int elementNodes = 8;
+    const int gaussCount = 2; // количество точек в квадратурах для интегрирования
+    Floating gaussPoint[] = {-1.0 / sqrt(3.0), 1.0 / sqrt(3.0)}; // координаты точек квадратуры
+    Floating gaussWeight[] = {1.0, 1.0}; // веса точек квадратуры
+
+    std::cout << "Построение глобальной матрицы..." << std::endl;
+
+    boost::progress_display progressBar(elementsCount);
+    for (UInteger elementNumber = 0; elementNumber < elementsCount; elementNumber++)
+    {
+        ++progressBar;
+
+        Floating x[elementNodes];
+        Floating y[elementNodes];
+        Floating z[elementNodes];
+        FloatingMatrix localMatrix(elementNodes * freedom, elementNodes * freedom);
+        UInteger index_i = 0;
+        UInteger index_j = 0;
+        for (int i = 0; i < elementNodes * freedom; i++)
+        {
+            for (int j = 0; j < elementNodes * freedom; j++)
+            {
+                localMatrix(i, j) = 0.0;
+            }
+        }
+        // извлечение координат узлов
+        ElementPointer element = mesh->element(elementNumber);
+        for (int i = 0; i < elementNodes; i++)
+        {
+            PointPointer point = mesh->node(element->vertexNode(i));
+            x[i] = point->x();
+            y[i] = point->y();
+            z[i] = point->z();
+        }
+        // интегрирование квадратурами
+        for (int iXi = 0; iXi < gaussCount; iXi++)
+        {
+            Floating xi = gaussPoint[iXi];
+            Floating xiWeight = gaussWeight[iXi];
+            for (int iEta = 0; iEta < gaussCount; iEta++)
+            {
+                Floating eta = gaussPoint[iEta];
+                Floating etaWeight = gaussWeight[iEta];
+                for (int iMu = 0; iMu < gaussCount; iMu++)
+                {
+                    Floating mu = gaussPoint[iMu];
+                    Floating muWeight = gaussWeight[iMu];
+                    // значения функций формы
+                    FloatingVector N(elementNodes);
+                    // значения производных функций формы в местных координатах
+                    FloatingVector dNdXi(elementNodes);
+                    FloatingVector dNdEta(elementNodes);
+                    FloatingVector dNdMu(elementNodes);
+                    // Якобиан
+                    FloatingMatrix Jacobian(freedom, freedom);
+                    FloatingMatrix invJacobian(freedom, freedom);
+                    Floating detJacobian;
+                    // значения производных функций формы в глобальных координатах
+                    FloatingVector dNdX(elementNodes);
+                    FloatingVector dNdY(elementNodes);
+                    FloatingVector dNdZ(elementNodes);
+                    // матрицы вариационной постановки
+                    FloatingMatrix B(6, 24);
+                    FloatingMatrix BT(24, 6);
+                    FloatingMatrix BTD(24, 6);
+
+                    N(0) = (1 - xi) * (1 - eta) * (1 - mu) / 8.0;
+                    N(1) = (1 - xi) * (1 - eta) * (1 + mu) / 8.0;
+                    N(2) = (1 + xi) * (1 - eta) * (1 + mu) / 8.0;
+                    N(3) = (1 + xi) * (1 - eta) * (1 - mu) / 8.0;
+                    N(4) = (1 - xi) * (1 + eta) * (1 - mu) / 8.0;
+                    N(5) = (1 - xi) * (1 + eta) * (1 + mu) / 8.0;
+                    N(6) = (1 + xi) * (1 + eta) * (1 + mu) / 8.0;
+                    N(7) = (1 + xi) * (1 + eta) * (1 - mu) / 8.0;
+
+                    dNdXi(0) = -(1 - eta) * (1 - mu) / 8.0;
+                    dNdXi(1) = -(1 - eta) * (1 + mu) / 8.0;
+                    dNdXi(2) = (1 - eta) * (1 + mu) / 8.0;
+                    dNdXi(3) = (1 - eta) * (1 - mu) / 8.0;
+                    dNdXi(4) = -(1 + eta) * (1 - mu) / 8.0;
+                    dNdXi(5) = -(1 + eta) * (1 + mu) / 8.0;
+                    dNdXi(6) = (1 + eta) * (1 + mu) / 8.0;
+                    dNdXi(7) = (1 + eta) * (1 - mu) / 8.0;
+
+                    dNdEta(0) = -(1 - xi) * (1 - mu) / 8.0;
+                    dNdEta(1) = -(1 - xi) * (1 + mu) / 8.0;
+                    dNdEta(2) = -(1 + xi) * (1 + mu) / 8.0;
+                    dNdEta(3) = -(1 + xi) * (1 - mu) / 8.0;
+                    dNdEta(4) = (1 - xi) * (1 - mu) / 8.0;
+                    dNdEta(5) = (1 - xi) * (1 + mu) / 8.0;
+                    dNdEta(6) = (1 + xi) * (1 + mu) / 8.0;
+                    dNdEta(7) = (1 + xi) * (1 - mu) / 8.0;
+
+                    dNdMu(0) = -(1 - xi) * (1 - eta) / 8.0;
+                    dNdMu(1) = (1 - xi) * (1 - eta) / 8.0;
+                    dNdMu(2) = (1 + xi) * (1 - eta) / 8.0;
+                    dNdMu(3) = -(1 + xi) * (1 - eta) / 8.0;
+                    dNdMu(4) = -(1 - xi) * (1 + eta) / 8.0;
+                    dNdMu(5) = (1 - xi) * (1 + eta) / 8.0;
+                    dNdMu(6) = (1 + xi) * (1 + eta) / 8.0;
+                    dNdMu(7) = -(1 + xi) * (1 + eta) / 8.0;
+
+                    Jacobian(0, 0) = 0.0; Jacobian(0, 1) = 0.0; Jacobian(0, 2) = 0.0;
+                    Jacobian(1, 0) = 0.0; Jacobian(1, 1) = 0.0; Jacobian(1, 2) = 0.0;
+                    Jacobian(2, 0) = 0.0; Jacobian(2, 1) = 0.0; Jacobian(2, 2) = 0.0;
+
+                    for (int i = 0; i < elementNodes; i++)
+                    {
+                        Jacobian(0, 0) += dNdXi(i) * x[i]; Jacobian(0, 1) += dNdXi(i) * y[i]; Jacobian(0, 2) += dNdXi(i) * z[i];
+                        Jacobian(1, 0) += dNdEta(i) * x[i]; Jacobian(1, 1) += dNdEta(i) * y[i]; Jacobian(1, 2) += dNdEta(i) * z[i];
+                        Jacobian(2, 0) += dNdMu(i) * x[i]; Jacobian(2, 1) += dNdMu(i) * y[i]; Jacobian(2, 2) += dNdMu(i) * z[i];
+                    }
+                    invertMatrix(Jacobian, invJacobian);
+                    detJacobian = determinant(Jacobian);
+
+                    for (int i = 0; i < elementNodes; i++)
+                    {
+                        dNdX(i) = invJacobian(0, 0) * dNdXi(i) + invJacobian(0, 1) * dNdEta(i) + invJacobian(0, 2) * dNdMu(i);
+                        dNdY(i) = invJacobian(1, 0) * dNdXi(i) + invJacobian(1, 1) * dNdEta(i) + invJacobian(1, 2) * dNdMu(i);
+                        dNdZ(i) = invJacobian(2, 0) * dNdXi(i) + invJacobian(2, 1) * dNdEta(i) + invJacobian(2, 2) * dNdMu(i);
+                    }
+
+                    for (int i = 0; i < 6; i++)
+                    {
+                        for (int j = 0; j < 24; j++)
+                        {
+                            B(i, j) = 0.0;
+                        }
+                    }
+                    for (int i = 0; i < 8; i++)
+                    {
+                        B(0, i) = dNdX(i);
+                        B(1, i + 8) = dNdY(i);
+                        B(2, i + 16) = dNdZ(i);
+                        B(3, i) = dNdY(i); B(3, i + 8) = dNdX(i);
+                        B(4, i + 8) = dNdZ(i); B(4, i + 16) = dNdY(i);
+                        B(5, i) = dNdZ(i); B(5, i + 16) = dNdX(i);
+                    }
+                    BT = trans(B);
+
+                    int dNum = (int)mesh->elementValue(elementNumber);
+                    BTD = prod(BT, D[dNum]);
 
                     localMatrix += prod(BTD, B) * detJacobian * xiWeight * etaWeight * muWeight;
 
