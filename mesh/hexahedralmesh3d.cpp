@@ -59,12 +59,12 @@ HexahedralMesh3D::HexahedralMesh3D(const UInteger &xCount, const UInteger &yCoun
 
 HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating &xDelta, const Floating &yDelta, const int &lCount, bool x_axes, bool withElementValue)
 {
-    xMin_ = baseMesh->xMin();
-    xMax_ = baseMesh->xMax();
-    yMin_ = baseMesh->yMin();
-    yMax_ = baseMesh->yMax();
-    zMin_ = 0.0;
-    zMax_ = 0.0;
+    xMin_ = 1.0E+10;
+    xMax_ = -1.0E+10;
+    yMin_ = 1.0E+10;
+    yMax_ = -1.0E+10;
+    zMin_ = 1.0E+10;
+    zMax_ = -1.0E+10;
 
     node_.reserve(baseMesh->nodesCount() *(lCount + 1));
     element_.reserve(baseMesh->elementsCount() * lCount);
@@ -158,12 +158,12 @@ HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating
 
 HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating &xDelta, const Floating &yDelta, const Floating &angle, const int &lCount, bool x_axes, bool withElementValue)
 {
-    xMin_ = baseMesh->xMin();
-    xMax_ = baseMesh->xMax();
-    yMin_ = baseMesh->yMin();
-    yMax_ = baseMesh->yMax();
-    zMin_ = 0.0;
-    zMax_ = 0.0;
+    xMin_ = 1.0E+10;
+    xMax_ = -1.0E+10;
+    yMin_ = 1.0E+10;
+    yMax_ = -1.0E+10;
+    zMin_ = 1.0E+10;
+    zMax_ = -1.0E+10;
 
     node_.reserve(baseMesh->nodesCount() * (lCount + 1L));
     element_.reserve(baseMesh->elementsCount() * lCount);
