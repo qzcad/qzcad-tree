@@ -45,6 +45,36 @@ public:
      */
     void setNodeDisplacement(HexahedralMesh3D* mesh, const UInteger &direction);
     /**
+     * @brief Установить напряжения SigmaX в значения на элементе
+     * @param mesh Указатель на сетку
+     */
+    void setElementSigmaX(HexahedralMesh3D * mesh);
+    /**
+     * @brief Установить напряжения SigmaY в значения на элементе
+     * @param mesh Указатель на сетку
+     */
+    void setElementSigmaY(HexahedralMesh3D * mesh);
+    /**
+     * @brief Установить напряжения SigmaZ в значения на элементе
+     * @param mesh Указатель на сетку
+     */
+    void setElementSigmaZ(HexahedralMesh3D * mesh);
+    /**
+     * @brief Установить напряжения TauXY в значения на элементе
+     * @param mesh Указатель на сетку
+     */
+    void setElementTauXY(HexahedralMesh3D * mesh);
+    /**
+     * @brief Установить напряжения TauYZ в значения на элементе
+     * @param mesh Указатель на сетку
+     */
+    void setElementTauYZ(HexahedralMesh3D * mesh);
+    /**
+     * @brief Установить напряжения TauZX в значения на элементе
+     * @param mesh Указатель на сетку
+     */
+    void setElementTauZX(HexahedralMesh3D * mesh);
+    /**
      * @brief Получить вектор перемещений для заданного узла
      * @param i Номер узла
      * @param nodesCount Колчисетво узлов в сетке
@@ -98,8 +128,20 @@ protected:
      * @param nodesCount Количество узлов в сетке
      */
     void printDisplacementExtremum(const UInteger &nodesCount);
+    /**
+     * @brief Процедура вычисления напряжений
+     * @param mesh Указатель на сетку
+     * @param D Матрица упругости
+     */
+    void recoverStress(HexahedralMesh3D* mesh, const FloatingMatrix &D);
 private:
     FloatingVector displacement;
+    std::vector<Floating> sigmaX;
+    std::vector<Floating> sigmaY;
+    std::vector<Floating> sigmaZ;
+    std::vector<Floating> tauXY;
+    std::vector<Floating> tauYZ;
+    std::vector<Floating> tauZX;
 };
 
 #endif // HEXAHEDRALFEM_H

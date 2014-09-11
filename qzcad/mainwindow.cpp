@@ -562,8 +562,8 @@ void MainWindow::on_actionElasticFem_triggered()
         }
         else
         {
-            msh::HexahedralMesh3D *hexhdralMesh = dynamic_cast<msh::HexahedralMesh3D*>(mesh);
-            if (hexhdralMesh)
+            msh::HexahedralMesh3D *hexahedralMesh = dynamic_cast<msh::HexahedralMesh3D*>(mesh);
+            if (hexahedralMesh)
             {
                 dialog.exec();
                 if (dialog.result() == QDialog::Accepted)
@@ -596,14 +596,15 @@ void MainWindow::on_actionElasticFem_triggered()
                                                                                   dialog.forceV(i),
                                                                                   dialog.forceW(i)));
                     }
-                    HexahedralFEM fem(hexhdralMesh, *params, forces, boundaryConditions);
-                    fem.setNodeDisplacement(hexhdralMesh, 0); // по умолчанию визуализируем первое направление
+                    HexahedralFEM fem(hexahedralMesh, *params, forces, boundaryConditions);
+                    fem.setNodeDisplacement(hexahedralMesh, 0); // по умолчанию визуализируем первое направление
+                    fem.setElementSigmaY(hexahedralMesh);
                     u_.clear();
                     v_.clear();
                     w_.clear();
-                    for (msh::UInteger i = 0; i < hexhdralMesh->nodesCount(); i++)
+                    for (msh::UInteger i = 0; i < hexahedralMesh->nodesCount(); i++)
                     {
-                        msh::Point3D d = fem.getDisplacemementVector(i, hexhdralMesh->nodesCount());
+                        msh::Point3D d = fem.getDisplacemementVector(i, hexahedralMesh->nodesCount());
                         u_.push_back(d.x());
                         v_.push_back(d.y());
                         w_.push_back(d.z());
@@ -618,7 +619,7 @@ void MainWindow::on_actionElasticFem_triggered()
                     for (int i = 0; i < dialog.forcesCount(); i++)
                         delete forces[i];
 
-                    ui->pictureControl->setMesh(hexhdralMesh);
+                    ui->pictureControl->setMesh(hexahedralMesh);
                 }
             }
         }
@@ -675,4 +676,21 @@ void MainWindow::on_actionWDirection_triggered()
         }
         ui->pictureControl->setMesh(mesh);
     }
+}
+
+void MainWindow::on_actionSigmaX_triggered()
+{
+//    msh::MeshPointer mesh = ui->pictureControl->releaseMesh();
+//    if (mesh)
+//    {
+//        if (mesh->nodesCount() == w_.size())
+//        {
+//            mesh->clearNodeValues();
+//            for (msh::UInteger i = 0; i < mesh->nodesCount(); i++)
+//            {
+//                mesh->pushNodeValue(w_[i]);
+//            }
+//        }
+//        ui->pictureControl->setMesh(mesh);
+//    }
 }

@@ -20,7 +20,7 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3
 
     displacement.resize(systemDimension);
 
-//    std::cout << "E = " << E << " nu = " << nu << std::endl;
+    //    std::cout << "E = " << E << " nu = " << nu << std::endl;
 
     buildElasticMatrix(parameters, D);
 
@@ -54,6 +54,8 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3
     std::cout << "Выполнено итераций в метода сопряженных градиентов: " << res << std::endl;
 
     printDisplacementExtremum(nodesCount);
+
+    recoverStress(mesh, D);
 }
 
 HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3D &parameters, std::vector<FEMCondition3DPointer> boundaryForces, std::vector<FEMCondition3DPointer> boundaryConditions)
@@ -69,7 +71,7 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3
 
     displacement.resize(systemDimension);
 
-//    std::cout << "E = " << E << " nu = " << nu << std::endl;
+    //    std::cout << "E = " << E << " nu = " << nu << std::endl;
 
     buildElasticMatrix(parameters, D);
 
@@ -107,6 +109,8 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3
     std::cout << "Выполнено итераций в метода сопряженных градиентов: " << res << std::endl;
 
     printDisplacementExtremum(nodesCount);
+
+    recoverStress(mesh, D);
 }
 
 HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, std::vector<MechanicalParameters3D> parameters, std::vector<FEMCondition3DPointer> boundaryForces, std::vector<FEMCondition3DPointer> boundaryConditions)
@@ -130,15 +134,15 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, std::vector<MechanicalParam
 
     std::cout << "D:" << std::endl;
     for (UInteger p = 0; p < layersCount; p++)
-    for (int i = 0; i < 6; i++)
-    {
-        std::cout << "[\t";
-        for (int j = 0; j < 6; j++)
+        for (int i = 0; i < 6; i++)
         {
-            std::cout << D[p](i, j) << '\t';
+            std::cout << "[\t";
+            for (int j = 0; j < 6; j++)
+            {
+                std::cout << D[p](i, j) << '\t';
+            }
+            std::cout << "\t]" << std::endl;
         }
-        std::cout << "\t]" << std::endl;
-    }
 
     assebly(mesh, D, globalMatrix);
 
@@ -175,6 +179,54 @@ void HexahedralFEM::setNodeDisplacement(HexahedralMesh3D *mesh, const UInteger &
     }
 }
 
+void HexahedralFEM::setElementSigmaX(HexahedralMesh3D *mesh)
+{
+    const UInteger elementsCount = mesh->elementsCount();
+    mesh->clearElementValues();
+    for (UInteger i = 0; i < elementsCount; i++)
+        mesh->pushElementValue(sigmaX[i]);
+}
+
+void HexahedralFEM::setElementSigmaY(HexahedralMesh3D *mesh)
+{
+    const UInteger elementsCount = mesh->elementsCount();
+    mesh->clearElementValues();
+    for (UInteger i = 0; i < elementsCount; i++)
+        mesh->pushElementValue(sigmaY[i]);
+}
+
+void HexahedralFEM::setElementSigmaZ(HexahedralMesh3D *mesh)
+{
+    const UInteger elementsCount = mesh->elementsCount();
+    mesh->clearElementValues();
+    for (UInteger i = 0; i < elementsCount; i++)
+        mesh->pushElementValue(sigmaZ[i]);
+}
+
+void HexahedralFEM::setElementTauXY(HexahedralMesh3D *mesh)
+{
+    const UInteger elementsCount = mesh->elementsCount();
+    mesh->clearElementValues();
+    for (UInteger i = 0; i < elementsCount; i++)
+        mesh->pushElementValue(tauXY[i]);
+}
+
+void HexahedralFEM::setElementTauYZ(HexahedralMesh3D *mesh)
+{
+    const UInteger elementsCount = mesh->elementsCount();
+    mesh->clearElementValues();
+    for (UInteger i = 0; i < elementsCount; i++)
+        mesh->pushElementValue(tauYZ[i]);
+}
+
+void HexahedralFEM::setElementTauZX(HexahedralMesh3D *mesh)
+{
+    const UInteger elementsCount = mesh->elementsCount();
+    mesh->clearElementValues();
+    for (UInteger i = 0; i < elementsCount; i++)
+        mesh->pushElementValue(tauZX[i]);
+}
+
 Point3D HexahedralFEM::getDisplacemementVector(const UInteger &i, const UInteger &nodesCount)
 {
     Point3D point(displacement[i], displacement[i + nodesCount], displacement[i + 2L * nodesCount]);
@@ -199,17 +251,17 @@ void HexahedralFEM::buildElasticMatrix(const MechanicalParameters3D &params, Flo
 
     invertMatrix(S, D);
 
-//    // Инициализация матрицы D
-//    for (int i = 0; i < 6; i++)
-//        for (int j = 0; j < 6; j++)
-//            D(i, j) = 0.0;
+    //    // Инициализация матрицы D
+    //    for (int i = 0; i < 6; i++)
+    //        for (int j = 0; j < 6; j++)
+    //            D(i, j) = 0.0;
 
-//    D(0, 0) = 1.0; D(0, 1) = nu / (1.0 - nu); D(0, 2) = nu / (1.0 - nu);
-//    D(1, 0) = nu / (1.0 - nu); D(1, 1) = 1.0; D(1, 2) = nu / (1.0 - nu);
-//    D(2, 0) = nu / (1.0 - nu); D(2, 1) = nu / (1.0 - nu); D(2, 2) = 1.0;
-//    D(3, 3) = (1.0 - 2.0 * nu) / (2.0 * (1.0 - nu));
-//    D(4, 4) = (1.0 - 2.0 * nu) / (2.0 * (1.0 - nu));
-//    D(5, 5) = (1.0 - 2.0 * nu) / (2.0 * (1.0 - nu));
+    //    D(0, 0) = 1.0; D(0, 1) = nu / (1.0 - nu); D(0, 2) = nu / (1.0 - nu);
+    //    D(1, 0) = nu / (1.0 - nu); D(1, 1) = 1.0; D(1, 2) = nu / (1.0 - nu);
+    //    D(2, 0) = nu / (1.0 - nu); D(2, 1) = nu / (1.0 - nu); D(2, 2) = 1.0;
+    //    D(3, 3) = (1.0 - 2.0 * nu) / (2.0 * (1.0 - nu));
+    //    D(4, 4) = (1.0 - 2.0 * nu) / (2.0 * (1.0 - nu));
+    //    D(5, 5) = (1.0 - 2.0 * nu) / (2.0 * (1.0 - nu));
     //    D = E * (1.0 - nu) / ((1.0 + nu) * (1.0 - 2.0 * nu)) * D;
 }
 
@@ -747,4 +799,179 @@ void HexahedralFEM::printDisplacementExtremum(const UInteger &nodesCount)
     std::cout << "Первое (x) направление:\t" << minU << " <= U <= " << maxU << std::endl;
     std::cout << "Второе (y) направление:\t" << minV << " <= V <= " << maxV << std::endl;
     std::cout << "Третье (z) направление:\t" << minW << " <= W <= " << maxW << std::endl;
+}
+
+void HexahedralFEM::recoverStress(HexahedralMesh3D *mesh, const FloatingMatrix &D)
+{
+    const int freedom = 3;
+    const UInteger nodesCount = mesh->nodesCount();
+    const UInteger elementsCount = mesh->elementsCount();
+    const int elementNodes = 8;
+
+    Floating minSigmaX = 1.0E+20;
+    Floating minSigmaY = 1.0E+20;
+    Floating minSigmaZ = 1.0E+20;
+    Floating maxSigmaX = -1.0E+20;
+    Floating maxSigmaY = -1.0E+20;
+    Floating maxSigmaZ = -1.0E+20;
+    Floating minTauXY = 1.0E+20;
+    Floating minTauYZ = 1.0E+20;
+    Floating minTauZX = 1.0E+20;
+    Floating maxTauXY = -1.0E+20;
+    Floating maxTauYZ = -1.0E+20;
+    Floating maxTauZX = -1.0E+20;
+
+    std::cout << "Вычисление напряжений..." << std::endl;
+
+    boost::progress_display progressBar(elementsCount);
+    for (UInteger elementNumber = 0; elementNumber < elementsCount; elementNumber++)
+    {
+        ++progressBar;
+
+        Floating x[elementNodes];
+        Floating y[elementNodes];
+        Floating z[elementNodes];
+        // извлечение координат узлов
+        ElementPointer element = mesh->element(elementNumber);
+        for (int i = 0; i < elementNodes; i++)
+        {
+            PointPointer point = mesh->node(element->vertexNode(i));
+            x[i] = point->x();
+            y[i] = point->y();
+            z[i] = point->z();
+        }
+        const Floating xi = 0.0;
+        const Floating eta = 0.0;
+        const Floating mu = 0.0;
+
+        // значения функций формы
+        FloatingVector N(elementNodes);
+        // значения производных функций формы в местных координатах
+        FloatingVector dNdXi(elementNodes);
+        FloatingVector dNdEta(elementNodes);
+        FloatingVector dNdMu(elementNodes);
+        // Якобиан
+        FloatingMatrix Jacobian(freedom, freedom);
+        FloatingMatrix invJacobian(freedom, freedom);
+        // значения производных функций формы в глобальных координатах
+        FloatingVector dNdX(elementNodes);
+        FloatingVector dNdY(elementNodes);
+        FloatingVector dNdZ(elementNodes);
+        // матрицы вариационной постановки
+        FloatingMatrix B(6, 24);
+        FloatingMatrix DB(6, 24);
+        FloatingMatrix U(24, 1);
+        FloatingMatrix S(6, 1);
+
+        N(0) = (1 - xi) * (1 - eta) * (1 - mu) / 8.0;
+        N(1) = (1 - xi) * (1 - eta) * (1 + mu) / 8.0;
+        N(2) = (1 + xi) * (1 - eta) * (1 + mu) / 8.0;
+        N(3) = (1 + xi) * (1 - eta) * (1 - mu) / 8.0;
+        N(4) = (1 - xi) * (1 + eta) * (1 - mu) / 8.0;
+        N(5) = (1 - xi) * (1 + eta) * (1 + mu) / 8.0;
+        N(6) = (1 + xi) * (1 + eta) * (1 + mu) / 8.0;
+        N(7) = (1 + xi) * (1 + eta) * (1 - mu) / 8.0;
+
+        dNdXi(0) = -(1 - eta) * (1 - mu) / 8.0;
+        dNdXi(1) = -(1 - eta) * (1 + mu) / 8.0;
+        dNdXi(2) = (1 - eta) * (1 + mu) / 8.0;
+        dNdXi(3) = (1 - eta) * (1 - mu) / 8.0;
+        dNdXi(4) = -(1 + eta) * (1 - mu) / 8.0;
+        dNdXi(5) = -(1 + eta) * (1 + mu) / 8.0;
+        dNdXi(6) = (1 + eta) * (1 + mu) / 8.0;
+        dNdXi(7) = (1 + eta) * (1 - mu) / 8.0;
+
+        dNdEta(0) = -(1 - xi) * (1 - mu) / 8.0;
+        dNdEta(1) = -(1 - xi) * (1 + mu) / 8.0;
+        dNdEta(2) = -(1 + xi) * (1 + mu) / 8.0;
+        dNdEta(3) = -(1 + xi) * (1 - mu) / 8.0;
+        dNdEta(4) = (1 - xi) * (1 - mu) / 8.0;
+        dNdEta(5) = (1 - xi) * (1 + mu) / 8.0;
+        dNdEta(6) = (1 + xi) * (1 + mu) / 8.0;
+        dNdEta(7) = (1 + xi) * (1 - mu) / 8.0;
+
+        dNdMu(0) = -(1 - xi) * (1 - eta) / 8.0;
+        dNdMu(1) = (1 - xi) * (1 - eta) / 8.0;
+        dNdMu(2) = (1 + xi) * (1 - eta) / 8.0;
+        dNdMu(3) = -(1 + xi) * (1 - eta) / 8.0;
+        dNdMu(4) = -(1 - xi) * (1 + eta) / 8.0;
+        dNdMu(5) = (1 - xi) * (1 + eta) / 8.0;
+        dNdMu(6) = (1 + xi) * (1 + eta) / 8.0;
+        dNdMu(7) = -(1 + xi) * (1 + eta) / 8.0;
+
+        Jacobian(0, 0) = 0.0; Jacobian(0, 1) = 0.0; Jacobian(0, 2) = 0.0;
+        Jacobian(1, 0) = 0.0; Jacobian(1, 1) = 0.0; Jacobian(1, 2) = 0.0;
+        Jacobian(2, 0) = 0.0; Jacobian(2, 1) = 0.0; Jacobian(2, 2) = 0.0;
+
+        for (int i = 0; i < elementNodes; i++)
+        {
+            Jacobian(0, 0) += dNdXi(i) * x[i]; Jacobian(0, 1) += dNdXi(i) * y[i]; Jacobian(0, 2) += dNdXi(i) * z[i];
+            Jacobian(1, 0) += dNdEta(i) * x[i]; Jacobian(1, 1) += dNdEta(i) * y[i]; Jacobian(1, 2) += dNdEta(i) * z[i];
+            Jacobian(2, 0) += dNdMu(i) * x[i]; Jacobian(2, 1) += dNdMu(i) * y[i]; Jacobian(2, 2) += dNdMu(i) * z[i];
+        }
+        invertMatrix(Jacobian, invJacobian);
+
+        for (int i = 0; i < elementNodes; i++)
+        {
+            dNdX(i) = invJacobian(0, 0) * dNdXi(i) + invJacobian(0, 1) * dNdEta(i) + invJacobian(0, 2) * dNdMu(i);
+            dNdY(i) = invJacobian(1, 0) * dNdXi(i) + invJacobian(1, 1) * dNdEta(i) + invJacobian(1, 2) * dNdMu(i);
+            dNdZ(i) = invJacobian(2, 0) * dNdXi(i) + invJacobian(2, 1) * dNdEta(i) + invJacobian(2, 2) * dNdMu(i);
+        }
+
+        for (int i = 0; i < 6; i++)
+        {
+            for (int j = 0; j < 24; j++)
+            {
+                B(i, j) = 0.0;
+            }
+        }
+        for (int i = 0; i < 8; i++)
+        {
+            B(0, i) = dNdX(i);
+            B(1, i + 8) = dNdY(i);
+            B(2, i + 16) = dNdZ(i);
+            B(3, i) = dNdY(i); B(3, i + 8) = dNdX(i);
+            B(4, i + 8) = dNdZ(i); B(4, i + 16) = dNdY(i);
+            B(5, i) = dNdZ(i); B(5, i + 16) = dNdX(i);
+
+            U(i, 0) = displacement[element->vertexNode(i)];
+            U(i + 8, 0) = displacement[element->vertexNode(i) + nodesCount];
+            U(i + 16, 0) = displacement[element->vertexNode(i) + 2UL * nodesCount];
+        }
+
+        DB = prod(D, B);
+
+        S = prod(DB, U);
+
+        sigmaX.push_back(S(0, 0));
+        sigmaY.push_back(S(1, 0));
+        sigmaZ.push_back(S(2, 0));
+        tauXY.push_back(S(3, 0));
+        tauYZ.push_back(S(4, 0));
+        tauZX.push_back(S(5, 0));
+
+        if (S(0, 0) > maxSigmaX) maxSigmaX = S(0, 0);
+        if (S(0, 0) < minSigmaX) minSigmaX = S(0, 0);
+
+        if (S(1, 0) > maxSigmaY) maxSigmaY = S(1, 0);
+        if (S(1, 0) < minSigmaY) minSigmaY = S(1, 0);
+
+        if (S(2, 0) > maxSigmaZ) maxSigmaZ = S(2, 0);
+        if (S(2, 0) < minSigmaZ) minSigmaZ = S(2, 0);
+
+        if (S(3, 0) > maxTauXY) maxTauXY = S(3, 0);
+        if (S(3, 0) < minTauXY) minTauXY = S(3, 0);
+
+        if (S(4, 0) > maxTauYZ) maxTauYZ = S(4, 0);
+        if (S(4, 0) < minTauYZ) minTauYZ = S(4, 0);
+
+        if (S(5, 0) > maxTauZX) maxTauZX = S(5, 0);
+        if (S(5, 0) < minTauZX) minTauZX = S(5, 0);
+    } // for elementNumber
+    std::cout << minSigmaX << " <= SigmaX <= " << maxSigmaX << std::endl;
+    std::cout << minSigmaY << " <= SigmaY <= " << maxSigmaY << std::endl;
+    std::cout << minSigmaZ << " <= SigmaZ <= " << maxSigmaZ << std::endl;
+    std::cout << minTauXY << " <= TauXY <= " << maxTauXY << std::endl;
+    std::cout << minTauYZ << " <= TauYZ <= " << maxTauYZ << std::endl;
+    std::cout << minTauZX << " <= TauZX <= " << maxTauZX << std::endl;
 }

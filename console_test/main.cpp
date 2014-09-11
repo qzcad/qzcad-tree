@@ -267,14 +267,14 @@ int main()
     std::vector<FEMCondition3DPointer> boundaryForces;
     boundaryForces.push_back(&force);
 
-//    HexahedralFEM fem(&mesh, params, boundaryForces, boundaryConditions);
+    HexahedralFEM fem(&mesh, params, boundaryForces, boundaryConditions);
 
     std::vector<MechanicalParameters3D> layers;
     layers.push_back(params);
     layers.push_back(paramsInner);
     layers.push_back(params);
 
-    HexahedralFEM fem(&mesh, layers, boundaryForces, boundaryConditions); // многослойный расчет
+//    HexahedralFEM fem(&mesh, layers, boundaryForces, boundaryConditions); // многослойный расчет
 
     fem.setNodeDisplacement(&mesh, 1);
 
