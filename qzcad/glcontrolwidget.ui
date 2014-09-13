@@ -13,10 +13,7 @@
   <property name="windowTitle">
    <string>Form</string>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout_8">
-   <property name="spacing">
-    <number>2</number>
-   </property>
+  <layout class="QHBoxLayout" name="horizontalLayout_9">
    <item>
     <widget class="GLMeshPicture" name="picture" native="true">
      <property name="sizePolicy">
@@ -30,7 +27,7 @@
    <item>
     <layout class="QVBoxLayout" name="verticalLayout_7">
      <property name="spacing">
-      <number>0</number>
+      <number>1</number>
      </property>
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_5">
@@ -420,75 +417,98 @@
       </widget>
      </item>
      <item>
-      <layout class="QVBoxLayout" name="verticalLayout_8">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Визуализация:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_4">
        <item>
-        <widget class="QLabel" name="label_4">
+        <widget class="QComboBox" name="visualizationMode">
+         <item>
+          <property name="text">
+           <string>цвет</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>узел</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>элемент</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="colorMap">
+         <item>
+          <property name="text">
+           <string>зима</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>весна</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>лето</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>осень</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>серость</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="nextValueVector">
+         <property name="toolTip">
+          <string>Следующий вектор значений</string>
+         </property>
          <property name="text">
-          <string>Визуализация:</string>
+          <string>&gt;</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_8">
+       <item>
+        <widget class="QCheckBox" name="isUseVector">
+         <property name="text">
+          <string>Вектор</string>
          </property>
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_4">
-         <item>
-          <widget class="QComboBox" name="visualizationMode">
-           <item>
-            <property name="text">
-             <string>цвет</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>узел</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>элемент</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item>
-          <widget class="QComboBox" name="colorMap">
-           <item>
-            <property name="text">
-             <string>зима</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>весна</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>лето</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>осень</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>серость</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item>
-          <widget class="QToolButton" name="nextValueVector">
-           <property name="toolTip">
-            <string>Следующий вектор значений</string>
-           </property>
-           <property name="text">
-            <string>&gt;</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
+        <widget class="QDoubleSpinBox" name="vectorScale">
+         <property name="minimum">
+          <double>0.500000000000000</double>
+         </property>
+         <property name="maximum">
+          <double>1000.000000000000000</double>
+         </property>
+         <property name="singleStep">
+          <double>0.500000000000000</double>
+         </property>
+         <property name="value">
+          <double>1.000000000000000</double>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>
@@ -564,6 +584,8 @@
     <slot>setShowColorBar(bool)</slot>
     <slot>setIsLighting(bool)</slot>
     <slot>nextValueIndex()</slot>
+    <slot>setIsUseVector(bool)</slot>
+    <slot>setVectorScale(double)</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -577,11 +599,11 @@
    <hints>
     <hint type="sourcelabel">
      <x>523</x>
-     <y>189</y>
+     <y>132</y>
     </hint>
     <hint type="destinationlabel">
      <x>523</x>
-     <y>165</y>
+     <y>108</y>
     </hint>
    </hints>
   </connection>
@@ -593,11 +615,11 @@
    <hints>
     <hint type="sourcelabel">
      <x>523</x>
-     <y>165</y>
+     <y>108</y>
     </hint>
     <hint type="destinationlabel">
      <x>523</x>
-     <y>189</y>
+     <y>132</y>
     </hint>
    </hints>
   </connection>
@@ -609,11 +631,11 @@
    <hints>
     <hint type="sourcelabel">
      <x>593</x>
-     <y>189</y>
+     <y>132</y>
     </hint>
     <hint type="destinationlabel">
      <x>593</x>
-     <y>165</y>
+     <y>108</y>
     </hint>
    </hints>
   </connection>
@@ -625,11 +647,11 @@
    <hints>
     <hint type="sourcelabel">
      <x>593</x>
-     <y>165</y>
+     <y>108</y>
     </hint>
     <hint type="destinationlabel">
      <x>593</x>
-     <y>189</y>
+     <y>132</y>
     </hint>
    </hints>
   </connection>
@@ -641,11 +663,11 @@
    <hints>
     <hint type="sourcelabel">
      <x>662</x>
-     <y>189</y>
+     <y>132</y>
     </hint>
     <hint type="destinationlabel">
      <x>662</x>
-     <y>165</y>
+     <y>108</y>
     </hint>
    </hints>
   </connection>
@@ -657,11 +679,11 @@
    <hints>
     <hint type="sourcelabel">
      <x>662</x>
-     <y>165</y>
+     <y>108</y>
     </hint>
     <hint type="destinationlabel">
      <x>662</x>
-     <y>189</y>
+     <y>132</y>
     </hint>
    </hints>
   </connection>
@@ -677,7 +699,7 @@
     </hint>
     <hint type="destinationlabel">
      <x>523</x>
-     <y>165</y>
+     <y>108</y>
     </hint>
    </hints>
   </connection>
@@ -689,7 +711,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>523</x>
-     <y>165</y>
+     <y>108</y>
     </hint>
     <hint type="destinationlabel">
      <x>280</x>
@@ -709,7 +731,7 @@
     </hint>
     <hint type="destinationlabel">
      <x>593</x>
-     <y>165</y>
+     <y>108</y>
     </hint>
    </hints>
   </connection>
@@ -721,7 +743,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>593</x>
-     <y>165</y>
+     <y>108</y>
     </hint>
     <hint type="destinationlabel">
      <x>262</x>
@@ -741,7 +763,7 @@
     </hint>
     <hint type="destinationlabel">
      <x>662</x>
-     <y>165</y>
+     <y>108</y>
     </hint>
    </hints>
   </connection>
@@ -753,7 +775,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>662</x>
-     <y>139</y>
+     <y>108</y>
     </hint>
     <hint type="destinationlabel">
      <x>214</x>
@@ -769,7 +791,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>664</x>
-     <y>219</y>
+     <y>162</y>
     </hint>
     <hint type="destinationlabel">
      <x>331</x>
@@ -789,7 +811,7 @@
     </hint>
     <hint type="destinationlabel">
      <x>664</x>
-     <y>219</y>
+     <y>162</y>
     </hint>
    </hints>
   </connection>
@@ -800,8 +822,8 @@
    <slot>setMouseMode(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>665</x>
-     <y>263</y>
+     <x>585</x>
+     <y>206</y>
     </hint>
     <hint type="destinationlabel">
      <x>367</x>
@@ -816,7 +838,7 @@
    <slot>setShowMesh(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>666</x>
+     <x>517</x>
      <y>440</y>
     </hint>
     <hint type="destinationlabel">
@@ -832,7 +854,7 @@
    <slot>setShowCube(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>666</x>
+     <x>590</x>
      <y>461</y>
     </hint>
     <hint type="destinationlabel">
@@ -848,8 +870,8 @@
    <slot>setTranslateStep(double)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>665</x>
-     <y>289</y>
+     <x>619</x>
+     <y>232</y>
     </hint>
     <hint type="destinationlabel">
      <x>443</x>
@@ -868,8 +890,8 @@
      <y>255</y>
     </hint>
     <hint type="destinationlabel">
-     <x>665</x>
-     <y>289</y>
+     <x>619</x>
+     <y>232</y>
     </hint>
    </hints>
   </connection>
@@ -880,8 +902,8 @@
    <slot>setVisualisationMode(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>541</x>
-     <y>417</y>
+     <x>539</x>
+     <y>360</y>
     </hint>
     <hint type="destinationlabel">
      <x>315</x>
@@ -896,8 +918,8 @@
    <slot>setColormapName(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>631</x>
-     <y>417</y>
+     <x>625</x>
+     <y>360</y>
     </hint>
     <hint type="destinationlabel">
      <x>417</x>
@@ -912,8 +934,8 @@
    <slot>setXTranslation(double)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>665</x>
-     <y>315</y>
+     <x>659</x>
+     <y>258</y>
     </hint>
     <hint type="destinationlabel">
      <x>313</x>
@@ -928,8 +950,8 @@
    <slot>setYTranslation(double)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>665</x>
-     <y>341</y>
+     <x>659</x>
+     <y>284</y>
     </hint>
     <hint type="destinationlabel">
      <x>302</x>
@@ -944,8 +966,8 @@
    <slot>setZTranslation(double)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>665</x>
-     <y>367</y>
+     <x>658</x>
+     <y>310</y>
     </hint>
     <hint type="destinationlabel">
      <x>380</x>
@@ -964,8 +986,8 @@
      <y>439</y>
     </hint>
     <hint type="destinationlabel">
-     <x>665</x>
-     <y>315</y>
+     <x>659</x>
+     <y>258</y>
     </hint>
    </hints>
   </connection>
@@ -980,8 +1002,8 @@
      <y>475</y>
     </hint>
     <hint type="destinationlabel">
-     <x>665</x>
-     <y>341</y>
+     <x>659</x>
+     <y>284</y>
     </hint>
    </hints>
   </connection>
@@ -996,8 +1018,8 @@
      <y>352</y>
     </hint>
     <hint type="destinationlabel">
-     <x>665</x>
-     <y>367</y>
+     <x>658</x>
+     <y>310</y>
     </hint>
    </hints>
   </connection>
@@ -1040,12 +1062,60 @@
    <slot>nextValueIndex()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>645</x>
-     <y>402</y>
+     <x>658</x>
+     <y>359</y>
     </hint>
     <hint type="destinationlabel">
      <x>254</x>
      <y>377</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>isUseVector</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>vectorScale</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>530</x>
+     <y>383</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>562</x>
+     <y>384</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>isUseVector</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>picture</receiver>
+   <slot>setIsUseVector(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>535</x>
+     <y>375</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>345</x>
+     <y>390</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>vectorScale</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>picture</receiver>
+   <slot>setVectorScale(double)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>570</x>
+     <y>383</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>418</x>
+     <y>408</y>
     </hint>
    </hints>
   </connection>

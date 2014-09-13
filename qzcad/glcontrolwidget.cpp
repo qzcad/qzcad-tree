@@ -16,6 +16,7 @@ GLControlWidget::GLControlWidget(QWidget *parent) :
     ui->xTranslation->hide();
     ui->yTranslation->hide();
     ui->zTranslation->hide();
+    ui->vectorScale->hide();
 }
 
 GLControlWidget::~GLControlWidget()

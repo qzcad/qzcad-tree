@@ -14,6 +14,7 @@ GLMeshPicture::GLMeshPicture(QWidget *parent) :
     isMousePressed_ = false;
     showColorBar_ = false;
     isLighting_ = true;
+    isUseVector_ = false;
     setDefault();
 }
 
@@ -115,6 +116,7 @@ void GLMeshPicture::setDefault()
     xMin_ = yMin_ = zMin_ = -1.0;
     xMax_ = yMax_ = zMax_ = 1.0;
     centerX_ = centerY_ = centerZ_ = 0.0;
+    vectorScale_ = 1.0;
     clearNodeValues();
     clearElementValues();
     emit xRotationChanged(xRot_);
@@ -267,9 +269,9 @@ void GLMeshPicture::resetProjectionMatrix()
     glMatrixMode(GL_MODELVIEW);
 }
 
-void GLMeshPicture::pointToGLVertex(const msh::PointPointer &point) const
+void GLMeshPicture::pointToGLVertex(const msh::PointPointer &point, msh::Floating dx, msh::Floating dy, msh::Floating dz) const
 {
-    glVertex3d(point->x() - centerX_, point->y() - centerY_, point->z() - centerZ_);
+    glVertex3d(point->x() + dx - centerX_, point->y() + dy - centerY_, point->z() + dz - centerZ_);
 }
 
 void GLMeshPicture::drawColorBar()
@@ -514,6 +516,18 @@ void GLMeshPicture::nextValueIndex()
     updateGL();
 }
 
+void GLMeshPicture::setIsUseVector(bool isUseVector)
+{
+    isUseVector_ = isUseVector;
+    updateGL();
+}
+
+void GLMeshPicture::setVectorScale(double vectorScale)
+{
+    vectorScale_ = vectorScale;
+    updateGL();
+}
+
 void GLMeshPicture::initializeGL()
 {
     qglClearColor(backgroundColor_);
@@ -619,8 +633,13 @@ void GLMeshPicture::paintGL()
                                 qglColor( map_.color( nodeValues_[valueIndex_][face[j]] ) );
                             else if (visualizationMode_ == NODE_VALUE)
                                 qglColor(elementColor_); // если индекс вне диапазона, то цветом пользователя
-
-                            pointToGLVertex(mesh_->node(face[j]));
+                            if (isUseVector_ && nodeValues_.size() >= 3)
+                                pointToGLVertex(mesh_->node(face[j]),
+                                                vectorScale_ * nodeValues_[0][face[j]],
+                                        vectorScale_ * nodeValues_[1][face[j]],
+                                        vectorScale_ * nodeValues_[2][face[j]]);
+                            else
+                                pointToGLVertex(mesh_->node(face[j]));
                         }
                         glEnd();
                         if(showMesh_)
@@ -630,7 +649,13 @@ void GLMeshPicture::paintGL()
                             glBegin(GL_LINE_LOOP);
                             for (msh::UInteger j = 0; j < face.size(); j++)
                             {
-                                pointToGLVertex(mesh_->node(face[j]));
+                                if (isUseVector_ && nodeValues_.size() >= 3)
+                                    pointToGLVertex(mesh_->node(face[j]),
+                                                    vectorScale_ * nodeValues_[0][face[j]],
+                                            vectorScale_ * nodeValues_[1][face[j]],
+                                            vectorScale_ * nodeValues_[2][face[j]]);
+                                else
+                                    pointToGLVertex(mesh_->node(face[j]));
                             }
                             glEnd();
                         }

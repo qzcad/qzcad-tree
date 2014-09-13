@@ -217,6 +217,8 @@ public slots:
      * @brief Переключить на следующий индекс последовательности
      */
     void nextValueIndex();
+    void setIsUseVector(bool isUseVector);
+    void setVectorScale(double vectorScale);
 
 protected:
     /**
@@ -300,6 +302,8 @@ private:
     std::vector<NamedFloatingVector> nodeValues_; //!< Массив векторов значений, определенных в узле
     std::vector<NamedFloatingVector> elementValues_; //!< Массив векторов значений, определенных в узле
     msh::UInteger valueIndex_; //!< Индекс текущего вектора для визуализации
+    bool isUseVector_; //!< Применить вектор при визуализации
+    double vectorScale_; //!< Множитель вектора
 
 private:
     /**
@@ -324,7 +328,7 @@ private:
      * @brief Преобразование точки сетки в точку openGL
      * @param point Указатель на точку сетки
      */
-    void pointToGLVertex(const msh::PointPointer &point) const;
+    void pointToGLVertex(const msh::PointPointer &point, msh::Floating dx = 0.0, msh::Floating dy = 0.0, msh::Floating dz = 0.0) const;
     /**
      * @brief Нарисовать контрольную цветную полосу
      */
