@@ -76,20 +76,10 @@ private slots:
 
     void on_actionElasticFem_triggered();
 
-    void on_actionUDirection_triggered();
-
-    void on_actionVDirection_triggered();
-
-    void on_actionWDirection_triggered();
-
-    void on_actionSigmaX_triggered();
-
 private:
     Ui::MainWindow *ui; //!< Контейнер элементов графического интерфейса
     QStdRedirector<> *stdRedirector; //!< Перехватчик сообщений стандартного потока
-    std::vector<double> u_;
-    std::vector<double> v_;
-    std::vector<double> w_;
+
 private:
     /**
      * @brief addObjectTreeItem Добавить элемент в дерево на форме

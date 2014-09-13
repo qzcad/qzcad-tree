@@ -108,9 +108,6 @@ void MainWindow::clearMesh(MeshPointer mesh)
     {
         delete mesh;
     }
-    u_.clear();
-    v_.clear();
-    w_.clear();
 }
 
 void MainWindow::on_actionIntersection_triggered()
@@ -547,10 +544,6 @@ void MainWindow::on_actionElasticFem_triggered()
     msh::MeshPointer mesh = ui->pictureControl->releaseMesh();
     ElasticFemDialog dialog(this);
 
-    ui->actionUDirection->setEnabled(false);
-    ui->actionVDirection->setEnabled(false);
-    ui->actionWDirection->setEnabled(false);
-
     if (mesh)
     {
         msh::Mesh2D *mesh2d = dynamic_cast<msh::Mesh2D*>(mesh);
@@ -620,72 +613,4 @@ void MainWindow::on_actionElasticFem_triggered()
         }
     }
 
-}
-
-void MainWindow::on_actionUDirection_triggered()
-{
-    msh::MeshPointer mesh = ui->pictureControl->releaseMesh();
-    if (mesh)
-    {
-        if (mesh->nodesCount() == u_.size())
-        {
-            mesh->clearNodeValues();
-            for (msh::UInteger i = 0; i < mesh->nodesCount(); i++)
-            {
-                mesh->pushNodeValue(u_[i]);
-            }
-        }
-        ui->pictureControl->setMesh(mesh);
-    }
-}
-
-void MainWindow::on_actionVDirection_triggered()
-{
-    msh::MeshPointer mesh = ui->pictureControl->releaseMesh();
-    if (mesh)
-    {
-        if (mesh->nodesCount() == v_.size())
-        {
-            mesh->clearNodeValues();
-            for (msh::UInteger i = 0; i < mesh->nodesCount(); i++)
-            {
-                mesh->pushNodeValue(v_[i]);
-            }
-        }
-        ui->pictureControl->setMesh(mesh);
-    }
-}
-
-void MainWindow::on_actionWDirection_triggered()
-{
-    msh::MeshPointer mesh = ui->pictureControl->releaseMesh();
-    if (mesh)
-    {
-        if (mesh->nodesCount() == w_.size())
-        {
-            mesh->clearNodeValues();
-            for (msh::UInteger i = 0; i < mesh->nodesCount(); i++)
-            {
-                mesh->pushNodeValue(w_[i]);
-            }
-        }
-        ui->pictureControl->setMesh(mesh);
-    }
-}
-
-void MainWindow::on_actionSigmaX_triggered()
-{
-//    msh::MeshPointer mesh = ui->pictureControl->releaseMesh();
-//    if (mesh)
-//    {
-//        if (mesh->nodesCount() == w_.size())
-//        {
-//            mesh->clearNodeValues();
-//            for (msh::UInteger i = 0; i < mesh->nodesCount(); i++)
-//            {
-//                mesh->pushNodeValue(w_[i]);
-//            }
-//        }
-//        ui->pictureControl->setMesh(mesh);
-//    }
 }

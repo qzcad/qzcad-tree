@@ -132,32 +132,8 @@
     <property name="title">
      <string>&amp;МКЭ</string>
     </property>
-    <widget class="QMenu" name="menuFemNodeValue">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
-     <property name="title">
-      <string>Значение в узлах</string>
-     </property>
-     <addaction name="actionUDirection"/>
-     <addaction name="actionVDirection"/>
-     <addaction name="actionWDirection"/>
-    </widget>
-    <widget class="QMenu" name="menuFemElementValue">
-     <property name="title">
-      <string>Значение на элементе</string>
-     </property>
-     <addaction name="actionSigmaX"/>
-     <addaction name="actionSigmaY"/>
-     <addaction name="actionSigmaZ"/>
-     <addaction name="actionTauXY"/>
-     <addaction name="actionTauYZ"/>
-     <addaction name="actionTauZX"/>
-    </widget>
     <addaction name="actionElasticFem"/>
     <addaction name="separator"/>
-    <addaction name="menuFemNodeValue"/>
-    <addaction name="menuFemElementValue"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuObject"/>
@@ -500,78 +476,6 @@
   <action name="actionElasticFem">
    <property name="text">
     <string>Упругий расчет...</string>
-   </property>
-  </action>
-  <action name="actionUDirection">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Первое направление (u)</string>
-   </property>
-  </action>
-  <action name="actionVDirection">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Второе направление (v)</string>
-   </property>
-  </action>
-  <action name="actionWDirection">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Третье направление (w)</string>
-   </property>
-  </action>
-  <action name="actionSigmaX">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>SigmaX</string>
-   </property>
-  </action>
-  <action name="actionSigmaY">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>SigmaY</string>
-   </property>
-  </action>
-  <action name="actionSigmaZ">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>SigmaZ</string>
-   </property>
-  </action>
-  <action name="actionTauXY">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>TauXY</string>
-   </property>
-  </action>
-  <action name="actionTauYZ">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>TauYZ</string>
-   </property>
-  </action>
-  <action name="actionTauZX">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>TauZX</string>
    </property>
   </action>
  </widget>
