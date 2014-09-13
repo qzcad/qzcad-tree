@@ -18,9 +18,7 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3
     GlobalMatrix globalMatrix (systemDimension, systemDimension);
     FloatingVector force(systemDimension);
 
-    displacement.resize(systemDimension);
-
-    //    std::cout << "E = " << E << " nu = " << nu << std::endl;
+    FloatingVector displacement(systemDimension);
 
     buildElasticMatrix(parameters, D);
 
@@ -53,7 +51,9 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3
     int res = conjugateGradient(CGM, displacement,force,row_major_tag());
     std::cout << "Выполнено итераций в метода сопряженных градиентов: " << res << std::endl;
 
-    printDisplacementExtremum(nodesCount);
+    displacementToUVW(displacement, nodesCount);
+
+    printDisplacementExtremum();
 
     recoverStress(mesh, D);
 }
@@ -69,9 +69,7 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3
     GlobalMatrix globalMatrix (systemDimension, systemDimension);
     FloatingVector force(systemDimension);
 
-    displacement.resize(systemDimension);
-
-    //    std::cout << "E = " << E << " nu = " << nu << std::endl;
+    FloatingVector displacement(systemDimension);
 
     buildElasticMatrix(parameters, D);
 
@@ -108,7 +106,9 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3
     int res = conjugateGradient(CGM, displacement,force,row_major_tag());
     std::cout << "Выполнено итераций в метода сопряженных градиентов: " << res << std::endl;
 
-    printDisplacementExtremum(nodesCount);
+    displacementToUVW(displacement, nodesCount);
+
+    printDisplacementExtremum();
 
     recoverStress(mesh, D);
 }
@@ -127,7 +127,7 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, std::vector<MechanicalParam
     GlobalMatrix globalMatrix (systemDimension, systemDimension);
     FloatingVector force(systemDimension);
 
-    displacement.resize(systemDimension);
+    FloatingVector displacement(systemDimension);
 
 
     buildElasticMatrix(parameters, D);
@@ -166,71 +166,54 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, std::vector<MechanicalParam
     int res = conjugateGradient(CGM, displacement,force,row_major_tag());
     std::cout << "Выполнено итераций в метода сопряженных градиентов: " << res << std::endl;
 
-    printDisplacementExtremum(nodesCount);
+    displacementToUVW(displacement, nodesCount);
+
+    printDisplacementExtremum();
 }
 
-void HexahedralFEM::setNodeDisplacement(HexahedralMesh3D *mesh, const UInteger &direction)
+std::vector<Floating> HexahedralFEM::u() const
 {
-    const UInteger nodesCount = mesh->nodesCount();
-    mesh->clearNodeValues();
-    for (UInteger i = 0; i < nodesCount; i++)
-    {
-        mesh->pushNodeValue(displacement[i + direction * nodesCount]);
-    }
+    return u_;
 }
 
-void HexahedralFEM::setElementSigmaX(HexahedralMesh3D *mesh)
+std::vector<Floating> HexahedralFEM::v() const
 {
-    const UInteger elementsCount = mesh->elementsCount();
-    mesh->clearElementValues();
-    for (UInteger i = 0; i < elementsCount; i++)
-        mesh->pushElementValue(sigmaX[i]);
+    return v_;
 }
 
-void HexahedralFEM::setElementSigmaY(HexahedralMesh3D *mesh)
+std::vector<Floating> HexahedralFEM::w() const
 {
-    const UInteger elementsCount = mesh->elementsCount();
-    mesh->clearElementValues();
-    for (UInteger i = 0; i < elementsCount; i++)
-        mesh->pushElementValue(sigmaY[i]);
+    return w_;
 }
 
-void HexahedralFEM::setElementSigmaZ(HexahedralMesh3D *mesh)
+std::vector<Floating> HexahedralFEM::sigmaX() const
 {
-    const UInteger elementsCount = mesh->elementsCount();
-    mesh->clearElementValues();
-    for (UInteger i = 0; i < elementsCount; i++)
-        mesh->pushElementValue(sigmaZ[i]);
+    return sigmaX_;
 }
 
-void HexahedralFEM::setElementTauXY(HexahedralMesh3D *mesh)
+std::vector<Floating> HexahedralFEM::sigmaY() const
 {
-    const UInteger elementsCount = mesh->elementsCount();
-    mesh->clearElementValues();
-    for (UInteger i = 0; i < elementsCount; i++)
-        mesh->pushElementValue(tauXY[i]);
+    return sigmaY_;
 }
 
-void HexahedralFEM::setElementTauYZ(HexahedralMesh3D *mesh)
+std::vector<Floating> HexahedralFEM::sigmaZ() const
 {
-    const UInteger elementsCount = mesh->elementsCount();
-    mesh->clearElementValues();
-    for (UInteger i = 0; i < elementsCount; i++)
-        mesh->pushElementValue(tauYZ[i]);
+    return sigmaZ_;
 }
 
-void HexahedralFEM::setElementTauZX(HexahedralMesh3D *mesh)
+std::vector<Floating> HexahedralFEM::tauXY() const
 {
-    const UInteger elementsCount = mesh->elementsCount();
-    mesh->clearElementValues();
-    for (UInteger i = 0; i < elementsCount; i++)
-        mesh->pushElementValue(tauZX[i]);
+    return tauXY_;
 }
 
-Point3D HexahedralFEM::getDisplacemementVector(const UInteger &i, const UInteger &nodesCount)
+std::vector<Floating> HexahedralFEM::tauYZ() const
 {
-    Point3D point(displacement[i], displacement[i + nodesCount], displacement[i + 2L * nodesCount]);
-    return point;
+    return tauYZ_;
+}
+
+std::vector<Floating> HexahedralFEM::tauZX() const
+{
+    return tauZX_;
 }
 
 void HexahedralFEM::buildElasticMatrix(const MechanicalParameters3D &params, FloatingMatrix &D)
@@ -250,19 +233,6 @@ void HexahedralFEM::buildElasticMatrix(const MechanicalParameters3D &params, Flo
     S(5, 5) = 1.0 / params.G12();
 
     invertMatrix(S, D);
-
-    //    // Инициализация матрицы D
-    //    for (int i = 0; i < 6; i++)
-    //        for (int j = 0; j < 6; j++)
-    //            D(i, j) = 0.0;
-
-    //    D(0, 0) = 1.0; D(0, 1) = nu / (1.0 - nu); D(0, 2) = nu / (1.0 - nu);
-    //    D(1, 0) = nu / (1.0 - nu); D(1, 1) = 1.0; D(1, 2) = nu / (1.0 - nu);
-    //    D(2, 0) = nu / (1.0 - nu); D(2, 1) = nu / (1.0 - nu); D(2, 2) = 1.0;
-    //    D(3, 3) = (1.0 - 2.0 * nu) / (2.0 * (1.0 - nu));
-    //    D(4, 4) = (1.0 - 2.0 * nu) / (2.0 * (1.0 - nu));
-    //    D(5, 5) = (1.0 - 2.0 * nu) / (2.0 * (1.0 - nu));
-    //    D = E * (1.0 - nu) / ((1.0 + nu) * (1.0 - 2.0 * nu)) * D;
 }
 
 void HexahedralFEM::buildElasticMatrix(std::vector<MechanicalParameters3D> params, FloatingMatrix D[])
@@ -756,44 +726,45 @@ void HexahedralFEM::processBoundaryConditions(HexahedralMesh3D *mesh, std::vecto
     } // for i
 }
 
-void HexahedralFEM::printDisplacementExtremum(const UInteger &nodesCount)
+void HexahedralFEM::printDisplacementExtremum()
 {
     std::cout << "Обработка вектора перемещений..." << std::endl;
-    boost::progress_display progressBar(nodesCount);
-    Floating maxU = displacement(0);
-    Floating maxV = displacement(nodesCount);
-    Floating maxW = displacement(2UL * nodesCount);
-    Floating minU = displacement(0);
-    Floating minV = displacement(nodesCount);
-    Floating minW = displacement(2UL * nodesCount);
-    for (UInteger i = 0; i < nodesCount; i++)
+    boost::progress_display progressBar(u_.size());
+    Floating maxU = u_[0];
+    Floating maxV = v_[0];
+    Floating maxW = w_[0];
+    Floating minU = u_[0];
+    Floating minV = v_[0];
+    Floating minW = w_[0];
+    for (UInteger i = 0; i < u_.size(); i++)
     {
         ++progressBar;
+        Floating u = u_[i], v = v_[i], w = w_[i];
         // max
-        if (maxU < displacement(i))
+        if (maxU < u)
         {
-            maxU = displacement(i);
+            maxU = u;
         }
-        if (maxV < displacement(i + nodesCount))
+        if (maxV < v)
         {
-            maxV = displacement(i + nodesCount);
+            maxV = v;
         }
-        if (maxW < displacement(i + 2UL * nodesCount))
+        if (maxW < w)
         {
-            maxW = displacement(i + 2UL * nodesCount);
+            maxW = w;
         }
         // min
-        if (minU > displacement(i))
+        if (minU > u)
         {
-            minU = displacement(i);
+            minU = u;
         }
-        if (minV > displacement(i + nodesCount))
+        if (minV > v)
         {
-            minV = displacement(i + nodesCount);
+            minV = v;
         }
-        if (minW > displacement(i + 2UL * nodesCount))
+        if (minW > w)
         {
-            minW = displacement(i + 2UL * nodesCount);
+            minW = w;
         }
     } // for i
     std::cout << "Первое (x) направление:\t" << minU << " <= U <= " << maxU << std::endl;
@@ -804,22 +775,21 @@ void HexahedralFEM::printDisplacementExtremum(const UInteger &nodesCount)
 void HexahedralFEM::recoverStress(HexahedralMesh3D *mesh, const FloatingMatrix &D)
 {
     const int freedom = 3;
-    const UInteger nodesCount = mesh->nodesCount();
     const UInteger elementsCount = mesh->elementsCount();
     const int elementNodes = 8;
 
-    Floating minSigmaX = 1.0E+20;
-    Floating minSigmaY = 1.0E+20;
-    Floating minSigmaZ = 1.0E+20;
-    Floating maxSigmaX = -1.0E+20;
-    Floating maxSigmaY = -1.0E+20;
-    Floating maxSigmaZ = -1.0E+20;
-    Floating minTauXY = 1.0E+20;
-    Floating minTauYZ = 1.0E+20;
-    Floating minTauZX = 1.0E+20;
-    Floating maxTauXY = -1.0E+20;
-    Floating maxTauYZ = -1.0E+20;
-    Floating maxTauZX = -1.0E+20;
+    Floating minSigmaX = FLOATING_MAX;
+    Floating minSigmaY = FLOATING_MAX;
+    Floating minSigmaZ = FLOATING_MAX;
+    Floating maxSigmaX = FLOATING_MIN;
+    Floating maxSigmaY = FLOATING_MIN;
+    Floating maxSigmaZ = FLOATING_MIN;
+    Floating minTauXY = FLOATING_MAX;
+    Floating minTauYZ = FLOATING_MAX;
+    Floating minTauZX = FLOATING_MAX;
+    Floating maxTauXY = FLOATING_MIN;
+    Floating maxTauYZ = FLOATING_MIN;
+    Floating maxTauZX = FLOATING_MIN;
 
     std::cout << "Вычисление напряжений..." << std::endl;
 
@@ -934,21 +904,21 @@ void HexahedralFEM::recoverStress(HexahedralMesh3D *mesh, const FloatingMatrix &
             B(4, i + 8) = dNdZ(i); B(4, i + 16) = dNdY(i);
             B(5, i) = dNdZ(i); B(5, i + 16) = dNdX(i);
 
-            U(i, 0) = displacement[element->vertexNode(i)];
-            U(i + 8, 0) = displacement[element->vertexNode(i) + nodesCount];
-            U(i + 16, 0) = displacement[element->vertexNode(i) + 2UL * nodesCount];
+            U(i, 0) = u_[element->vertexNode(i)];
+            U(i + 8, 0) = v_[element->vertexNode(i)];
+            U(i + 16, 0) = w_[element->vertexNode(i)];
         }
 
         DB = prod(D, B);
 
         S = prod(DB, U);
 
-        sigmaX.push_back(S(0, 0));
-        sigmaY.push_back(S(1, 0));
-        sigmaZ.push_back(S(2, 0));
-        tauXY.push_back(S(3, 0));
-        tauYZ.push_back(S(4, 0));
-        tauZX.push_back(S(5, 0));
+        sigmaX_.push_back(S(0, 0));
+        sigmaY_.push_back(S(1, 0));
+        sigmaZ_.push_back(S(2, 0));
+        tauXY_.push_back(S(3, 0));
+        tauYZ_.push_back(S(4, 0));
+        tauZX_.push_back(S(5, 0));
 
         if (S(0, 0) > maxSigmaX) maxSigmaX = S(0, 0);
         if (S(0, 0) < minSigmaX) minSigmaX = S(0, 0);
@@ -974,4 +944,14 @@ void HexahedralFEM::recoverStress(HexahedralMesh3D *mesh, const FloatingMatrix &
     std::cout << minTauXY << " <= TauXY <= " << maxTauXY << std::endl;
     std::cout << minTauYZ << " <= TauYZ <= " << maxTauYZ << std::endl;
     std::cout << minTauZX << " <= TauZX <= " << maxTauZX << std::endl;
+}
+
+void HexahedralFEM::displacementToUVW(const FloatingVector &displacement, const UInteger &nodesCount)
+{
+    for (UInteger i = 0; i < nodesCount; i++)
+    {
+        u_.push_back(displacement(i));
+        v_.push_back(displacement(i + nodesCount));
+        w_.push_back(displacement(i + 2UL * nodesCount));
+    }
 }

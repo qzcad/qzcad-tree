@@ -478,6 +478,16 @@
            </item>
           </widget>
          </item>
+         <item>
+          <widget class="QToolButton" name="nextValueVector">
+           <property name="toolTip">
+            <string>Следующий вектор значений</string>
+           </property>
+           <property name="text">
+            <string>&gt;</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
       </layout>
@@ -553,6 +563,7 @@
     <slot>setZTranslation(double)</slot>
     <slot>setShowColorBar(bool)</slot>
     <slot>setIsLighting(bool)</slot>
+    <slot>nextValueIndex()</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -869,7 +880,7 @@
    <slot>setVisualisationMode(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>557</x>
+     <x>541</x>
      <y>417</y>
     </hint>
     <hint type="destinationlabel">
@@ -885,7 +896,7 @@
    <slot>setColormapName(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>664</x>
+     <x>631</x>
      <y>417</y>
     </hint>
     <hint type="destinationlabel">
@@ -1019,6 +1030,22 @@
     <hint type="destinationlabel">
      <x>218</x>
      <y>464</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>nextValueVector</sender>
+   <signal>clicked()</signal>
+   <receiver>picture</receiver>
+   <slot>nextValueIndex()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>645</x>
+     <y>402</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>254</x>
+     <y>377</y>
     </hint>
    </hints>
   </connection>

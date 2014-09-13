@@ -76,6 +76,36 @@ msh::MeshPointer GLMeshPicture::releaseMesh()
     return meshPointer;
 }
 
+void GLMeshPicture::pushNodeValuesVector(const NamedFloatingVector &vector)
+{
+    nodeValues_.push_back(vector);
+    if (nodeValues_.size() == 1)
+    {
+        setVisualisationMode(visualizationMode_); // необходимо обновить цветовую карту
+    }
+}
+
+void GLMeshPicture::clearNodeValues()
+{
+    nodeValues_.clear();
+    valueIndex_ = 0;
+}
+
+void GLMeshPicture::pushElementValuesVector(const NamedFloatingVector &vector)
+{
+    elementValues_.push_back(vector);
+    if (elementValues_.size() == 1)
+    {
+        setVisualisationMode(visualizationMode_); // необходимо обновить цветовую карту
+    }
+}
+
+void GLMeshPicture::clearElementValues()
+{
+    elementValues_.clear();
+    valueIndex_ = 0;
+}
+
 void GLMeshPicture::setDefault()
 {
     xRot_ = yRot_ = zRot_ = 0;
@@ -85,6 +115,8 @@ void GLMeshPicture::setDefault()
     xMin_ = yMin_ = zMin_ = -1.0;
     xMax_ = yMax_ = zMax_ = 1.0;
     centerX_ = centerY_ = centerZ_ = 0.0;
+    clearNodeValues();
+    clearElementValues();
     emit xRotationChanged(xRot_);
     emit yRotationChanged(yRot_);
     emit zRotationChanged(zRot_);
@@ -268,6 +300,14 @@ void GLMeshPicture::drawColorBar()
     qglColor (textColor_);
     renderText (right, top - length, maxVal, QString::number(min));
     renderText (right, top, maxVal, QString::number(max));
+    if (visualizationMode_ == NODE_VALUE && valueIndex_ < nodeValues_.size())
+    {
+        renderText (right, top + 0.07, maxVal, nodeValues_[valueIndex_].name());
+    }
+    else if (visualizationMode_ == ELEMENT_VALUE && valueIndex_ < elementValues_.size())
+    {
+        renderText (right, top + 0.07, maxVal, elementValues_[valueIndex_].name());
+    }
     if (isLighting_) glDisable(GL_LIGHTING);
     glBegin(GL_POLYGON);
     qglColor(map_.color(min));
@@ -425,29 +465,16 @@ void GLMeshPicture::setVisualisationMode(int mode)
     visualizationMode_ = static_cast<VisualizationMode>(mode);
     if(mesh_)
     {
-        if (visualizationMode_ == ELEMENT_VALUE)
+        valueIndex_ = 0;
+        if (visualizationMode_ == ELEMENT_VALUE  && valueIndex_ < elementValues_.size())
         {
-            msh::Floating minEV = mesh_->elementValue(0);
-            msh::Floating maxEV = mesh_->elementValue(0);
-            for (msh::UInteger i = 1; i < mesh_->elementsCount(); i++)
-            {
-                if (minEV > mesh_->elementValue(i)) minEV = mesh_->elementValue(i);
-                if (maxEV < mesh_->elementValue(i)) maxEV = mesh_->elementValue(i);
-            }
-            map_.setMin(minEV);
-            map_.setMax(maxEV);
+            map_.setMin(elementValues_[valueIndex_].min());
+            map_.setMax(elementValues_[valueIndex_].max());
         }
-        else if (visualizationMode_ == NODE_VALUE)
+        else if (visualizationMode_ == NODE_VALUE && valueIndex_ < nodeValues_.size())
         {
-            msh::Floating minEV = mesh_->nodeValue(0);
-            msh::Floating maxEV = mesh_->nodeValue(0);
-            for (msh::UInteger i = 1; i < mesh_->nodesCount(); i++)
-            {
-                if (minEV > mesh_->nodeValue(i)) minEV = mesh_->nodeValue(i);
-                if (maxEV < mesh_->nodeValue(i)) maxEV = mesh_->nodeValue(i);
-            }
-            map_.setMin(minEV);
-            map_.setMax(maxEV);
+            map_.setMin(nodeValues_[valueIndex_].min());
+            map_.setMax(nodeValues_[valueIndex_].max());
         }
     }
     updateGL();
@@ -466,6 +493,24 @@ void GLMeshPicture::setIsLighting(bool isLighting)
         glEnable(GL_LIGHTING);
     else
         glDisable(GL_LIGHTING);
+    updateGL();
+}
+
+void GLMeshPicture::nextValueIndex()
+{
+    valueIndex_ = valueIndex_ + 1;
+    if ((visualizationMode_ == NODE_VALUE && valueIndex_ >= nodeValues_.size()) || (visualizationMode_ == ELEMENT_VALUE && valueIndex_ >= elementValues_.size()))
+        valueIndex_= 0;
+    if (visualizationMode_ == NODE_VALUE)
+    {
+        map_.setMin(nodeValues_[valueIndex_].min());
+        map_.setMax(nodeValues_[valueIndex_].max());
+    }
+    else if (visualizationMode_ == ELEMENT_VALUE)
+    {
+        map_.setMin(elementValues_[valueIndex_].min());
+        map_.setMax(elementValues_[valueIndex_].max());
+    }
     updateGL();
 }
 
@@ -557,9 +602,9 @@ void GLMeshPicture::paintGL()
                         nx = nx / nn;
                         ny = ny / nn;
                         nz = nz / nn;
-                        if (visualizationMode_ == ELEMENT_VALUE)
-                            qglColor(map_.color(mesh_->elementValue(i)));
-                        else if (visualizationMode_ == USER_COLOR)
+                        if (visualizationMode_ == ELEMENT_VALUE  && valueIndex_ < elementValues_.size())
+                            qglColor(map_.color(elementValues_[valueIndex_][i]));
+                        else if (visualizationMode_ == USER_COLOR || visualizationMode_ == ELEMENT_VALUE)
                             qglColor(elementColor_);
                         // нормаль к многоугольнику
                         if(mesh_->dimesion() == 2)
@@ -570,8 +615,11 @@ void GLMeshPicture::paintGL()
                         glBegin(GL_POLYGON);
                         for (msh::UInteger j = 0; j < face.size(); j++)
                         {
-                            if (visualizationMode_ == NODE_VALUE)
-                                qglColor(map_.color(mesh_->nodeValue(face[j])));
+                            if (visualizationMode_ == NODE_VALUE && valueIndex_ < nodeValues_.size())
+                                qglColor( map_.color( nodeValues_[valueIndex_][face[j]] ) );
+                            else if (visualizationMode_ == NODE_VALUE)
+                                qglColor(elementColor_); // если индекс вне диапазона, то цветом пользователя
+
                             pointToGLVertex(mesh_->node(face[j]));
                         }
                         glEnd();

@@ -11,6 +11,7 @@
 
 #include "meshpointer.h"
 #include "colorvaluemap.h"
+#include "namedfloatingvector.h"
 
 class GLMeshPicture : public QGLWidget
 {
@@ -52,6 +53,24 @@ public:
      * @return Значение указателя на сетку
      */
     msh::MeshPointer releaseMesh();
+    /**
+     * @brief Добавить вектор значений, определенных в узле
+     * @param vector Вектор значений, определенных в узле
+     */
+    void pushNodeValuesVector(const NamedFloatingVector &vector);
+    /**
+     * @brief Очистить вектора значений, определенных в узле
+     */
+    void clearNodeValues();
+    /**
+     * @brief Добавить вектор значений, определенных на элементе
+     * @param vector Вектор значений определенных на элементе
+     */
+    void pushElementValuesVector(const NamedFloatingVector &vector);
+    /**
+     * @brief Очистить вектор значений, определенных на элементе
+     */
+    void clearElementValues();
 
 signals:
     /**
@@ -194,6 +213,10 @@ public slots:
      * @param isLighting true - освещение включено; false - освещение выключено
      */
     void setIsLighting(bool isLighting);
+    /**
+     * @brief Переключить на следующий индекс последовательности
+     */
+    void nextValueIndex();
 
 protected:
     /**
@@ -274,6 +297,9 @@ private:
     double centerX_; //!< Абсцисса центра сцены
     double centerY_; //!< Ордината центра сцены
     double centerZ_; //!< Аппликата центра сцены
+    std::vector<NamedFloatingVector> nodeValues_; //!< Массив векторов значений, определенных в узле
+    std::vector<NamedFloatingVector> elementValues_; //!< Массив векторов значений, определенных в узле
+    msh::UInteger valueIndex_; //!< Индекс текущего вектора для визуализации
 
 private:
     /**

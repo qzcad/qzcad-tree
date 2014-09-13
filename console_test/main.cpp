@@ -276,7 +276,7 @@ int main()
 
 //    HexahedralFEM fem(&mesh, layers, boundaryForces, boundaryConditions); // многослойный расчет
 
-    fem.setNodeDisplacement(&mesh, 1);
+//    fem.setNodeDisplacement(&mesh, 1);
 
     cout << "Сохранение результатов в файл" << endl;
     fstream output;

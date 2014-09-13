@@ -1,3 +1,8 @@
+/**
+  * @author Сергей Чопоров
+  * @date 30/07/2014
+  * @version 1.0.5
+  * */
 #ifndef HEXAHEDRALFEM_H
 #define HEXAHEDRALFEM_H
 
@@ -9,7 +14,9 @@
 #include "globalmatrix.h"
 
 using namespace msh;
-
+/**
+ * @brief Класс для определения перемещений и напраяжений при помощи МКЭ на шестигранных элементах
+ */
 class HexahedralFEM
 {
 
@@ -39,48 +46,30 @@ public:
      */
     HexahedralFEM(HexahedralMesh3D* mesh, std::vector<MechanicalParameters3D> parameters, std::vector<FEMCondition3DPointer> boundaryForces, std::vector<FEMCondition3DPointer> boundaryConditions);
     /**
-     * @brief Установить значения перемещения в значения узлах
-     * @param mesh Сетка, в которой устанавливается значение в узлах
-     * @param direction Направление перемещения (0, 1 или 2)
+     * @brief Получить значения перемещений в первом направлении
+     * @return Значения перемещений в первом направлении
      */
-    void setNodeDisplacement(HexahedralMesh3D* mesh, const UInteger &direction);
+    std::vector<Floating> u() const;
     /**
-     * @brief Установить напряжения SigmaX в значения на элементе
-     * @param mesh Указатель на сетку
+     * @brief Получить значения перемещений во втором направлении
+     * @return Значения пермещений во втором направлении
      */
-    void setElementSigmaX(HexahedralMesh3D * mesh);
+    std::vector<Floating> v() const;
     /**
-     * @brief Установить напряжения SigmaY в значения на элементе
-     * @param mesh Указатель на сетку
+     * @brief Получить значения перемещений в третьем направлении
+     * @return Значения пермещений в третьем направлении
      */
-    void setElementSigmaY(HexahedralMesh3D * mesh);
-    /**
-     * @brief Установить напряжения SigmaZ в значения на элементе
-     * @param mesh Указатель на сетку
-     */
-    void setElementSigmaZ(HexahedralMesh3D * mesh);
-    /**
-     * @brief Установить напряжения TauXY в значения на элементе
-     * @param mesh Указатель на сетку
-     */
-    void setElementTauXY(HexahedralMesh3D * mesh);
-    /**
-     * @brief Установить напряжения TauYZ в значения на элементе
-     * @param mesh Указатель на сетку
-     */
-    void setElementTauYZ(HexahedralMesh3D * mesh);
-    /**
-     * @brief Установить напряжения TauZX в значения на элементе
-     * @param mesh Указатель на сетку
-     */
-    void setElementTauZX(HexahedralMesh3D * mesh);
-    /**
-     * @brief Получить вектор перемещений для заданного узла
-     * @param i Номер узла
-     * @param nodesCount Колчисетво узлов в сетке
-     * @return Вектор перемещений
-     */
-    Point3D getDisplacemementVector(const UInteger &i, const UInteger &nodesCount);
+    std::vector<Floating> w() const;
+    /// Методы для получения значений напряжений на элементе
+    /// @{
+    std::vector<Floating> sigmaX() const;
+    std::vector<Floating> sigmaY() const;
+    std::vector<Floating> sigmaZ() const;
+    std::vector<Floating> tauXY() const;
+    std::vector<Floating> tauYZ() const;
+    std::vector<Floating> tauZX() const;
+    /// @}
+
 protected:
     /**
      * @brief Процедура построения матрицы упргости
@@ -127,21 +116,29 @@ protected:
      * @brief Процедура для поиска и вывода на экран экстремальных значений перемещений
      * @param nodesCount Количество узлов в сетке
      */
-    void printDisplacementExtremum(const UInteger &nodesCount);
+    void printDisplacementExtremum();
     /**
      * @brief Процедура вычисления напряжений
      * @param mesh Указатель на сетку
      * @param D Матрица упругости
      */
     void recoverStress(HexahedralMesh3D* mesh, const FloatingMatrix &D);
+    /**
+     * @brief Метод извлечения компонент перемещения из массива
+     * @param displacement Массив пермещений
+     * @param nodesCount Количество узлов в сетке
+     */
+    void displacementToUVW(const FloatingVector &displacement, const UInteger &nodesCount);
 private:
-    FloatingVector displacement;
-    std::vector<Floating> sigmaX;
-    std::vector<Floating> sigmaY;
-    std::vector<Floating> sigmaZ;
-    std::vector<Floating> tauXY;
-    std::vector<Floating> tauYZ;
-    std::vector<Floating> tauZX;
+    std::vector<Floating> u_; //!< Перемещения в первом направлении (x)
+    std::vector<Floating> v_; //!< Перемещения во втором направлении (y)
+    std::vector<Floating> w_; //!< Перемещения в третьем направлении (z)
+    std::vector<Floating> sigmaX_; //!< Нормальные компоненты напряжения, параллельные первому направлению (x)
+    std::vector<Floating> sigmaY_; //!< Нормальные компоненты напряжения, параллельные второму направлению (y)
+    std::vector<Floating> sigmaZ_; //!< Нормальные компоненты напряжения, параллельные третьему направлению (z)
+    std::vector<Floating> tauXY_; //!< Касательные компоненты напряжения, в плоскости 1-2 (x-y)
+    std::vector<Floating> tauYZ_; //!< Касательные компоненты напряжения, в плоскости 2-3 (y-z)
+    std::vector<Floating> tauZX_; //!< Касательные компоненты напряжения, в плоскости 3-1 (z-x)
 };
 
 #endif // HEXAHEDRALFEM_H

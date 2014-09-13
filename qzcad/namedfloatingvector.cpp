@@ -1,4 +1,5 @@
 #include "namedfloatingvector.h"
+#include <algorithm>
 
 NamedFloatingVector::NamedFloatingVector()
 {
@@ -31,6 +32,17 @@ msh::Floating &NamedFloatingVector::operator[](const NamedFloatingVector::size_t
 {
     return data_[i];
 }
+
+msh::Floating NamedFloatingVector::min() const
+{
+    return *std::min_element(data_.begin(), data_.end());
+}
+
+msh::Floating NamedFloatingVector::max() const
+{
+    return *std::max_element(data_.begin(), data_.end());
+}
+
 QString NamedFloatingVector::name() const
 {
     return name_;

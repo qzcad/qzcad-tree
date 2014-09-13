@@ -597,21 +597,7 @@ void MainWindow::on_actionElasticFem_triggered()
                                                                                   dialog.forceW(i)));
                     }
                     HexahedralFEM fem(hexahedralMesh, *params, forces, boundaryConditions);
-                    fem.setNodeDisplacement(hexahedralMesh, 0); // по умолчанию визуализируем первое направление
-                    fem.setElementSigmaY(hexahedralMesh);
-                    u_.clear();
-                    v_.clear();
-                    w_.clear();
-                    for (msh::UInteger i = 0; i < hexahedralMesh->nodesCount(); i++)
-                    {
-                        msh::Point3D d = fem.getDisplacemementVector(i, hexahedralMesh->nodesCount());
-                        u_.push_back(d.x());
-                        v_.push_back(d.y());
-                        w_.push_back(d.z());
-                    }
-                    ui->actionUDirection->setEnabled(true);
-                    ui->actionVDirection->setEnabled(true);
-                    ui->actionWDirection->setEnabled(true);
+
                     // очистка памяти
                     delete params;
                     for (int i = 0; i < dialog.boundaryCount(); i++)
@@ -620,6 +606,15 @@ void MainWindow::on_actionElasticFem_triggered()
                         delete forces[i];
 
                     ui->pictureControl->setMesh(hexahedralMesh);
+                    ui->pictureControl->pushNodeValuesVector(NamedFloatingVector("u", fem.u()));
+                    ui->pictureControl->pushNodeValuesVector(NamedFloatingVector("v", fem.v()));
+                    ui->pictureControl->pushNodeValuesVector(NamedFloatingVector("w", fem.w()));
+                    ui->pictureControl->pushElementValuesVector(NamedFloatingVector("Sigma u", fem.sigmaX()));
+                    ui->pictureControl->pushElementValuesVector(NamedFloatingVector("Sigma v", fem.sigmaY()));
+                    ui->pictureControl->pushElementValuesVector(NamedFloatingVector("Sigma w", fem.sigmaZ()));
+                    ui->pictureControl->pushElementValuesVector(NamedFloatingVector("Tau uv", fem.tauXY()));
+                    ui->pictureControl->pushElementValuesVector(NamedFloatingVector("Tau vw", fem.tauYZ()));
+                    ui->pictureControl->pushElementValuesVector(NamedFloatingVector("Tau wu", fem.tauZX()));
                 }
             }
         }

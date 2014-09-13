@@ -43,6 +43,26 @@ msh::MeshPointer GLControlWidget::releaseMesh()
     return ui->picture->releaseMesh();
 }
 
+void GLControlWidget::pushNodeValuesVector(const NamedFloatingVector &vector)
+{
+    ui->picture->pushNodeValuesVector(vector);
+}
+
+void GLControlWidget::clearNodeValues()
+{
+    ui->picture->clearNodeValues();
+}
+
+void GLControlWidget::pushElementValuesVector(const NamedFloatingVector &vector)
+{
+    ui->picture->pushElementValuesVector(vector);
+}
+
+void GLControlWidget::clearElementValues()
+{
+    ui->picture->clearElementValues();
+}
+
 void GLControlWidget::activateDoubleBufferGL(bool activate)
 {
     ui->picture->activateDoubleBufferGL(activate);
