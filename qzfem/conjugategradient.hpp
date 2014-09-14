@@ -84,6 +84,8 @@ int conjugateGradient(const compressed_matrix<T1, row_major, 0, IA1, TA1> & A,
     vector<E2> resid_old;
     vector<E2> temp (b.size()) ;
 
+    for (typename vector<E2>::size_type i = 0; i < x.size(); i++) x[i] = 0.0;
+
     residual(A, x, b,resid, row_major_tag());
 
     d = resid;
