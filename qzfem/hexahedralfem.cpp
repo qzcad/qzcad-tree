@@ -7,7 +7,7 @@
 #include <boost/progress.hpp>
 #include <iostream>
 
-HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3D &parameters, FEMCondition3DPointer boundaryForce, std::vector<FEMCondition3DPointer> boundaryConditions)
+HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3D &parameters, FEMCondition3DPointer boundaryForce, const std::vector<FEMCondition3DPointer> &boundaryConditions)
 {
     const int freedom = 3;
     const UInteger nodesCount = mesh->nodesCount();
@@ -48,7 +48,7 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3
     CGM.assign(globalMatrix);
     globalMatrix.clear();
     std::cout << "Решение СЛАУ..." << std::endl;
-    int res = conjugateGradient(CGM, displacement,force,row_major_tag());
+    int res = conjugateGradient(CGM, displacement, force, row_major_tag());
     std::cout << "Выполнено итераций в метода сопряженных градиентов: " << res << std::endl;
 
     displacementToUVW(displacement, nodesCount);
@@ -58,7 +58,7 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3
     recoverStress(mesh, D);
 }
 
-HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3D &parameters, std::vector<FEMCondition3DPointer> boundaryForces, std::vector<FEMCondition3DPointer> boundaryConditions)
+HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3D &parameters, const std::vector<FEMCondition3DPointer> &boundaryForces, const std::vector<FEMCondition3DPointer> &boundaryConditions)
 {
     const int freedom = 3;
     const UInteger nodesCount = mesh->nodesCount();
@@ -103,7 +103,7 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3
     CGM.assign(globalMatrix);
     globalMatrix.clear();
     std::cout << "Решение СЛАУ..." << std::endl;
-    int res = conjugateGradient(CGM, displacement,force,row_major_tag());
+    int res = conjugateGradient(CGM, displacement, force, row_major_tag());
     std::cout << "Выполнено итераций в метода сопряженных градиентов: " << res << std::endl;
 
     displacementToUVW(displacement, nodesCount);
@@ -113,7 +113,7 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3
     recoverStress(mesh, D);
 }
 
-HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, std::vector<MechanicalParameters3D> parameters, std::vector<FEMCondition3DPointer> boundaryForces, std::vector<FEMCondition3DPointer> boundaryConditions)
+HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const std::vector<MechanicalParameters3D> &parameters, const std::vector<FEMCondition3DPointer> &boundaryForces, const std::vector<FEMCondition3DPointer> &boundaryConditions)
 {
     const int freedom = 3;
     const UInteger nodesCount = mesh->nodesCount();
@@ -235,7 +235,7 @@ void HexahedralFEM::buildElasticMatrix(const MechanicalParameters3D &params, Flo
     invertMatrix(S, D);
 }
 
-void HexahedralFEM::buildElasticMatrix(std::vector<MechanicalParameters3D> params, FloatingMatrix D[])
+void HexahedralFEM::buildElasticMatrix(const std::vector<MechanicalParameters3D> &params, FloatingMatrix D[])
 {
     for (UInteger p = 0; p < params.size(); p++)
     {
@@ -659,12 +659,13 @@ void HexahedralFEM::processForce(HexahedralMesh3D *mesh, FEMCondition3DPointer b
     std::cout << "Нагрузка: " << boundaryForce->u() << "; " << boundaryForce->v() << "; " << boundaryForce->w() << ". Площадь нагруженной поверхноти: " << area << std::endl;
 }
 
-void HexahedralFEM::processBoundaryConditions(HexahedralMesh3D *mesh, std::vector<FEMCondition3DPointer> boundaryConditions, GlobalMatrix &globalMatrix, FloatingVector &force)
+void HexahedralFEM::processBoundaryConditions(HexahedralMesh3D *mesh, const std::vector<FEMCondition3DPointer> &boundaryConditions, GlobalMatrix &globalMatrix, FloatingVector &force)
 {
     const UInteger nodesCount = mesh->nodesCount();
     boost::progress_display progressBar(nodesCount);
     const UInteger freedom = 3;
     const UInteger systemDimension = nodesCount * freedom;
+    UInteger boundaryNodes = 0;
 
     std::cout << "Учет граничных условий..." << std::endl;
 
@@ -677,6 +678,7 @@ void HexahedralFEM::processBoundaryConditions(HexahedralMesh3D *mesh, std::vecto
             FEMCondition3DPointer condition = boundaryConditions[b];
             if (condition->isApplied(point))
             {
+                boundaryNodes++;
                 if (condition->isU())
                 {
                     for (UInteger j = 0; j < systemDimension; j++)
@@ -724,6 +726,7 @@ void HexahedralFEM::processBoundaryConditions(HexahedralMesh3D *mesh, std::vecto
             } // if
         } // for b
     } // for i
+    std::cout << "Обработано " << boundaryNodes << " узлов." << std::endl;
 }
 
 void HexahedralFEM::printDisplacementExtremum()

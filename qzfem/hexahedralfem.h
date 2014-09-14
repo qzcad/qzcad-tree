@@ -28,7 +28,7 @@ public:
      * @param boundaryForce Поверхностная нагрузка
      * @param boundaryConditions Массмв граничных условий
      */
-    HexahedralFEM(HexahedralMesh3D* mesh, const MechanicalParameters3D &parameters, FEMCondition3DPointer boundaryForce, std::vector<FEMCondition3DPointer> boundaryConditions);
+    HexahedralFEM(HexahedralMesh3D* mesh, const MechanicalParameters3D &parameters, FEMCondition3DPointer boundaryForce, const std::vector<FEMCondition3DPointer> &boundaryConditions);
     /**
      * @brief Конструктор
      * @param mesh Указатель на сетку шестигранных элементов
@@ -36,7 +36,7 @@ public:
      * @param boundaryForces Массив поверхностных нагрузок
      * @param boundaryConditions Массмв граничных условий
      */
-    HexahedralFEM(HexahedralMesh3D* mesh, const MechanicalParameters3D &parameters, std::vector<FEMCondition3DPointer> boundaryForces, std::vector<FEMCondition3DPointer> boundaryConditions);
+    HexahedralFEM(HexahedralMesh3D* mesh, const MechanicalParameters3D &parameters, const std::vector<FEMCondition3DPointer> &boundaryForces, const std::vector<FEMCondition3DPointer> &boundaryConditions);
     /**
      * @brief Конструктор для расчета многослойных конструкций
      * @param mesh Указатель на сетку шестигранных элементов
@@ -44,7 +44,7 @@ public:
      * @param boundaryForces Массив поверхностных нагрузок
      * @param boundaryConditions Массмв граничных условий
      */
-    HexahedralFEM(HexahedralMesh3D* mesh, std::vector<MechanicalParameters3D> parameters, std::vector<FEMCondition3DPointer> boundaryForces, std::vector<FEMCondition3DPointer> boundaryConditions);
+    HexahedralFEM(HexahedralMesh3D* mesh, const std::vector<MechanicalParameters3D> &parameters, const std::vector<FEMCondition3DPointer> &boundaryForces, const std::vector<FEMCondition3DPointer> &boundaryConditions);
     /**
      * @brief Получить значения перемещений в первом направлении
      * @return Значения перемещений в первом направлении
@@ -82,7 +82,7 @@ protected:
      * @param params Массив механических параметров материала
      * @param D Массив матриц упругости
      */
-    void buildElasticMatrix(std::vector<MechanicalParameters3D> params, FloatingMatrix D[]);
+    void buildElasticMatrix(const std::vector<MechanicalParameters3D> &params, FloatingMatrix D[]);
     /**
      * @brief Процедура построения глобальной матрицы жесткости
      * @param mesh Указатель на сетку
@@ -111,7 +111,7 @@ protected:
      * @param globalMatrix Глобальная матрица жесткости (модифицируется)
      * @param force Вектор сил (модифицируется)
      */
-    void processBoundaryConditions(HexahedralMesh3D* mesh, std::vector<FEMCondition3DPointer> boundaryConditions, GlobalMatrix &globalMatrix, FloatingVector &force);
+    void processBoundaryConditions(HexahedralMesh3D* mesh, const std::vector<FEMCondition3DPointer> &boundaryConditions, GlobalMatrix &globalMatrix, FloatingVector &force);
     /**
      * @brief Процедура для поиска и вывода на экран экстремальных значений перемещений
      * @param nodesCount Количество узлов в сетке
