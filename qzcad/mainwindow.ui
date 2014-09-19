@@ -121,6 +121,9 @@
     <addaction name="separator"/>
     <addaction name="menuFlip"/>
     <addaction name="actionArea"/>
+    <addaction name="separator"/>
+    <addaction name="actionLoadNodeValue"/>
+    <addaction name="actionLoadElementValue"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -476,6 +479,16 @@
   <action name="actionElasticFem">
    <property name="text">
     <string>Упругий расчет...</string>
+   </property>
+  </action>
+  <action name="actionLoadNodeValue">
+   <property name="text">
+    <string>Загрузить значение в узле...</string>
+   </property>
+  </action>
+  <action name="actionLoadElementValue">
+   <property name="text">
+    <string>Загрузить значения на элементе...</string>
    </property>
   </action>
  </widget>

@@ -76,6 +76,10 @@ private slots:
 
     void on_actionElasticFem_triggered();
 
+    void on_actionLoadNodeValue_triggered();
+
+    void on_actionLoadElementValue_triggered();
+
 private:
     Ui::MainWindow *ui; //!< Контейнер элементов графического интерфейса
     QStdRedirector<> *stdRedirector; //!< Перехватчик сообщений стандартного потока

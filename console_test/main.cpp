@@ -173,7 +173,7 @@ public:
     }
     virtual double v()
     {
-        return -0.09;
+        return -0.011;
     }
     virtual bool isV()
     {
@@ -188,6 +188,151 @@ public:
         return true;
     }
 };
+
+class SpaceBoundaryZ: public FEMCondition3D
+{
+public:
+    virtual bool isApplied(PointPointer point)
+    {
+        return isEquil(point->z(), 0.0);
+    }
+    virtual double u()
+    {
+        return 0.0;
+    }
+    virtual bool isU()
+    {
+        return false;
+    }
+    virtual double v()
+    {
+        return 0.0;
+    }
+    virtual bool isV()
+    {
+        return false;
+    }
+    virtual double w()
+    {
+        return 0.0;
+    }
+    virtual bool isW()
+    {
+        return true;
+    }
+};
+
+class SpaceBoundaryY: public FEMCondition3D
+{
+public:
+    virtual bool isApplied(PointPointer point)
+    {
+        return isEquil(point->y(), 0.0);
+    }
+    virtual double u()
+    {
+        return 0.0;
+    }
+    virtual bool isU()
+    {
+        return false;
+    }
+    virtual double v()
+    {
+        return 0.0;
+    }
+    virtual bool isV()
+    {
+        return true;
+    }
+    virtual double w()
+    {
+        return 0.0;
+    }
+    virtual bool isW()
+    {
+        return false;
+    }
+};
+
+class SpaceBoundaryX: public FEMCondition3D
+{
+public:
+    virtual bool isApplied(PointPointer point)
+    {
+        return isEquil(point->x(), 4.014);
+    }
+    virtual double u()
+    {
+        return 0.0;
+    }
+    virtual bool isU()
+    {
+        return true;
+    }
+    virtual double v()
+    {
+        return 0.0;
+    }
+    virtual bool isV()
+    {
+        return true;
+    }
+    virtual double w()
+    {
+        return 0.0;
+    }
+    virtual bool isW()
+    {
+        return true;
+    }
+};
+
+class SpaceForceX: public FEMCondition3D
+{
+public:
+    virtual bool isApplied(PointPointer point)
+    {
+        return isEquil(point->x(), 0.0);
+    }
+    virtual double u()
+    {
+        return -3.303567151;
+    }
+    virtual bool isU()
+    {
+        return true;
+    }
+    virtual double v()
+    {
+        return 0.0;
+    }
+    virtual bool isV()
+    {
+        return false;
+    }
+    virtual double w()
+    {
+        return 0.0;
+    }
+    virtual bool isW()
+    {
+        return false;
+    }
+};
+
+void save_vector(const std::vector<Floating> &v, const char *name)
+{
+    fstream out;
+    out.open(name, fstream::out);
+    cout << name << ": " << v.size() << endl;
+    out << v.size() << endl;
+    for (UInteger i = 0; i < v.size(); i++)
+    {
+        out << v[i] << endl;
+    }
+    out.close();
+}
 
 int main()
 {
@@ -212,7 +357,8 @@ int main()
     MechanicalParameters3D paramsInner(innerE, innerNu);
 
     cout << "Загрузка дискретной модели..."<< endl;
-    input.open("plate_0_x_04_0_y_0018_0_z_04.txt", fstream::in);
+//    input.open("plate_0_x_04_0_y_0018_0_z_04.txt", fstream::in);
+    input.open("spacecraft.txt", fstream::in);
     input >> freedom; // количество степеней сободы
     cout << "Степеней свободы - " << freedom << endl;
     input >> elementNodes;
@@ -254,51 +400,81 @@ int main()
     }
     input.close();
 
-    std::vector<FEMCondition3DPointer> boundaryConditions;
-    XCondition xcond;
-    ZCondition zcond;
-    FixedCondition fixcond;
-    RotCondition rotcond;
-    boundaryConditions.push_back(&xcond);
-    boundaryConditions.push_back(&zcond);
-//    boundaryConditions.push_back(&fixcond);
-    boundaryConditions.push_back(&rotcond);
-    ForceCondition force;
-    std::vector<FEMCondition3DPointer> boundaryForces;
-    boundaryForces.push_back(&force);
+//    std::vector<FEMCondition3DPointer> boundaryConditions;
+//    XCondition xcond;
+//    ZCondition zcond;
+//    FixedCondition fixcond;
+//    RotCondition rotcond;
+//    boundaryConditions.push_back(&xcond);
+//    boundaryConditions.push_back(&zcond);
+////    boundaryConditions.push_back(&fixcond);
+//    boundaryConditions.push_back(&rotcond);
+//    ForceCondition force;
+//    std::vector<FEMCondition3DPointer> boundaryForces;
+//    boundaryForces.push_back(&force);
 
-    HexahedralFEM fem(&mesh, params, boundaryForces, boundaryConditions);
+////    HexahedralFEM fem(&mesh, params, boundaryForces, boundaryConditions);
 
-    std::vector<MechanicalParameters3D> layers;
-    layers.push_back(params);
-    layers.push_back(paramsInner);
-    layers.push_back(params);
+//    std::vector<MechanicalParameters3D> layers;
+//    layers.push_back(params);
+//    layers.push_back(paramsInner);
+//    layers.push_back(params);
 
 //    HexahedralFEM fem(&mesh, layers, boundaryForces, boundaryConditions); // многослойный расчет
 
-//    fem.setNodeDisplacement(&mesh, 1);
+////    fem.setNodeDisplacement(&mesh, 1);
+
+    // spacecraft
+    std::vector<FEMCondition3DPointer> boundaryConditions;
+    SpaceBoundaryX sbx;
+    SpaceBoundaryY sby;
+    SpaceBoundaryZ sbz;
+    boundaryConditions.push_back(&sbx);
+    boundaryConditions.push_back(&sby);
+    boundaryConditions.push_back(&sbz);
+    std::vector<FEMCondition3DPointer> forces;
+    SpaceForceX sfx;
+    forces.push_back(&sfx);
+    std::vector<MechanicalParameters3D> layers;
+    MechanicalParameters3D shpangout(50000.0, 0.3);
+    MechanicalParameters3D penoplast(100.0, 0.2, 28.0);
+    MechanicalParameters3D zapolnitel(15.0, 0.33, 350.0);
+    MechanicalParameters3D obshivka(63000.0, 36000.0, 36000.0, 0.4, 0.4, 0.33, 63000.0 / (2.0 + 2.0 * 0.4), 36000.0 / (2.0 + 2.0 * 0.4), 36000.0 / (2.0 + 2.0 * 0.33));
+    layers.push_back(shpangout); // 0
+    layers.push_back(shpangout); // 1
+    layers.push_back(shpangout); // 2
+    layers.push_back(shpangout); // 3
+    layers.push_back(penoplast); // 4
+    layers.push_back(zapolnitel); // 5
+    layers.push_back(obshivka); // 6
+    layers.push_back(obshivka); // 7
+    layers.push_back(obshivka); // 8
+    layers.push_back(obshivka); // 9
+    layers.push_back(zapolnitel); // 10
+    layers.push_back(obshivka); // 11
+    layers.push_back(shpangout); // 12
+    layers.push_back(shpangout); // 13
+    layers.push_back(shpangout); // 14
+    layers.push_back(shpangout); // 15
+    layers.push_back(penoplast); // 16
+    layers.push_back(zapolnitel); // 17
+    layers.push_back(obshivka); // 18
+    layers.push_back(obshivka); // 19
+    layers.push_back(obshivka); // 20
+
+    HexahedralFEM fem(&mesh, layers, forces, boundaryConditions); // многослойный расчет
+
 
     cout << "Сохранение результатов в файл" << endl;
-    fstream output;
-    output.open("v.txt", fstream::out);
-    output << freedom << ' ' << elementNodes << endl;
-    output << nodesCount << ' ' << 1 << endl;
-    for (UInteger i = 0; i < nodesCount; i++)
-    {
-        PointPointer point = mesh.node(i);
-        output << point->x() << ' ' << point->y() << ' ' << point->z() << ' ' << mesh.nodeType(i) << ' ' << mesh.nodeValue(i) << endl;
-    }
-    output << elementsCount << ' ' << 0 << endl;
-    for (UInteger i = 0; i < elementsCount; i++)
-    {
-        ElementPointer element = mesh.element(i);
-        for (int j = 0; j < element->verticesCount(); j++)
-        {
-            output << element->vertexNode(j) << " ";
-        }
-        output << endl;
-    }
-    output.close();
+    save_vector(fem.u(), "u.txt");
+    save_vector(fem.v(), "v.txt");
+    save_vector(fem.w(), "w.txt");
+    save_vector(fem.sigmaX(), "sigma_x.txt");
+    save_vector(fem.sigmaY(), "sigma_y.txt");
+    save_vector(fem.sigmaZ(), "sigma_z.txt");
+    save_vector(fem.tauXY(), "tau_xy.txt");
+    save_vector(fem.tauYZ(), "tau_yz.txt");
+    save_vector(fem.tauZX(), "tau_zx.txt");
 
     return 0;
 }

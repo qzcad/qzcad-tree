@@ -123,6 +123,7 @@ protected:
      * @param D Матрица упругости
      */
     void recoverStress(HexahedralMesh3D* mesh, const FloatingMatrix &D);
+    void recoverStress(HexahedralMesh3D* mesh, const FloatingMatrix D[]);
     /**
      * @brief Метод извлечения компонент перемещения из массива
      * @param displacement Массив пермещений

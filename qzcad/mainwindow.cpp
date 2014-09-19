@@ -5,6 +5,7 @@
 #include <QTextCodec>
 #include <QFileDialog>
 #include <QTextStream>
+#include <QInputDialog>
 
 #include "globalconsts.h"
 
@@ -613,4 +614,80 @@ void MainWindow::on_actionElasticFem_triggered()
         }
     }
 
+}
+
+void MainWindow::on_actionLoadNodeValue_triggered()
+{
+    msh::MeshPointer mesh = ui->pictureControl->getMesh();
+    if (mesh != NULL)
+    {
+        QString fileName = QFileDialog::getOpenFileName(this, "Загрузить значение в узле", "", tr("Текстовые файлы (*.txt);;Любой файл (*)"));
+        if (fileName.isEmpty())
+            return;
+        QFile file(fileName);
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+            return;
+        bool ok;
+        QString name = QInputDialog::getText(this, tr("QInputDialog::getText()"),
+                                             tr("Название вектора значений:"), QLineEdit::Normal,
+                                             QDir::home().dirName(), &ok);
+        if (ok && !name.isEmpty())
+        {
+            QTextStream in(&file);
+            msh::UInteger count = 0;
+            std::vector<msh::Floating> v;
+            in >> count;
+            if (mesh->nodesCount() != count)
+            {
+                QString msg = tr("Ошибка: Количество элементов вектора не равно количству узлов сетки.");
+                QMessageBox::warning(this, msg, msg);
+                return;
+            }
+            for (msh::UInteger i = 0; i < count; i++)
+            {
+                msh::Floating val = 0.0;
+                in >> val;
+                v.push_back(val);
+            }
+            ui->pictureControl->pushNodeValuesVector(NamedFloatingVector(name, v));
+        }
+    }
+}
+
+void MainWindow::on_actionLoadElementValue_triggered()
+{
+    msh::MeshPointer mesh = ui->pictureControl->getMesh();
+    if (mesh != NULL)
+    {
+        QString fileName = QFileDialog::getOpenFileName(this, "Загрузить значение на элементе", "", tr("Текстовые файлы (*.txt);;Любой файл (*)"));
+        if (fileName.isEmpty())
+            return;
+        QFile file(fileName);
+        if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+            return;
+        bool ok;
+        QString name = QInputDialog::getText(this, tr("QInputDialog::getText()"),
+                                             tr("Название вектора значений:"), QLineEdit::Normal,
+                                             QDir::home().dirName(), &ok);
+        if (ok && !name.isEmpty())
+        {
+            QTextStream in(&file);
+            msh::UInteger count = 0;
+            std::vector<msh::Floating> v;
+            in >> count;
+            if (mesh->elementsCount() != count)
+            {
+                QString msg = tr("Ошибка: Количество элементов вектора не равно количству элементов сетки.");
+                QMessageBox::warning(this, msg, msg);
+                return;
+            }
+            for (msh::UInteger i = 0; i < count; i++)
+            {
+                msh::Floating val = 0.0;
+                in >> val;
+                v.push_back(val);
+            }
+            ui->pictureControl->pushElementValuesVector(NamedFloatingVector(name, v));
+        }
+    }
 }
