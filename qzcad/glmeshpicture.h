@@ -333,6 +333,10 @@ private:
      * @brief Нарисовать контрольную цветную полосу
      */
     void drawColorBar();
+    /**
+     * @brief Нарисовать направления осей координат
+     */
+    void drawAxesDirection();
 };
 
 #endif // GLMESHPICTURE_H

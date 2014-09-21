@@ -324,6 +324,57 @@ void GLMeshPicture::drawColorBar()
     resetProjectionMatrix();
 }
 
+void GLMeshPicture::drawAxesDirection()
+{
+    const double border = 1.0;
+    const double spacing = 0.3;
+    const double axesLength = 0.2;
+    const double c = border - spacing - axesLength;
+    const double e = border - spacing;
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+#ifdef QT_OPENGL_ES_1
+    glOrthof(-border, border,
+             -border, border,
+             -border, border);
+#else
+    glOrtho(-border, border,
+            -border, border,
+            -border, border);
+#endif
+    // отрисовка котрольной полосы
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    glRotatef(xRot_, 1.0, 0.0, 0.0);
+    glRotatef(yRot_, 0.0, 1.0, 0.0);
+    glRotatef(zRot_, 0.0, 0.0, 1.0);
+
+    // x
+    glColor3ub(255, 0, 0);
+    glBegin(GL_LINES);
+        glVertex3d(c, c, c);
+        glVertex3d(e, c, c);
+    glEnd();
+    renderText (e, c, c, "x");
+    // y
+    qglColor(Qt::green);
+    glBegin(GL_LINES);
+        glVertex3d(c, c, c);
+        glVertex3d(c, e, c);
+    glEnd();
+    renderText (c, e, c, "y");
+    // z
+    qglColor(Qt::blue);
+    glBegin(GL_LINES);
+        glVertex3d(c, c, c);
+        glVertex3d(c, c, e);
+    glEnd();
+    renderText (c, c, e, "z");
+    // востановление исходного режима проекции
+    resetProjectionMatrix();
+}
+
 void GLMeshPicture::setXRotation(int angle)
 {
     int normalized = normalizedViewAngle(angle);
@@ -675,6 +726,8 @@ void GLMeshPicture::paintGL()
         }
     }
     glPopMatrix();
+
+    drawAxesDirection();
 
     if (showColorBar_) drawColorBar();
 
