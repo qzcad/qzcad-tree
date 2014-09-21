@@ -2,7 +2,7 @@
 
 namespace msh
 {
-Point1D::Point1D(Floating x)
+Point1D::Point1D(double x)
 {
     x_ = x;
 }
@@ -22,27 +22,27 @@ int Point1D::dimension() const
     return 1;
 }
 
-Floating Point1D::x() const
+double Point1D::x() const
 {
     return x_;
 }
 
-Floating Point1D::y() const
+double Point1D::y() const
 {
     return 0.0;
 }
 
-Floating Point1D::z() const
+double Point1D::z() const
 {
     return 0.0;
 }
 
-Floating Point1D::length() const
+double Point1D::length() const
 {
     return x_ >= 0.0 ? x_ : -x_;
 }
 
-void Point1D::set(Floating x)
+void Point1D::set(double x)
 {
     x_ = x;
 }
@@ -74,28 +74,28 @@ Point1D operator +(const Point1D &leftPoint, const Point1D &rightPoint)
     return Point1D(leftPoint.x_ + rightPoint.x_);
 }
 
-Floating Point1D::operator *(const Point1D &point) const
+double Point1D::operator *(const Point1D &point) const
 {
     return x_ * point.x_;
 }
 
-Point1D operator *(Floating d, const Point1D &point)
+Point1D operator *(double d, const Point1D &point)
 {
     return Point1D(d * point.x_);
 }
 
-Point1D operator /(const Point1D &point, Floating dec)
+Point1D operator /(const Point1D &point, double dec)
 {
     return Point1D(point.x_ / dec);
 }
 
-Floating Point1D::distanceTo(const Point1D &point) const
+double Point1D::distanceTo(const Point1D &point) const
 {
-    Floating d = x_ - point.x_;
+    double d = x_ - point.x_;
     return d >= 0.0 ? d : -d;
 }
 
-bool Point1D::isEqualTo(const Point1D &point, Floating epsilon) const
+bool Point1D::isEqualTo(const Point1D &point, double epsilon) const
 {
     return distanceTo(point) < epsilon;
 }

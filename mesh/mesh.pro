@@ -29,7 +29,6 @@ SOURCES += mesh.cpp \
 
 HEADERS += mesh.h \
     point.h \
-    floating.h \
     element.h \
     point1d.h \
     point2d.h \

@@ -19,32 +19,32 @@ PointPointer Mesh2D::node(const UInteger &number) const
     return pointPtr;
 }
 
-Floating Mesh2D::xMin() const
+double Mesh2D::xMin() const
 {
     return xMin_;
 }
 
-Floating Mesh2D::xMax() const
+double Mesh2D::xMax() const
 {
     return xMax_;
 }
 
-Floating Mesh2D::yMin() const
+double Mesh2D::yMin() const
 {
     return yMin_;
 }
 
-Floating Mesh2D::yMax() const
+double Mesh2D::yMax() const
 {
     return yMax_;
 }
 
-Floating Mesh2D::zMin() const
+double Mesh2D::zMin() const
 {
     return -std::min(std::max(fabs(xMax_), fabs(xMin_)), std::max(fabs(yMax_), fabs(yMin_)));
 }
 
-Floating Mesh2D::zMax() const
+double Mesh2D::zMax() const
 {
     return std::min(std::max(fabs(xMax_), fabs(xMin_)), std::max(fabs(yMax_), fabs(yMin_)));
 }
@@ -54,11 +54,11 @@ int Mesh2D::dimesion() const
     return 2;
 }
 
-Floating Mesh2D::nodeValue(const UInteger &number) const
+double Mesh2D::nodeValue(const UInteger &number) const
 {
     if (number < nodeValue_.size())
         return nodeValue_[number];
-    return (Floating)number;
+    return (double)number;
 }
 
 NodeType Mesh2D::nodeType(const UInteger &number) const
@@ -112,9 +112,9 @@ void Mesh2D::mirrorHorizontally()
     directionChange();
 }
 
-Floating Mesh2D::area()
+double Mesh2D::area()
 {
-    Floating sum = 0.0;
+    double sum = 0.0;
     for (UInteger i = 0; i < elementsCount(); i++)
         sum += area(i);
     return sum;
@@ -148,7 +148,7 @@ void Mesh2D::clearNodeValues()
     nodeValue_.clear();
 }
 
-void Mesh2D::pushNodeValue(const Floating &val)
+void Mesh2D::pushNodeValue(const double &val)
 {
     nodeValue_.push_back(val);
 }
@@ -161,8 +161,8 @@ void Mesh2D::updateDomain()
     for (UInteger i = 1; i < node_.size(); i++)
     {
         Point2D current = node_[i].point;
-        Floating x = current.x();
-        Floating y = current.y();
+        double x = current.x();
+        double y = current.y();
         if (xMin_ > x) xMin_ = x;
         if (xMax_ < x) xMax_ = x;
         if (yMin_ > y) yMin_ = y;

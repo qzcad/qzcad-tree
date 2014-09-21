@@ -44,32 +44,32 @@ public:
      * @brief Минимальное значение ординаты точек сетки
      * @return Минимальное значение ординаты точек сетки
      */
-    virtual Floating xMin() const;
+    virtual double xMin() const;
     /**
      * @brief Максимальное значение ординаты точек сетки
      * @return Максимальное значение ординаты точек сетки
      */
-    virtual Floating xMax() const;
+    virtual double xMax() const;
     /**
      * @brief Минимальное значение абсциссы точек сетки
      * @return Минимальное значение абсциссы точек сетки
      */
-    virtual Floating yMin() const;
+    virtual double yMin() const;
     /**
      * @brief Максимальное значение абсциссы точек сетки
      * @return Максимальное значение абсциссы точек сетки
      */
-    virtual Floating yMax() const;
+    virtual double yMax() const;
     /**
      * @brief Минимальное значение аппликаты точек сетки
      * @return Минимальное значение аппликаты точек сетки
      */
-    virtual Floating zMin() const;
+    virtual double zMin() const;
     /**
      * @brief Максимальное значение аппликаты точек сетки
      * @return Максимальное значение аппликаты точек сетки
      */
-    virtual Floating zMax() const;
+    virtual double zMax() const;
     /**
      * @brief Размерность пространства
      * @return Размерность пространства, в котором определена сетка (3)
@@ -80,18 +80,18 @@ public:
      * @param number Номер элемента
      * @return Значение, соответствующее элементу
      */
-    virtual Floating elementValue(const UInteger &number) const;
+    virtual double elementValue(const UInteger &number) const;
     /**
      * @brief Значение некоторой функции, определенной на зле
      * @param number Номер узла
      * @return Значение, соответствующее узлу
      */
-    virtual Floating nodeValue(const UInteger &number) const;
+    virtual double nodeValue(const UInteger &number) const;
     /**
      * @brief Вычислить площадь поверхности дискретной модели
      * @return Площадь поверхности дискретной модели
      */
-    virtual Floating surfaceArea() const = 0;
+    virtual double surfaceArea() const = 0;
     /**
      * @brief Добавить узел, заданный точкой, без проверки на наличие в массиве узлов
      * @param point Координаты узла для вставки
@@ -114,20 +114,20 @@ public:
      * @brief Добавить значение, опеределенное в узле, в массив
      * @param val Значение, которое необходимо добавить
      */
-    virtual void pushNodeValue(const Floating &val);
+    virtual void pushNodeValue(const double &val);
     /**
      * @brief Обновить параметры области определения сетки (xMin, xMax, yMin, yMax, zMin, zMax)
      */
     virtual void updateDomain();
 protected:
     std::vector<Node3D> node_; //!< массив узлов
-    std::vector<Floating> nodeValue_; //!< массив значений, определенных в узле
-    Floating xMin_; //!< минимальное значение ординаты
-    Floating xMax_; //!< максимальное значение ординаты
-    Floating yMin_; //!< минимальное значение абсциссы
-    Floating yMax_; //!< максимальное значение абсциссы
-    Floating zMin_; //!< минимальное значение аппликаты
-    Floating zMax_; //!< максимальное значение аппликаты
+    std::vector<double> nodeValue_; //!< массив значений, определенных в узле
+    double xMin_; //!< минимальное значение ординаты
+    double xMax_; //!< максимальное значение ординаты
+    double yMin_; //!< минимальное значение абсциссы
+    double yMax_; //!< максимальное значение абсциссы
+    double zMin_; //!< минимальное значение аппликаты
+    double zMax_; //!< максимальное значение аппликаты
 };
 }
 

@@ -466,7 +466,7 @@ void MainWindow::on_actionLoadMesh_triggered()
         msh::QuadrilateralMesh2D *qMesh = new msh::QuadrilateralMesh2D();
         for (msh::UInteger i = 0; i < nodesCount; i++)
         {
-            msh::Floating x, y, val;
+            double x, y, val;
             msh::Point2D point;
             int nodeType;
             in >> x;
@@ -486,7 +486,7 @@ void MainWindow::on_actionLoadMesh_triggered()
         for (msh::UInteger i = 0; i < elementsCount; i++)
         {
             msh::UInteger p[elementNodes];
-            msh::Floating val;
+            double val;
             for (int j = 0; j < elementNodes; j++)
                 in >> p[j];
             qMesh->addElement(p[0], p[1], p[2], p[3]);
@@ -504,7 +504,7 @@ void MainWindow::on_actionLoadMesh_triggered()
         msh::HexahedralMesh3D *hMesh = new msh::HexahedralMesh3D();
         for (msh::UInteger i = 0; i < nodesCount; i++)
         {
-            msh::Floating x, y, z, val;
+            double x, y, z, val;
             msh::Point3D point;
             int nodeType;
             in >> x;
@@ -525,7 +525,7 @@ void MainWindow::on_actionLoadMesh_triggered()
         for (msh::UInteger i = 0; i < elementsCount; i++)
         {
             msh::UInteger p[elementNodes];
-            msh::Floating val;
+            double val;
             for (int j = 0; j < elementNodes; j++)
                 in >> p[j];
             hMesh->addElement(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);
@@ -635,7 +635,7 @@ void MainWindow::on_actionLoadNodeValue_triggered()
         {
             QTextStream in(&file);
             msh::UInteger count = 0;
-            std::vector<msh::Floating> v;
+            std::vector<double> v;
             in >> count;
             if (mesh->nodesCount() != count)
             {
@@ -645,7 +645,7 @@ void MainWindow::on_actionLoadNodeValue_triggered()
             }
             for (msh::UInteger i = 0; i < count; i++)
             {
-                msh::Floating val = 0.0;
+                double val = 0.0;
                 in >> val;
                 v.push_back(val);
             }
@@ -673,7 +673,7 @@ void MainWindow::on_actionLoadElementValue_triggered()
         {
             QTextStream in(&file);
             msh::UInteger count = 0;
-            std::vector<msh::Floating> v;
+            std::vector<double> v;
             in >> count;
             if (mesh->elementsCount() != count)
             {
@@ -683,7 +683,7 @@ void MainWindow::on_actionLoadElementValue_triggered()
             }
             for (msh::UInteger i = 0; i < count; i++)
             {
-                msh::Floating val = 0.0;
+                double val = 0.0;
                 in >> val;
                 v.push_back(val);
             }

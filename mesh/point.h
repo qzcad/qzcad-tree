@@ -5,7 +5,7 @@
   */
 #ifndef POINT_H
 #define POINT_H
-#include "floating.h"
+
 namespace msh
 {
 /**
@@ -27,22 +27,22 @@ public:
      * @brief Ордината
      * @return Ординату точки или ее проекции
      */
-    virtual Floating x() const = 0;
+    virtual double x() const = 0;
     /**
      * @brief Абсцисса
      * @return Абсциссу точки или ее проекции
      */
-    virtual Floating y() const = 0;
+    virtual double y() const = 0;
     /**
      * @brief Аппликата
      * @return Аппликату точки или ее проекции
      */
-    virtual Floating z() const = 0;
+    virtual double z() const = 0;
     /**
      * @brief Длина вектора
      * @return Длину вектора, определенного началом координат и координатами точки
      */
-    virtual Floating length() const = 0;
+    virtual double length() const = 0;
 };
 }
 

@@ -328,7 +328,7 @@ private:
      * @brief Преобразование точки сетки в точку openGL
      * @param point Указатель на точку сетки
      */
-    void pointToGLVertex(const msh::PointPointer &point, msh::Floating dx = 0.0, msh::Floating dy = 0.0, msh::Floating dz = 0.0) const;
+    void pointToGLVertex(const msh::PointPointer &point, double dx = 0.0, double dy = 0.0, double dz = 0.0) const;
     /**
      * @brief Нарисовать контрольную цветную полосу
      */

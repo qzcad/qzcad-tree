@@ -21,7 +21,7 @@ public:
      * @brief Конструктор
      * @param x Начальное значение ординаты
      */
-    Point1D(Floating x = 0);
+    Point1D(double x = 0);
     /**
      * @brief Конструктор копирования
      * @param point Объект-точка для копирования
@@ -42,27 +42,27 @@ public:
      * @brief Ордината
      * @return Ординату точки или ее проекции в 1D
      */
-    virtual Floating x() const;
+    virtual double x() const;
     /**
      * @brief Абсцисса
      * @return 0.0
      */
-    virtual Floating y() const;
+    virtual double y() const;
     /**
      * @brief Аппликата
      * @return 0.0
      */
-    virtual Floating z() const;
+    virtual double z() const;
     /**
      * @brief Длина
      * @return Длину вектора (отрезка)
      */
-    virtual Floating length() const;
+    virtual double length() const;
     /**
      * @brief Установить координату точки
      * @param x Новое значение ординаты точки
      */
-    void set(Floating x);
+    void set(double x);
     /// @name Операторы
     /// @{
     /// Присваивание
@@ -76,11 +76,11 @@ public:
     /// Бинарный плюс векторов, определенных точками LeftPoint и RightPoint
     friend Point1D operator +(const Point1D &leftPoint, const Point1D &rightPoint);
     /// Скалярное произведение векторов, определенных точками this и point
-    Floating operator *(const Point1D &point) const;
+    double operator *(const Point1D &point) const;
     /// Произведение числа d на вектор, заданный точкой P
-    friend Point1D operator *(Floating d, const Point1D &point);
+    friend Point1D operator *(double d, const Point1D &point);
     /// Отношение вектора, занного точкой point, к числу dec
-    friend Point1D operator /(const Point1D &point, Floating dec);
+    friend Point1D operator /(const Point1D &point, double dec);
     /// @}
     /**
      * @brief Координаты нормализованного вектора
@@ -92,16 +92,16 @@ public:
      * @param point Точка, до которой необходимо определить расстояние
      * @return Расстояние до точки point
      */
-    Floating distanceTo(const Point1D &point) const;
+    double distanceTo(const Point1D &point) const;
     /**
      * @brief Проверка на приблизительное равенство
      * @param point Точка, с которой производится сравнение
      * @param epsilon Точность
      * @return true, если точки приблизительно равны; false - иначе
      */
-    bool isEqualTo(const Point1D &point, Floating epsilon = 0.00001) const;
+    bool isEqualTo(const Point1D &point, double epsilon = 0.00001) const;
 private:
-    Floating x_; //!< Ордината точки
+    double x_; //!< Ордината точки
 };
 }
 

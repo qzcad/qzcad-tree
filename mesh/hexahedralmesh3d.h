@@ -34,8 +34,8 @@ public:
      * @param depth Глубина
      */
     HexahedralMesh3D(const UInteger &xCount, const UInteger &yCount, const UInteger &zCount,
-                     const Floating &xMin, const Floating &yMin, const Floating &zMin,
-                     const Floating &width, const Floating &height, const Floating &depth);
+                     const double &xMin, const double &yMin, const double &zMin,
+                     const double &width, const double &height, const double &depth);
     /**
      * @brief Конструктор, который строит сетку как тело вращения
      * @param baseMesh Указатель на базовую двумерную сетку четырехугольных элементов
@@ -45,7 +45,7 @@ public:
      * @param x_axes Ось вращения (x_axes == true, то вращение вокруг оси ординат; иначе - абсцисс)
      * @param withElementValue Учеть значения, опредедленные на элементе
      */
-    HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating& xDelta, const Floating& yDelta, const int& lCount, bool x_axes, bool withElementValue = true);
+    HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const double& xDelta, const double& yDelta, const int& lCount, bool x_axes, bool withElementValue = true);
     /**
      * @brief HexahedralMesh3D Конструктор, который строит сетку как тело вращения на заданный угол
      * @param baseMesh Указатель на базовую двумерную сетку четырехугольных элементов
@@ -56,7 +56,7 @@ public:
      * @param x_axes Ось вращения (x_axes == true, то вращение вокруг оси ординат; иначе - абсцисс)
      * @param withElementValue Учеть значения, опредедленные на элементе
      */
-    HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating& xDelta, const Floating& yDelta, const Floating& angle, const int& lCount, bool x_axes, bool withElementValue = true);
+    HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const double& xDelta, const double& yDelta, const double& angle, const int& lCount, bool x_axes, bool withElementValue = true);
     /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
@@ -79,18 +79,18 @@ public:
      * @param number Номер элемента
      * @return Значение, соответствующее элементу
      */
-    virtual Floating elementValue(const UInteger &number) const;
+    virtual double elementValue(const UInteger &number) const;
     /**
      * @brief Вычислить площадь грани (грань - четырехугольник)
      * @param face Список номеров узлов, определяющих грань
      * @return Площадь грани
      */
-    Floating faceArea(const UIntegerVector &face) const;
+    double faceArea(const UIntegerVector &face) const;
     /**
      * @brief Вычислить площадь поверхности дискретной модели
      * @return Площадь поверхности дискретной модели
      */
-    virtual Floating surfaceArea() const;
+    virtual double surfaceArea() const;
     /**
      * @brief Добавить элемент к  сетке
      * @param node0 Номер узла в вершине 0
@@ -113,10 +113,10 @@ public:
      * @brief Добавить значение, определенное на элементе, в массив
      * @param val Значение, которое необходимо добавить в массив
      */
-    virtual void pushElementValue(const Floating &val);
+    virtual void pushElementValue(const double &val);
 private:
     std::vector<Hexahedral> element_; //!< Массив шестигранных элементов
-    std::vector<Floating> elementValue_; //!< Значение на элементе
+    std::vector<double> elementValue_; //!< Значение на элементе
 };
 }
 

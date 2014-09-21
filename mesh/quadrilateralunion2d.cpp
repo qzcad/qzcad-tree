@@ -12,15 +12,15 @@ QuadrilateralUnion2D::QuadrilateralUnion2D()
 
 void QuadrilateralUnion2D::addQuadRegion(const UInteger &xCount, const UInteger &yCount, const Point2D &v0, const Point2D &v1, const Point2D &v2, const Point2D &v3)
 {
-    Floating hx = 2.0 / (Floating)(xCount - 1);
-    Floating hy = 2.0 / (Floating)(yCount - 1);
+    double hx = 2.0 / (double)(xCount - 1);
+    double hy = 2.0 / (double)(yCount - 1);
     UInteger nodeNumber[xCount * yCount];
     for (UInteger i = 0; i < xCount; i++)
     {
-        Floating xi = -1.0 + (Floating) i * hx;
+        double xi = -1.0 + (double) i * hx;
         for (UInteger j = 0; j < yCount; j++)
         {
-            Floating eta = -1.0 + (Floating) j * hy;
+            double eta = -1.0 + (double) j * hy;
             Point2D point = isoFunc(0, xi, eta) * v0  + isoFunc(1, xi, eta) * v1 + isoFunc(2, xi, eta) * v2 + isoFunc(3, xi, eta) * v3;
             //            if (i == 0 || j == 0 || i == xCount - 1 || j == yCount - 1)
             //                pushNode(point, BORDER);
@@ -62,7 +62,7 @@ void QuadrilateralUnion2D::addTriangleRegion(const UInteger &count, const Point2
     Point2D c12 = (v1 + v2) / 2.0; // центр стороны, соединяющей вершину 1 и 2
     Point2D c20 = (v2 + v0) / 2.0; // центр стороны, соединяющей вершину 2 и 0
     UInteger sideCount = count / 2 + 1;
-    Floating h = 2.0 / (Floating)(sideCount - 1); // шаг изо-сетки
+    double h = 2.0 / (double)(sideCount - 1); // шаг изо-сетки
     Point2D quads [][4] = {
         {c20, v0, c01, center},
         {c01, v1, c12, center},
@@ -73,10 +73,10 @@ void QuadrilateralUnion2D::addTriangleRegion(const UInteger &count, const Point2
         UInteger nodeNumber[sideCount * sideCount];
         for (UInteger i = 0; i < sideCount; i++)
         {
-            Floating xi = -1.0 + (Floating) i * h;
+            double xi = -1.0 + (double) i * h;
             for (UInteger j = 0; j < sideCount; j++)
             {
-                Floating eta = -1.0 + (Floating) j * h;
+                double eta = -1.0 + (double) j * h;
                 Point2D point = isoFunc(0, xi, eta) * quads[q][0]  +
                         isoFunc(1, xi, eta) * quads[q][1] +
                         isoFunc(2, xi, eta) * quads[q][2] +
@@ -175,8 +175,8 @@ void QuadrilateralUnion2D::addMesh(QuadrilateralMesh2D *mesh)
     layerNumber_++;
 }
 
-Floating QuadrilateralUnion2D::elementValue(const UInteger &number) const
+double QuadrilateralUnion2D::elementValue(const UInteger &number) const
 {
-    return (Floating)elementValue_[number];
+    return (double)elementValue_[number];
 }
 }

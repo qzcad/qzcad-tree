@@ -22,7 +22,7 @@ public:
      * @param x Ордината
      * @param y Абсцисаа
      */
-    Point2D(Floating x = 0.0, Floating y = 0.0);
+    Point2D(double x = 0.0, double y = 0.0);
     /**
      * @brief Конструктор копирования
      * @param point Объект-точка для копирования
@@ -43,18 +43,18 @@ public:
      * @brief Абсцисса
      * @return Абсциссу точки
      */
-    virtual Floating y() const;
+    virtual double y() const;
     /**
      * @brief Длина вектора
      * @return Длину вектора, определенного точкой
      */
-    virtual Floating length() const;
+    virtual double length() const;
     /**
      * @brief Установить координаты точки
      * @param x Ордината
      * @param y Абсцисса
      */
-    void set(Floating x, Floating y);
+    void set(double x, double y);
     /// @name Операторы
     /// @{
     /// Присваивание
@@ -68,11 +68,11 @@ public:
     /// Бинарный плюс векторов, определенных точками leftPoint и rightPoint
     friend const Point2D operator +(const Point2D &leftPoint, const Point2D &rightPoint);
     /// Скалярное произведение векторов, определенных точками this и point
-    Floating operator *(const Point2D &point) const;
+    double operator *(const Point2D &point) const;
     /// Произведение числа dec на вектор, заданный точкой point
-    friend const Point2D operator *(Floating dec, const Point2D &point);
+    friend const Point2D operator *(double dec, const Point2D &point);
     /// Отношение вектора, занного точкой point, к числу dec
-    friend const Point2D operator /(const Point2D &point, Floating dec);
+    friend const Point2D operator /(const Point2D &point, double dec);
     /// @}
     /**
      * @brief Координаты нормализованного вектора
@@ -84,22 +84,22 @@ public:
      * @param point Точка, до которой необходимо определить расстояние
      * @return Расстояние до точки point
      */
-    Floating distanceTo(const Point2D &point) const;
+    double distanceTo(const Point2D &point) const;
     /**
      * @brief Проверка на приблизительное равенство
      * @param point Точка, с которой производится сравнение
      * @param epsilon Точность
      * @return true, если точки приблизительно равны; false - иначе
      */
-    bool isEqualTo(const Point2D &point, Floating epsilon = 0.00001) const;
+    bool isEqualTo(const Point2D &point, double epsilon = 0.00001) const;
     /**
      * @brief Векторное произведение векторов, определенных текущей точкой и заданной
      * @param point Координаты ветора, с которым необходимо найти векторное произведение
      * @return Значение векторного произведения в третьем направлении (на плоскости два других обнуляются)
      */
-    Floating product(const Point2D &point) const;
+    double product(const Point2D &point) const;
 private:
-    Floating y_; //!< Абсцисса точки
+    double y_; //!< Абсцисса точки
 };
 }
 

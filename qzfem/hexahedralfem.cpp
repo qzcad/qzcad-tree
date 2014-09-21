@@ -6,6 +6,7 @@
 #include "conjugategradient.hpp"
 #include <boost/progress.hpp>
 #include <iostream>
+#include <float.h>
 
 HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3D &parameters, FEMCondition3DPointer boundaryForce, const std::vector<FEMCondition3DPointer> &boundaryConditions)
 {
@@ -44,7 +45,7 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3
     processBoundaryConditions(mesh, boundaryConditions, globalMatrix, force);
 
     std::cout << "Ассоциация и частичная очистка памяти..." << std::endl;
-    compressed_matrix<Floating> CGM(systemDimension, systemDimension);
+    compressed_matrix<double> CGM(systemDimension, systemDimension);
     CGM.assign(globalMatrix);
     globalMatrix.clear();
     std::cout << "Решение СЛАУ..." << std::endl;
@@ -99,7 +100,7 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3
     processBoundaryConditions(mesh, boundaryConditions, globalMatrix, force);
 
     std::cout << "Ассоциация и частичная очистка памяти..." << std::endl;
-    compressed_matrix<Floating> CGM(systemDimension, systemDimension);
+    compressed_matrix<double> CGM(systemDimension, systemDimension);
     CGM.assign(globalMatrix);
     globalMatrix.clear();
     std::cout << "Решение СЛАУ..." << std::endl;
@@ -159,7 +160,7 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const std::vector<Mechanica
     processBoundaryConditions(mesh, boundaryConditions, globalMatrix, force);
 
     std::cout << "Ассоциация и частичная очистка памяти..." << std::endl;
-    compressed_matrix<Floating> CGM(systemDimension, systemDimension);
+    compressed_matrix<double> CGM(systemDimension, systemDimension);
     CGM.assign(globalMatrix);
     globalMatrix.clear();
     std::cout << "Решение СЛАУ..." << std::endl;
@@ -173,47 +174,47 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const std::vector<Mechanica
     recoverStress(mesh, D);
 }
 
-std::vector<Floating> HexahedralFEM::u() const
+std::vector<double> HexahedralFEM::u() const
 {
     return u_;
 }
 
-std::vector<Floating> HexahedralFEM::v() const
+std::vector<double> HexahedralFEM::v() const
 {
     return v_;
 }
 
-std::vector<Floating> HexahedralFEM::w() const
+std::vector<double> HexahedralFEM::w() const
 {
     return w_;
 }
 
-std::vector<Floating> HexahedralFEM::sigmaX() const
+std::vector<double> HexahedralFEM::sigmaX() const
 {
     return sigmaX_;
 }
 
-std::vector<Floating> HexahedralFEM::sigmaY() const
+std::vector<double> HexahedralFEM::sigmaY() const
 {
     return sigmaY_;
 }
 
-std::vector<Floating> HexahedralFEM::sigmaZ() const
+std::vector<double> HexahedralFEM::sigmaZ() const
 {
     return sigmaZ_;
 }
 
-std::vector<Floating> HexahedralFEM::tauXY() const
+std::vector<double> HexahedralFEM::tauXY() const
 {
     return tauXY_;
 }
 
-std::vector<Floating> HexahedralFEM::tauYZ() const
+std::vector<double> HexahedralFEM::tauYZ() const
 {
     return tauYZ_;
 }
 
-std::vector<Floating> HexahedralFEM::tauZX() const
+std::vector<double> HexahedralFEM::tauZX() const
 {
     return tauZX_;
 }
@@ -252,8 +253,8 @@ void HexahedralFEM::assebly(HexahedralMesh3D *mesh, const FloatingMatrix &D, Glo
     const UInteger elementsCount = mesh->elementsCount();
     const int elementNodes = 8;
     const int gaussCount = 2; // количество точек в квадратурах для интегрирования
-    Floating gaussPoint[] = {-1.0 / sqrt(3.0), 1.0 / sqrt(3.0)}; // координаты точек квадратуры
-    Floating gaussWeight[] = {1.0, 1.0}; // веса точек квадратуры
+    double gaussPoint[] = {-1.0 / sqrt(3.0), 1.0 / sqrt(3.0)}; // координаты точек квадратуры
+    double gaussWeight[] = {1.0, 1.0}; // веса точек квадратуры
 
     std::cout << "Построение глобальной матрицы..." << std::endl;
 
@@ -262,9 +263,9 @@ void HexahedralFEM::assebly(HexahedralMesh3D *mesh, const FloatingMatrix &D, Glo
     {
         ++progressBar;
 
-        Floating x[elementNodes];
-        Floating y[elementNodes];
-        Floating z[elementNodes];
+        double x[elementNodes];
+        double y[elementNodes];
+        double z[elementNodes];
         FloatingMatrix localMatrix(elementNodes * freedom, elementNodes * freedom);
         UInteger index_i = 0;
         UInteger index_j = 0;
@@ -287,16 +288,16 @@ void HexahedralFEM::assebly(HexahedralMesh3D *mesh, const FloatingMatrix &D, Glo
         // интегрирование квадратурами
         for (int iXi = 0; iXi < gaussCount; iXi++)
         {
-            Floating xi = gaussPoint[iXi];
-            Floating xiWeight = gaussWeight[iXi];
+            double xi = gaussPoint[iXi];
+            double xiWeight = gaussWeight[iXi];
             for (int iEta = 0; iEta < gaussCount; iEta++)
             {
-                Floating eta = gaussPoint[iEta];
-                Floating etaWeight = gaussWeight[iEta];
+                double eta = gaussPoint[iEta];
+                double etaWeight = gaussWeight[iEta];
                 for (int iMu = 0; iMu < gaussCount; iMu++)
                 {
-                    Floating mu = gaussPoint[iMu];
-                    Floating muWeight = gaussWeight[iMu];
+                    double mu = gaussPoint[iMu];
+                    double muWeight = gaussWeight[iMu];
                     // значения функций формы
                     FloatingVector N(elementNodes);
                     // значения производных функций формы в местных координатах
@@ -306,7 +307,7 @@ void HexahedralFEM::assebly(HexahedralMesh3D *mesh, const FloatingMatrix &D, Glo
                     // Якобиан
                     FloatingMatrix Jacobian(freedom, freedom);
                     FloatingMatrix invJacobian(freedom, freedom);
-                    Floating detJacobian;
+                    double detJacobian;
                     // значения производных функций формы в глобальных координатах
                     FloatingVector dNdX(elementNodes);
                     FloatingVector dNdY(elementNodes);
@@ -440,8 +441,8 @@ void HexahedralFEM::assebly(HexahedralMesh3D *mesh, FloatingMatrix D[], GlobalMa
     const UInteger elementsCount = mesh->elementsCount();
     const int elementNodes = 8;
     const int gaussCount = 2; // количество точек в квадратурах для интегрирования
-    Floating gaussPoint[] = {-1.0 / sqrt(3.0), 1.0 / sqrt(3.0)}; // координаты точек квадратуры
-    Floating gaussWeight[] = {1.0, 1.0}; // веса точек квадратуры
+    double gaussPoint[] = {-1.0 / sqrt(3.0), 1.0 / sqrt(3.0)}; // координаты точек квадратуры
+    double gaussWeight[] = {1.0, 1.0}; // веса точек квадратуры
 
     std::cout << "Построение глобальной матрицы..." << std::endl;
 
@@ -450,9 +451,9 @@ void HexahedralFEM::assebly(HexahedralMesh3D *mesh, FloatingMatrix D[], GlobalMa
     {
         ++progressBar;
 
-        Floating x[elementNodes];
-        Floating y[elementNodes];
-        Floating z[elementNodes];
+        double x[elementNodes];
+        double y[elementNodes];
+        double z[elementNodes];
         FloatingMatrix localMatrix(elementNodes * freedom, elementNodes * freedom);
         UInteger index_i = 0;
         UInteger index_j = 0;
@@ -475,16 +476,16 @@ void HexahedralFEM::assebly(HexahedralMesh3D *mesh, FloatingMatrix D[], GlobalMa
         // интегрирование квадратурами
         for (int iXi = 0; iXi < gaussCount; iXi++)
         {
-            Floating xi = gaussPoint[iXi];
-            Floating xiWeight = gaussWeight[iXi];
+            double xi = gaussPoint[iXi];
+            double xiWeight = gaussWeight[iXi];
             for (int iEta = 0; iEta < gaussCount; iEta++)
             {
-                Floating eta = gaussPoint[iEta];
-                Floating etaWeight = gaussWeight[iEta];
+                double eta = gaussPoint[iEta];
+                double etaWeight = gaussWeight[iEta];
                 for (int iMu = 0; iMu < gaussCount; iMu++)
                 {
-                    Floating mu = gaussPoint[iMu];
-                    Floating muWeight = gaussWeight[iMu];
+                    double mu = gaussPoint[iMu];
+                    double muWeight = gaussWeight[iMu];
                     // значения функций формы
                     FloatingVector N(elementNodes);
                     // значения производных функций формы в местных координатах
@@ -494,7 +495,7 @@ void HexahedralFEM::assebly(HexahedralMesh3D *mesh, FloatingMatrix D[], GlobalMa
                     // Якобиан
                     FloatingMatrix Jacobian(freedom, freedom);
                     FloatingMatrix invJacobian(freedom, freedom);
-                    Floating detJacobian;
+                    double detJacobian;
                     // значения производных функций формы в глобальных координатах
                     FloatingVector dNdX(elementNodes);
                     FloatingVector dNdY(elementNodes);
@@ -626,7 +627,7 @@ void HexahedralFEM::processForce(HexahedralMesh3D *mesh, FEMCondition3DPointer b
 {
     boost::progress_display progressBar(mesh->elementsCount());
     const UInteger nodesCount = mesh->nodesCount();
-    Floating area = 0.0;
+    double area = 0.0;
     for (UInteger i = 0; i < mesh->elementsCount(); i++)
     {
         ++progressBar;
@@ -646,7 +647,7 @@ void HexahedralFEM::processForce(HexahedralMesh3D *mesh, FEMCondition3DPointer b
                 } // for k
                 if (isBorderFace)
                 {
-                    Floating faceArea = mesh->faceArea(face);
+                    double faceArea = mesh->faceArea(face);
                     area += faceArea;
                     for (int k = 0; k < 4; k++)
                     {
@@ -735,16 +736,16 @@ void HexahedralFEM::printDisplacementExtremum()
 {
     std::cout << "Обработка вектора перемещений..." << std::endl;
     boost::progress_display progressBar(u_.size());
-    Floating maxU = u_[0];
-    Floating maxV = v_[0];
-    Floating maxW = w_[0];
-    Floating minU = u_[0];
-    Floating minV = v_[0];
-    Floating minW = w_[0];
+    double maxU = u_[0];
+    double maxV = v_[0];
+    double maxW = w_[0];
+    double minU = u_[0];
+    double minV = v_[0];
+    double minW = w_[0];
     for (UInteger i = 0; i < u_.size(); i++)
     {
         ++progressBar;
-        Floating u = u_[i], v = v_[i], w = w_[i];
+        double u = u_[i], v = v_[i], w = w_[i];
         // max
         if (maxU < u)
         {
@@ -783,18 +784,18 @@ void HexahedralFEM::recoverStress(HexahedralMesh3D *mesh, const FloatingMatrix &
     const UInteger elementsCount = mesh->elementsCount();
     const int elementNodes = 8;
 
-    Floating minSigmaX = FLOATING_MAX;
-    Floating minSigmaY = FLOATING_MAX;
-    Floating minSigmaZ = FLOATING_MAX;
-    Floating maxSigmaX = FLOATING_MIN;
-    Floating maxSigmaY = FLOATING_MIN;
-    Floating maxSigmaZ = FLOATING_MIN;
-    Floating minTauXY = FLOATING_MAX;
-    Floating minTauYZ = FLOATING_MAX;
-    Floating minTauZX = FLOATING_MAX;
-    Floating maxTauXY = FLOATING_MIN;
-    Floating maxTauYZ = FLOATING_MIN;
-    Floating maxTauZX = FLOATING_MIN;
+    double minSigmaX = DBL_MAX;
+    double minSigmaY = DBL_MAX;
+    double minSigmaZ = DBL_MAX;
+    double maxSigmaX = -DBL_MAX;
+    double maxSigmaY = -DBL_MAX;
+    double maxSigmaZ = -DBL_MAX;
+    double minTauXY = DBL_MAX;
+    double minTauYZ = DBL_MAX;
+    double minTauZX = DBL_MAX;
+    double maxTauXY = -DBL_MAX;
+    double maxTauYZ = -DBL_MAX;
+    double maxTauZX = -DBL_MAX;
 
     std::cout << "Вычисление напряжений..." << std::endl;
 
@@ -803,9 +804,9 @@ void HexahedralFEM::recoverStress(HexahedralMesh3D *mesh, const FloatingMatrix &
     {
         ++progressBar;
 
-        Floating x[elementNodes];
-        Floating y[elementNodes];
-        Floating z[elementNodes];
+        double x[elementNodes];
+        double y[elementNodes];
+        double z[elementNodes];
         // извлечение координат узлов
         ElementPointer element = mesh->element(elementNumber);
         for (int i = 0; i < elementNodes; i++)
@@ -815,9 +816,9 @@ void HexahedralFEM::recoverStress(HexahedralMesh3D *mesh, const FloatingMatrix &
             y[i] = point->y();
             z[i] = point->z();
         }
-        const Floating xi = 0.0;
-        const Floating eta = 0.0;
-        const Floating mu = 0.0;
+        const double xi = 0.0;
+        const double eta = 0.0;
+        const double mu = 0.0;
 
         // значения функций формы
         FloatingVector N(elementNodes);
@@ -957,18 +958,18 @@ void HexahedralFEM::recoverStress(HexahedralMesh3D *mesh, const FloatingMatrix D
     const UInteger elementsCount = mesh->elementsCount();
     const int elementNodes = 8;
 
-    Floating minSigmaX = FLOATING_MAX;
-    Floating minSigmaY = FLOATING_MAX;
-    Floating minSigmaZ = FLOATING_MAX;
-    Floating maxSigmaX = FLOATING_MIN;
-    Floating maxSigmaY = FLOATING_MIN;
-    Floating maxSigmaZ = FLOATING_MIN;
-    Floating minTauXY = FLOATING_MAX;
-    Floating minTauYZ = FLOATING_MAX;
-    Floating minTauZX = FLOATING_MAX;
-    Floating maxTauXY = FLOATING_MIN;
-    Floating maxTauYZ = FLOATING_MIN;
-    Floating maxTauZX = FLOATING_MIN;
+    double minSigmaX = DBL_MAX;
+    double minSigmaY = DBL_MAX;
+    double minSigmaZ = DBL_MAX;
+    double maxSigmaX = -DBL_MAX;
+    double maxSigmaY = -DBL_MAX;
+    double maxSigmaZ = -DBL_MAX;
+    double minTauXY = DBL_MAX;
+    double minTauYZ = DBL_MAX;
+    double minTauZX = DBL_MAX;
+    double maxTauXY = -DBL_MAX;
+    double maxTauYZ = -DBL_MAX;
+    double maxTauZX = -DBL_MAX;
 
     std::cout << "Вычисление напряжений..." << std::endl;
 
@@ -977,9 +978,9 @@ void HexahedralFEM::recoverStress(HexahedralMesh3D *mesh, const FloatingMatrix D
     {
         ++progressBar;
 
-        Floating x[elementNodes];
-        Floating y[elementNodes];
-        Floating z[elementNodes];
+        double x[elementNodes];
+        double y[elementNodes];
+        double z[elementNodes];
         // извлечение координат узлов
         ElementPointer element = mesh->element(elementNumber);
         for (int i = 0; i < elementNodes; i++)
@@ -989,9 +990,9 @@ void HexahedralFEM::recoverStress(HexahedralMesh3D *mesh, const FloatingMatrix D
             y[i] = point->y();
             z[i] = point->z();
         }
-        const Floating xi = 0.0;
-        const Floating eta = 0.0;
-        const Floating mu = 0.0;
+        const double xi = 0.0;
+        const double eta = 0.0;
+        const double mu = 0.0;
 
         // значения функций формы
         FloatingVector N(elementNodes);

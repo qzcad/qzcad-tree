@@ -22,7 +22,7 @@ public:
      * @param y Абсцисса
      * @param z Аппликата
      */
-    Point3D(Floating x = 0.0, Floating y = 0.0, Floating z = 0.0);
+    Point3D(double x = 0.0, double y = 0.0, double z = 0.0);
     /**
      * @brief Конструктор копирования
      * @param point
@@ -43,12 +43,12 @@ public:
      * @brief Аппликата
      * @return Аппликату точки или ее проекции
      */
-    virtual Floating z() const;
+    virtual double z() const;
     /**
      * @brief Длина вектора
      * @return Длину вектора, определенного началом координат и координатами точки
      */
-    virtual Floating length() const;
+    virtual double length() const;
     /**
      * @brief Координаты нормализованного вектора
      * @return Координаты нормализованного вектора (единичного вектора того же направления)
@@ -59,14 +59,14 @@ public:
      * @param point Точка, до которой необходимо определить расстояние
      * @return Расстояние до точки point
      */
-    Floating distanceTo(const Point3D &point) const;
+    double distanceTo(const Point3D &point) const;
     /**
      * @brief Проверка на приблизительное равенство
      * @param point Точка, с которой производится сравнение
      * @param epsilon Точность
      * @return true, если точки приблизительно равны; false - иначе
      */
-    bool isEqualTo(const Point3D &point, Floating epsilon = 0.00001) const;
+    bool isEqualTo(const Point3D &point, double epsilon = 0.00001) const;
     /**
      * @brief Векторное произведение векторов, определенных текущей точкой и заданной
      * @param point Координаты ветора, с которым необходимо найти векторное произведение
@@ -79,7 +79,7 @@ public:
      * @param y Абсцисса
      * @param z Аппликата
      */
-    void set(Floating x, Floating y, Floating z);
+    void set(double x, double y, double z);
 
     /// @name Операторы
     /// @{
@@ -94,14 +94,14 @@ public:
     /// Бинарный плюс векторов, определенных точками leftPoint и rightPoint
     friend const Point3D operator +(const Point3D &leftPoint, const Point3D &rightPoint);
     /// Скалярное произведение векторов, определенных точками this и point
-    Floating operator *(const Point3D &point) const;
+    double operator *(const Point3D &point) const;
     /// Произведение числа dec на вектор, заданный точкой point
-    friend const Point3D operator *(Floating dec, const Point3D &point);
+    friend const Point3D operator *(double dec, const Point3D &point);
     /// Отношение вектора, занного точкой point, к числу dec
-    friend const Point3D operator /(const Point3D &point, Floating dec);
+    friend const Point3D operator /(const Point3D &point, double dec);
     /// @}
 private:
-    Floating z_; //!< Аппликата точки
+    double z_; //!< Аппликата точки
 };
 }
 

@@ -29,11 +29,11 @@ int determinantSign(const ublas::permutation_matrix<std::size_t> &pm)
  * @param m Исходная матрица
  * @return Значение определителя
  */
-Floating determinant(const FloatingMatrix &m)
+double determinant(const FloatingMatrix &m)
 {
     FloatingMatrix a(m); // рабочая копия матрицы
     ublas::permutation_matrix<std::size_t> pm(a.size1());
-    Floating det = 1.0;
+    double det = 1.0;
     if( ublas::lu_factorize(a, pm) )
     {
         det = 0.0;
@@ -41,7 +41,7 @@ Floating determinant(const FloatingMatrix &m)
     {
         for(FloatingMatrix::size_type i = 0; i < a.size1(); i++)
             det *= a(i, i); // multiply by elements on diagonal
-        det = det * (Floating)determinantSign( pm );
+        det = det * (double)determinantSign( pm );
     }
     return det;
 }

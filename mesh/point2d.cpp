@@ -3,7 +3,7 @@
 
 namespace msh
 {
-Point2D::Point2D(Floating x, Floating y): Point1D(x)
+Point2D::Point2D(double x, double y): Point1D(x)
 {
     y_ = y;
 }
@@ -23,12 +23,12 @@ int Point2D::dimension() const
     return 2;
 }
 
-Floating Point2D::y() const
+double Point2D::y() const
 {
     return y_;
 }
 
-void Point2D::set(Floating x, Floating y)
+void Point2D::set(double x, double y)
 {
     Point1D::set(x);
     y_ = y;
@@ -64,48 +64,48 @@ const Point2D operator +(const Point2D &leftPoint, const Point2D &rightPoint)
     return Point2D (leftPoint.x() + rightPoint.x(), leftPoint.y() + rightPoint.y());
 }
 
-Floating Point2D::operator *(const Point2D &point) const
+double Point2D::operator *(const Point2D &point) const
 {
     return this->x() * point.x() + this->y() * point.y();
 }
 
-const Point2D operator *(Floating dec, const Point2D &point)
+const Point2D operator *(double dec, const Point2D &point)
 {
     return Point2D (dec * point.x(), dec * point.y());
 }
 
-const Point2D operator /(const Point2D &point, Floating dec)
+const Point2D operator /(const Point2D &point, double dec)
 {
     return Point2D (point.x() / dec, point.y() / dec);
 }
 
-Floating Point2D::length() const
+double Point2D::length() const
 {
     return sqrt(x() * x() + y() * y());
 }
 
 Point2D Point2D::normalized() const
 {
-    Floating l = length();
+    double l = length();
     // для нулевого вектора направление не определено - возвращаем нулевой вектор
     if (l == 0.0)
         return Point2D(0.0, 0.0);
     return Point2D(x() / l, y() / l);
 }
 
-Floating Point2D::distanceTo(const Point2D &point) const
+double Point2D::distanceTo(const Point2D &point) const
 {
-    Floating dx = point.x() - this->x();
-    Floating dy = point.y() - this->y();
+    double dx = point.x() - this->x();
+    double dy = point.y() - this->y();
     return sqrt(dx * dx + dy * dy);
 }
 
-bool Point2D::isEqualTo(const Point2D &point, Floating epsilon) const
+bool Point2D::isEqualTo(const Point2D &point, double epsilon) const
 {
     return distanceTo(point) < epsilon;
 }
 
-Floating Point2D::product(const Point2D &point) const
+double Point2D::product(const Point2D &point) const
 {
     return x() * point.y() - point.x() * y();
 }

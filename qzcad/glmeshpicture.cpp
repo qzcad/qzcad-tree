@@ -269,7 +269,7 @@ void GLMeshPicture::resetProjectionMatrix()
     glMatrixMode(GL_MODELVIEW);
 }
 
-void GLMeshPicture::pointToGLVertex(const msh::PointPointer &point, msh::Floating dx, msh::Floating dy, msh::Floating dz) const
+void GLMeshPicture::pointToGLVertex(const msh::PointPointer &point, double dx, double dy, double dz) const
 {
     glVertex3d(point->x() + dx - centerX_, point->y() + dy - centerY_, point->z() + dz - centerZ_);
 }
@@ -608,10 +608,10 @@ void GLMeshPicture::paintGL()
                             glPolygonOffset(1.0, 1.0);
                         }
                         // вычисление нормали к грани
-                        msh::Floating nx = (b->y() - a->y()) * (c->z() - a->z()) - (b->z() - a->z()) * (c->y() - a->y());
-                        msh::Floating ny = (b->z() - a->z()) * (c->x() - a->x()) - (b->x() - a->x()) * (c->z() - a->z());
-                        msh::Floating nz = (b->x() - a->x()) * (c->y() - a->y()) - (b->y() - a->y()) * (c->x() - a->x());
-                        msh::Floating nn = sqrt(nx * nx + ny * ny + nz * nz);
+                        double nx = (b->y() - a->y()) * (c->z() - a->z()) - (b->z() - a->z()) * (c->y() - a->y());
+                        double ny = (b->z() - a->z()) * (c->x() - a->x()) - (b->x() - a->x()) * (c->z() - a->z());
+                        double nz = (b->x() - a->x()) * (c->y() - a->y()) - (b->y() - a->y()) * (c->x() - a->x());
+                        double nn = sqrt(nx * nx + ny * ny + nz * nz);
                         // нормализация
                         nx = nx / nn;
                         ny = ny / nn;

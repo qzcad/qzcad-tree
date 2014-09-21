@@ -16,7 +16,7 @@ using namespace msh;
  * @param tol - точность
  * @return true, если a равно b, false - иначе
  */
-inline bool isEquil (const Floating &a, const Floating &b, Floating tol = 0.00001)
+inline bool isEquil (const double &a, const double &b, double tol = 0.00001)
 {
     return fabs(a - b) < tol;
 }
@@ -321,7 +321,7 @@ public:
     }
 };
 
-void save_vector(const std::vector<Floating> &v, const char *name)
+void save_vector(const std::vector<double> &v, const char *name)
 {
     fstream out;
     out.open(name, fstream::out);
@@ -346,14 +346,14 @@ int main()
     int isNodeValue = 0;
     int isElementValue = 0;
 
-    const Floating G = 8.0E+4;
-    const Floating nu = 0.27;
-    const Floating E = 2.0 * G * (1.0 + nu);
+    const double G = 8.0E+4;
+    const double nu = 0.27;
+    const double E = 2.0 * G * (1.0 + nu);
     MechanicalParameters3D params(E, nu);
-    const Floating innerK = 6.0E+4;
-    const Floating innerG = 2.77E+4;
-    const Floating innerE = 9.0 * innerK * innerG / (3.0 * innerK + innerG);
-    const Floating innerNu = (3.0 * innerK - 2.0 * innerG) / (2.0 * (3.0 * innerK + innerG));
+    const double innerK = 6.0E+4;
+    const double innerG = 2.77E+4;
+    const double innerE = 9.0 * innerK * innerG / (3.0 * innerK + innerG);
+    const double innerNu = (3.0 * innerK - 2.0 * innerG) / (2.0 * (3.0 * innerK + innerG));
     MechanicalParameters3D paramsInner(innerE, innerNu);
 
     cout << "Загрузка дискретной модели..."<< endl;
@@ -368,7 +368,7 @@ int main()
     for (UInteger i = 0; i < nodesCount; i++)
     {
         Point3D node;
-        Floating x, y, z, val;
+        double x, y, z, val;
         int type;
         input >> x;
         input >> y;
@@ -388,7 +388,7 @@ int main()
     for (UInteger i = 0; i < elementsCount; i++)
     {
         UInteger p[elementNodes];
-        Floating val;
+        double val;
         for (int j = 0; j < elementNodes; j++)
             input >> p[j];
         mesh.addElement(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);

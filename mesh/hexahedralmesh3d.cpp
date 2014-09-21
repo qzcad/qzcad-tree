@@ -1,27 +1,28 @@
 #include "hexahedralmesh3d.h"
 #include <math.h>
 #include <iostream>
+#include <float.h>
 
 namespace msh {
 HexahedralMesh3D::HexahedralMesh3D()
 {
 }
 
-HexahedralMesh3D::HexahedralMesh3D(const UInteger &xCount, const UInteger &yCount, const UInteger &zCount, const Floating &xMin, const Floating &yMin, const Floating &zMin, const Floating &width, const Floating &height, const Floating &depth)
+HexahedralMesh3D::HexahedralMesh3D(const UInteger &xCount, const UInteger &yCount, const UInteger &zCount, const double &xMin, const double &yMin, const double &zMin, const double &width, const double &height, const double &depth)
 {
-    Floating hx = width / (Floating)(xCount - 1);
-    Floating hy = height / (Floating)(yCount - 1);
-    Floating hz = depth / (Floating)(zCount - 1);
+    double hx = width / (double)(xCount - 1);
+    double hy = height / (double)(yCount - 1);
+    double hz = depth / (double)(zCount - 1);
     // формирование массива узлов
     for (UInteger i = 0; i < xCount; i++)
     {
-        Floating x = xMin + (Floating) i * hx;
+        double x = xMin + (double) i * hx;
         for (UInteger j = 0; j < yCount; j++)
         {
-            Floating y = yMin + (Floating) j * hy;
+            double y = yMin + (double) j * hy;
             for (UInteger k = 0; k < zCount; k++)
             {
-                Floating z = zMin + (Floating)k * hz;
+                double z = zMin + (double)k * hz;
                 Point3D point(x, y, z);
 
                 //                if ((i == 0 && j == 0) || (i == 0 & j == yCount - 1) || (i == xCount - 1 && j == 0) || (i == xCount - 1 & j == yCount - 1))
@@ -57,22 +58,22 @@ HexahedralMesh3D::HexahedralMesh3D(const UInteger &xCount, const UInteger &yCoun
     std::cout << "Создана равномерная сетка шестигранных элементов: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
-HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating &xDelta, const Floating &yDelta, const int &lCount, bool x_axes, bool withElementValue)
+HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const double &xDelta, const double &yDelta, const int &lCount, bool x_axes, bool withElementValue)
 {
-    xMin_ = FLOATING_MAX;
-    xMax_ = FLOATING_MIN;
-    yMin_ = FLOATING_MAX;
-    yMax_ = FLOATING_MIN;
-    zMin_ = FLOATING_MAX;
-    zMax_ = FLOATING_MIN;
+    xMin_ = DBL_MAX;
+    xMax_ = -DBL_MAX;
+    yMin_ = DBL_MAX;
+    yMax_ = -DBL_MAX;
+    zMin_ = DBL_MAX;
+    zMax_ = -DBL_MAX;
 
     node_.reserve(baseMesh->nodesCount() *(lCount + 1));
     element_.reserve(baseMesh->elementsCount() * lCount);
 
     UInteger i;
     // текущий угол поворта
-    Floating phi;
-    Floating delta_phi = 2.0 * M_PI / (double) lCount;
+    double phi;
+    double delta_phi = 2.0 * M_PI / (double) lCount;
     // номера вершин шестигранника
     UInteger nodes_pointers[8];
     UInteger baseNodesCount = baseMesh->nodesCount();
@@ -80,7 +81,7 @@ HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating
     // формирование узлов
     for(int iz = 0; iz < lCount; iz++)
     {
-        phi = (Floating)iz * delta_phi;
+        phi = (double)iz * delta_phi;
 
         for(i = 0; i < baseNodesCount; i++)
         {
@@ -156,22 +157,22 @@ HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating
     std::cout << "Создана сетка шестигранных элементов вращением плоского профиля: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
-HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating &xDelta, const Floating &yDelta, const Floating &angle, const int &lCount, bool x_axes, bool withElementValue)
+HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const double &xDelta, const double &yDelta, const double &angle, const int &lCount, bool x_axes, bool withElementValue)
 {
-    xMin_ = FLOATING_MAX;
-    xMax_ = FLOATING_MIN;
-    yMin_ = FLOATING_MAX;
-    yMax_ = FLOATING_MIN;
-    zMin_ = FLOATING_MAX;
-    zMax_ = FLOATING_MIN;
+    xMin_ = DBL_MAX;
+    xMax_ = -DBL_MAX;
+    yMin_ = DBL_MAX;
+    yMax_ = -DBL_MAX;
+    zMin_ = DBL_MAX;
+    zMax_ = -DBL_MAX;
 
     node_.reserve(baseMesh->nodesCount() * (lCount + 1L));
     element_.reserve(baseMesh->elementsCount() * lCount);
 
     UInteger i;
     // текущий угол поворта
-    Floating phi;
-    Floating delta_phi = angle * M_PI / ((Floating) lCount * 180.0);
+    double phi;
+    double delta_phi = angle * M_PI / ((double) lCount * 180.0);
     // номера вершин шестигранника
     UInteger nodes_pointers[8];
     UInteger baseNodesCount = baseMesh->nodesCount();
@@ -179,7 +180,7 @@ HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const Floating
     // формирование узлов
     for(int iz = 0; iz <= lCount; iz++)
     {
-        phi = (Floating)iz * delta_phi;
+        phi = (double)iz * delta_phi;
 
         for(i = 0; i < baseNodesCount; i++)
         {
@@ -280,35 +281,35 @@ bool HexahedralMesh3D::isBorderElement(const UInteger &number) const
     return false;
 }
 
-Floating HexahedralMesh3D::elementValue(const UInteger &number) const
+double HexahedralMesh3D::elementValue(const UInteger &number) const
 {
     if (number < elementValue_.size())
         return elementValue_[number];
-    return (Floating)number;
+    return (double)number;
 }
 
-Floating HexahedralMesh3D::faceArea(const UIntegerVector &face) const
+double HexahedralMesh3D::faceArea(const UIntegerVector &face) const
 {
     Point3D p0 = node_[face[0]].point;
     Point3D p1 = node_[face[1]].point;
     Point3D p2 = node_[face[2]].point;
     Point3D p3 = node_[face[3]].point;
     // стороны
-    Floating a = p0.distanceTo(p1);
-    Floating b = p1.distanceTo(p2);
-    Floating c = p2.distanceTo(p3);
-    Floating d = p3.distanceTo(p0);
+    double a = p0.distanceTo(p1);
+    double b = p1.distanceTo(p2);
+    double c = p2.distanceTo(p3);
+    double d = p3.distanceTo(p0);
     // диагонали
-    Floating d1 = p0.distanceTo(p2);
-    Floating d2 = p1.distanceTo(p3);
+    double d1 = p0.distanceTo(p2);
+    double d2 = p1.distanceTo(p3);
     // функция для вычисления квадрата числа (C++0x)
-    auto sqr = [](Floating value) { return value * value; };
+    auto sqr = [](double value) { return value * value; };
     return sqrt(4.0 * sqr(d1) * sqr(d2) - sqr(sqr(b) + sqr(d) - sqr(a) - sqr(c))) / 4.0;
 }
 
-Floating HexahedralMesh3D::surfaceArea() const
+double HexahedralMesh3D::surfaceArea() const
 {
-    Floating area = 0.0;
+    double area = 0.0;
     for (UInteger i = 0; i < elementsCount(); i++)
     {
         Hexahedral hex = element_[i];
@@ -353,7 +354,7 @@ void HexahedralMesh3D::clearElementValues()
     elementValue_.clear();
 }
 
-void HexahedralMesh3D::pushElementValue(const Floating &val)
+void HexahedralMesh3D::pushElementValue(const double &val)
 {
     elementValue_.push_back(val);
 }

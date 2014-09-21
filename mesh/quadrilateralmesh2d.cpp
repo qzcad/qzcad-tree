@@ -13,18 +13,18 @@ QuadrilateralMesh2D::QuadrilateralMesh2D()
 }
 
 QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &xCount, const UInteger &yCount,
-                                         const Floating &xMin,
-                                         const Floating &yMin, const Floating &width, const Floating &height)
+                                         const double &xMin,
+                                         const double &yMin, const double &width, const double &height)
 {
-    Floating hx = width / (Floating)(xCount - 1);
-    Floating hy = height / (Floating)(yCount - 1);
+    double hx = width / (double)(xCount - 1);
+    double hy = height / (double)(yCount - 1);
     // формирование массива узлов
     for (UInteger i = 0; i < xCount; i++)
     {
-        Floating x = xMin + (Floating) i * hx;
+        double x = xMin + (double) i * hx;
         for (UInteger j = 0; j < yCount; j++)
         {
-            Floating y = yMin + (Floating) j * hy;
+            double y = yMin + (double) j * hy;
             Point2D point(x, y);
 
             if ((i == 0 && j == 0) || (i == 0 && j == yCount - 1) || (i == xCount - 1 && j == 0) || (i == xCount - 1 && j == yCount - 1))
@@ -55,14 +55,14 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &xCount, const UInteger 
                                          const Point2D &v0, const Point2D &v1,
                                          const Point2D &v2, const Point2D &v3)
 {
-    Floating hx = 2.0 / (Floating)(xCount - 1);
-    Floating hy = 2.0 / (Floating)(yCount - 1);
+    double hx = 2.0 / (double)(xCount - 1);
+    double hy = 2.0 / (double)(yCount - 1);
     for (UInteger i = 0; i < xCount; i++)
     {
-        Floating xi = -1.0 + (Floating) i * hx;
+        double xi = -1.0 + (double) i * hx;
         for (UInteger j = 0; j < yCount; j++)
         {
-            Floating eta = -1.0 + (Floating) j * hy;
+            double eta = -1.0 + (double) j * hy;
             Point2D point = isoFunc(0, xi, eta) * v0  + isoFunc(1, xi, eta) * v1 + isoFunc(2, xi, eta) * v2 + isoFunc(3, xi, eta) * v3;
 
             if ((i == 0 && j == 0) || (i == 0 && j == yCount - 1) || (i == xCount - 1 && j == 0) || (i == xCount - 1 && j == yCount - 1))
@@ -95,7 +95,7 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &count, const Point2D &v
     Point2D c12 = (v1 + v2) / 2.0; // центр стороны, соединяющей вершину 1 и 2
     Point2D c20 = (v2 + v0) / 2.0; // центр стороны, соединяющей вершину 2 и 0
     UInteger sideCount = count / 2 + 1;
-    Floating h = 2.0 / (Floating)(sideCount - 1); // шаг изо-сетки
+    double h = 2.0 / (double)(sideCount - 1); // шаг изо-сетки
     Point2D quads [][4] = {
         {c20, v0, c01, center},
         {c01, v1, c12, center},
@@ -106,10 +106,10 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &count, const Point2D &v
         UInteger nodeNumber[sideCount * sideCount];
         for (UInteger i = 0; i < sideCount; i++)
         {
-            Floating xi = -1.0 + (Floating) i * h;
+            double xi = -1.0 + (double) i * h;
             for (UInteger j = 0; j < sideCount; j++)
             {
-                Floating eta = -1.0 + (Floating) j * h;
+                double eta = -1.0 + (double) j * h;
                 Point2D point = isoFunc(0, xi, eta) * quads[q][0]  +
                         isoFunc(1, xi, eta) * quads[q][1] +
                         isoFunc(2, xi, eta) * quads[q][2] +
@@ -156,8 +156,8 @@ void QuadrilateralMesh2D::minimizeFunctional()
 {
 //    UInteger currNumber = 0; // количество внутренних узлов сетки
 //    UInteger variablesCount; // количество переменных в функционале
-    std::vector<Floating> x0; // первое приближение
-    std::vector<Floating> x; // минимизация
+    std::vector<double> x0; // первое приближение
+    std::vector<double> x; // минимизация
     std::vector<UInteger> nodeVariable; // номер переменной, соответвствующей узлу
     for (UInteger i = 0; i < node_.size(); i++)
     {
@@ -205,7 +205,7 @@ void QuadrilateralMesh2D::directionChange()
     }
 }
 
-Floating QuadrilateralMesh2D::area(const UInteger &number)
+double QuadrilateralMesh2D::area(const UInteger &number)
 {
     Quadrilateral quad = element_[number];
     Point2D p0 = node_[quad[0]].point;
@@ -213,15 +213,15 @@ Floating QuadrilateralMesh2D::area(const UInteger &number)
     Point2D p2 = node_[quad[2]].point;
     Point2D p3 = node_[quad[3]].point;
     // стороны
-    Floating a = p0.distanceTo(p1);
-    Floating b = p1.distanceTo(p2);
-    Floating c = p2.distanceTo(p3);
-    Floating d = p3.distanceTo(p0);
+    double a = p0.distanceTo(p1);
+    double b = p1.distanceTo(p2);
+    double c = p2.distanceTo(p3);
+    double d = p3.distanceTo(p0);
     // диагонали
-    Floating d1 = p0.distanceTo(p2);
-    Floating d2 = p1.distanceTo(p3);
+    double d1 = p0.distanceTo(p2);
+    double d2 = p1.distanceTo(p3);
     // функция для вычисления квадрата числа (C++0x)
-    auto sqr = [](Floating value) { return value * value; };
+    auto sqr = [](double value) { return value * value; };
     return sqrt(4.0 * sqr(d1) * sqr(d2) - sqr(sqr(b) + sqr(d) - sqr(a) - sqr(c))) / 4.0;
 }
 
@@ -241,19 +241,19 @@ void QuadrilateralMesh2D::clearElementValues()
     elementValue_.clear();
 }
 
-void QuadrilateralMesh2D::pushElementValue(const Floating &val)
+void QuadrilateralMesh2D::pushElementValue(const double &val)
 {
     elementValue_.push_back(val);
 }
 
-Floating QuadrilateralMesh2D::elementValue(const UInteger &number) const
+double QuadrilateralMesh2D::elementValue(const UInteger &number) const
 {
     if (number < elementValue_.size())
         return elementValue_[number];
-    return (Floating)number;
+    return (double)number;
 }
 
-Floating QuadrilateralMesh2D::isoFunc(const UInteger &i, const Floating &xi, const Floating &eta)
+double QuadrilateralMesh2D::isoFunc(const UInteger &i, const double &xi, const double &eta)
 {
     switch (i)
     {
@@ -269,13 +269,13 @@ Floating QuadrilateralMesh2D::isoFunc(const UInteger &i, const Floating &xi, con
     return (1.0 - xi) * (1.0 - eta) / 4.0;
 }
 
-Floating QuadrilateralMesh2D::functional(Floating *vars, const std::vector<UInteger> &nodeVariable)
+double QuadrilateralMesh2D::functional(double *vars, const std::vector<UInteger> &nodeVariable)
 {
-    Floating f = 0.0;
+    double f = 0.0;
     for (UInteger i = 0; i < element_.size(); i++)
     {
-        Floating x[4];
-        Floating y[4];
+        double x[4];
+        double y[4];
         for (int j = 0; j < 4; j++)
         {
             if(node_[element_[i][j]].type == INNER)
@@ -291,17 +291,17 @@ Floating QuadrilateralMesh2D::functional(Floating *vars, const std::vector<UInte
             }
         }
         // Рассмотрим 4х-угольник как 4 треугольника, определенных на его углах
-        Floating xc = (x[0] + x[1] + x[2] + x[3]) / 4.0;
-        Floating yc = (y[0] + y[1] + y[2] + y[3]) / 4.0;
-        Floating a [][4] = {{x[0],    x[1],   x[2],   x[3]},
+        double xc = (x[0] + x[1] + x[2] + x[3]) / 4.0;
+        double yc = (y[0] + y[1] + y[2] + y[3]) / 4.0;
+        double a [][4] = {{x[0],    x[1],   x[2],   x[3]},
                             {y[0],    y[1],   y[2],   y[3]}};
-        Floating b [][4] = {{x[1],    x[2],   x[3],   x[0]},
+        double b [][4] = {{x[1],    x[2],   x[3],   x[0]},
                             {y[1],    y[2],   y[3],   y[0]}};
-        Floating c [][4] = {{xc,    xc,   xc,   xc},
+        double c [][4] = {{xc,    xc,   xc,   xc},
                             {yc,    yc,   yc,   yc}};
-        Floating localValue = 0.0;
+        double localValue = 0.0;
         // функция для вычисления квадрата числа (C++0x)
-        auto sqr = [](Floating value) { return value * value; };
+        auto sqr = [](double value) { return value * value; };
         for (int q = 0; q < 4; q++)
         {
             double l = sqr(c[0][q] - a[0][q]) + sqr(c[1][q] - a[1][q]) + sqr(b[0][q] - a[0][q]) + sqr(b[1][q] - a[1][q]);
@@ -317,17 +317,17 @@ Floating QuadrilateralMesh2D::functional(Floating *vars, const std::vector<UInte
     return f;
 }
 
-void QuadrilateralMesh2D::nabla(const UInteger &size, Floating *x, const std::vector<UInteger> &nodeVariable, Floating *gradient, Floating h)
+void QuadrilateralMesh2D::nabla(const UInteger &size, double *x, const std::vector<UInteger> &nodeVariable, double *gradient, double h)
 {
-    Floating x_plus_h; // x + h
-    Floating x_minus_h; // x - h
-    Floating x_plus_h_h; // x + 2 * h
-    Floating x_minus_h_h; // x - 2 * h
-    Floating f_x_plus_h; // f(x + h)
-    Floating f_x_minus_h; // f(x - h)
-    Floating f_x_plus_h_h; // f(x + 2 * h)
-    Floating f_x_minus_h_h; // f(x - 2 * h)
-    Floating x_i;
+    double x_plus_h; // x + h
+    double x_minus_h; // x - h
+    double x_plus_h_h; // x + 2 * h
+    double x_minus_h_h; // x - 2 * h
+    double f_x_plus_h; // f(x + h)
+    double f_x_minus_h; // f(x - h)
+    double f_x_plus_h_h; // f(x + 2 * h)
+    double f_x_minus_h_h; // f(x - 2 * h)
+    double x_i;
     for (UInteger i = 0; i < size; i++)
     {
         x_i = x[i];
@@ -344,9 +344,9 @@ void QuadrilateralMesh2D::nabla(const UInteger &size, Floating *x, const std::ve
     }
 }
 
-Floating QuadrilateralMesh2D::lambda(const UInteger &size, Floating *x, Floating *s, const Floating &lambda_val, const std::vector<UInteger> &nodeVariable)
+double QuadrilateralMesh2D::lambda(const UInteger &size, double *x, double *s, const double &lambda_val, const std::vector<UInteger> &nodeVariable)
 {
-    Floating x_lambda[size];
+    double x_lambda[size];
     for (UInteger i = 0; i < size; i++)
     {
         x_lambda[i] = x[i] + lambda_val * s[i];
@@ -354,15 +354,15 @@ Floating QuadrilateralMesh2D::lambda(const UInteger &size, Floating *x, Floating
     return functional(x_lambda, nodeVariable);
 }
 
-Floating QuadrilateralMesh2D::goldenRatio(const UInteger &size, const Floating &a, const Floating &b, Floating *x0, Floating *s, const std::vector<UInteger> &nodeVariable, Floating epsilon, UInteger maxIter)
+double QuadrilateralMesh2D::goldenRatio(const UInteger &size, const double &a, const double &b, double *x0, double *s, const std::vector<UInteger> &nodeVariable, double epsilon, UInteger maxIter)
 {
-    Floating left = a;
-    Floating right = b;
-    const Floating phi = (sqrt(5.0) + 1.0) / 2.0; // golden ratio
-    Floating x1 = b - (b - a) / phi;
-    Floating x2 = a + (b - a) / phi;
-    Floating y1 = lambda(size, x0, s, x1, nodeVariable);
-    Floating y2 = lambda(size, x0, s, x2, nodeVariable);
+    double left = a;
+    double right = b;
+    const double phi = (sqrt(5.0) + 1.0) / 2.0; // golden ratio
+    double x1 = b - (b - a) / phi;
+    double x2 = a + (b - a) / phi;
+    double y1 = lambda(size, x0, s, x1, nodeVariable);
+    double y2 = lambda(size, x0, s, x2, nodeVariable);
 
     for(UInteger count = 0; count < maxIter; count++)
     {
@@ -388,9 +388,9 @@ Floating QuadrilateralMesh2D::goldenRatio(const UInteger &size, const Floating &
     return x2;
 }
 
-Floating QuadrilateralMesh2D::norm2(const UInteger &size, Floating *x)
+double QuadrilateralMesh2D::norm2(const UInteger &size, double *x)
 {
-    Floating norm = 0.0;
+    double norm = 0.0;
     for (UInteger i = 0; i < size; i++)
     {
         norm += x[i] * x[i];
@@ -398,18 +398,18 @@ Floating QuadrilateralMesh2D::norm2(const UInteger &size, Floating *x)
     return norm;
 }
 
-void QuadrilateralMesh2D::conjugateGradient(const UInteger &size, Floating *x0, Floating *xMin, const std::vector<UInteger> &nodeVariable, Floating epsilon, UInteger maxIter)
+void QuadrilateralMesh2D::conjugateGradient(const UInteger &size, double *x0, double *xMin, const std::vector<UInteger> &nodeVariable, double epsilon, UInteger maxIter)
 {
-    Floating xk[size];
-    Floating xkj[size];
-    Floating xkj1[size];
-    Floating dxkj[size];
-    Floating nablaxkj[size];
-    Floating nablaxkj1[size];
-    Floating Skj[size];
-    Floating lambda;
-    Floating omega;
-    Floating nkj, nkj1;
+    double xk[size];
+    double xkj[size];
+    double xkj1[size];
+    double dxkj[size];
+    double nablaxkj[size];
+    double nablaxkj1[size];
+    double Skj[size];
+    double lambda;
+    double omega;
+    double nkj, nkj1;
 
     for(UInteger i = 0; i < size; i++) xk[i] = x0[i];
 

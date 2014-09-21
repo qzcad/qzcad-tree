@@ -49,25 +49,25 @@ public:
      * @brief Получить значения перемещений в первом направлении
      * @return Значения перемещений в первом направлении
      */
-    std::vector<Floating> u() const;
+    std::vector<double> u() const;
     /**
      * @brief Получить значения перемещений во втором направлении
      * @return Значения пермещений во втором направлении
      */
-    std::vector<Floating> v() const;
+    std::vector<double> v() const;
     /**
      * @brief Получить значения перемещений в третьем направлении
      * @return Значения пермещений в третьем направлении
      */
-    std::vector<Floating> w() const;
+    std::vector<double> w() const;
     /// Методы для получения значений напряжений на элементе
     /// @{
-    std::vector<Floating> sigmaX() const;
-    std::vector<Floating> sigmaY() const;
-    std::vector<Floating> sigmaZ() const;
-    std::vector<Floating> tauXY() const;
-    std::vector<Floating> tauYZ() const;
-    std::vector<Floating> tauZX() const;
+    std::vector<double> sigmaX() const;
+    std::vector<double> sigmaY() const;
+    std::vector<double> sigmaZ() const;
+    std::vector<double> tauXY() const;
+    std::vector<double> tauYZ() const;
+    std::vector<double> tauZX() const;
     /// @}
 
 protected:
@@ -131,15 +131,15 @@ protected:
      */
     void displacementToUVW(const FloatingVector &displacement, const UInteger &nodesCount);
 private:
-    std::vector<Floating> u_; //!< Перемещения в первом направлении (x)
-    std::vector<Floating> v_; //!< Перемещения во втором направлении (y)
-    std::vector<Floating> w_; //!< Перемещения в третьем направлении (z)
-    std::vector<Floating> sigmaX_; //!< Нормальные компоненты напряжения, параллельные первому направлению (x)
-    std::vector<Floating> sigmaY_; //!< Нормальные компоненты напряжения, параллельные второму направлению (y)
-    std::vector<Floating> sigmaZ_; //!< Нормальные компоненты напряжения, параллельные третьему направлению (z)
-    std::vector<Floating> tauXY_; //!< Касательные компоненты напряжения, в плоскости 1-2 (x-y)
-    std::vector<Floating> tauYZ_; //!< Касательные компоненты напряжения, в плоскости 2-3 (y-z)
-    std::vector<Floating> tauZX_; //!< Касательные компоненты напряжения, в плоскости 3-1 (z-x)
+    std::vector<double> u_; //!< Перемещения в первом направлении (x)
+    std::vector<double> v_; //!< Перемещения во втором направлении (y)
+    std::vector<double> w_; //!< Перемещения в третьем направлении (z)
+    std::vector<double> sigmaX_; //!< Нормальные компоненты напряжения, параллельные первому направлению (x)
+    std::vector<double> sigmaY_; //!< Нормальные компоненты напряжения, параллельные второму направлению (y)
+    std::vector<double> sigmaZ_; //!< Нормальные компоненты напряжения, параллельные третьему направлению (z)
+    std::vector<double> tauXY_; //!< Касательные компоненты напряжения, в плоскости 1-2 (x-y)
+    std::vector<double> tauYZ_; //!< Касательные компоненты напряжения, в плоскости 2-3 (y-z)
+    std::vector<double> tauZX_; //!< Касательные компоненты напряжения, в плоскости 3-1 (z-x)
 };
 
 #endif // HEXAHEDRALFEM_H

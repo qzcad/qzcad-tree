@@ -32,7 +32,7 @@ public:
      * @param width Ширина прямоугольной области
      * @param height Высота прямоугольной области
      */
-    QuadrilateralMesh2D(const UInteger &xCount, const UInteger &yCount, const Floating &xMin, const Floating &yMin, const Floating &width, const Floating &height);
+    QuadrilateralMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height);
     /**
      * @brief Конструктор создает равномерную структурированную сетку для выпуклой четырехугольной области
      * @param xCount Количество узлов по первому направлению (ребра 0-1 и 2-3)
@@ -84,7 +84,7 @@ public:
      * @param number Номер элемента
      * @return Площадь элемента
      */
-    virtual Floating area(const UInteger &number);
+    virtual double area(const UInteger &number);
     /**
      * @brief Добавить элемент к  сетке
      * @param node0 Номер узла в вершине 0
@@ -101,13 +101,13 @@ public:
      * @brief Добавить значение, определенное на элементе, в массив
      * @param val Значение, которое необходимо добавить в массив
      */
-    virtual void pushElementValue(const Floating &val);
+    virtual void pushElementValue(const double &val);
     /**
      * @brief Значение, определенное на элементе
      * @param number Номер элемента
      * @return Значение, определенное на элементе с номером number
      */
-    virtual Floating elementValue(const UInteger &number) const;
+    virtual double elementValue(const UInteger &number) const;
 protected:
     /**
      * @brief Функция формы изопараметрического четырехугольного элемента
@@ -116,21 +116,21 @@ protected:
      * @param eta Значение параметра второго направления
      * @return Значение функции формы
      */
-    Floating isoFunc(const UInteger &i, const Floating &xi, const Floating &eta);
+    double isoFunc(const UInteger &i, const double &xi, const double &eta);
 
-    Floating functional(Floating *vars, const std::vector<UInteger> &nodeVariable);
-    void nabla(const UInteger &size, Floating *x,
-               const std::vector<UInteger> &nodeVariable, Floating *gradient, Floating h = 0.0001);
-    Floating lambda(const UInteger &size, Floating *x, Floating *s, const Floating &lambda_val,
+    double functional(double *vars, const std::vector<UInteger> &nodeVariable);
+    void nabla(const UInteger &size, double *x,
+               const std::vector<UInteger> &nodeVariable, double *gradient, double h = 0.0001);
+    double lambda(const UInteger &size, double *x, double *s, const double &lambda_val,
                     const std::vector<UInteger> &nodeVariable);
-    Floating goldenRatio(const UInteger &size, const Floating &a, const Floating &b, Floating *x0, Floating *s, const std::vector<UInteger> &nodeVariable, Floating epsilon = 0.0001, UInteger maxIter = 300);
-    Floating norm2(const UInteger &size, Floating *x);
-    void conjugateGradient(const UInteger &size, Floating *x0, Floating *xMin,
-                           const std::vector<UInteger> &nodeVariable, Floating epsilon = 0.0001, UInteger maxIter = 300);
+    double goldenRatio(const UInteger &size, const double &a, const double &b, double *x0, double *s, const std::vector<UInteger> &nodeVariable, double epsilon = 0.0001, UInteger maxIter = 300);
+    double norm2(const UInteger &size, double *x);
+    void conjugateGradient(const UInteger &size, double *x0, double *xMin,
+                           const std::vector<UInteger> &nodeVariable, double epsilon = 0.0001, UInteger maxIter = 300);
     //    double sqr(const Floating &a) { return a * a; }
 protected:
     std::vector<Quadrilateral> element_; //!< Массив элементов
-    std::vector<Floating> elementValue_; //!< Значение на элементе
+    std::vector<double> elementValue_; //!< Значение на элементе
 };
 }
 

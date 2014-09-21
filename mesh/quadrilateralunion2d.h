@@ -23,7 +23,7 @@ public:
     void addQuadRegion(const UInteger &xCount, const UInteger &yCount, const Point2D &v0, const Point2D &v1, const Point2D &v2, const Point2D &v3);
     void addTriangleRegion(const UInteger &count, const Point2D &v0, const Point2D &v1, const Point2D &v2);
     void addMesh(QuadrilateralMesh2D *mesh);
-    virtual Floating elementValue(const UInteger &number) const;
+    virtual double elementValue(const UInteger &number) const;
 private:
     bool isFirstRegion_; //!< Признак добавления первой элементарной области
 //    std::vector<int> elementValue_; //!< Значение на элементе == номер слоя

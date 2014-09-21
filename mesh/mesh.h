@@ -53,32 +53,32 @@ public:
      * @brief Минимальное значение ординаты точек сетки
      * @return Минимальное значение ординаты точек сетки
      */
-    virtual Floating xMin() const = 0;
+    virtual double xMin() const = 0;
     /**
      * @brief Максимальное значение ординаты точек сетки
      * @return Максимальное значение ординаты точек сетки
      */
-    virtual Floating xMax() const = 0;
+    virtual double xMax() const = 0;
     /**
      * @brief Минимальное значение абсциссы точек сетки
      * @return Минимальное значение абсциссы точек сетки
      */
-    virtual Floating yMin() const = 0;
+    virtual double yMin() const = 0;
     /**
      * @brief Максимальное значение абсциссы точек сетки
      * @return Максимальное значение абсциссы точек сетки
      */
-    virtual Floating yMax() const = 0;
+    virtual double yMax() const = 0;
     /**
      * @brief Минимальное значение аппликаты точек сетки
      * @return Минимальное значение аппликаты точек сетки
      */
-    virtual Floating zMin() const = 0;
+    virtual double zMin() const = 0;
     /**
      * @brief Максимальное значение аппликаты точек сетки
      * @return Максимальное значение аппликаты точек сетки
      */
-    virtual Floating zMax() const = 0;
+    virtual double zMax() const = 0;
     /**
      * @brief Размерность пространства
      * @return Размерность пространства, в котором определена сетка
@@ -89,13 +89,13 @@ public:
      * @param number Номер элемента
      * @return Значение, соответствующее элементу
      */
-    virtual Floating elementValue(const UInteger &number) const = 0;
+    virtual double elementValue(const UInteger &number) const = 0;
     /**
      * @brief Значение некоторой функции, определенной на зле
      * @param number Номер узла
      * @return Значение, соответствующее узлу
      */
-    virtual Floating nodeValue(const UInteger &number) const = 0;
+    virtual double nodeValue(const UInteger &number) const = 0;
     /**
      * @brief Определить принадлежность элемента границе
      * @param number Номер элемента
@@ -114,7 +114,7 @@ public:
      * @brief Добавить значение, опеределенное в узле, в массив
      * @param val Значение, которое необходимо добавить
      */
-    virtual void pushNodeValue(const Floating &val) = 0;
+    virtual void pushNodeValue(const double &val) = 0;
     /**
      * @brief Виртуальный деструктор
      */

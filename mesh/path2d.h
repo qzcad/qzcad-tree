@@ -29,17 +29,17 @@ public:
      */
     Path2D(const Path2D &path2d);
 
-    Floating xMin() const;
-    void setXMin(const Floating &xMin);
+    double xMin() const;
+    void setXMin(const double &xMin);
 
-    Floating xMax() const;
-    void setXMax(const Floating &xMax);
+    double xMax() const;
+    void setXMax(const double &xMax);
 
-    Floating yMin() const;
-    void setYMin(const Floating &yMin);
+    double yMin() const;
+    void setYMin(const double &yMin);
 
-    Floating yMax() const;
-    void setYMax(const Floating &yMax);
+    double yMax() const;
+    void setYMax(const double &yMax);
     /**
      * @brief nodesCount Количество узлов в контуре
      * @return Количество узлов, образующих контур
@@ -66,12 +66,12 @@ public:
      * @brief zMin Минимальное значение аппликаты точек сетки
      * @return Минимальное значение аппликаты точек сетки
      */
-    Floating zMin() const;
+    double zMin() const;
     /**
      * @brief zMax Максимальное значение аппликаты точек сетки
      * @return Максимальное значение аппликаты точек сетки
      */
-    Floating zMax() const;
+    double zMax() const;
     /**
      * @brief dimesion Размерность пространства
      * @return 2
@@ -95,10 +95,10 @@ public:
 
 private:
     std::vector<Point2D> node_; //!< Список узлов
-    Floating xMin_; //!< Минимальное значение ординаты
-    Floating xMax_; //!< Максимальное значение ординаты
-    Floating yMin_; //!< Минимальное значение абсциссы
-    Floating yMax_; //!< Максимальное значение абсциссы
+    double xMin_; //!< Минимальное значение ординаты
+    double xMax_; //!< Максимальное значение ординаты
+    double yMin_; //!< Минимальное значение абсциссы
+    double yMax_; //!< Максимальное значение абсциссы
 };
 }
 

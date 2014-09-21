@@ -18,12 +18,12 @@ Path2D::Path2D(const Path2D &path2d)
     node_ = path2d.node_;
 }
 
-Floating Path2D::yMax() const
+double Path2D::yMax() const
 {
     return yMax_;
 }
 
-void Path2D::setYMax(const Floating &yMax)
+void Path2D::setYMax(const double &yMax)
 {
     yMax_ = yMax;
 }
@@ -62,12 +62,12 @@ Element *Path2D::element(UInteger number) const
 //    return elementPointer;
 }
 
-Floating Path2D::zMin() const
+double Path2D::zMin() const
 {
     return -1.0;
 }
 
-Floating Path2D::zMax() const
+double Path2D::zMax() const
 {
     return 1.0;
 }
@@ -96,32 +96,32 @@ void Path2D::insertNode(UInteger number, const Point2D &point)
     node_.insert(node_.begin() + number, point);
 }
 
-Floating Path2D::yMin() const
+double Path2D::yMin() const
 {
     return yMin_;
 }
 
-void Path2D::setYMin(const Floating &yMin)
+void Path2D::setYMin(const double &yMin)
 {
     yMin_ = yMin;
 }
 
-Floating Path2D::xMax() const
+double Path2D::xMax() const
 {
     return xMax_;
 }
 
-void Path2D::setXMax(const Floating &xMax)
+void Path2D::setXMax(const double &xMax)
 {
     xMax_ = xMax;
 }
 
-Floating Path2D::xMin() const
+double Path2D::xMin() const
 {
     return xMin_;
 }
 
-void Path2D::setXMin(const Floating &xMin)
+void Path2D::setXMin(const double &xMin)
 {
     xMin_ = xMin;
 }

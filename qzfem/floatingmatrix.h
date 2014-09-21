@@ -7,13 +7,12 @@
 #define FLOATINGMATRIX_H
 
 #include <boost/numeric/ublas/matrix.hpp>
-#include "floating.h"
 
 namespace ublas =  boost::numeric::ublas;
 using namespace msh;
 /**
  * @brief Матрица чисел с плавающей точкой (boost)
  */
-typedef ublas::matrix<Floating> FloatingMatrix;
+typedef ublas::matrix<double> FloatingMatrix;
 
 #endif // FLOATINGMATRIX_H

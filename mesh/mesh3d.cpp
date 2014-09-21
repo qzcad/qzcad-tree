@@ -23,32 +23,32 @@ NodeType Mesh3D::nodeType(const UInteger &number) const
     return node_[number].type;
 }
 
-Floating Mesh3D::xMin() const
+double Mesh3D::xMin() const
 {
     return xMin_;
 }
 
-Floating Mesh3D::xMax() const
+double Mesh3D::xMax() const
 {
     return xMax_;
 }
 
-Floating Mesh3D::yMin() const
+double Mesh3D::yMin() const
 {
     return yMin_;
 }
 
-Floating Mesh3D::yMax() const
+double Mesh3D::yMax() const
 {
     return yMax_;
 }
 
-Floating Mesh3D::zMin() const
+double Mesh3D::zMin() const
 {
     return zMin_;
 }
 
-Floating Mesh3D::zMax() const
+double Mesh3D::zMax() const
 {
     return zMax_;
 }
@@ -58,18 +58,18 @@ int Mesh3D::dimesion() const
     return 3;
 }
 
-Floating Mesh3D::elementValue(const UInteger &number) const
+double Mesh3D::elementValue(const UInteger &number) const
 {
-    return (Floating)number;
+    return (double)number;
 }
 
-Floating Mesh3D::nodeValue(const UInteger &number) const
+double Mesh3D::nodeValue(const UInteger &number) const
 {
     if (number < nodeValue_.size())
     {
         return nodeValue_[number];
     }
-    return (Floating)number;
+    return (double)number;
 }
 
 UInteger Mesh3D::pushNode(const Point3D &point, const NodeType &type)
@@ -100,7 +100,7 @@ void Mesh3D::clearNodeValues()
     nodeValue_.clear();
 }
 
-void Mesh3D::pushNodeValue(const Floating &val)
+void Mesh3D::pushNodeValue(const double &val)
 {
     nodeValue_.push_back(val);
 }
@@ -114,9 +114,9 @@ void Mesh3D::updateDomain()
     for (UInteger i = 1; i < node_.size(); i++)
     {
         Point3D current = node_[i].point;
-        Floating x = current.x();
-        Floating y = current.y();
-        Floating z = current.z();
+        double x = current.x();
+        double y = current.y();
+        double z = current.z();
         if (xMin_ > x) xMin_ = x;
         if (xMax_ < x) xMax_ = x;
         if (yMin_ > y) yMin_ = y;
