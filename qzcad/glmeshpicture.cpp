@@ -725,11 +725,12 @@ void GLMeshPicture::paintGL()
             }
         }
     }
-    glPopMatrix();
 
     drawAxesDirection();
 
     if (showColorBar_) drawColorBar();
+
+    glPopMatrix();
 
     glFlush();
     swapBuffers();
