@@ -4,6 +4,7 @@ using namespace std;
 
 #include "doublevector.h"
 #include "doublematrix.h"
+#include "mappeddoublematrix.h"
 
 using namespace mtx;
 
@@ -32,7 +33,12 @@ int main()
     b.print();
     DoubleMatrix c(b.transpose());
     c.print();
-
+    cout << "sparce" << endl;
+    MappedDoubleMatrix mdm(3);
+    mdm(0, 1) = 0.5;
+    mdm(1, 0) = 0.1; mdm(1, 2) = 0.3;
+    mdm(2, 1) = 0.7;
+    mdm.print();
     return 0;
 }
 
