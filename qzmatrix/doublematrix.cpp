@@ -131,6 +131,45 @@ DoubleMatrix DoubleMatrix::transpose()
     return trans;
 }
 
+double DoubleMatrix::det2x2() const
+{
+    return data_[0][0] * data_[1][1] - data_[0][1] * data_[1][0];
+}
+
+double DoubleMatrix::det3x3() const
+{
+    return data_[0][0] * (data_[1][1] * data_[2][2] - data_[1][2] * data_[2][1]) -
+            data_[0][1] * (data_[1][0] * data_[2][2] - data_[1][2] * data_[2][0]) +
+            data_[0][2] * (data_[1][0] * data_[2][1] - data_[1][1] * data_[2][0]);
+}
+
+DoubleMatrix DoubleMatrix::inverted2x2() const
+{
+    DoubleMatrix inv(2);
+    double det = det2x2();
+    inv.data_[0][0] = data_[1][1] / det;
+    inv.data_[1][1] = data_[0][0] / det;
+    inv.data_[0][1] = -data_[0][1] / det;
+    inv.data_[1][0] = -data_[1][0] / det;
+    return inv;
+}
+
+DoubleMatrix DoubleMatrix::inverted3x3() const
+{
+    double a = data_[0][0], b = data_[0][1], c = data_[0][2];
+    double d = data_[1][0], e = data_[1][1], f = data_[1][2];
+    double g = data_[2][0], h = data_[2][1], i = data_[2][2];
+    double A = e*i - f*h,       D = -(b*i - c*h),   G = b*f - c*e;
+    double B = -(d*i - f*g),    E = a*i - c*g,      H = -(a*f - c*d);
+    double C = d*h - e*g,       F = -(a*h - b*g),   I = a*e - b*d;
+    double det = det3x3();
+    DoubleMatrix inv(3);
+    inv.data_[0][0] = A / det;  inv.data_[0][1] = D / det;  inv.data_[0][2] = G / det;
+    inv.data_[1][0] = B / det;  inv.data_[1][1] = E / det;  inv.data_[1][2] = H / det;
+    inv.data_[2][0] = C / det;  inv.data_[2][1] = F / det;  inv.data_[2][2] = I / det;
+    return inv;
+}
+
 DoubleVector operator *(const DoubleMatrix &a, const DoubleVector &b)
 {
     DoubleVector mul(a.rowCount(), 0.0);

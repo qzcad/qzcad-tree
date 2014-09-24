@@ -132,6 +132,26 @@ public:
      * @return Вектор c = a * b
      */
     friend DoubleVector operator * (const DoubleMatrix &a, const DoubleVector &b);
+    /**
+     * @brief Метод для вычисления определеителя в частном случае матриц 2x2
+     * @return Значение определителя
+     */
+    double det2x2() const;
+    /**
+     * @brief Метод для вычисления определеителя в частном случае матриц 3x3
+     * @return Значение определителя
+     */
+    double det3x3() const;
+    /**
+     * @brief Метод для получения обратной матрицы в частном случае 2x2
+     * @return Обратная матрица
+     */
+    DoubleMatrix inverted2x2() const;
+    /**
+     * @brief Метод для получения обратной матрицы в частном случае 3x3
+     * @return Обратная матрица
+     */
+    DoubleMatrix inverted3x3() const;
 protected:
     /**
      * @brief Метод выделения памяти для хранения матрицы
