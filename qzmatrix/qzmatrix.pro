@@ -11,11 +11,13 @@ TEMPLATE = lib
 CONFIG += staticlib
 
 SOURCES += doublematrix.cpp \
-    doublevector.cpp
+    doublevector.cpp \
+    mappeddoublematrix.cpp
 
 HEADERS += doublematrix.h \
     doublevector.h \
-    mtx_types.h
+    mtx_types.h \
+    mappeddoublematrix.h
 unix {
     target.path = /usr/lib
     INSTALLS += target
