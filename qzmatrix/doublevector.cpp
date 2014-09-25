@@ -124,6 +124,16 @@ DoubleVector &DoubleVector::operator=(const DoubleVector &dv)
     return *this;
 }
 
+double DoubleVector::operator *(const DoubleVector &dv)const
+{
+    register double sum = 0.0;
+
+    for (size_type i = 0; i < size_; i++)
+        sum += data_[i] * dv.data_[i];
+
+    return sum;
+}
+
 void DoubleVector::print(char separator) const
 {
     std::cout << "[" << separator;

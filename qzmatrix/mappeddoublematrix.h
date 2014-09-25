@@ -7,6 +7,7 @@
 #define MAPPEDDOUBLEMATRIX_H
 #include <map>
 #include "mtx_types.h"
+#include "doublevector.h"
 namespace mtx {
 /**
  * @brief Сжатый массив на основе отображения ключ-значение
@@ -87,6 +88,14 @@ public:
      * @param separator Разделитель столбцов
      */
     void print(char separator = '\t') const;
+    /**
+     * @brief Оператор умножения матрицы на столбец
+     * @param mdm Экземпляр матрицы
+     * @param dv Экземпляр вектора
+     * @return Вектор mul = mdm * dv
+     * Умножение "быстрое": перебераются только ненулевые элементы строки
+     */
+    friend DoubleVector operator *(const MappedDoubleMatrix &mdm, const DoubleVector dv);
 protected:
     /**
      * @brief Метод для выделения памяти под строки матрицы

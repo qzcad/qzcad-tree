@@ -85,6 +85,22 @@ void MappedDoubleMatrix::print(char separator) const
     }
 }
 
+DoubleVector operator *(const MappedDoubleMatrix &mdm, const DoubleVector dv)
+{
+    size_type size = mdm.size();
+    DoubleVector mul(size);
+    for (size_type i = 0; i < size; i++)
+    {
+        double sum = 0.0;
+        for (MappedDoubleVector::iterator it = mdm.data_[i].begin(); it != mdm.data_[i].end(); it++)
+        {
+            sum += it->second * dv.data(it->first);
+        }
+        mul[i] = sum;
+    }
+    return mul;
+}
+
 void MappedDoubleMatrix::alloc(size_type size)
 {
     size_ = size;

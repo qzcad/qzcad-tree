@@ -172,28 +172,32 @@ DoubleMatrix DoubleMatrix::inverted3x3() const
 
 DoubleVector operator *(const DoubleMatrix &a, const DoubleVector &b)
 {
-    DoubleVector mul(a.rowCount(), 0.0);
+    DoubleVector mul(a.rowCount());
     for (size_type i = 0; i < a.rowCount(); i++)
     {
+        double sum = 0.0;
         for (size_type k = 0; k < a.colCount(); k++)
         {
-            mul[i] += a.data_[i][k] * b.data(k);
+            sum += a.data_[i][k] * b.data(k);
         }
+        mul[i] = sum;
     }
     return mul;
 }
 
 DoubleMatrix operator *(const DoubleMatrix &a, const DoubleMatrix &b)
 {
-    DoubleMatrix mul(a.rowCount(), b.colCount(), 0.0);
+    DoubleMatrix mul(a.rowCount(), b.colCount());
     for (size_type i = 0; i < a.rowCount(); i++)
     {
         for (size_type j = 0; j < b.colCount(); j++)
         {
+            double sum = 0.0;
             for (size_type k = 0; k < a.colCount(); k++)
             {
-                mul.data_[i][j] += a.data_[i][k] * b.data_[k][j];
+                sum += a.data_[i][k] * b.data_[k][j];
             }
+            mul.data_[i][j] = sum;
         }
     }
     return mul;

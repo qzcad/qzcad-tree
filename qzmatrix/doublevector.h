@@ -103,7 +103,13 @@ public:
      * @param dv Экземпляр объекта для присвоения
      * @return Ссылка на копию
      */
-    DoubleVector &operator=(const DoubleVector &dv);
+    DoubleVector &operator =(const DoubleVector &dv);
+    /**
+     * @brief Оператор для нахожения скалярного (внутреннего) произведения с заданным вектором
+     * @param dv Экземляр вектора, с котором необходимо найти произведение
+     * @return Значение векторного произведения
+     */
+    double operator *(const DoubleVector &dv) const;
     /**
      * @brief Метод для печати элементов массива на консоль (стандартный вывод)
      * @param separator Разделитель между элементами

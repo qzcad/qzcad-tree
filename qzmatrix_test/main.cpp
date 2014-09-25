@@ -62,6 +62,14 @@ int main()
     mdm(1, 0) = 0.1; mdm(1, 2) = 0.3;
     mdm(2, 1) = 0.7;
     mdm.print();
+    DoubleVector v3(3, 1.0);
+    v3[0] += 1.0;
+    cout << "v3: ";
+    v3.print();
+    DoubleVector ccc_v3(mdm * v3);
+    cout << "mdm * v3: ";
+    ccc_v3.print();
+    cout << "v * ccc_v3 = " << v3 * ccc_v3 << endl;
     return 0;
 }
 
