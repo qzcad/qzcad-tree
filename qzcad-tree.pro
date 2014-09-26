@@ -2,8 +2,8 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
     mesh \
-    qzcad \
-    qzfem \
-    console_test \
     qzmatrix \
+    qzfem \
+    qzcad \
+    console_test \
     qzmatrix_test

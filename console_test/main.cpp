@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#include <math.h>
 #include "hexahedralfem.h"
 
 using namespace std;

@@ -109,6 +109,11 @@ double DoubleVector::norm_2() const
     return sqrt(sum);
 }
 
+reference DoubleVector::operator ()(size_type i)
+{
+    return data_[i];
+}
+
 reference DoubleVector::operator [](size_type i)
 {
     return data_[i];

@@ -112,6 +112,27 @@ public:
      * @return Результат умножения матрицы на вектор
      */
     DoubleVector product(const DoubleVector &dv) const;
+    /**
+     * @brief Метод для получения результата умножения текущей матрицы на вектор (процедурный стиль)
+     * @param dv Вектор, на который умножается матрица
+     * @param res Ссылка для записи результата умножения матрицы на вектор
+     */
+    void product(const DoubleVector &dv, DoubleVector &res) const;
+    /**
+     * @brief Метод для обнуления указанной строки матрицы
+     * @param i Номер строки
+     */
+    void zeroRow(size_type i);
+    /**
+     * @brief Метод для обнуления указанного столбца
+     * @param j Номер столбца
+     */
+    void zeroCol(size_type j);
+    /**
+     * @brief Метод симметричного обнуления
+     * @param i строка(столбец) для обнуления
+     */
+    void zeroSym(size_type i);
 protected:
     /**
      * @brief Метод для выделения памяти под строки матрицы

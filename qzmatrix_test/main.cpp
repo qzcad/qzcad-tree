@@ -50,7 +50,7 @@ int main()
     cout << "ccc:" << endl;
     ccc.print();
     cout << "|ccc| = " << ccc.det3x3() << endl;
-    DoubleMatrix iccc = ccc.inverted3x3();
+    DoubleMatrix iccc = ccc.inverted();
     cout << "ccc^(-1):" << endl;
     iccc.print();
     DoubleMatrix eee = ccc * iccc;

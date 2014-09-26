@@ -9,11 +9,12 @@
 #include "hexahedralmesh3d.h"
 #include "femcondition3d.h"
 #include "mechanicalparameters3d.h"
-#include "floatingvector.h"
-#include "floatingmatrix.h"
-#include "globalmatrix.h"
+#include "doublevector.h"
+#include "doublematrix.h"
+#include "mappeddoublematrix.h"
 
 using namespace msh;
+using namespace mtx;
 /**
  * @brief Класс для определения перемещений и напраяжений при помощи МКЭ на шестигранных элементах
  */
@@ -76,34 +77,34 @@ protected:
      * @param params Механические параметры материала
      * @param D Матрица упругости (матрица 6*6, перезаписуется)
      */
-    void buildElasticMatrix(const MechanicalParameters3D &params, FloatingMatrix &D);
+    void buildElasticMatrix(const MechanicalParameters3D &params, DoubleMatrix &D);
     /**
      * @brief Процедура построени матрицы упргости для многослойных конструкций
      * @param params Массив механических параметров материала
      * @param D Массив матриц упругости
      */
-    void buildElasticMatrix(const std::vector<MechanicalParameters3D> &params, FloatingMatrix D[]);
+    void buildElasticMatrix(const std::vector<MechanicalParameters3D> &params, DoubleMatrix D[]);
     /**
      * @brief Процедура построения глобальной матрицы жесткости
      * @param mesh Указатель на сетку
      * @param D Матрица упругости
      * @param globalMatrix Глобальная матрица жесткости (результат)
      */
-    void assebly(HexahedralMesh3D* mesh, const FloatingMatrix &D, GlobalMatrix &globalMatrix);
+    void assebly(HexahedralMesh3D* mesh, const DoubleMatrix &D, MappedDoubleMatrix &globalMatrix);
     /**
      * @brief Процедура построения глобальной матрицы жесткости для многослойных конструкций
      * @param mesh Указатель на сетку
      * @param D Массив матриц упругости
      * @param globalMatrix Глобальная матрица жесткости (результат)
      */
-    void assebly(HexahedralMesh3D* mesh, FloatingMatrix D[], GlobalMatrix &globalMatrix);
+    void assebly(HexahedralMesh3D* mesh, DoubleMatrix D[], MappedDoubleMatrix &globalMatrix);
     /**
      * @brief Процедура учета поверхностной нагрузокуи
      * @param mesh Указатель на сетку
      * @param boundaryForce Параметры поверхностной нагрузки
      * @param force Вектор сил (должен быть инициализирован нулями, результат процедуры)
      */
-    void processForce(HexahedralMesh3D* mesh, FEMCondition3DPointer boundaryForce, FloatingVector &force);
+    void processForce(HexahedralMesh3D* mesh, FEMCondition3DPointer boundaryForce, DoubleVector &force);
     /**
      * @brief Процедура учета граничных условий
      * @param mesh Укзатель на сетку
@@ -111,7 +112,7 @@ protected:
      * @param globalMatrix Глобальная матрица жесткости (модифицируется)
      * @param force Вектор сил (модифицируется)
      */
-    void processBoundaryConditions(HexahedralMesh3D* mesh, const std::vector<FEMCondition3DPointer> &boundaryConditions, GlobalMatrix &globalMatrix, FloatingVector &force);
+    void processBoundaryConditions(HexahedralMesh3D* mesh, const std::vector<FEMCondition3DPointer> &boundaryConditions, MappedDoubleMatrix &globalMatrix, DoubleVector &force);
     /**
      * @brief Процедура для поиска и вывода на экран экстремальных значений перемещений
      * @param nodesCount Количество узлов в сетке
@@ -122,14 +123,14 @@ protected:
      * @param mesh Указатель на сетку
      * @param D Матрица упругости
      */
-    void recoverStress(HexahedralMesh3D* mesh, const FloatingMatrix &D);
-    void recoverStress(HexahedralMesh3D* mesh, const FloatingMatrix D[]);
+    void recoverStress(HexahedralMesh3D* mesh, const DoubleMatrix &D);
+    void recoverStress(HexahedralMesh3D* mesh, const DoubleMatrix D[]);
     /**
      * @brief Метод извлечения компонент перемещения из массива
      * @param displacement Массив пермещений
      * @param nodesCount Количество узлов в сетке
      */
-    void displacementToUVW(const FloatingVector &displacement, const UInteger &nodesCount);
+    void displacementToUVW(const DoubleVector &displacement, const UInteger &nodesCount);
 private:
     std::vector<double> u_; //!< Перемещения в первом направлении (x)
     std::vector<double> v_; //!< Перемещения во втором направлении (y)

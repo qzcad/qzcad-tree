@@ -109,6 +109,19 @@ public:
      */
     DoubleMatrix &operator =(const DoubleMatrix &dm);
     /**
+     * @brief Оператор присвоения с прибавлением
+     * @param dm Матрица, которою нужно прибавить
+     * @return Результат суммирования
+     */
+    DoubleMatrix &operator +=(const DoubleMatrix &dm);
+    /**
+     * @brief Оператор для умножения матрицы на число
+     * @param d Число
+     * @param dm Матрица
+     * @return Результат поэлементного умножения
+     */
+    friend DoubleMatrix operator *(const double &d, const DoubleMatrix &dm);
+    /**
      * @brief print Метод для печати матрицы на консоль (стандартный вывод)
      * @param separator Разделитель столбцов
      */
@@ -152,6 +165,11 @@ public:
      * @return Обратная матрица
      */
     DoubleMatrix inverted3x3() const;
+    /**
+     * @brief Метод для получения обратной матрицы методом Жордана-Гаусса
+     * @return Обратная матрица
+     */
+    DoubleMatrix inverted() const;
 protected:
     /**
      * @brief Метод выделения памяти для хранения матрицы

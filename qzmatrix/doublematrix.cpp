@@ -1,3 +1,4 @@
+#include <math.h>
 #include "doublematrix.h"
 
 namespace mtx {
@@ -110,6 +111,31 @@ DoubleMatrix &DoubleMatrix::operator =(const DoubleMatrix &dm)
     return *this;
 }
 
+DoubleMatrix &DoubleMatrix::operator +=(const DoubleMatrix &dm)
+{
+    for (size_type i = 0; i < rowCount(); i++)
+    {
+        for (size_type j = 0; j < colCount(); j++)
+        {
+            data_[j][i] += dm.data_[i][j];
+        }
+    }
+    return *this;
+}
+
+DoubleMatrix operator *(const double &d, const DoubleMatrix &dm)
+{
+    DoubleMatrix m(dm);
+    for (size_type i = 0; i < m.rowCount(); i++)
+    {
+        for (size_type j = 0; j < m.colCount(); j++)
+        {
+            m.data_[j][i] *= d;
+        }
+    }
+    return m;
+}
+
 void DoubleMatrix::print(char separator) const
 {
     for (size_type i = 0; i < rowCount_; i++)
@@ -168,6 +194,69 @@ DoubleMatrix DoubleMatrix::inverted3x3() const
     inv.data_[1][0] = B / det;  inv.data_[1][1] = E / det;  inv.data_[1][2] = H / det;
     inv.data_[2][0] = C / det;  inv.data_[2][1] = F / det;  inv.data_[2][2] = I / det;
     return inv;
+}
+
+DoubleMatrix DoubleMatrix::inverted() const
+{
+    size_type dimension = rowCount_;
+    DoubleMatrix augmentedmatrix(dimension, 2 * dimension, 0.0);
+    size_type i, j, k, temp;
+    DoubleMatrix inv(dimension, 0.0);
+
+    for (i = 0; i < dimension; i++)
+        for (j = dimension; j < 2 * dimension; j++)
+            if (i == j%dimension)
+                augmentedmatrix[i][j] = 1.0;
+            else
+                augmentedmatrix[i][j] = 0.0;
+
+    for (i = 0; i < dimension; i++)
+        for (j = 0; j < dimension; j++)
+            augmentedmatrix[i][j] = data_[i][j];
+
+    for (j = 0; j < dimension; j++)
+    {
+        temp = j;
+        /* finding maximum jth column element in last (dimension-j) rows */
+        for (i = j + 1; i < dimension; i++)
+            if (augmentedmatrix[i][j] > augmentedmatrix[temp][j])
+                temp = i;
+
+        if (fabs(augmentedmatrix[temp][j]) < 1.0E-10)
+        {
+            return inv;
+        }
+        /* swapping row which has maximum jth column element */
+        if (temp != j)
+            for (k = 0; k < 2 * dimension; k++)
+            {
+                double temporary = augmentedmatrix[j][k];
+                augmentedmatrix[j][k] = augmentedmatrix[temp][k];
+                augmentedmatrix[temp][k] = temporary;
+            }
+        /* performing row operations to form required identity matrix out
+           of the input matrix */
+        for (i = 0; i < dimension; i++)
+            if (i != j)
+            {
+                double r = augmentedmatrix[i][j];
+                for (k = 0; k < 2 * dimension; k++)
+                    augmentedmatrix[i][k] -= augmentedmatrix[j][k] *
+                            r / augmentedmatrix[j][j];
+            } else
+            {
+                double r = augmentedmatrix[i][j];
+                for (k = 0; k < 2 * dimension; k++)
+                    augmentedmatrix[i][k] /= r;
+            }
+    }
+
+
+    for (i = 0; i < dimension; i++)
+        for (j = dimension; j < 2 * dimension; j++)
+            inv[i][j-dimension] = augmentedmatrix[i][j];
+    return inv;
+
 }
 
 DoubleVector operator *(const DoubleMatrix &a, const DoubleVector &b)

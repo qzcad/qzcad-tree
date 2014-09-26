@@ -90,11 +90,13 @@ DoubleVector MappedDoubleMatrix::conjugateGradient(const DoubleVector &B, double
     DoubleVector X(size_, 0.0); // начальное приближение - вектор нулей
     DoubleVector resid(size_); // невязка
     DoubleVector direction; // направление поиска
-    DoubleVector resid_old; // невязка на предыдущей итерации
-    DoubleVector temp; // ременное хранилище для обмена данными
+//    DoubleVector resid_old; // невязка на предыдущей итерации
+    DoubleVector temp(size_); // ременное хранилище для обмена данными
     double resid_norm; // норма невязки
     double alpha;
     double beta;
+
+    double resid_resid, resid_resid_new;
 
     residual(X, B, resid);
 
@@ -105,22 +107,26 @@ DoubleVector MappedDoubleMatrix::conjugateGradient(const DoubleVector &B, double
     if (printMessages) std::cout << "Начальная невязка: " << resid_norm << std::endl;
     if (resid_norm > epsilon)
     {
-        for (unsigned int i = 0; i < 10; i++)
+        resid_resid = resid * resid;
+        for (unsigned int i = 0; i < niter; i++)
         {
-            temp = product(direction);
-            alpha = (resid * resid) / (direction * temp);
+            product(direction, temp);
+
+            alpha = (resid_resid) / (direction * temp);
             X += alpha * direction;
-            resid_old = resid;
             resid -= alpha * temp;
             resid_norm = resid.norm_2();
             if (resid_norm <= epsilon)
                 break;
             if (printMessages && (i % messageStep == 0))
                 std::cout << i << ", невязка: " << resid_norm << std::endl;
-            beta = (resid * resid) / (resid_old * resid_old);
+            resid_resid_new = resid * resid;
+            beta = (resid_resid_new) / (resid_resid);
             // d = r + d*beta
             direction.scale(beta);
             direction += resid;
+            //
+            resid_resid = resid_resid_new;
         }
     }
     return X;
@@ -139,6 +145,46 @@ DoubleVector MappedDoubleMatrix::product(const DoubleVector &dv) const
         mul[i] = sum;
     }
     return mul;
+}
+
+void MappedDoubleMatrix::product(const DoubleVector &dv, DoubleVector &res) const
+{
+    for (size_type i = 0; i < size_; i++)
+    {
+        double sum = 0.0;
+        for (MappedDoubleVector::iterator it = data_[i].begin(); it != data_[i].end(); it++)
+        {
+            sum += it->second * dv[it->first];
+        }
+        res[i] = sum;
+    }
+}
+
+void MappedDoubleMatrix::zeroRow(size_type i)
+{
+    for (MappedDoubleVector::iterator it = data_[i].begin(); it != data_[i].end(); it++)
+        it->second = 0.0;
+}
+
+void MappedDoubleMatrix::zeroCol(size_type j)
+{
+    for (size_type i = 0; i < size_; i++)
+    {
+        typename MappedDoubleVector::iterator it = data_[i].find(j);
+        if (it != data_[i].end())
+        {
+            it->second = 0.0;
+        }
+    }
+}
+
+void MappedDoubleMatrix::zeroSym(size_type i)
+{
+    for (MappedDoubleVector::iterator it = data_[i].begin(); it != data_[i].end(); it++)
+    {
+        it->second = 0.0;
+        data_[it->first][i] = 0.0;
+    }
 }
 
 DoubleVector operator *(const MappedDoubleMatrix &mdm, const DoubleVector dv)
