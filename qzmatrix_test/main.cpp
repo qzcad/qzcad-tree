@@ -58,9 +58,12 @@ int main()
     eee.print();
     cout << "sparce" << endl;
     MappedDoubleMatrix mdm(3);
-    mdm(0, 1) = 0.5;
-    mdm(1, 0) = 0.1; mdm(1, 2) = 0.3;
-    mdm(2, 1) = 0.7;
+//    mdm(0, 1) = 0.5;
+//    mdm(1, 0) = 0.1; mdm(1, 2) = 0.3;
+//    mdm(2, 1) = 0.7;
+    mdm(0, 0) = 1.0; mdm(0, 1) = 1.0;
+    mdm(1, 0) = 1.0; mdm(1, 1) = 1.0; mdm(1, 2) = 2.0;
+                     mdm(2, 1) = 2.0; mdm(2, 2) = 1.0;
     mdm.print();
     DoubleVector v3(3, 1.0);
     v3[0] += 1.0;
@@ -70,6 +73,19 @@ int main()
     cout << "mdm * v3: ";
     ccc_v3.print();
     cout << "v * ccc_v3 = " << v3 * ccc_v3 << endl;
+    DoubleVector X = mdm.conjugateGradient(v3);
+    X.print();
+//    MappedDoubleMatrix tst(2);
+//    tst(0,0) = 4.0; tst(0, 1) = 1.0;
+//    tst(1,0) = 1.0; tst(1, 1) = 3.0;
+//    cout << "test system: " << endl;
+//    tst.print();
+//    DoubleVector tsv(2);
+//    tsv[0] = 1.0; tsv[1] = 2.0;
+//    cout << endl;
+//    tsv.print();
+//    DoubleVector X = tst.conjugateGradient(tsv);
+//    X.print();
     return 0;
 }
 

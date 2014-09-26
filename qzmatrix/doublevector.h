@@ -99,6 +99,12 @@ public:
      */
     reference operator [](size_type i);
     /**
+     * @brief Константный оператор для доступа к элементу по индексу
+     * @param i Индекс элемента
+     * @return Коснтантная ссылка на элемент с заданным индексом
+     */
+    const_reference operator [](size_type i) const;
+    /**
      * @brief Оператор присвоения
      * @param dv Экземпляр объекта для присвоения
      * @return Ссылка на копию
@@ -110,6 +116,30 @@ public:
      * @return Значение векторного произведения
      */
     double operator *(const DoubleVector &dv) const;
+    /**
+     * @brief Метод для умножения всех элементов массива на число
+     * @param d Число на которое умножается массив
+     */
+    void scale(const double &d);
+    /**
+     * @brief Оператор для нахождения произведения числа на вектор
+     * @param d Число, которое необходимо умножить на вектор
+     * @param vec Вектор для умножения
+     * @return Вектор - результат поэлементного умножения на число
+     */
+    friend DoubleVector operator *(const double &d, const DoubleVector &vec);
+    /**
+     * @brief Оператор присвоения с прибавлением
+     * @param vec Вектор, который необходимо присвоить с прибавлением
+     * @return Ссылка на результат
+     */
+    DoubleVector &operator +=(const DoubleVector &vec);
+    /**
+     * @brief Оператор присвоения с вычитание
+     * @param vec Вектор, который необходимо вычесть
+     * @return Ссылка на результат
+     */
+    DoubleVector &operator -=(const DoubleVector &vec);
     /**
      * @brief Метод для печати элементов массива на консоль (стандартный вывод)
      * @param separator Разделитель между элементами

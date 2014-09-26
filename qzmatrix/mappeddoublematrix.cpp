@@ -85,6 +85,62 @@ void MappedDoubleMatrix::print(char separator) const
     }
 }
 
+DoubleVector MappedDoubleMatrix::conjugateGradient(const DoubleVector &B, double epsilon, unsigned int niter, bool printMessages, unsigned int messageStep) const
+{
+    DoubleVector X(size_, 0.0); // начальное приближение - вектор нулей
+    DoubleVector resid(size_); // невязка
+    DoubleVector direction; // направление поиска
+    DoubleVector resid_old; // невязка на предыдущей итерации
+    DoubleVector temp; // ременное хранилище для обмена данными
+    double resid_norm; // норма невязки
+    double alpha;
+    double beta;
+
+    residual(X, B, resid);
+
+    direction = resid;
+
+    resid_norm = resid.norm_2();
+
+    if (printMessages) std::cout << "Начальная невязка: " << resid_norm << std::endl;
+    if (resid_norm > epsilon)
+    {
+        for (unsigned int i = 0; i < 10; i++)
+        {
+            temp = product(direction);
+            alpha = (resid * resid) / (direction * temp);
+            X += alpha * direction;
+            resid_old = resid;
+            resid -= alpha * temp;
+            resid_norm = resid.norm_2();
+            if (resid_norm <= epsilon)
+                break;
+            if (printMessages && (i % messageStep == 0))
+                std::cout << i << ", невязка: " << resid_norm << std::endl;
+            beta = (resid * resid) / (resid_old * resid_old);
+            // d = r + d*beta
+            direction.scale(beta);
+            direction += resid;
+        }
+    }
+    return X;
+}
+
+DoubleVector MappedDoubleMatrix::product(const DoubleVector &dv) const
+{
+    DoubleVector mul(size_);
+    for (size_type i = 0; i < size_; i++)
+    {
+        double sum = 0.0;
+        for (MappedDoubleVector::iterator it = data_[i].begin(); it != data_[i].end(); it++)
+        {
+            sum += it->second * dv[it->first];
+        }
+        mul[i] = sum;
+    }
+    return mul;
+}
+
 DoubleVector operator *(const MappedDoubleMatrix &mdm, const DoubleVector dv)
 {
     size_type size = mdm.size();
@@ -94,7 +150,7 @@ DoubleVector operator *(const MappedDoubleMatrix &mdm, const DoubleVector dv)
         double sum = 0.0;
         for (MappedDoubleVector::iterator it = mdm.data_[i].begin(); it != mdm.data_[i].end(); it++)
         {
-            sum += it->second * dv.data(it->first);
+            sum += it->second * dv[it->first];
         }
         mul[i] = sum;
     }
@@ -114,6 +170,19 @@ void MappedDoubleMatrix::clear()
         delete []data_;
         data_ = 0;
         size_ = 0;
+    }
+}
+
+void MappedDoubleMatrix::residual(const DoubleVector &X, const DoubleVector &B, DoubleVector &R) const
+{
+    for (size_type i = 0; i < size_; i++)
+    {
+        double t = B[i];
+        for (MappedDoubleVector::iterator it = data_[i].begin(); it != data_[i].end(); it++)
+        {
+            t -= it->second * X[it->first];
+        }
+        R[i] = t;
     }
 }
 }

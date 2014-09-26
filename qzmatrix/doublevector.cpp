@@ -114,6 +114,11 @@ reference DoubleVector::operator [](size_type i)
     return data_[i];
 }
 
+const_reference DoubleVector::operator [](size_type i) const
+{
+    return data_[i];
+}
+
 DoubleVector &DoubleVector::operator=(const DoubleVector &dv)
 {
     if (this != &dv)
@@ -124,14 +129,52 @@ DoubleVector &DoubleVector::operator=(const DoubleVector &dv)
     return *this;
 }
 
-double DoubleVector::operator *(const DoubleVector &dv)const
+double DoubleVector::operator *(const DoubleVector &dv) const
 {
     register double sum = 0.0;
 
     for (size_type i = 0; i < size_; i++)
+    {
         sum += data_[i] * dv.data_[i];
+    }
 
     return sum;
+}
+
+void DoubleVector::scale(const double &d)
+{
+    for (size_type i = 0; i < size_; i++)
+    {
+        data_[i] *= d;
+    }
+}
+
+DoubleVector &DoubleVector::operator +=(const DoubleVector &vec)
+{
+    for (size_type i = 0; i < size_; i++)
+    {
+        data_[i] += vec.data_[i];
+    }
+    return *this;
+}
+
+DoubleVector &DoubleVector::operator -=(const DoubleVector &vec)
+{
+    for (size_type i = 0; i < size_; i++)
+    {
+        data_[i] -= vec.data_[i];
+    }
+    return *this;
+}
+
+DoubleVector operator *(const double &d, const DoubleVector &vec)
+{
+    DoubleVector m(vec.size_);
+    for (size_type i = 0; i < vec.size_; i++)
+    {
+        m.data_[i] = d * vec.data_[i];
+    }
+    return m;
 }
 
 void DoubleVector::print(char separator) const
