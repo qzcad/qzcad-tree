@@ -124,7 +124,7 @@ void GLMeshPicture::setDefault()
     emit zRotationChanged(zRot_);
     emit zoomChanged(zoom_);
     emit translateStepChanged(translateStep_);
-    resetProjectionMatrix ();
+//    resetProjectionMatrix (); // на некоторых системах приводит к краху при вызове из конструткора
 }
 
 int GLMeshPicture::normalizedViewAngle(const int &angle)
@@ -251,12 +251,12 @@ void GLMeshPicture::drawRegionBorders()
 
 void GLMeshPicture::resetProjectionMatrix()
 {
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
     double dx = fabs(xMax_ - xMin_);
     double dy = fabs(yMax_ - yMin_);
     double dz = fabs(zMax_ - zMin_);
     double max = qMax(dx, qMax(dy, dz));
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
 #ifdef QT_OPENGL_ES_1
     glOrthof(-max, max,
              -max, max,
