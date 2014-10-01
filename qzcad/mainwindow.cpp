@@ -6,6 +6,7 @@
 #include <QFileDialog>
 #include <QTextStream>
 #include <QInputDialog>
+#include <QTime>
 
 #include "globalconsts.h"
 
@@ -41,7 +42,7 @@ MainWindow::MainWindow(QWidget *parent) :
     showMaximized();
     stdRedirector = new QStdRedirector<>(std::cout, this);
     connect(stdRedirector, SIGNAL(messageChanged(QString)), this, SLOT(onConsoleMessage(QString)));
-    std::cout << "Система успешно запущена и готова к использованию..." << std::endl;
+    std::cout << QTime::currentTime().toString("HH:mm:ss").toAscii().data() << ": система успешно запущена и готова к использованию..." << std::endl;
 }
 
 MainWindow::~MainWindow()
@@ -590,8 +591,11 @@ void MainWindow::on_actionElasticFem_triggered()
                                                                                   dialog.forceV(i),
                                                                                   dialog.forceW(i)));
                     }
+                    QTime beginTime = QTime::currentTime();
+                    std::cout << beginTime.toString("HH:mm:ss").toAscii().data() << ": запущен расчет методом конечных элементов" << std::endl;
                     HexahedralFEM fem(hexahedralMesh, *params, forces, boundaryConditions);
-
+                    QTime endTime = QTime::currentTime();
+                    std::cout << endTime.toString("HH:mm:ss").toAscii().data() << ": завершен расчет методом конечных элементов; продолжительность рачета: " << beginTime.secsTo(endTime) << " секунд." << std::endl;
                     // очистка памяти
                     delete params;
                     for (int i = 0; i < dialog.boundaryCount(); i++)
