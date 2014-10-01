@@ -11,7 +11,12 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = qzcad
 TEMPLATE = app
 
-#QMAKE_CXXFLAGS += -std=c++0x
+# OpenMP section ####################################
+QMAKE_CXXFLAGS += -DWITH_OPENMP # global definition for macro
+QMAKE_CXXFLAGS += -fopenmp
+QMAKE_LFLAGS += -fopenmp
+#####################################################
+
 
 SOURCES += main.cpp\
         mainwindow.cpp \

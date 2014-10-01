@@ -105,7 +105,7 @@ public:
      * @param messageStep Щаг печати сообщений (через сколько итеаций выводить сообщение
      * @return Решение СЛАУ
      */
-    DoubleVector conjugateGradient(const DoubleVector &B, double epsilon = 1.0E-6, unsigned int niter = 50000, bool printMessages = true, unsigned int messageStep = 100) const;
+    DoubleVector conjugateGradient(const DoubleVector &B, double epsilon = 1.0E-6, unsigned int niter = 50000, bool printMessages = true, unsigned int messageStep = 25) const;
     /**
      * @brief Метод для получения результата умножения текущей матрицы на вектор
      * @param dv Вектор, на который умножается матрица

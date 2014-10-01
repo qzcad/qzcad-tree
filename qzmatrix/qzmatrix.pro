@@ -10,6 +10,12 @@ TARGET = qzmatrix
 TEMPLATE = lib
 CONFIG += staticlib
 
+# OpenMP section ####################################
+QMAKE_CXXFLAGS += -DWITH_OPENMP # global definition for macro
+QMAKE_CXXFLAGS += -fopenmp
+QMAKE_LFLAGS += -fopenmp
+#####################################################
+
 SOURCES += doublematrix.cpp \
     doublevector.cpp \
     mappeddoublematrix.cpp

@@ -1,6 +1,11 @@
 #include <iostream>
 #include <float.h>
 #include <math.h>
+
+#ifdef WITH_OPENMP
+#include <omp.h>
+#endif
+
 #include "doublevector.h"
 
 namespace mtx {
@@ -137,7 +142,10 @@ DoubleVector &DoubleVector::operator=(const DoubleVector &dv)
 double DoubleVector::operator *(const DoubleVector &dv) const
 {
     register double sum = 0.0;
-
+#ifdef WITH_OPENMP
+    omp_set_num_threads(omp_get_max_threads()); // использовать максимальное количество потоков
+#pragma omp parallel for reduction(+:sum)
+#endif
     for (size_type i = 0; i < size_; i++)
     {
         sum += data_[i] * dv.data_[i];

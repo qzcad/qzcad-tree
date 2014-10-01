@@ -3,6 +3,12 @@ CONFIG += console
 CONFIG -= app_bundle
 CONFIG -= qt
 
+# OpenMP section ####################################
+QMAKE_CXXFLAGS += -DWITH_OPENMP # global definition for macro
+QMAKE_CXXFLAGS += -fopenmp
+QMAKE_LFLAGS += -fopenmp
+#####################################################
+
 SOURCES += main.cpp
 
 

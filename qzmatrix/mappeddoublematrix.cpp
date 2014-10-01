@@ -1,4 +1,8 @@
 #include <iostream>
+#include <math.h>
+#ifdef WITH_OPENMP
+#include <omp.h>
+#endif
 #include "mappeddoublematrix.h"
 
 namespace mtx {
@@ -115,12 +119,17 @@ DoubleVector MappedDoubleMatrix::conjugateGradient(const DoubleVector &B, double
             alpha = (resid_resid) / (direction * temp);
             X += alpha * direction;
             resid -= alpha * temp;
-            resid_norm = resid.norm_2();
+            resid_resid_new = resid * resid;
+            resid_norm = sqrt(resid_resid_new);
             if (resid_norm <= epsilon)
+            {
+                if (printMessages)
+                    std::cout << "Решение найдено. Итераций: " << i << ", невязка: " << resid_norm << std::endl;
                 break;
+            }
             if (printMessages && (i % messageStep == 0))
                 std::cout << i << ", невязка: " << resid_norm << std::endl;
-            resid_resid_new = resid * resid;
+
             beta = (resid_resid_new) / (resid_resid);
             // d = r + d*beta
             direction.scale(beta);
@@ -135,6 +144,10 @@ DoubleVector MappedDoubleMatrix::conjugateGradient(const DoubleVector &B, double
 DoubleVector MappedDoubleMatrix::product(const DoubleVector &dv) const
 {
     DoubleVector mul(size_);
+#ifdef WITH_OPENMP
+    omp_set_num_threads(omp_get_max_threads()); // использовать максимальное количество потоков
+#pragma omp parallel for
+#endif
     for (size_type i = 0; i < size_; i++)
     {
         double sum = 0.0;
@@ -149,6 +162,10 @@ DoubleVector MappedDoubleMatrix::product(const DoubleVector &dv) const
 
 void MappedDoubleMatrix::product(const DoubleVector &dv, DoubleVector &res) const
 {
+#ifdef WITH_OPENMP
+    omp_set_num_threads(omp_get_max_threads()); // использовать максимальное количество потоков
+#pragma omp parallel for
+#endif
     for (size_type i = 0; i < size_; i++)
     {
         double sum = 0.0;
@@ -191,6 +208,10 @@ DoubleVector operator *(const MappedDoubleMatrix &mdm, const DoubleVector dv)
 {
     size_type size = mdm.size();
     DoubleVector mul(size);
+#ifdef WITH_OPENMP
+    omp_set_num_threads(omp_get_max_threads()); // использовать максимальное количество потоков
+#pragma omp parallel for
+#endif
     for (size_type i = 0; i < size; i++)
     {
         double sum = 0.0;
