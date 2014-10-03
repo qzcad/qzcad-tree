@@ -177,6 +177,11 @@ std::vector<double> HexahedralFEM::tauZX() const
     return tauZX_;
 }
 
+std::vector<double> HexahedralFEM::sigma() const
+{
+    return sigma_;
+}
+
 void HexahedralFEM::buildElasticMatrix(const MechanicalParameters3D &params, DoubleMatrix &D)
 {
     // матрица податливости
@@ -749,6 +754,8 @@ void HexahedralFEM::recoverStress(HexahedralMesh3D *mesh, const DoubleMatrix &D)
     double maxTauXY = -DBL_MAX;
     double maxTauYZ = -DBL_MAX;
     double maxTauZX = -DBL_MAX;
+    double minSigma = DBL_MAX;
+    double maxSigma = -DBL_MAX;
 
     std::cout << "Вычисление напряжений..." << std::endl;
 
@@ -876,6 +883,10 @@ void HexahedralFEM::recoverStress(HexahedralMesh3D *mesh, const DoubleMatrix &D)
         tauXY_.push_back(S(3, 0));
         tauYZ_.push_back(S(4, 0));
         tauZX_.push_back(S(5, 0));
+        // функция для вычисления квадрата числа (C++0x)
+        auto sqr = [](const double &value) { return value * value; };
+        double sigma = (1.0/sqrt(2.0)) * sqrt( sqr(S(0,0) - S(1,0)) + sqr(S(1,0) - S(2,0)) + sqr(S(2,0) - S(0,0)) + 6.0 * (sqr(S(3,0)) + sqr(S(4,0)) + sqr(S(5,0))) );
+        sigma_.push_back( sigma );
 
         if (S(0, 0) > maxSigmaX) maxSigmaX = S(0, 0);
         if (S(0, 0) < minSigmaX) minSigmaX = S(0, 0);
@@ -894,6 +905,9 @@ void HexahedralFEM::recoverStress(HexahedralMesh3D *mesh, const DoubleMatrix &D)
 
         if (S(5, 0) > maxTauZX) maxTauZX = S(5, 0);
         if (S(5, 0) < minTauZX) minTauZX = S(5, 0);
+
+        if (sigma > maxSigma) maxSigma = sigma;
+        if (sigma < minSigma) minSigma = sigma;
     } // for elementNumber
     std::cout << minSigmaX << " <= SigmaX <= " << maxSigmaX << std::endl;
     std::cout << minSigmaY << " <= SigmaY <= " << maxSigmaY << std::endl;
@@ -901,6 +915,7 @@ void HexahedralFEM::recoverStress(HexahedralMesh3D *mesh, const DoubleMatrix &D)
     std::cout << minTauXY << " <= TauXY <= " << maxTauXY << std::endl;
     std::cout << minTauYZ << " <= TauYZ <= " << maxTauYZ << std::endl;
     std::cout << minTauZX << " <= TauZX <= " << maxTauZX << std::endl;
+    std::cout << minSigma << " <= sigma <= " << maxSigma << std::endl;
 }
 
 void HexahedralFEM::recoverStress(HexahedralMesh3D *mesh, const DoubleMatrix D[])
@@ -921,6 +936,8 @@ void HexahedralFEM::recoverStress(HexahedralMesh3D *mesh, const DoubleMatrix D[]
     double maxTauXY = -DBL_MAX;
     double maxTauYZ = -DBL_MAX;
     double maxTauZX = -DBL_MAX;
+    double minSigma = DBL_MAX;
+    double maxSigma = -DBL_MAX;
 
     std::cout << "Вычисление напряжений..." << std::endl;
 
@@ -1050,6 +1067,11 @@ void HexahedralFEM::recoverStress(HexahedralMesh3D *mesh, const DoubleMatrix D[]
         tauXY_.push_back(S(3, 0));
         tauYZ_.push_back(S(4, 0));
         tauZX_.push_back(S(5, 0));
+        // функция для вычисления квадрата числа (C++0x)
+        auto sqr = [](const double &value) { return value * value; };
+        double sigma = (1.0/sqrt(2.0)) * sqrt( sqr(S(0,0) - S(1,0)) + sqr(S(1,0) - S(2,0)) + sqr(S(2,0) - S(0,0)) + 6.0 * (sqr(S(3,0)) + sqr(S(4,0)) + sqr(S(5,0))) );
+        sigma_.push_back( sigma );
+
 
         if (S(0, 0) > maxSigmaX) maxSigmaX = S(0, 0);
         if (S(0, 0) < minSigmaX) minSigmaX = S(0, 0);
@@ -1068,6 +1090,9 @@ void HexahedralFEM::recoverStress(HexahedralMesh3D *mesh, const DoubleMatrix D[]
 
         if (S(5, 0) > maxTauZX) maxTauZX = S(5, 0);
         if (S(5, 0) < minTauZX) minTauZX = S(5, 0);
+
+        if (sigma > maxSigma) maxSigma = sigma;
+        if (sigma < minSigma) minSigma = sigma;
     } // for elementNumber
     std::cout << minSigmaX << " <= SigmaX <= " << maxSigmaX << std::endl;
     std::cout << minSigmaY << " <= SigmaY <= " << maxSigmaY << std::endl;
@@ -1075,6 +1100,7 @@ void HexahedralFEM::recoverStress(HexahedralMesh3D *mesh, const DoubleMatrix D[]
     std::cout << minTauXY << " <= TauXY <= " << maxTauXY << std::endl;
     std::cout << minTauYZ << " <= TauYZ <= " << maxTauYZ << std::endl;
     std::cout << minTauZX << " <= TauZX <= " << maxTauZX << std::endl;
+    std::cout << minSigma << " <= sigma <= " << maxSigma << std::endl;
 }
 
 void HexahedralFEM::displacementToUVW(const DoubleVector &displacement, const UInteger &nodesCount)

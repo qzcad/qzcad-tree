@@ -613,6 +613,7 @@ void MainWindow::on_actionElasticFem_triggered()
                     ui->pictureControl->pushElementValuesVector(NamedFloatingVector("Tau uv", fem.tauXY()));
                     ui->pictureControl->pushElementValuesVector(NamedFloatingVector("Tau vw", fem.tauYZ()));
                     ui->pictureControl->pushElementValuesVector(NamedFloatingVector("Tau wu", fem.tauZX()));
+                    ui->pictureControl->pushElementValuesVector(NamedFloatingVector("sigma", fem.sigma()));
                 }
             }
         }

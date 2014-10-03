@@ -70,6 +70,11 @@ public:
     std::vector<double> tauYZ() const;
     std::vector<double> tauZX() const;
     /// @}
+    /**
+    * @brief Метод для получения интенсивности напряжений
+    * @return Интенсивность напряжений в середине каждого элемента
+    */
+    std::vector<double> sigma() const;
 
 protected:
     /**
@@ -131,6 +136,7 @@ protected:
      * @param nodesCount Количество узлов в сетке
      */
     void displacementToUVW(const DoubleVector &displacement, const UInteger &nodesCount);
+//    double sqr(const double &a) { return a*a; }
 private:
     std::vector<double> u_; //!< Перемещения в первом направлении (x)
     std::vector<double> v_; //!< Перемещения во втором направлении (y)
@@ -141,6 +147,7 @@ private:
     std::vector<double> tauXY_; //!< Касательные компоненты напряжения, в плоскости 1-2 (x-y)
     std::vector<double> tauYZ_; //!< Касательные компоненты напряжения, в плоскости 2-3 (y-z)
     std::vector<double> tauZX_; //!< Касательные компоненты напряжения, в плоскости 3-1 (z-x)
+    std::vector<double> sigma_; //!< Интенсивность напряжений
 };
 
 #endif // HEXAHEDRALFEM_H
