@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <float.h>
+
 #include <QMessageBox>
 #include <QTextCodec>
 #include <QFileDialog>
@@ -259,6 +261,7 @@ void MainWindow::on_actionSaveMesh_triggered()
         if (dialog.result() == QDialog::Accepted)
         {
             QTextStream out(&file);
+            out.setRealNumberPrecision(DBL_DIG);
             int dim = mesh->dimesion();
             int elementNodes = mesh->element(0)->verticesCount(); // определяем количество узлов в элементе
             out << dim << ' ' << elementNodes << '\n';
