@@ -16,13 +16,13 @@ public:
     /**
      * @brief Конструктор для упруго-пластичного расчета. Шастигранные конечные элементы
      * @param mesh Указатель на сетку шестигранных элементов
-     * @param epsilon Массив деформаций
-     * @param sigma Соответствующий массиву деформаций массив напряжений
+     * @param strain Массив деформаций
+     * @param stress Соответствующий массиву деформаций массив напряжений
      * @param nu Коэффициент Пуассона
      * @param boundaryForces Массив сил (шаг)
      * @param boundaryConditions Массив граничных условий
      */
-    PlasticFem(HexahedralMesh3D* mesh, const std::vector<double> &epsilon, const std::vector<double> &sigma, const double &nu, const std::vector<FEMCondition3DPointer> &boundaryForces, const std::vector<FEMCondition3DPointer> &boundaryConditions);
+    PlasticFem(HexahedralMesh3D* mesh, const std::vector<double> &strain, const std::vector<double> &stress, const double &nu, const std::vector<FEMCondition3DPointer> &boundaryForces, const std::vector<FEMCondition3DPointer> &boundaryConditions);
 };
 
 #endif // PLASTICFEM_H
