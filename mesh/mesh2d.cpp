@@ -54,13 +54,6 @@ int Mesh2D::dimesion() const
     return 2;
 }
 
-double Mesh2D::nodeValue(const UInteger &number) const
-{
-    if (number < nodeValue_.size())
-        return nodeValue_[number];
-    return (double)number;
-}
-
 NodeType Mesh2D::nodeType(const UInteger &number) const
 {
     return node_[number].type;
@@ -141,16 +134,6 @@ UInteger Mesh2D::addNode(const Point2D &point, const NodeType &type)
         }
     }
     return pushNode(point, type);
-}
-
-void Mesh2D::clearNodeValues()
-{
-    nodeValue_.clear();
-}
-
-void Mesh2D::pushNodeValue(const double &val)
-{
-    nodeValue_.push_back(val);
 }
 
 void Mesh2D::updateDomain()

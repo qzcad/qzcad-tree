@@ -534,7 +534,7 @@ void HexahedralFEM::assebly(HexahedralMesh3D *mesh, DoubleMatrix D[], MappedDoub
                         B(5, i) = dNdZ(i); B(5, i + 16) = dNdX(i);
                     }
 
-                    int dNum = (int)mesh->elementValue(elementNumber);
+                    int dNum = mesh->layer(elementNumber);
 
                     localMatrix += detJacobian * xiWeight * etaWeight * muWeight * (B.transpose() * D[dNum] * B);
 
@@ -1057,7 +1057,7 @@ void HexahedralFEM::recoverStress(HexahedralMesh3D *mesh, const DoubleMatrix D[]
             U(i + 16, 0) = w_[element->vertexNode(i)];
         }
 
-        int dNum = (int)mesh->elementValue(elementNumber);
+        int dNum = mesh->layer(elementNumber);
 
         S = D[dNum] * B * U;
 

@@ -236,23 +236,6 @@ void QuadrilateralMesh2D::addElement(const UInteger &node0, const UInteger &node
     node_[node3].adjacent.insert(element_.size() - 1);
 }
 
-void QuadrilateralMesh2D::clearElementValues()
-{
-    elementValue_.clear();
-}
-
-void QuadrilateralMesh2D::pushElementValue(const double &val)
-{
-    elementValue_.push_back(val);
-}
-
-double QuadrilateralMesh2D::elementValue(const UInteger &number) const
-{
-    if (number < elementValue_.size())
-        return elementValue_[number];
-    return (double)number;
-}
-
 double QuadrilateralMesh2D::isoFunc(const UInteger &i, const double &xi, const double &eta)
 {
     switch (i)

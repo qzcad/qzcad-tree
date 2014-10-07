@@ -6,6 +6,8 @@
 #ifndef MESH_H
 #define MESH_H
 
+#include <vector>
+
 #include "pointpointer.h"
 #include "elementpointer.h"
 #include "nodetype.h"
@@ -85,18 +87,6 @@ public:
      */
     virtual int dimesion() const = 0;
     /**
-     * @brief Значение некоторой функции, определенной на элементе
-     * @param number Номер элемента
-     * @return Значение, соответствующее элементу
-     */
-    virtual double elementValue(const UInteger &number) const = 0;
-    /**
-     * @brief Значение некоторой функции, определенной на зле
-     * @param number Номер узла
-     * @return Значение, соответствующее узлу
-     */
-    virtual double nodeValue(const UInteger &number) const = 0;
-    /**
      * @brief Определить принадлежность элемента границе
      * @param number Номер элемента
      * @return true - граничный элемент; false - внутренний
@@ -107,18 +97,32 @@ public:
      */
     virtual void updateDomain() = 0;
     /**
-     * @brief Очистить массив значений, определенных в узле
+     * @brief Номер слоя элемента с заданным номером
+     * @param number Номер элемента
+     * @return Номер слоя для элемента с заданным номером
      */
-    virtual void clearNodeValues() = 0;
+    virtual int layer(const UInteger &number) const;
     /**
-     * @brief Добавить значение, опеределенное в узле, в массив
-     * @param val Значение, которое необходимо добавить
+     * @brief Установить номер слоя элемента
+     * @param number Номер элемента
+     * @param l Номер слоя/
      */
-    virtual void pushNodeValue(const double &val) = 0;
+    virtual void setLayer(const UInteger &number, const int &l);
+    /**
+     * @brief pushLayer Добавить значение с номером слоя в массив значений
+     * @param l Номер слоя
+     */
+    virtual void pushLayer(const int &l);
+    /**
+     * @brief Очистить информацию о номрах слоя
+     */
+    virtual void clearLayers();
     /**
      * @brief Виртуальный деструктор
      */
     virtual ~Mesh(){}
+protected:
+    std::vector<int> layer_; //!< Массив с номером слоя для каждого элемента
 };
 }
 #endif // MESH_H

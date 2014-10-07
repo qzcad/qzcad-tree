@@ -22,9 +22,7 @@ void QuadrilateralUnion2D::addQuadRegion(const UInteger &xCount, const UInteger 
         {
             double eta = -1.0 + (double) j * hy;
             Point2D point = isoFunc(0, xi, eta) * v0  + isoFunc(1, xi, eta) * v1 + isoFunc(2, xi, eta) * v2 + isoFunc(3, xi, eta) * v3;
-            //            if (i == 0 || j == 0 || i == xCount - 1 || j == yCount - 1)
-            //                pushNode(point, BORDER);
-            //            else
+
             nodeNumber[i * yCount + j] = addNode(point, INNER);
         }
     }
@@ -35,7 +33,7 @@ void QuadrilateralUnion2D::addQuadRegion(const UInteger &xCount, const UInteger 
         {
             addElement(nodeNumber[i * yCount + j], nodeNumber[(i + 1) * yCount + j], nodeNumber[(i + 1) * yCount + j + 1], nodeNumber[i * yCount + j + 1]);
 
-            elementValue_.push_back(layerNumber_);
+            pushLayer(layerNumber_);
         }
     }
     if (isFirstRegion_)
@@ -53,6 +51,8 @@ void QuadrilateralUnion2D::addQuadRegion(const UInteger &xCount, const UInteger 
         yMin_ = std::min(yMin_, std::min(std::min(v0.y(), v1.y()), std::min(v2.y(), v3.y())));
         yMax_ = std::max(yMax_, std::max(std::max(v0.y(), v1.y()), std::max(v2.y(), v3.y())));
     }
+
+    layerNumber_++;
 }
 
 void QuadrilateralUnion2D::addTriangleRegion(const UInteger &count, const Point2D &v0, const Point2D &v1, const Point2D &v2)
@@ -97,7 +97,7 @@ void QuadrilateralUnion2D::addTriangleRegion(const UInteger &count, const Point2
                         nodeNumber[(i + 1) * sideCount + j + 1],
                         nodeNumber[i * sideCount + j + 1]);
 
-                elementValue_.push_back(layerNumber_);
+                pushLayer(layerNumber_);
             }
         }
     }
@@ -116,6 +116,8 @@ void QuadrilateralUnion2D::addTriangleRegion(const UInteger &count, const Point2
         yMin_ = std::min(yMin_, std::min(std::min(v0.y(), v1.y()), v2.y()));
         yMax_ = std::max(yMax_, std::max(std::max(v0.y(), v1.y()), v2.y()));
     }
+
+    layerNumber_++;
 }
 
 void QuadrilateralUnion2D::addMesh(QuadrilateralMesh2D *mesh)
@@ -151,7 +153,7 @@ void QuadrilateralUnion2D::addMesh(QuadrilateralMesh2D *mesh)
         UInteger node3 = nodeNumber[element->vertexNode(3)];
         addElement(node0, node1, node2, node3);
 
-        elementValue_.push_back(layerNumber_);
+        pushLayer(layerNumber_);
     }
     if (isFirstRegion_)
     {
@@ -175,8 +177,4 @@ void QuadrilateralUnion2D::addMesh(QuadrilateralMesh2D *mesh)
     layerNumber_++;
 }
 
-double QuadrilateralUnion2D::elementValue(const UInteger &number) const
-{
-    return (double)elementValue_[number];
-}
 }

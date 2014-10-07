@@ -21,16 +21,9 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QCheckBox" name="nodeValue">
+    <widget class="QCheckBox" name="isLayers">
      <property name="text">
-      <string>Значение в узле</string>
-     </property>
-    </widget>
-   </item>
-   <item>
-    <widget class="QCheckBox" name="elementValue">
-     <property name="text">
-      <string>Значение на элементе</string>
+      <string>Номер слоя элемента</string>
      </property>
     </widget>
    </item>

@@ -13,12 +13,8 @@ ExportMeshDialog::~ExportMeshDialog()
     delete ui;
 }
 
-bool ExportMeshDialog::isNodeValue()
+bool ExportMeshDialog::isLayers()
 {
-    return ui->nodeValue->isChecked();
+    return ui->isLayers->isChecked();
 }
 
-bool ExportMeshDialog::isElementValue()
-{
-    return ui->elementValue->isChecked();
-}

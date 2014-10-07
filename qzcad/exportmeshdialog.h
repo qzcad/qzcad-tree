@@ -22,15 +22,10 @@ public:
     explicit ExportMeshDialog(QWidget *parent = 0);
     ~ExportMeshDialog();
     /**
-     * @brief Флаг учета значений в узле
-     * @return true - начение в узле необходимо учесть
+     * @brief Сохранять информацию о слоях
+     * @return true, если сохранять
      */
-    bool isNodeValue();
-    /**
-     * @brief Флаг учета значений на элементе
-     * @return true - начение на элементе необходимо учесть
-     */
-    bool isElementValue();
+    bool isLayers();
 private:
     Ui::ExportMeshDialog *ui; //!< Указатель на контейнер элементов формы
 };

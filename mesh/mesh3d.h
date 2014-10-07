@@ -76,18 +76,6 @@ public:
      */
     virtual int dimesion() const;
     /**
-     * @brief Значение некоторой функции, определенной на элементе
-     * @param number Номер элемента
-     * @return Значение, соответствующее элементу
-     */
-    virtual double elementValue(const UInteger &number) const;
-    /**
-     * @brief Значение некоторой функции, определенной на зле
-     * @param number Номер узла
-     * @return Значение, соответствующее узлу
-     */
-    virtual double nodeValue(const UInteger &number) const;
-    /**
      * @brief Вычислить площадь поверхности дискретной модели
      * @return Площадь поверхности дискретной модели
      */
@@ -107,21 +95,11 @@ public:
      */
     UInteger addNode(const Point3D &point, const NodeType &type);
     /**
-     * @brief Очистить массив значений, определенных в узле
-     */
-    virtual void clearNodeValues();
-    /**
-     * @brief Добавить значение, опеределенное в узле, в массив
-     * @param val Значение, которое необходимо добавить
-     */
-    virtual void pushNodeValue(const double &val);
-    /**
      * @brief Обновить параметры области определения сетки (xMin, xMax, yMin, yMax, zMin, zMax)
      */
     virtual void updateDomain();
 protected:
     std::vector<Node3D> node_; //!< массив узлов
-    std::vector<double> nodeValue_; //!< массив значений, определенных в узле
     double xMin_; //!< минимальное значение ординаты
     double xMax_; //!< максимальное значение ординаты
     double yMin_; //!< минимальное значение абсциссы

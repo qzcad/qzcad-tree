@@ -43,9 +43,9 @@ public:
      * @param yDelta Смещение вдоль оси абсцисс
      * @param lCount Количество слоев элементов
      * @param x_axes Ось вращения (x_axes == true, то вращение вокруг оси ординат; иначе - абсцисс)
-     * @param withElementValue Учеть значения, опредедленные на элементе
+     * @param withLayersInfo Учеть номера слоев
      */
-    HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const double& xDelta, const double& yDelta, const int& lCount, bool x_axes, bool withElementValue = true);
+    HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const double& xDelta, const double& yDelta, const int& lCount, bool x_axes, bool withLayersInfo = true);
     /**
      * @brief HexahedralMesh3D Конструктор, который строит сетку как тело вращения на заданный угол
      * @param baseMesh Указатель на базовую двумерную сетку четырехугольных элементов
@@ -54,9 +54,9 @@ public:
      * @param angle Угол поворота профиля
      * @param lCount Количество слоев элементов
      * @param x_axes Ось вращения (x_axes == true, то вращение вокруг оси ординат; иначе - абсцисс)
-     * @param withElementValue Учеть значения, опредедленные на элементе
+     * @param withLayersInfo Учеть номера слоев
      */
-    HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const double& xDelta, const double& yDelta, const double& angle, const int& lCount, bool x_axes, bool withElementValue = true);
+    HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const double& xDelta, const double& yDelta, const double& angle, const int& lCount, bool x_axes, bool withLayersInfo = true);
     /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
@@ -74,12 +74,6 @@ public:
      * @return true - граничный элемент; false - внутренний
      */
     virtual bool isBorderElement(const UInteger &number) const;
-    /**
-     * @brief Значение некоторой функции, определенной на элементе
-     * @param number Номер элемента
-     * @return Значение, соответствующее элементу
-     */
-    virtual double elementValue(const UInteger &number) const;
     /**
      * @brief Вычислить площадь грани (грань - четырехугольник)
      * @param face Список номеров узлов, определяющих грань
@@ -105,18 +99,8 @@ public:
     void addElement(const UInteger &node0, const UInteger &node1, const UInteger &node2, const UInteger &node3,
                     const UInteger &node4, const UInteger &node5, const UInteger &node6, const UInteger &node7);
 //    UInteger toArray(UInteger i, UInteger j, UInteger k, UInteger yCount, UInteger zCount) { return i * yCount * zCount + j * zCount + k; }
-    /**
-     * @brief Очистить массив значений, определенных на элементе
-     */
-    virtual void clearElementValues();
-    /**
-     * @brief Добавить значение, определенное на элементе, в массив
-     * @param val Значение, которое необходимо добавить в массив
-     */
-    virtual void pushElementValue(const double &val);
 private:
     std::vector<Hexahedral> element_; //!< Массив шестигранных элементов
-    std::vector<double> elementValue_; //!< Значение на элементе
 };
 }
 

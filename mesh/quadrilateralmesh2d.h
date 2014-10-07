@@ -93,21 +93,6 @@ public:
      * @param node3 Номер узла в вершине 3
      */
     void addElement(const UInteger &node0, const UInteger &node1, const UInteger &node2, const UInteger &node3);
-    /**
-     * @brief Очистить массив значений, определенных на элементе
-     */
-    virtual void clearElementValues();
-    /**
-     * @brief Добавить значение, определенное на элементе, в массив
-     * @param val Значение, которое необходимо добавить в массив
-     */
-    virtual void pushElementValue(const double &val);
-    /**
-     * @brief Значение, определенное на элементе
-     * @param number Номер элемента
-     * @return Значение, определенное на элементе с номером number
-     */
-    virtual double elementValue(const UInteger &number) const;
 protected:
     /**
      * @brief Функция формы изопараметрического четырехугольного элемента
@@ -130,7 +115,6 @@ protected:
     //    double sqr(const Floating &a) { return a * a; }
 protected:
     std::vector<Quadrilateral> element_; //!< Массив элементов
-    std::vector<double> elementValue_; //!< Значение на элементе
 };
 }
 

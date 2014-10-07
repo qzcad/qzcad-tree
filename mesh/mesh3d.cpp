@@ -58,20 +58,6 @@ int Mesh3D::dimesion() const
     return 3;
 }
 
-double Mesh3D::elementValue(const UInteger &number) const
-{
-    return (double)number;
-}
-
-double Mesh3D::nodeValue(const UInteger &number) const
-{
-    if (number < nodeValue_.size())
-    {
-        return nodeValue_[number];
-    }
-    return (double)number;
-}
-
 UInteger Mesh3D::pushNode(const Point3D &point, const NodeType &type)
 {
     Node3D node;
@@ -93,16 +79,6 @@ UInteger Mesh3D::addNode(const Point3D &point, const NodeType &type)
         }
     }
     return pushNode(point, type);
-}
-
-void Mesh3D::clearNodeValues()
-{
-    nodeValue_.clear();
-}
-
-void Mesh3D::pushNodeValue(const double &val)
-{
-    nodeValue_.push_back(val);
 }
 
 void Mesh3D::updateDomain()

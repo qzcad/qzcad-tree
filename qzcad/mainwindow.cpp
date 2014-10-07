@@ -265,7 +265,7 @@ void MainWindow::on_actionSaveMesh_triggered()
             int dim = mesh->dimesion();
             int elementNodes = mesh->element(0)->verticesCount(); // определяем количество узлов в элементе
             out << dim << ' ' << elementNodes << '\n';
-            out << mesh->nodesCount() << ' ' << dialog.isNodeValue() << '\n';
+            out << mesh->nodesCount() << '\n';
             for (msh::UInteger i = 0; i < mesh->nodesCount(); i++)
             {
                 msh::PointPointer point = mesh->node(i);
@@ -273,10 +273,9 @@ void MainWindow::on_actionSaveMesh_triggered()
                 if (dim == 3)
                     out << point->z() << " ";
                 out << mesh->nodeType(i);
-                if (dialog.isNodeValue()) out << " " << mesh->nodeValue(i);
                 out << '\n';
             }
-            out << mesh->elementsCount() << ' ' << dialog.isElementValue() << '\n';
+            out << mesh->elementsCount() << ' ' << dialog.isLayers() << '\n';
             for (msh::UInteger i = 0; i < mesh->elementsCount(); i++)
             {
                 msh::ElementPointer element = mesh->element(i);
@@ -284,7 +283,7 @@ void MainWindow::on_actionSaveMesh_triggered()
                 {
                     out << element->vertexNode(j) << " ";
                 }
-                if (dialog.isElementValue()) out << mesh->elementValue(i);
+                if (dialog.isLayers()) out << mesh->layer(i);
                 out << '\n';
             }
         }
@@ -457,20 +456,18 @@ void MainWindow::on_actionLoadMesh_triggered()
     int dim;
     int elementNodes;
     msh::UInteger nodesCount;
-    int isNodeValue;
     msh::UInteger elementsCount;
-    int isElementValue;
+    int isLayers;
     in >> dim;
     in >> elementNodes;
     in >> nodesCount;
-    in >> isNodeValue;
     std::cout << "Размерность: " << dim << std::endl << "Количество узлов: " << nodesCount << std::endl;
     if (dim == 2 && elementNodes == 4) // четырехугольники
     {
         msh::QuadrilateralMesh2D *qMesh = new msh::QuadrilateralMesh2D();
         for (msh::UInteger i = 0; i < nodesCount; i++)
         {
-            double x, y, val;
+            double x, y;
             msh::Point2D point;
             int nodeType;
             in >> x;
@@ -478,14 +475,9 @@ void MainWindow::on_actionLoadMesh_triggered()
             in >> nodeType;
             point.set(x, y);
             qMesh->pushNode(point, static_cast<msh::NodeType>(nodeType));
-            if (isNodeValue)
-            {
-                in >> val;
-                qMesh->pushNodeValue(val);
-            }
         }
         in >> elementsCount;
-        in >> isElementValue;
+        in >> isLayers;
         std::cout << "Количнство элементов: " << elementsCount << std::endl;
         for (msh::UInteger i = 0; i < elementsCount; i++)
         {
@@ -494,10 +486,10 @@ void MainWindow::on_actionLoadMesh_triggered()
             for (int j = 0; j < elementNodes; j++)
                 in >> p[j];
             qMesh->addElement(p[0], p[1], p[2], p[3]);
-            if (isElementValue)
+            if (isLayers)
             {
                 in >> val;
-                qMesh->pushElementValue(val);
+                qMesh->pushLayer(val);
             }
         }
         qMesh->updateDomain();
@@ -508,7 +500,7 @@ void MainWindow::on_actionLoadMesh_triggered()
         msh::HexahedralMesh3D *hMesh = new msh::HexahedralMesh3D();
         for (msh::UInteger i = 0; i < nodesCount; i++)
         {
-            double x, y, z, val;
+            double x, y, z;
             msh::Point3D point;
             int nodeType;
             in >> x;
@@ -517,14 +509,9 @@ void MainWindow::on_actionLoadMesh_triggered()
             in >> nodeType;
             point.set(x, y, z);
             hMesh->pushNode(point, static_cast<msh::NodeType>(nodeType));
-            if (isNodeValue == 1)
-            {
-                in >> val;
-                hMesh->pushNodeValue(val);
-            }
         }
         in >> elementsCount;
-        in >> isElementValue;
+        in >> isLayers;
         std::cout << "Количнство элементов: " << elementsCount << std::endl;
         for (msh::UInteger i = 0; i < elementsCount; i++)
         {
@@ -533,10 +520,10 @@ void MainWindow::on_actionLoadMesh_triggered()
             for (int j = 0; j < elementNodes; j++)
                 in >> p[j];
             hMesh->addElement(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);
-            if (isElementValue == 1)
+            if (isLayers == 1)
             {
                 in >> val;
-                hMesh->pushElementValue(val);
+                hMesh->pushLayer(val);
             }
         }
         hMesh->updateDomain();
