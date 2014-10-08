@@ -178,21 +178,33 @@ void MappedDoubleMatrix::product(const DoubleVector &dv, DoubleVector &res) cons
 
 void MappedDoubleMatrix::zeroRow(size_type i)
 {
-    data_[i].clear();
+    for (MappedDoubleVector::iterator it = data_[i].begin(); it != data_[i].end(); it++)
+        it->second = 0.0;
+//    data_[i].clear();
 }
 
 void MappedDoubleMatrix::zeroCol(size_type j)
 {
     for (size_type i = 0; i < size_; i++)
     {
-        data_[i].erase(j);
+        typename MappedDoubleVector::iterator it = data_[i].find(j);
+        if (it != data_[i].end())
+        {
+            it->second = 0.0;
+        }
+//        data_[i].erase(j);
     }
 }
 
 void MappedDoubleMatrix::zeroSym(size_type i)
 {
-    zeroRow(i);
-    zeroCol(i);
+    for (MappedDoubleVector::iterator it = data_[i].begin(); it != data_[i].end(); it++)
+    {
+        it->second = 0.0;
+        data_[it->first][i] = 0.0;
+    }
+//    zeroRow(i);
+//    zeroCol(i);
 }
 
 DoubleVector operator *(const MappedDoubleMatrix &mdm, const DoubleVector dv)
