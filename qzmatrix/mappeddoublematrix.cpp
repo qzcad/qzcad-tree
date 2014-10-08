@@ -94,7 +94,6 @@ DoubleVector MappedDoubleMatrix::conjugateGradient(const DoubleVector &B, double
     DoubleVector X(size_, 0.0); // начальное приближение - вектор нулей
     DoubleVector resid(size_); // невязка
     DoubleVector direction; // направление поиска
-//    DoubleVector resid_old; // невязка на предыдущей итерации
     DoubleVector temp(size_); // ременное хранилище для обмена данными
     double resid_norm; // норма невязки
     double alpha;
@@ -179,29 +178,21 @@ void MappedDoubleMatrix::product(const DoubleVector &dv, DoubleVector &res) cons
 
 void MappedDoubleMatrix::zeroRow(size_type i)
 {
-    for (MappedDoubleVector::iterator it = data_[i].begin(); it != data_[i].end(); it++)
-        it->second = 0.0;
+    data_[i].clear();
 }
 
 void MappedDoubleMatrix::zeroCol(size_type j)
 {
     for (size_type i = 0; i < size_; i++)
     {
-        typename MappedDoubleVector::iterator it = data_[i].find(j);
-        if (it != data_[i].end())
-        {
-            it->second = 0.0;
-        }
+        data_[i].erase(j);
     }
 }
 
 void MappedDoubleMatrix::zeroSym(size_type i)
 {
-    for (MappedDoubleVector::iterator it = data_[i].begin(); it != data_[i].end(); it++)
-    {
-        it->second = 0.0;
-        data_[it->first][i] = 0.0;
-    }
+    zeroRow(i);
+    zeroCol(i);
 }
 
 DoubleVector operator *(const MappedDoubleMatrix &mdm, const DoubleVector dv)
