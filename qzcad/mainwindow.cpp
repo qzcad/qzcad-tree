@@ -516,7 +516,7 @@ void MainWindow::on_actionLoadMesh_triggered()
         for (msh::UInteger i = 0; i < elementsCount; i++)
         {
             msh::UInteger p[elementNodes];
-            double val;
+            int val;
             for (int j = 0; j < elementNodes; j++)
                 in >> p[j];
             hMesh->addElement(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);

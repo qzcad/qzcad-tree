@@ -43,7 +43,7 @@ double MappedDoubleMatrix::data(size_type i, size_type j) const
     {
         return it->second;
     }
-    return 0.0;
+    return 0;
 }
 
 void MappedDoubleMatrix::resize(size_type size)
@@ -114,7 +114,7 @@ DoubleVector MappedDoubleMatrix::conjugateGradient(const DoubleVector &B, double
         for (unsigned int i = 0; i < niter; i++)
         {
             product(direction, temp);
-
+//            std::cout << direction.norm_2() << "    " << temp.norm_2() << std::endl;
             alpha = (resid_resid) / (direction * temp);
             X += alpha * direction;
             resid -= alpha * temp;
@@ -149,7 +149,7 @@ DoubleVector MappedDoubleMatrix::product(const DoubleVector &dv) const
 #endif
     for (size_type i = 0; i < size_; i++)
     {
-        double sum = 0.0;
+        double sum = 0;
         for (MappedDoubleVector::iterator it = data_[i].begin(); it != data_[i].end(); it++)
         {
             sum += it->second * dv[it->first];
@@ -167,7 +167,7 @@ void MappedDoubleMatrix::product(const DoubleVector &dv, DoubleVector &res) cons
 #endif
     for (size_type i = 0; i < size_; i++)
     {
-        double sum = 0.0;
+        double sum = 0;
         for (MappedDoubleVector::iterator it = data_[i].begin(); it != data_[i].end(); it++)
         {
             sum += it->second * dv[it->first];
@@ -178,21 +178,21 @@ void MappedDoubleMatrix::product(const DoubleVector &dv, DoubleVector &res) cons
 
 void MappedDoubleMatrix::zeroRow(size_type i)
 {
-    for (MappedDoubleVector::iterator it = data_[i].begin(); it != data_[i].end(); it++)
-        it->second = 0.0;
-//    data_[i].clear();
+//    for (MappedDoubleVector::iterator it = data_[i].begin(); it != data_[i].end(); it++)
+//        it->second = 0;
+    data_[i].clear();
 }
 
 void MappedDoubleMatrix::zeroCol(size_type j)
 {
     for (size_type i = 0; i < size_; i++)
     {
-        typename MappedDoubleVector::iterator it = data_[i].find(j);
-        if (it != data_[i].end())
-        {
-            it->second = 0.0;
-        }
-//        data_[i].erase(j);
+//        typename MappedDoubleVector::iterator it = data_[i].find(j);
+//        if (it != data_[i].end())
+//        {
+//            it->second = 0;
+//        }
+        data_[i].erase(j);
     }
 }
 
@@ -200,10 +200,11 @@ void MappedDoubleMatrix::zeroSym(size_type i)
 {
     for (MappedDoubleVector::iterator it = data_[i].begin(); it != data_[i].end(); it++)
     {
-        it->second = 0.0;
-        data_[it->first][i] = 0.0;
+//        it->second = 0;
+//        data_[it->first][i] = 0;
+        data_[it->first].erase(i);
     }
-//    zeroRow(i);
+    zeroRow(i);
 //    zeroCol(i);
 }
 
@@ -217,7 +218,7 @@ DoubleVector operator *(const MappedDoubleMatrix &mdm, const DoubleVector dv)
 #endif
     for (size_type i = 0; i < size; i++)
     {
-        double sum = 0.0;
+        double sum = 0;
         for (MappedDoubleVector::iterator it = mdm.data_[i].begin(); it != mdm.data_[i].end(); it++)
         {
             sum += it->second * dv[it->first];

@@ -379,10 +379,11 @@ int main()
     input >> elementsCount;
     cout << "Элементов - " << elementsCount << "; загрузка элементов..." << endl;
     input >> isLayers;
+    mesh.clearLayers();
     for (UInteger i = 0; i < elementsCount; i++)
     {
         UInteger p[elementNodes];
-        double val;
+        int val;
         for (int j = 0; j < elementNodes; j++)
             input >> p[j];
         mesh.addElement(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);

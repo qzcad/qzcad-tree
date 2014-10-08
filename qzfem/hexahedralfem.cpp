@@ -31,6 +31,7 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3
 
     processForce(mesh, boundaryForce, force);
 
+    std::cout << "Учет граничных условий..." << std::endl;
     processBoundaryConditions(mesh, boundaryConditions, globalMatrix, force);
 
     std::cout << "Решение СЛАУ..." << std::endl;
@@ -73,6 +74,7 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3
         processForce(mesh, forcePointer, force);
     } // for bf
 
+    std::cout << "Учет граничных условий..." << std::endl;
     processBoundaryConditions(mesh, boundaryConditions, globalMatrix, force);
 
     std::cout << "Решение СЛАУ..." << std::endl;
@@ -120,6 +122,7 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const std::vector<Mechanica
         processForce(mesh, forcePointer, force);
     } // for bf
 
+    std::cout << "Учет граничных условий..." << std::endl;
     processBoundaryConditions(mesh, boundaryConditions, globalMatrix, force);
 
     std::cout << "Решение СЛАУ..." << std::endl;
@@ -624,8 +627,6 @@ void HexahedralFEM::processBoundaryConditions(HexahedralMesh3D *mesh, const std:
     const UInteger systemDimension = nodesCount * freedom;
     UInteger boundaryNodes = 0;
 
-    std::cout << "Учет граничных условий..." << std::endl;
-
     for (UInteger i = 0; i < nodesCount; i++)
     {
         ++progressBar;
@@ -640,14 +641,12 @@ void HexahedralFEM::processBoundaryConditions(HexahedralMesh3D *mesh, const std:
                 {
                     for (UInteger j = 0; j < systemDimension; j++)
                     {
-                        if (i != j && globalMatrix.data(i, j) != 0.0)
+                        if (i != j && globalMatrix.data(i, j) != 0)
                         { // см. Зенкевич, стр. 485
                             force(j) = force(j) - globalMatrix.data(i, j) * condition->u();
-//                            globalMatrix(i, j) = 0.0; // обнуление строки/столбца
-//                            globalMatrix(j, i) = 0.0;
                         }
                     }
-                    globalMatrix.zeroSym(i);
+//                    globalMatrix.zeroSym(i);
                     force(i) = condition->u();
                     globalMatrix(i, i) = 1.0;
                 } // if
@@ -656,11 +655,9 @@ void HexahedralFEM::processBoundaryConditions(HexahedralMesh3D *mesh, const std:
                     UInteger rowNumber = i + nodesCount;
                     for (UInteger j = 0; j < systemDimension; j++)
                     {
-                        if (rowNumber != j && globalMatrix.data(rowNumber, j) != 0.0)
+                        if (rowNumber != j && globalMatrix.data(rowNumber, j) != 0)
                         { // см. Зенкевич, стр. 485
                             force(j) = force(j) - globalMatrix.data(rowNumber, j) * condition->v();
-//                            globalMatrix(rowNumber, j) = 0.0; // обнуление строки/столбца
-//                            globalMatrix(j, rowNumber) = 0.0;
                         }
 
                     }
@@ -673,11 +670,9 @@ void HexahedralFEM::processBoundaryConditions(HexahedralMesh3D *mesh, const std:
                     UInteger rowNumber = i + 2L * nodesCount;
                     for (UInteger j = 0; j < systemDimension; j++)
                     {
-                        if (rowNumber != j && globalMatrix.data(rowNumber, j) != 0.0)
+                        if (rowNumber != j && globalMatrix.data(rowNumber, j) != 0)
                         { // см. Зенкевич, стр. 485
-                            force(j) = force(j) - globalMatrix(rowNumber, j) * condition->w();
-//                            globalMatrix(rowNumber, j) = 0.0; // обнуление строки/столбца
-//                            globalMatrix(j, rowNumber) = 0.0;
+                            force(j) = force(j) - globalMatrix.data(rowNumber, j) * condition->w();
                         }
                     }
                     globalMatrix.zeroSym(rowNumber);
