@@ -150,7 +150,7 @@ HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const double &
             }
 
             addElement(nodes_pointers[0], nodes_pointers[1], nodes_pointers[2], nodes_pointers[3], nodes_pointers[4], nodes_pointers[5], nodes_pointers[6], nodes_pointers[7]);
-            if (withLayersInfo)
+            if (withLayersInfo && baseMesh->sizeOfLayers() == baseMesh->elementsCount())
                 pushLayer(baseMesh->layer(i));
         }
     }
@@ -253,7 +253,7 @@ HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const double &
             }
 
             addElement(nodes_pointers[0], nodes_pointers[1], nodes_pointers[2], nodes_pointers[3], nodes_pointers[4], nodes_pointers[5], nodes_pointers[6], nodes_pointers[7]);
-            if (withLayersInfo)
+            if (withLayersInfo && baseMesh->sizeOfLayers() == baseMesh->elementsCount())
                 pushLayer(baseMesh->layer(i));
         }
     }

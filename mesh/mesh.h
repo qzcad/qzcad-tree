@@ -118,6 +118,10 @@ public:
      */
     virtual void clearLayers();
     /**
+     * @brief sizeOfLayers
+     */
+    virtual UInteger sizeOfLayers() const;
+    /**
      * @brief Виртуальный деструктор
      */
     virtual ~Mesh(){}

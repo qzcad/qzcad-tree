@@ -20,6 +20,11 @@ void Mesh::clearLayers()
 {
     layer_.clear();
 }
+
+UInteger Mesh::sizeOfLayers() const
+{
+    return layer_.size();
+}
 }
 
 
