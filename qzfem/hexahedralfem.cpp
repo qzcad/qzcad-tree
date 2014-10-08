@@ -646,7 +646,7 @@ void HexahedralFEM::processBoundaryConditions(HexahedralMesh3D *mesh, const std:
                             force(j) = force(j) - globalMatrix.data(i, j) * condition->u();
                         }
                     }
-//                    globalMatrix.zeroSym(i);
+                    globalMatrix.zeroSym(i);
                     force(i) = condition->u();
                     globalMatrix(i, i) = 1.0;
                 } // if

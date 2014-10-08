@@ -205,7 +205,6 @@ void MappedDoubleMatrix::zeroSym(size_type i)
         data_[it->first].erase(i);
     }
     zeroRow(i);
-//    zeroCol(i);
 }
 
 DoubleVector operator *(const MappedDoubleMatrix &mdm, const DoubleVector dv)
