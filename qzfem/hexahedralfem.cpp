@@ -276,8 +276,6 @@ void HexahedralFEM::assebly(HexahedralMesh3D *mesh, const DoubleMatrix &D, Mappe
                     DoubleVector dNdZ(elementNodes);
                     // матрицы вариационной постановки
                     DoubleMatrix B((size_type)6, (size_type)24);
-                    DoubleMatrix BT((size_type)24, (size_type)6);
-                    DoubleMatrix BTD((size_type)24, (size_type)6);
 
                     N(0) = (1 - xi) * (1 - eta) * (1 - mu) / 8.0;
                     N(1) = (1 - xi) * (1 - eta) * (1 + mu) / 8.0;

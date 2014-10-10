@@ -201,7 +201,7 @@ void QuadrilateralMesh2D::directionChange()
 {
     for (UInteger i = 0; i < elementsCount(); i++)
     {
-        std::swap(element_[i][0], element_[i][2]);
+        std::swap(element_[i][1], element_[i][3]);
     }
 }
 
