@@ -142,13 +142,18 @@ DoubleVector &DoubleVector::operator=(const DoubleVector &dv)
 double DoubleVector::operator *(const DoubleVector &dv) const
 {
     register double sum = 0.0;
-#ifdef WITH_OPENMP
-    omp_set_num_threads(omp_get_max_threads()); // использовать максимальное количество потоков
-#pragma omp parallel for reduction(+:sum)
-#endif
-    for (size_type i = 0; i < size_; i++)
+//#ifdef WITH_OPENMP
+//    omp_set_num_threads(omp_get_max_threads()); // использовать максимальное количество потоков
+//#pragma omp parallel for reduction(+:sum)
+//#endif
+//    for (size_type i = 0; i < size_; i++)
+//    {
+//        sum += data_[i] * dv.data_[i];
+//    }
+    const_pointer pdv = dv.begin();
+    for (const_pointer p = begin(); p != end(); p++, pdv++)
     {
-        sum += data_[i] * dv.data_[i];
+        sum += (*p) * (*pdv);
     }
 
     return sum;
@@ -156,10 +161,11 @@ double DoubleVector::operator *(const DoubleVector &dv) const
 
 void DoubleVector::scale(const double &d)
 {
-    for (size_type i = 0; i < size_; i++)
-    {
-        data_[i] *= d;
-    }
+//    for (size_type i = 0; i < size_; i++)
+//    {
+//        data_[i] *= d;
+//    }
+    for (pointer p = begin(); p != end(); p++) (*p) *= d;
 }
 
 DoubleVector &DoubleVector::operator +=(const DoubleVector &vec)
