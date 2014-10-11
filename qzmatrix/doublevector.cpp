@@ -170,18 +170,28 @@ void DoubleVector::scale(const double &d)
 
 DoubleVector &DoubleVector::operator +=(const DoubleVector &vec)
 {
-    for (size_type i = 0; i < size_; i++)
+//    for (size_type i = 0; i < size_; i++)
+//    {
+//        data_[i] += vec.data_[i];
+//    }
+    const_pointer pdv = vec.begin();
+    for (pointer p = begin(); p != end(); p++, pdv++)
     {
-        data_[i] += vec.data_[i];
+        (*p) += (*pdv);
     }
     return *this;
 }
 
 DoubleVector &DoubleVector::operator -=(const DoubleVector &vec)
 {
-    for (size_type i = 0; i < size_; i++)
+//    for (size_type i = 0; i < size_; i++)
+//    {
+//        data_[i] -= vec.data_[i];
+//    }
+    const_pointer pdv = vec.begin();
+    for (pointer p = begin(); p != end(); p++, pdv++)
     {
-        data_[i] -= vec.data_[i];
+        (*p) -= (*pdv);
     }
     return *this;
 }
