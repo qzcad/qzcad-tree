@@ -140,10 +140,22 @@ public:
      */
     void zeroSym(size_type i);
     /**
-     * @brief Метод для очистка данных заданной строки
+     * @brief Метод для очистки данных заданной строки
      * @param i Номер строки для очистки
      */
     void clear(size_type i);
+    /**
+     * @brief Метод для получения константного итератора строки матрицы, указывающего на первый элемент
+     * @param i Номер строки
+     * @return Константный итератор
+     */
+    MappedDoubleVector::const_iterator begin(size_type i) const;
+    /**
+     * @brief end Указатель на "гипотетический" последний элемент (адрес) строки матрицы (итератор)
+     * @param i Номер строки
+     * @return Константный итератор
+     */
+    MappedDoubleVector::const_iterator end(size_type i) const;
 protected:
     /**
      * @brief Метод для выделения памяти под строки матрицы

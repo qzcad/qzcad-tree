@@ -155,7 +155,7 @@ DoubleVector MappedDoubleMatrix::product(const DoubleVector &dv) const
     for (size_type i = 0; i < size_; i++)
     {
         double sum = 0;
-        for (MappedDoubleVector::iterator it = data_[i].begin(); it != data_[i].end(); it++)
+        for (MappedDoubleVector::const_iterator it = data_[i].begin(); it != data_[i].end(); it++)
         {
             sum += it->second * dv[it->first];
         }
@@ -173,7 +173,7 @@ void MappedDoubleMatrix::product(const DoubleVector &dv, DoubleVector &res) cons
     for (size_type i = 0; i < size_; i++)
     {
         double sum = 0;
-        for (MappedDoubleVector::iterator it = data_[i].begin(); it != data_[i].end(); it++)
+        for (MappedDoubleVector::const_iterator it = data_[i].begin(); it != data_[i].end(); it++)
         {
             sum += it->second * dv[it->first];
         }
@@ -223,7 +223,7 @@ DoubleVector operator *(const MappedDoubleMatrix &mdm, const DoubleVector dv)
     for (size_type i = 0; i < size; i++)
     {
         double sum = 0;
-        for (MappedDoubleVector::iterator it = mdm.data_[i].begin(); it != mdm.data_[i].end(); it++)
+        for (MappedDoubleVector::const_iterator it = mdm.data_[i].begin(); it != mdm.data_[i].end(); it++)
         {
             sum += it->second * dv[it->first];
         }
@@ -235,6 +235,16 @@ DoubleVector operator *(const MappedDoubleMatrix &mdm, const DoubleVector dv)
 void MappedDoubleMatrix::clear(size_type i)
 {
     data_[i].clear();
+}
+
+MappedDoubleVector::const_iterator MappedDoubleMatrix::begin(size_type i) const
+{
+    return data_[i].begin();
+}
+
+MappedDoubleVector::const_iterator MappedDoubleMatrix::end(size_type i) const
+{
+    return data_[i].end();
 }
 
 void MappedDoubleMatrix::alloc(size_type size)

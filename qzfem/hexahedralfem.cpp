@@ -3,6 +3,8 @@
 #include <math.h>
 #include <boost/progress.hpp>
 
+#include "rowdoublematrix.h"
+
 #include "hexahedralfem.h"
 
 HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3D &parameters, FEMCondition3DPointer boundaryForce, const std::vector<FEMCondition3DPointer> &boundaryConditions)
@@ -35,7 +37,10 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3
     processBoundaryConditions(mesh, boundaryConditions, globalMatrix, force);
 
     std::cout << "Решение СЛАУ..." << std::endl;
-    displacement = globalMatrix.conjugateGradient(force);
+//    displacement = globalMatrix.conjugateGradient(force);
+    RowDoubleMatrix rdm(globalMatrix);
+    displacement = rdm.conjugateGradient(force);
+
 
     displacementToUVW(displacement, nodesCount);
 
@@ -78,7 +83,9 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3
     processBoundaryConditions(mesh, boundaryConditions, globalMatrix, force);
 
     std::cout << "Решение СЛАУ..." << std::endl;
-    displacement = globalMatrix.conjugateGradient(force);
+//    displacement = globalMatrix.conjugateGradient(force);
+    RowDoubleMatrix rdm(globalMatrix);
+    displacement = rdm.conjugateGradient(force);
 
     displacementToUVW(displacement, nodesCount);
 
@@ -126,7 +133,10 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const std::vector<Mechanica
     processBoundaryConditions(mesh, boundaryConditions, globalMatrix, force);
 
     std::cout << "Решение СЛАУ..." << std::endl;
-    displacement = globalMatrix.conjugateGradient(force);
+//    displacement = globalMatrix.conjugateGradient(force);
+    RowDoubleMatrix rdm(globalMatrix);
+    displacement = rdm.conjugateGradient(force);
+
 
     displacementToUVW(displacement, nodesCount);
 

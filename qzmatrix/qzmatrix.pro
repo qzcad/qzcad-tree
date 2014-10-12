@@ -18,12 +18,14 @@ QMAKE_LFLAGS += -fopenmp
 
 SOURCES += doublematrix.cpp \
     doublevector.cpp \
-    mappeddoublematrix.cpp
+    mappeddoublematrix.cpp \
+    rowdoublematrix.cpp
 
 HEADERS += doublematrix.h \
     doublevector.h \
     mtx_types.h \
-    mappeddoublematrix.h
+    mappeddoublematrix.h \
+    rowdoublematrix.h
 unix {
     target.path = /usr/lib
     INSTALLS += target

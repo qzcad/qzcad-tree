@@ -5,6 +5,7 @@ using namespace std;
 #include "doublevector.h"
 #include "doublematrix.h"
 #include "mappeddoublematrix.h"
+#include "rowdoublematrix.h"
 
 using namespace mtx;
 
@@ -74,6 +75,10 @@ int main()
     ccc_v3.print();
     cout << "v * ccc_v3 = " << v3 * ccc_v3 << endl;
     DoubleVector X = mdm.conjugateGradient(v3);
+    X.print();
+    cout << "RowDoubleMatrix" << endl;
+    RowDoubleMatrix rdm(mdm);
+    X = rdm.conjugateGradient(v3);
     X.print();
 //    MappedDoubleMatrix tst(2);
 //    tst(0,0) = 4.0; tst(0, 1) = 1.0;
