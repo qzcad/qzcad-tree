@@ -36,6 +36,11 @@ size_type MappedDoubleMatrix::size() const
     return size_;
 }
 
+size_type MappedDoubleMatrix::size(size_type i) const
+{
+    return data_[i].size();
+}
+
 double MappedDoubleMatrix::data(size_type i, size_type j) const
 {
     typename MappedDoubleVector::iterator it = data_[i].find(j);
@@ -225,6 +230,11 @@ DoubleVector operator *(const MappedDoubleMatrix &mdm, const DoubleVector dv)
         mul[i] = sum;
     }
     return mul;
+}
+
+void MappedDoubleMatrix::clear(size_type i)
+{
+    data_[i].clear();
 }
 
 void MappedDoubleMatrix::alloc(size_type size)
