@@ -298,7 +298,10 @@ public:
     }
     virtual double u()
     {
-        return -3.303567151;
+//        return -3.303567151;
+        const double r = 1.99;
+        const double l = 0.045;
+        return 251.12 * 9806.65 * M_PI * (r*r - (r-l)*(r-l));
     }
     virtual bool isU()
     {
