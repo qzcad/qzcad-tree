@@ -301,7 +301,7 @@ public:
 //        return -3.303567151;
         const double r = 1.99;
         const double l = 0.045;
-        return 251.12 * 9806.65 / (M_PI * (r*r - (r-l)*(r-l))); // Pa
+        return 251.12 * 9806.65 * 1.0E-6 / (M_PI * (r*r - (r-l)*(r-l))); // MPa
     }
     virtual bool isU()
     {

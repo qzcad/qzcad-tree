@@ -563,6 +563,24 @@ void GLMeshPicture::nextValueIndex()
     {
         map_.setMin(elementValues_[valueIndex_].min());
         map_.setMax(elementValues_[valueIndex_].max());
+        // учет ограничений ны выборку элементов
+//        double min = elementValues_[valueIndex_].max();
+//        double max = elementValues_[valueIndex_].min();
+//        for (msh::UInteger i = 0; i < mesh_->elementsCount(); i++)
+//        {
+//            msh::ElementPointer element = mesh_->element(i);
+//            for (int j = 0; j < element->verticesCount(); j++)
+//            {
+//                msh::PointPointer point = mesh_->node(element->vertexNode(j));
+//                if (point->x() > 0.26 && point->x() < (4.014-0.2))
+//                {
+//                    if (min > elementValues_[valueIndex_].data(i)) min = elementValues_[valueIndex_].data(i);
+//                    if (max < elementValues_[valueIndex_].data(i)) max = elementValues_[valueIndex_].data(i);
+//                }
+//            }
+//        }
+//        map_.setMin(min);
+//        map_.setMax(max);
     }
     updateGL();
 }
@@ -643,9 +661,22 @@ void GLMeshPicture::paintGL()
         {
             if (mesh_->dimesion() == 2 || mesh_->isBorderElement(i))
             {
-                for (int p = 0; p < mesh_->element(i)->facesCount(); p++)
+                msh::ElementPointer element = mesh_->element(i);
+                // учет ограничений на выборку элементов
+//                bool inPlane = true;
+//                for (int j = 0; j < element->verticesCount(); j++)
+//                {
+//                    msh::PointPointer point = mesh_->node(element->vertexNode(j));
+//                    if (point->x() < 0.26 || point->x() > (4.014-0.2))
+//                    {
+//                        inPlane = false;
+//                        break;
+//                    }
+//                }
+//                if (inPlane)
+                for (int p = 0; p < element->facesCount(); p++)
                 {
-                    msh::UIntegerVector face = mesh_->element(i)->face(p);
+                    msh::UIntegerVector face = element->face(p);
                     msh::PointPointer a = mesh_->node(face[1]);
                     msh::PointPointer b = mesh_->node(face[0]);
                     msh::PointPointer c = mesh_->node(face[2]);
