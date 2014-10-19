@@ -5,6 +5,7 @@ PlasticFem::PlasticFem(HexahedralMesh3D* mesh, const std::vector<double> &strain
 {
     const int stress_size = stress.size();
     std::vector<MechanicalParameters3D> layers;
+    int it = 1;
     bool isRupture = false;
 
     for (int i = 0; i < stress_size; i++)
@@ -13,8 +14,9 @@ PlasticFem::PlasticFem(HexahedralMesh3D* mesh, const std::vector<double> &strain
     }
     HexahedralFEM *hFem;
     std::cout << "Нулевое приближение..." << std::endl;
-    hFem = new HexahedralFEM(mesh, layers[0], boundaryForces,boundaryConditions);
+    hFem = new HexahedralFEM(mesh, layers[0], boundaryForces, boundaryConditions);
     std::vector<double> sigma = hFem->sigma();
+    delete hFem;
     mesh->clearLayers();
     for (msh::UInteger i = 0; i < mesh->elementsCount(); i++) mesh->pushLayer(0);
     while (!isRupture)
@@ -24,12 +26,27 @@ PlasticFem::PlasticFem(HexahedralMesh3D* mesh, const std::vector<double> &strain
             if (stress[stress_size - 1] <= sigma[i])
             {
                 isRupture = true;
-//                mesh->
+                mesh->setLayer(i, mesh->layer(i) + 1);
             }
-            for (int j = 0; j < stress_size; j++)
+            else
             {
-
+                for (int j = 0; j < stress_size - 1; j++)
+                {
+                    if (stress[j] < sigma[i])
+                    {
+                        mesh->setLayer(i, j + 1);
+                    }
+                }
             }
         }
+        hFem = new HexahedralFEM(mesh, layers, boundaryForces, boundaryConditions);
+        std::vector<double> sigma_new = hFem->sigma();
+        delete hFem;
+        for (typename std::vector<double>::size_type i = 0; i < sigma.size(); i++)
+        {
+            sigma[i] += sigma_new[i];
+        }
+        std::cout << "Итерация " << it << " завершена." << std::endl;
+        it++;
     }
 }

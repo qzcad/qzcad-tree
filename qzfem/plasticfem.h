@@ -21,6 +21,7 @@ public:
      * @param nu Коэффициент Пуассона
      * @param boundaryForces Массив сил (шаг)
      * @param boundaryConditions Массив граничных условий
+     * Номера слоев будут соответствовать зонам пластичности
      */
     PlasticFem(HexahedralMesh3D* mesh, const std::vector<double> &strain, const std::vector<double> &stress, const double &nu, const std::vector<FEMCondition3DPointer> &boundaryForces, const std::vector<FEMCondition3DPointer> &boundaryConditions);
 };
