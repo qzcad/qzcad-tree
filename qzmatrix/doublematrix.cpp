@@ -102,7 +102,7 @@ DoubleMatrix &DoubleMatrix::operator =(const DoubleMatrix &dm)
 {
     if (this != &dm)
     {
-        alloc(dm.rowCount(), dm.colCount());
+        resize(dm.rowCount(), dm.colCount()); // очистка и запрос памяти
         for (size_type i = 0; i < rowCount_; i++)
         {
             data_[i] = dm.data_[i];
