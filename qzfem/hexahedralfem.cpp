@@ -227,6 +227,9 @@ void HexahedralFEM::assebly(HexahedralMesh3D *mesh, const DoubleMatrix &D, Mappe
     const int gaussCount = 2; // количество точек в квадратурах для интегрирования
     double gaussPoint[] = {-1.0 / sqrt(3.0), 1.0 / sqrt(3.0)}; // координаты точек квадратуры
     double gaussWeight[] = {1.0, 1.0}; // веса точек квадратуры
+//    const int gaussCount = 3; // количество точек в квадратурах для интегрирования
+//    double gaussPoint[] = {-sqrt(3.0/5.0), 0.0, sqrt(3.0/5.0)}; // координаты точек квадратуры
+//    double gaussWeight[] = {5.0/9.0, 8.0/9.0, 5.0/9.0}; // веса точек квадратуры
 
     std::cout << "Построение глобальной матрицы..." << std::endl;
 
@@ -378,10 +381,10 @@ void HexahedralFEM::assebly(HexahedralMesh3D *mesh, const DoubleMatrix &D, Mappe
             }
             else
             {
-                index_i = element->vertexNode(i - 2L * elementNodes) + 2L * nodesCount;
+                index_i = element->vertexNode(i - 2 * elementNodes) + 2L * nodesCount;
             }
 
-            for (int j = 0; j < elementNodes * freedom; j++)
+            for (int j = i; j < elementNodes * freedom; j++)
             {
                 if (j < elementNodes)
                 {
@@ -393,9 +396,10 @@ void HexahedralFEM::assebly(HexahedralMesh3D *mesh, const DoubleMatrix &D, Mappe
                 }
                 else
                 {
-                    index_j = element->vertexNode(j - 2L * elementNodes) + 2L * nodesCount;
+                    index_j = element->vertexNode(j - 2 * elementNodes) + 2L * nodesCount;
                 }
                 globalMatrix(index_i, index_j) += localMatrix(i, j);
+                if (index_i != index_j) globalMatrix(index_j, index_i) = globalMatrix(index_i, index_j);
             } // for j
         } // for i
     } // for elementNumber
@@ -596,7 +600,7 @@ void HexahedralFEM::processForce(HexahedralMesh3D *mesh, FEMCondition3DPointer b
     for (UInteger i = 0; i < mesh->elementsCount(); i++)
     {
         ++progressBar;
-        if (mesh->isBorderElement(i))
+//        if (mesh->isBorderElement(i))
         {
             ElementPointer element = mesh->element(i);
             for (int j = 0; j < element->facesCount(); j++)
@@ -605,7 +609,8 @@ void HexahedralFEM::processForce(HexahedralMesh3D *mesh, FEMCondition3DPointer b
                 bool isBorderFace = true;
                 for (int k = 0; k < 4; k++)
                 {
-                    if (mesh->nodeType(face[k]) == INNER || !boundaryForce->isApplied(mesh->node(face[k])))
+//                    if (mesh->nodeType(face[k]) == INNER || !boundaryForce->isApplied(mesh->node(face[k])))
+                    if (!boundaryForce->isApplied(mesh->node(face[k])))
                     {
                         isBorderFace = false;
                     }
@@ -624,6 +629,15 @@ void HexahedralFEM::processForce(HexahedralMesh3D *mesh, FEMCondition3DPointer b
             } // for j
         } // if
     } // for i
+//    for (UInteger i = 0; i < mesh->nodesCount(); i++)
+//    {
+//        if (boundaryForce->isApplied(mesh->node(i)))
+//        {
+//            force(i) = boundaryForce->u();
+//            force(i + nodesCount) = boundaryForce->v();
+//            force(i + 2L * nodesCount) = boundaryForce->w();
+//        }
+//    }
     std::cout << "Нагрузка: " << boundaryForce->u() << "; " << boundaryForce->v() << "; " << boundaryForce->w() << ". Площадь нагруженной поверхноти: " << area << std::endl;
 }
 
@@ -1114,4 +1128,36 @@ void HexahedralFEM::displacementToUVW(const DoubleVector &displacement, const UI
         v_.push_back(displacement[i + nodesCount]);
         w_.push_back(displacement[i + 2UL * nodesCount]);
     }
+}
+
+double HexahedralFEM::invertJacobian(const DoubleMatrix &J, DoubleMatrix &inverted)
+{
+    double det = 0;
+    double A[3][3];
+    A[0][0] = J[1][1] * J[2][2] - J[1][2] * J[2][1];
+    A[1][1] = J[2][2] * J[0][0] - J[2][0] * J[0][2];
+    A[2][2] = J[0][0] * J[1][1] - J[0][1] * J[1][0];
+
+    A[0][1] = J[1][2] * J[2][0] - J[1][0] * J[2][2];
+    A[0][2] = J[1][0] * J[2][1] - J[1][1] * J[2][0];
+
+    A[1][0] = J[0][2] * J[2][1] - J[0][1] * J[2][2];
+    A[1][2] = J[1][0] * J[2][0] - J[0][0] * J[2][1];
+
+    A[2][0] = J[0][1] * J[1][2] - J[0][2] * J[1][1];
+    A[2][1] = J[0][2] * J[1][0] - J[0][0] * J[1][2];
+
+    det = J[0][0] * A[0][0] + J[0][1] * A[0][1] + J[0][2] * A[0][2];
+
+    inverted[0][0] = A[0][0] / det;
+    inverted[1][1] = A[1][1] / det;
+    inverted[2][2] = A[2][2] / det;
+    inverted[0][1] = A[1][0] / det;
+    inverted[0][2] = A[2][0] / det;
+    inverted[1][0] = A[0][1] / det;
+    inverted[1][2] = A[2][1] / det;
+    inverted[2][0] = A[0][2] / det;
+    inverted[2][1] = A[1][2] / det;
+
+    return det;
 }

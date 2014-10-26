@@ -137,6 +137,13 @@ protected:
      */
     void displacementToUVW(const DoubleVector &displacement, const UInteger &nodesCount);
 //    double sqr(const double &a) { return a*a; }
+    /**
+     * @brief Метод для получения обратного якобиана
+     * @param J Якобиан (матрица 3x3)
+     * @param inverted Обратный якобиан (матрица 3x3, J^(-1))
+     * @return Значение определеителя якобиана
+     */
+    double invertJacobian(const DoubleMatrix &J, DoubleMatrix &inverted);
 private:
     std::vector<double> u_; //!< Перемещения в первом направлении (x)
     std::vector<double> v_; //!< Перемещения во втором направлении (y)
