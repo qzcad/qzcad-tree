@@ -96,12 +96,25 @@ public:
      */
     DoubleVector &operator [](size_type i);
     /**
+     * @brief Оператор доступа по индексу (для константных ссылок-параметров)
+     * @param i Номер строки
+     * @return Константная ссылка на элементы строки
+     */
+    const DoubleVector &operator [](size_type i) const;
+    /**
      * @brief Оператор доступа по паре индексов
      * @param i Номер строки
      * @param j Номер столбца
      * @return Ссылка на элемент с индексами i, j
      */
     reference operator ()(size_type i, size_type j);
+    /**
+     * @brief Оператор доступа по паре индексов (для константных ссылок-параметров)
+     * @param i Номер строки
+     * @param j Номер столбца
+     * @return Константная ссылка на элемент с индексами i, j
+     */
+    const_reference operator ()(size_type i, size_type j) const;
     /**
      * @brief Оператор присвоения
      * @param dm Экземпляр объекта для присвоения

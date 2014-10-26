@@ -93,7 +93,17 @@ DoubleVector &DoubleMatrix::operator [](size_type i)
     return data_[i];
 }
 
+const DoubleVector &DoubleMatrix::operator [](size_type i) const
+{
+    return data_[i];
+}
+
 reference DoubleMatrix::operator ()(size_type i, size_type j)
+{
+    return data_[i][j];
+}
+
+const_reference DoubleMatrix::operator ()(size_type i, size_type j) const
 {
     return data_[i][j];
 }
@@ -222,7 +232,7 @@ DoubleMatrix DoubleMatrix::inverted() const
             if (augmentedmatrix[i][j] > augmentedmatrix[temp][j])
                 temp = i;
 
-        if (fabs(augmentedmatrix[temp][j]) < 1.0E-10)
+        if (fabs(augmentedmatrix[temp][j]) < 1.0E-20)
         {
             return inv;
         }
