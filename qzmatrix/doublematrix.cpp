@@ -232,7 +232,7 @@ DoubleMatrix DoubleMatrix::inverted() const
             if (augmentedmatrix[i][j] > augmentedmatrix[temp][j])
                 temp = i;
 
-        if (fabs(augmentedmatrix[temp][j]) < 1.0E-20)
+        if (fabs(augmentedmatrix[temp][j]) < 1.0E-150)
         {
             return inv;
         }

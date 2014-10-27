@@ -336,7 +336,7 @@ void HexahedralFEM::assebly(HexahedralMesh3D *mesh, const DoubleMatrix &D, Mappe
                         Jacobian(1, 0) += dNdEta(i) * x[i]; Jacobian(1, 1) += dNdEta(i) * y[i]; Jacobian(1, 2) += dNdEta(i) * z[i];
                         Jacobian(2, 0) += dNdMu(i) * x[i]; Jacobian(2, 1) += dNdMu(i) * y[i]; Jacobian(2, 2) += dNdMu(i) * z[i];
                     }
-                    invJacobian = Jacobian.inverted();
+                    invJacobian = Jacobian.inverted3x3();
                     detJacobian = Jacobian.det3x3();
 
                     for (int i = 0; i < elementNodes; i++)
@@ -522,7 +522,7 @@ void HexahedralFEM::assebly(HexahedralMesh3D *mesh, DoubleMatrix D[], MappedDoub
                         Jacobian(1, 0) += dNdEta(i) * x[i]; Jacobian(1, 1) += dNdEta(i) * y[i]; Jacobian(1, 2) += dNdEta(i) * z[i];
                         Jacobian(2, 0) += dNdMu(i) * x[i]; Jacobian(2, 1) += dNdMu(i) * y[i]; Jacobian(2, 2) += dNdMu(i) * z[i];
                     }
-                    invJacobian = Jacobian.inverted();
+                    invJacobian = Jacobian.inverted3x3();
                     detJacobian = Jacobian.det3x3();
 
                     for (int i = 0; i < elementNodes; i++)
@@ -629,6 +629,8 @@ void HexahedralFEM::processForce(HexahedralMesh3D *mesh, FEMCondition3DPointer b
             } // for j
         } // if
     } // for i
+    std::cout << "Нагрузка: " << boundaryForce->u() << "; " << boundaryForce->v() << "; " << boundaryForce->w() << ". Площадь нагруженной поверхноти: " << area << std::endl;
+//    UInteger pn = 0;
 //    for (UInteger i = 0; i < mesh->nodesCount(); i++)
 //    {
 //        if (boundaryForce->isApplied(mesh->node(i)))
@@ -636,9 +638,10 @@ void HexahedralFEM::processForce(HexahedralMesh3D *mesh, FEMCondition3DPointer b
 //            force(i) = boundaryForce->u();
 //            force(i + nodesCount) = boundaryForce->v();
 //            force(i + 2L * nodesCount) = boundaryForce->w();
+//            pn++;
 //        }
 //    }
-    std::cout << "Нагрузка: " << boundaryForce->u() << "; " << boundaryForce->v() << "; " << boundaryForce->w() << ". Площадь нагруженной поверхноти: " << area << std::endl;
+//    std::cout << "Нагрузка {" << boundaryForce->u() << "; " << boundaryForce->v() << "; " << boundaryForce->w() << "} приложена в " << pn << " узле(-ах)." << std::endl;
 }
 
 void HexahedralFEM::processBoundaryConditions(HexahedralMesh3D *mesh, const std::vector<FEMCondition3DPointer> &boundaryConditions, MappedDoubleMatrix &globalMatrix, DoubleVector &force)
@@ -862,7 +865,7 @@ void HexahedralFEM::recoverStress(HexahedralMesh3D *mesh, const DoubleMatrix &D)
             Jacobian(1, 0) += dNdEta(i) * x[i]; Jacobian(1, 1) += dNdEta(i) * y[i]; Jacobian(1, 2) += dNdEta(i) * z[i];
             Jacobian(2, 0) += dNdMu(i) * x[i]; Jacobian(2, 1) += dNdMu(i) * y[i]; Jacobian(2, 2) += dNdMu(i) * z[i];
         }
-        invJacobian = Jacobian.inverted();
+        invJacobian = Jacobian.inverted3x3();
 
         for (int i = 0; i < elementNodes; i++)
         {
@@ -1044,7 +1047,7 @@ void HexahedralFEM::recoverStress(HexahedralMesh3D *mesh, const DoubleMatrix D[]
             Jacobian(1, 0) += dNdEta(i) * x[i]; Jacobian(1, 1) += dNdEta(i) * y[i]; Jacobian(1, 2) += dNdEta(i) * z[i];
             Jacobian(2, 0) += dNdMu(i) * x[i]; Jacobian(2, 1) += dNdMu(i) * y[i]; Jacobian(2, 2) += dNdMu(i) * z[i];
         }
-        invJacobian = Jacobian.inverted();
+        invJacobian = Jacobian.inverted3x3();
 
         for (int i = 0; i < elementNodes; i++)
         {
@@ -1130,34 +1133,3 @@ void HexahedralFEM::displacementToUVW(const DoubleVector &displacement, const UI
     }
 }
 
-double HexahedralFEM::invertJacobian(const DoubleMatrix &J, DoubleMatrix &inverted)
-{
-    double det = 0;
-    double A[3][3];
-    A[0][0] = J[1][1] * J[2][2] - J[1][2] * J[2][1];
-    A[1][1] = J[2][2] * J[0][0] - J[2][0] * J[0][2];
-    A[2][2] = J[0][0] * J[1][1] - J[0][1] * J[1][0];
-
-    A[0][1] = J[1][2] * J[2][0] - J[1][0] * J[2][2];
-    A[0][2] = J[1][0] * J[2][1] - J[1][1] * J[2][0];
-
-    A[1][0] = J[0][2] * J[2][1] - J[0][1] * J[2][2];
-    A[1][2] = J[1][0] * J[2][0] - J[0][0] * J[2][1];
-
-    A[2][0] = J[0][1] * J[1][2] - J[0][2] * J[1][1];
-    A[2][1] = J[0][2] * J[1][0] - J[0][0] * J[1][2];
-
-    det = J[0][0] * A[0][0] + J[0][1] * A[0][1] + J[0][2] * A[0][2];
-
-    inverted[0][0] = A[0][0] / det;
-    inverted[1][1] = A[1][1] / det;
-    inverted[2][2] = A[2][2] / det;
-    inverted[0][1] = A[1][0] / det;
-    inverted[0][2] = A[2][0] / det;
-    inverted[1][0] = A[0][1] / det;
-    inverted[1][2] = A[2][1] / det;
-    inverted[2][0] = A[0][2] / det;
-    inverted[2][1] = A[1][2] / det;
-
-    return det;
-}
