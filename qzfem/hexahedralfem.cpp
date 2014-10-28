@@ -617,7 +617,15 @@ void HexahedralFEM::processForce(HexahedralMesh3D *mesh, FEMCondition3DPointer b
                 } // for k
                 if (isBorderFace)
                 {
-                    double faceArea = mesh->faceArea(face);
+                    double faceArea = mesh->faceArea(face); // площадь грани
+                    PointPointer p0 = mesh->node(face[0]); // координаты узлов
+                    PointPointer p1 = mesh->node(face[1]);
+                    PointPointer p2 = mesh->node(face[2]);
+                    PointPointer p3 = mesh->node(face[3]);
+                    const Point3D center ((p0->x() + p1->x() + p2->x() + p3->x()) / 4.0,
+                                          (p0->y() + p1->y() + p2->y() + p3->y()) / 4.0,
+                                          (p0->z() + p1->z() + p2->z() + p3->z()) / 4.0); // центр грани
+                    boundaryForce->isApplied(&center); // Поверхностный интеграл аппрксимируется произведением площади на значение функции в центре
                     area += faceArea;
                     for (int k = 0; k < 4; k++)
                     {
