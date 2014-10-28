@@ -474,6 +474,16 @@
         </widget>
        </item>
        <item>
+        <widget class="QToolButton" name="prevValueVector">
+         <property name="toolTip">
+          <string>Предыдущий вектор значений</string>
+         </property>
+         <property name="text">
+          <string>&lt;</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QToolButton" name="nextValueVector">
          <property name="toolTip">
           <string>Следующий вектор значений</string>
@@ -586,6 +596,7 @@
     <slot>nextValueIndex()</slot>
     <slot>setIsUseVector(bool)</slot>
     <slot>setVectorScale(double)</slot>
+    <slot>prevValueIndex()</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -598,12 +609,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>523</x>
-     <y>132</y>
+     <x>507</x>
+     <y>157</y>
     </hint>
     <hint type="destinationlabel">
-     <x>523</x>
-     <y>108</y>
+     <x>507</x>
+     <y>133</y>
     </hint>
    </hints>
   </connection>
@@ -614,12 +625,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>523</x>
-     <y>108</y>
+     <x>507</x>
+     <y>133</y>
     </hint>
     <hint type="destinationlabel">
-     <x>523</x>
-     <y>132</y>
+     <x>507</x>
+     <y>157</y>
     </hint>
    </hints>
   </connection>
@@ -630,12 +641,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>593</x>
-     <y>132</y>
+     <x>584</x>
+     <y>157</y>
     </hint>
     <hint type="destinationlabel">
-     <x>593</x>
-     <y>108</y>
+     <x>584</x>
+     <y>133</y>
     </hint>
    </hints>
   </connection>
@@ -646,12 +657,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>593</x>
-     <y>108</y>
+     <x>584</x>
+     <y>133</y>
     </hint>
     <hint type="destinationlabel">
-     <x>593</x>
-     <y>132</y>
+     <x>584</x>
+     <y>157</y>
     </hint>
    </hints>
   </connection>
@@ -663,7 +674,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>662</x>
-     <y>132</y>
+     <y>157</y>
     </hint>
     <hint type="destinationlabel">
      <x>662</x>
@@ -683,7 +694,7 @@
     </hint>
     <hint type="destinationlabel">
      <x>662</x>
-     <y>132</y>
+     <y>157</y>
     </hint>
    </hints>
   </connection>
@@ -698,8 +709,8 @@
      <y>139</y>
     </hint>
     <hint type="destinationlabel">
-     <x>523</x>
-     <y>108</y>
+     <x>507</x>
+     <y>133</y>
     </hint>
    </hints>
   </connection>
@@ -710,8 +721,8 @@
    <slot>setXRotation(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>523</x>
-     <y>108</y>
+     <x>507</x>
+     <y>133</y>
     </hint>
     <hint type="destinationlabel">
      <x>280</x>
@@ -730,8 +741,8 @@
      <y>80</y>
     </hint>
     <hint type="destinationlabel">
-     <x>593</x>
-     <y>108</y>
+     <x>584</x>
+     <y>133</y>
     </hint>
    </hints>
   </connection>
@@ -742,8 +753,8 @@
    <slot>setYRotation(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>593</x>
-     <y>108</y>
+     <x>584</x>
+     <y>133</y>
     </hint>
     <hint type="destinationlabel">
      <x>262</x>
@@ -791,7 +802,7 @@
    <hints>
     <hint type="sourcelabel">
      <x>664</x>
-     <y>162</y>
+     <y>187</y>
     </hint>
     <hint type="destinationlabel">
      <x>331</x>
@@ -811,7 +822,7 @@
     </hint>
     <hint type="destinationlabel">
      <x>664</x>
-     <y>162</y>
+     <y>187</y>
     </hint>
    </hints>
   </connection>
@@ -822,8 +833,8 @@
    <slot>setMouseMode(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>585</x>
-     <y>206</y>
+     <x>665</x>
+     <y>233</y>
     </hint>
     <hint type="destinationlabel">
      <x>367</x>
@@ -838,8 +849,8 @@
    <slot>setShowMesh(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>517</x>
-     <y>440</y>
+     <x>666</x>
+     <y>437</y>
     </hint>
     <hint type="destinationlabel">
      <x>268</x>
@@ -854,8 +865,8 @@
    <slot>setShowCube(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>590</x>
-     <y>461</y>
+     <x>666</x>
+     <y>459</y>
     </hint>
     <hint type="destinationlabel">
      <x>254</x>
@@ -870,12 +881,12 @@
    <slot>setTranslateStep(double)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>619</x>
-     <y>232</y>
+     <x>665</x>
+     <y>260</y>
     </hint>
     <hint type="destinationlabel">
-     <x>443</x>
-     <y>394</y>
+     <x>422</x>
+     <y>403</y>
     </hint>
    </hints>
   </connection>
@@ -886,12 +897,12 @@
    <slot>setValue(double)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>449</x>
-     <y>255</y>
+     <x>422</x>
+     <y>264</y>
     </hint>
     <hint type="destinationlabel">
-     <x>619</x>
-     <y>232</y>
+     <x>665</x>
+     <y>260</y>
     </hint>
    </hints>
   </connection>
@@ -902,8 +913,8 @@
    <slot>setVisualisationMode(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>539</x>
-     <y>360</y>
+     <x>513</x>
+     <y>387</y>
     </hint>
     <hint type="destinationlabel">
      <x>315</x>
@@ -918,8 +929,8 @@
    <slot>setColormapName(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>625</x>
-     <y>360</y>
+     <x>599</x>
+     <y>387</y>
     </hint>
     <hint type="destinationlabel">
      <x>417</x>
@@ -934,8 +945,8 @@
    <slot>setXTranslation(double)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>659</x>
-     <y>258</y>
+     <x>665</x>
+     <y>287</y>
     </hint>
     <hint type="destinationlabel">
      <x>313</x>
@@ -950,8 +961,8 @@
    <slot>setYTranslation(double)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>659</x>
-     <y>284</y>
+     <x>665</x>
+     <y>314</y>
     </hint>
     <hint type="destinationlabel">
      <x>302</x>
@@ -966,8 +977,8 @@
    <slot>setZTranslation(double)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>658</x>
-     <y>310</y>
+     <x>665</x>
+     <y>341</y>
     </hint>
     <hint type="destinationlabel">
      <x>380</x>
@@ -986,8 +997,8 @@
      <y>439</y>
     </hint>
     <hint type="destinationlabel">
-     <x>659</x>
-     <y>258</y>
+     <x>665</x>
+     <y>287</y>
     </hint>
    </hints>
   </connection>
@@ -1002,8 +1013,8 @@
      <y>475</y>
     </hint>
     <hint type="destinationlabel">
-     <x>659</x>
-     <y>284</y>
+     <x>665</x>
+     <y>314</y>
     </hint>
    </hints>
   </connection>
@@ -1018,8 +1029,8 @@
      <y>352</y>
     </hint>
     <hint type="destinationlabel">
-     <x>658</x>
-     <y>310</y>
+     <x>665</x>
+     <y>341</y>
     </hint>
    </hints>
   </connection>
@@ -1031,11 +1042,11 @@
    <hints>
     <hint type="sourcelabel">
      <x>666</x>
-     <y>482</y>
+     <y>481</y>
     </hint>
     <hint type="destinationlabel">
-     <x>425</x>
-     <y>499</y>
+     <x>422</x>
+     <y>504</y>
     </hint>
    </hints>
   </connection>
@@ -1062,8 +1073,8 @@
    <slot>nextValueIndex()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>658</x>
-     <y>359</y>
+     <x>665</x>
+     <y>386</y>
     </hint>
     <hint type="destinationlabel">
      <x>254</x>
@@ -1078,12 +1089,12 @@
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>530</x>
-     <y>383</y>
+     <x>545</x>
+     <y>412</y>
     </hint>
     <hint type="destinationlabel">
-     <x>562</x>
-     <y>384</y>
+     <x>665</x>
+     <y>414</y>
     </hint>
    </hints>
   </connection>
@@ -1094,8 +1105,8 @@
    <slot>setIsUseVector(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>535</x>
-     <y>375</y>
+     <x>545</x>
+     <y>412</y>
     </hint>
     <hint type="destinationlabel">
      <x>345</x>
@@ -1110,12 +1121,28 @@
    <slot>setVectorScale(double)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>570</x>
-     <y>383</y>
+     <x>665</x>
+     <y>414</y>
     </hint>
     <hint type="destinationlabel">
      <x>418</x>
      <y>408</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>prevValueVector</sender>
+   <signal>clicked()</signal>
+   <receiver>picture</receiver>
+   <slot>prevValueIndex()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>618</x>
+     <y>374</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>176</x>
+     <y>371</y>
     </hint>
    </hints>
   </connection>

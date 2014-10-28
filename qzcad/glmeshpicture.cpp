@@ -585,6 +585,44 @@ void GLMeshPicture::nextValueIndex()
     updateGL();
 }
 
+void GLMeshPicture::prevValueIndex()
+{
+    if (valueIndex_ == 0 && visualizationMode_ == NODE_VALUE)
+        valueIndex_= nodeValues_.size();
+    if (valueIndex_ == 0 && visualizationMode_ == ELEMENT_VALUE)
+        valueIndex_= elementValues_.size();
+    valueIndex_ = valueIndex_ - 1;
+    if (visualizationMode_ == NODE_VALUE)
+    {
+        map_.setMin(nodeValues_[valueIndex_].min());
+        map_.setMax(nodeValues_[valueIndex_].max());
+    }
+    else if (visualizationMode_ == ELEMENT_VALUE)
+    {
+        map_.setMin(elementValues_[valueIndex_].min());
+        map_.setMax(elementValues_[valueIndex_].max());
+        // учет ограничений ны выборку элементов
+//        double min = elementValues_[valueIndex_].max();
+//        double max = elementValues_[valueIndex_].min();
+//        for (msh::UInteger i = 0; i < mesh_->elementsCount(); i++)
+//        {
+//            msh::ElementPointer element = mesh_->element(i);
+//            for (int j = 0; j < element->verticesCount(); j++)
+//            {
+//                msh::PointPointer point = mesh_->node(element->vertexNode(j));
+//                if (point->x() > 0.26 && point->x() < (4.014-0.2))
+//                {
+//                    if (min > elementValues_[valueIndex_].data(i)) min = elementValues_[valueIndex_].data(i);
+//                    if (max < elementValues_[valueIndex_].data(i)) max = elementValues_[valueIndex_].data(i);
+//                }
+//            }
+//        }
+//        map_.setMin(min);
+//        map_.setMax(max);
+    }
+    updateGL();
+}
+
 void GLMeshPicture::setIsUseVector(bool isUseVector)
 {
     isUseVector_ = isUseVector;
@@ -821,4 +859,5 @@ void GLMeshPicture::mouseReleaseEvent(QMouseEvent *event)
 {
     isMousePressed_ = false;
     updateGL();
+    Q_UNUSED(event);
 }

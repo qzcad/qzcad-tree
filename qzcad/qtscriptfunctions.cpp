@@ -3,6 +3,7 @@
 
 QScriptValue approx(QScriptContext *ctx, QScriptEngine *eng)
 {
+    Q_UNUSED(eng);
     if (ctx->argumentCount() != 2)
         return ctx->throwError("approx() takes exactly two arguments");
     if (!ctx->argument(0).isNumber())
