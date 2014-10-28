@@ -203,12 +203,6 @@ void MappedDoubleMatrix::zeroCol(size_type j)
 
 void MappedDoubleMatrix::zeroSym(size_type i)
 {
-//    for (MappedDoubleVector::iterator it = data_[i].begin(); it != data_[i].end(); it++)
-//    {
-////        it->second = 0;
-////        data_[it->first][i] = 0;
-//        data_[it->first].erase(i);
-//    }
     zeroCol(i);
     zeroRow(i);
 }
