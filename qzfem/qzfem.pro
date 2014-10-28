@@ -21,7 +21,9 @@ QMAKE_LFLAGS += -fopenmp
 
 SOURCES += hexahedralfem.cpp \
     mechanicalparameters3d.cpp \
-    plasticfem.cpp
+    plasticfem.cpp \
+    forcecondition3d.cpp \
+    femforce.cpp
 
 HEADERS += hexahedralfem.h \
     globalmatrix.h \
@@ -30,7 +32,9 @@ HEADERS += hexahedralfem.h \
     femcondition2d.h \
     femcondition3d.h \
     mechanicalparameters3d.h \
-    plasticfem.h
+    plasticfem.h \
+    forcecondition3d.h \
+    femforce.h
 unix {
     target.path = /usr/lib
     INSTALLS += target

@@ -6,6 +6,7 @@
 #include <QTextStream>
 #include <iostream>
 #include <QDomDocument>
+#include <QComboBox>
 
 BoundaryConditionsWidget::BoundaryConditionsWidget(QWidget *parent) :
     QWidget(parent),
@@ -15,8 +16,9 @@ BoundaryConditionsWidget::BoundaryConditionsWidget(QWidget *parent) :
     ui->boundaryConditionsTable->setColumnWidth(1, 100);
     ui->boundaryConditionsTable->setColumnWidth(2, 100);
     ui->boundaryConditionsTable->setColumnWidth(3, 100);
-    isForceMode = false;
+    ui->boundaryConditionsTable->setColumnWidth(4, 100);
     is3d = true;
+    setIsForceMode(false);
 }
 
 BoundaryConditionsWidget::~BoundaryConditionsWidget()
@@ -67,6 +69,14 @@ bool BoundaryConditionsWidget::isW(int i)
 void BoundaryConditionsWidget::setIsForceMode(bool mode)
 {
     isForceMode = mode;
+    if (!isForceMode)
+    {
+        ui->boundaryConditionsTable->setColumnHidden(4, true);
+    }
+    else
+    {
+        ui->boundaryConditionsTable->setColumnHidden(4, false);
+    }
 }
 
 void BoundaryConditionsWidget::on_addCondition_clicked()
@@ -82,6 +92,14 @@ void BoundaryConditionsWidget::on_addCondition_clicked()
     if (!isForceMode) wItem->setCheckState(Qt::Checked);
     ui->boundaryConditionsTable->setItem(ui->boundaryConditionsTable->rowCount() - 1, 3, wItem);
 
+    if (isForceMode)
+    {
+        QComboBox* combo = new QComboBox();
+        combo->addItem(tr("Узловые"));
+        combo->addItem(tr("Поверхностные"));
+        combo->addItem(tr("Объемные"));
+        ui->boundaryConditionsTable->setCellWidget(ui->boundaryConditionsTable->rowCount() - 1, 4, combo);
+    }
 }
 
 void BoundaryConditionsWidget::on_delCondition_clicked()
@@ -111,6 +129,12 @@ void BoundaryConditionsWidget::setIs3d(bool value)
     }
 }
 
+int BoundaryConditionsWidget::forceTypeIndex(int i)
+{
+    QComboBox *combo = static_cast<QComboBox*>(ui->boundaryConditionsTable->cellWidget(i, 4));
+    return combo->currentIndex();
+}
+
 
 void BoundaryConditionsWidget::on_saveConditions_clicked()
 {
@@ -133,12 +157,18 @@ void BoundaryConditionsWidget::on_saveConditions_clicked()
             cond.setAttribute("u", u(i));
             cond.setAttribute("v", v(i));
             cond.setAttribute("w", w(i));
+
             if (!isForceMode)
             {
                 cond.setAttribute("isU", isU(i));
                 cond.setAttribute("isV", isV(i));
                 cond.setAttribute("isW", isW(i));
             }
+            else
+            {
+                cond.setAttribute("forceType", forceTypeIndex(i));
+            }
+
             conditions.appendChild(cond);
         }
         doc.appendChild(conditions);
@@ -232,6 +262,16 @@ void BoundaryConditionsWidget::on_loadConditions_clicked()
                 wItem->setCheckState((isW == true) ? Qt::Checked : Qt::Unchecked);
             }
             ui->boundaryConditionsTable->setItem(ui->boundaryConditionsTable->rowCount() - 1, 3, wItem);
+
+            if (isForceMode)
+            {
+                QComboBox* combo = new QComboBox();
+                combo->addItem(tr("Узловые"));
+                combo->addItem(tr("Поверхностные"));
+                combo->addItem(tr("Объемные"));
+                combo->setCurrentIndex(cond.attribute("forceType").toInt());
+                ui->boundaryConditionsTable->setCellWidget(ui->boundaryConditionsTable->rowCount() - 1, 4, combo);
+            }
 
             child = child.nextSibling();
         }

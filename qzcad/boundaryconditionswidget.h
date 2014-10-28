@@ -63,9 +63,27 @@ public:
      * @return true, если условие применяется
      */
     bool isW(int i);
+    /**
+     * @brief Установить режим работы: сила/закрепление
+     * @param mode true -- ввод сил, false -- ввод граничных условий
+     */
     void setIsForceMode(bool mode);
+    /**
+     * @brief Получить текущую размерность
+     * @return true, если ввод для трехмерного пространства
+     */
     bool getIs3d() const;
+    /**
+     * @brief Установить размерность пространтсва
+     * @param value true, если ввод для трехмерного пространства
+     */
     void setIs3d(bool value);
+    /**
+     * @brief Индекс типа нагрузки
+     * @param i Номер нагрузки
+     * @return Индекс типа нагрузки
+     */
+    int forceTypeIndex(int i);
 
 private slots:
     void on_addCondition_clicked();

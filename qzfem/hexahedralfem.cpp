@@ -7,7 +7,7 @@
 
 #include "hexahedralfem.h"
 
-HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3D &parameters, FEMCondition3DPointer boundaryForce, const std::vector<FEMCondition3DPointer> &boundaryConditions)
+HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3D &parameters, ForceCondition3DPointer forceCondition, const std::vector<FEMCondition3DPointer> &boundaryConditions)
 {
     const int freedom = 3;
     const UInteger nodesCount = mesh->nodesCount();
@@ -31,7 +31,7 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3
     for (UInteger i = 0; i < systemDimension; i++)
         force(i) = 0.0;
 
-    processForce(mesh, boundaryForce, force);
+    processForce(mesh, forceCondition, force);
 
     std::cout << "Учет граничных условий..." << std::endl;
     processBoundaryConditions(mesh, boundaryConditions, globalMatrix, force);
@@ -49,7 +49,7 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3
     recoverStress(mesh, D);
 }
 
-HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3D &parameters, const std::vector<FEMCondition3DPointer> &boundaryForces, const std::vector<FEMCondition3DPointer> &boundaryConditions)
+HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3D &parameters, const std::vector<ForceCondition3DPointer> &forceCondition, const std::vector<FEMCondition3DPointer> &boundaryConditions)
 {
     const int freedom = 3;
     const UInteger nodesCount = mesh->nodesCount();
@@ -73,9 +73,9 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3
     for (UInteger i = 0; i < systemDimension; i++)
         force(i) = 0.0;
 
-    for(UInteger bf = 0; bf < boundaryForces.size(); bf++)
+    for(UInteger bf = 0; bf < forceCondition.size(); bf++)
     {
-        FEMCondition3DPointer forcePointer = boundaryForces[bf];
+        ForceCondition3DPointer forcePointer = forceCondition[bf];
         processForce(mesh, forcePointer, force);
     } // for bf
 
@@ -94,7 +94,7 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const MechanicalParameters3
     recoverStress(mesh, D);
 }
 
-HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const std::vector<MechanicalParameters3D> &parameters, const std::vector<FEMCondition3DPointer> &boundaryForces, const std::vector<FEMCondition3DPointer> &boundaryConditions)
+HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const std::vector<MechanicalParameters3D> &parameters, const std::vector<ForceCondition3DPointer> &forceCondition, const std::vector<FEMCondition3DPointer> &boundaryConditions)
 {
     const int freedom = 3;
     const UInteger nodesCount = mesh->nodesCount();
@@ -123,9 +123,9 @@ HexahedralFEM::HexahedralFEM(HexahedralMesh3D *mesh, const std::vector<Mechanica
     for (UInteger i = 0; i < systemDimension; i++)
         force(i) = 0.0;
 
-    for(UInteger bf = 0; bf < boundaryForces.size(); bf++)
+    for(UInteger bf = 0; bf < forceCondition.size(); bf++)
     {
-        FEMCondition3DPointer forcePointer = boundaryForces[bf];
+        ForceCondition3DPointer forcePointer = forceCondition[bf];
         processForce(mesh, forcePointer, force);
     } // for bf
 
@@ -592,64 +592,70 @@ void HexahedralFEM::assebly(HexahedralMesh3D *mesh, DoubleMatrix D[], MappedDoub
     } // for elementNumber
 }
 
-void HexahedralFEM::processForce(HexahedralMesh3D *mesh, FEMCondition3DPointer boundaryForce, DoubleVector &force)
+void HexahedralFEM::processForce(HexahedralMesh3D *mesh, ForceCondition3DPointer forceCondition, DoubleVector &force)
 {
     boost::progress_display progressBar(mesh->elementsCount());
     const UInteger nodesCount = mesh->nodesCount();
     double area = 0.0;
-    for (UInteger i = 0; i < mesh->elementsCount(); i++)
+    if (forceCondition->forceType() == SURFACE_FORCE)
     {
-        ++progressBar;
-//        if (mesh->isBorderElement(i))
+        for (UInteger i = 0; i < mesh->elementsCount(); i++)
         {
-            ElementPointer element = mesh->element(i);
-            for (int j = 0; j < element->facesCount(); j++)
+            ++progressBar;
+            //        if (mesh->isBorderElement(i))
             {
-                UIntegerVector face = element->face(j);
-                bool isBorderFace = true;
-                for (int k = 0; k < 4; k++)
+                ElementPointer element = mesh->element(i);
+                for (int j = 0; j < element->facesCount(); j++)
                 {
-//                    if (mesh->nodeType(face[k]) == INNER || !boundaryForce->isApplied(mesh->node(face[k])))
-                    if (!boundaryForce->isApplied(mesh->node(face[k])))
-                    {
-                        isBorderFace = false;
-                    }
-                } // for k
-                if (isBorderFace)
-                {
-                    double faceArea = mesh->faceArea(face); // площадь грани
-                    PointPointer p0 = mesh->node(face[0]); // координаты узлов
-                    PointPointer p1 = mesh->node(face[1]);
-                    PointPointer p2 = mesh->node(face[2]);
-                    PointPointer p3 = mesh->node(face[3]);
-                    const Point3D center ((p0->x() + p1->x() + p2->x() + p3->x()) / 4.0,
-                                          (p0->y() + p1->y() + p2->y() + p3->y()) / 4.0,
-                                          (p0->z() + p1->z() + p2->z() + p3->z()) / 4.0); // центр грани
-                    boundaryForce->isApplied(&center); // Поверхностный интеграл аппрксимируется произведением площади на значение функции в центре
-                    area += faceArea;
+                    UIntegerVector face = element->face(j);
+                    bool isBorderFace = true;
                     for (int k = 0; k < 4; k++)
                     {
-                        force(face[k]) = force(face[k]) + boundaryForce->u() * faceArea / 4.0;
-                        force(face[k] + nodesCount) = force(face[k] + nodesCount) + boundaryForce->v() * faceArea / 4.0;
-                        force(face[k] + 2L * nodesCount) = force(face[k] + 2L * nodesCount) + boundaryForce->w() * faceArea / 4.0;
+                        //                    if (mesh->nodeType(face[k]) == INNER || !boundaryForce->isApplied(mesh->node(face[k])))
+                        if (!forceCondition->isApplied(mesh->node(face[k])))
+                        {
+                            isBorderFace = false;
+                        }
                     } // for k
-                }// if
-            } // for j
-        } // if
-    } // for i
-    std::cout << "Нагрузка: " << boundaryForce->u() << "; " << boundaryForce->v() << "; " << boundaryForce->w() << ". Площадь нагруженной поверхноти: " << area << std::endl;
-//    UInteger pn = 0;
-//    for (UInteger i = 0; i < mesh->nodesCount(); i++)
-//    {
-//        if (boundaryForce->isApplied(mesh->node(i)))
-//        {
-//            force(i) = boundaryForce->u();
-//            force(i + nodesCount) = boundaryForce->v();
-//            force(i + 2L * nodesCount) = boundaryForce->w();
-//            pn++;
-//        }
-//    }
-//    std::cout << "Нагрузка {" << boundaryForce->u() << "; " << boundaryForce->v() << "; " << boundaryForce->w() << "} приложена в " << pn << " узле(-ах)." << std::endl;
+                    if (isBorderFace)
+                    {
+                        double faceArea = mesh->faceArea(face); // площадь грани
+                        PointPointer p0 = mesh->node(face[0]); // координаты узлов
+                        PointPointer p1 = mesh->node(face[1]);
+                        PointPointer p2 = mesh->node(face[2]);
+                        PointPointer p3 = mesh->node(face[3]);
+                        const Point3D center ((p0->x() + p1->x() + p2->x() + p3->x()) / 4.0,
+                                              (p0->y() + p1->y() + p2->y() + p3->y()) / 4.0,
+                                              (p0->z() + p1->z() + p2->z() + p3->z()) / 4.0); // центр грани
+                        forceCondition->isApplied(&center); // Поверхностный интеграл аппрксимируется произведением площади на значение функции в центре
+                        area += faceArea;
+                        for (int k = 0; k < 4; k++)
+                        {
+                            force(face[k]) = force(face[k]) + forceCondition->u() * faceArea / 4.0;
+                            force(face[k] + nodesCount) = force(face[k] + nodesCount) + forceCondition->v() * faceArea / 4.0;
+                            force(face[k] + 2L * nodesCount) = force(face[k] + 2L * nodesCount) + forceCondition->w() * faceArea / 4.0;
+                        } // for k
+                    }// if
+                } // for j
+            } // if
+        } // for i
+        std::cout << "Нагрузка: " << forceCondition->u() << "; " << forceCondition->v() << "; " << forceCondition->w() << ". Площадь нагруженной поверхноти: " << area << std::endl;
+    }
+    else if (forceCondition->forceType() == NODAL_FORCE)
+    {
+        UInteger pn = 0;
+        for (UInteger i = 0; i < mesh->nodesCount(); i++)
+        {
+            if (forceCondition->isApplied(mesh->node(i)))
+            {
+                force(i) = forceCondition->u();
+                force(i + nodesCount) = forceCondition->v();
+                force(i + 2L * nodesCount) = forceCondition->w();
+                pn++;
+            }
+        }
+        std::cout << "Нагрузка {" << forceCondition->u() << "; " << forceCondition->v() << "; " << forceCondition->w() << "} приложена в " << pn << " узле(-ах)." << std::endl;
+    }
 }
 
 void HexahedralFEM::processBoundaryConditions(HexahedralMesh3D *mesh, const std::vector<FEMCondition3DPointer> &boundaryConditions, MappedDoubleMatrix &globalMatrix, DoubleVector &force)

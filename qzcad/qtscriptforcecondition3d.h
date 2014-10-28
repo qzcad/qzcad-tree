@@ -1,13 +1,13 @@
 #ifndef QTSCRIPTFORCECONDITION3D_H
 #define QTSCRIPTFORCECONDITION3D_H
 
-#include "femcondition3d.h"
+#include "forcecondition3d.h"
 #include <QtScript/QScriptEngine>
 
-class QtScriptForceCondition3D: public FEMCondition3D
+class QtScriptForceCondition3D: public ForceCondition3D
 {
 public:
-    QtScriptForceCondition3D(QString condition, QString u, QString v, QString w);
+    QtScriptForceCondition3D(QString condition, QString u, QString v, QString w, ForceType fType);
 
     bool setCondition(QString condition, QString u, QString v, QString w);
 

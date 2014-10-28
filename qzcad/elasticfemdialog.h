@@ -6,7 +6,9 @@
 namespace Ui {
 class ElasticFemDialog;
 }
-
+/**
+ * @brief Диалог для ввода параметров упругого расчета
+ */
 class ElasticFemDialog : public QDialog
 {
     Q_OBJECT
@@ -173,6 +175,12 @@ public:
      * @return Текст с кодом функции для действия в третьем направлении
      */
     QString forceW(int i);
+    /**
+     * @brief Индекс типа нагрузки
+     * @param i Номер нагрузки
+     * @return Индекс типа нагрузки
+     */
+    int forceTypeIndex(int i);
     /// @}
 private:
     Ui::ElasticFemDialog *ui;

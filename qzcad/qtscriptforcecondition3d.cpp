@@ -2,7 +2,7 @@
 #include "iostream"
 #include "qtscriptfunctions.h"
 
-QtScriptForceCondition3D::QtScriptForceCondition3D(QString condition, QString u, QString v, QString w)
+QtScriptForceCondition3D::QtScriptForceCondition3D(QString condition, QString u, QString v, QString w, ForceType fType)
 {
     x_ = y_ = z_ = 0.0;
 
@@ -10,6 +10,8 @@ QtScriptForceCondition3D::QtScriptForceCondition3D(QString condition, QString u,
 
     QScriptValue qsApprox = engine_.newFunction(approx);
     engine_.globalObject().setProperty("approx", qsApprox);
+
+    setForceType(fType);
 }
 
 bool QtScriptForceCondition3D::setCondition(QString condition, QString u, QString v, QString w)

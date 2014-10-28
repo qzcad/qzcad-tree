@@ -8,6 +8,7 @@
 
 #include "hexahedralmesh3d.h"
 #include "femcondition3d.h"
+#include "forcecondition3d.h"
 #include "mechanicalparameters3d.h"
 #include "doublevector.h"
 #include "doublematrix.h"
@@ -26,26 +27,26 @@ public:
      * @brief Конструктор
      * @param mesh Указатель на сетку шестигранных элементов
      * @param parameters Значения механических параметров (модуль Юнга и коэффициент Пуассона)
-     * @param boundaryForce Поверхностная нагрузка
+     * @param forceCondition Нагрузка
      * @param boundaryConditions Массмв граничных условий
      */
-    HexahedralFEM(HexahedralMesh3D* mesh, const MechanicalParameters3D &parameters, FEMCondition3DPointer boundaryForce, const std::vector<FEMCondition3DPointer> &boundaryConditions);
+    HexahedralFEM(HexahedralMesh3D* mesh, const MechanicalParameters3D &parameters, ForceCondition3DPointer forceCondition, const std::vector<FEMCondition3DPointer> &boundaryConditions);
     /**
      * @brief Конструктор
      * @param mesh Указатель на сетку шестигранных элементов
      * @param parameters Значения механических параметров (модуль Юнга и коэффициент Пуассона)
-     * @param boundaryForces Массив поверхностных нагрузок
+     * @param forceCondition Массив нагрузок
      * @param boundaryConditions Массмв граничных условий
      */
-    HexahedralFEM(HexahedralMesh3D* mesh, const MechanicalParameters3D &parameters, const std::vector<FEMCondition3DPointer> &boundaryForces, const std::vector<FEMCondition3DPointer> &boundaryConditions);
+    HexahedralFEM(HexahedralMesh3D* mesh, const MechanicalParameters3D &parameters, const std::vector<ForceCondition3DPointer> &forceCondition, const std::vector<FEMCondition3DPointer> &boundaryConditions);
     /**
      * @brief Конструктор для расчета многослойных конструкций
      * @param mesh Указатель на сетку шестигранных элементов
      * @param parameters Значения механических параметров (модуль Юнга и коэффициент Пуассона) - массив, послойное представление
-     * @param boundaryForces Массив поверхностных нагрузок
+     * @param forceCondition Массив нагрузок
      * @param boundaryConditions Массмв граничных условий
      */
-    HexahedralFEM(HexahedralMesh3D* mesh, const std::vector<MechanicalParameters3D> &parameters, const std::vector<FEMCondition3DPointer> &boundaryForces, const std::vector<FEMCondition3DPointer> &boundaryConditions);
+    HexahedralFEM(HexahedralMesh3D* mesh, const std::vector<MechanicalParameters3D> &parameters, const std::vector<ForceCondition3DPointer> &forceCondition, const std::vector<FEMCondition3DPointer> &boundaryConditions);
     /**
      * @brief Получить значения перемещений в первом направлении
      * @return Значения перемещений в первом направлении
@@ -106,10 +107,10 @@ protected:
     /**
      * @brief Процедура учета поверхностной нагрузокуи
      * @param mesh Указатель на сетку
-     * @param boundaryForce Параметры поверхностной нагрузки
+     * @param forceCondition Параметры поверхностной нагрузки
      * @param force Вектор сил (должен быть инициализирован нулями, результат процедуры)
      */
-    void processForce(HexahedralMesh3D* mesh, FEMCondition3DPointer boundaryForce, DoubleVector &force);
+    void processForce(HexahedralMesh3D* mesh, ForceCondition3DPointer forceCondition, DoubleVector &force);
     /**
      * @brief Процедура учета граничных условий
      * @param mesh Укзатель на сетку

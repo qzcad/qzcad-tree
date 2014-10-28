@@ -1,7 +1,7 @@
 #include <iostream>
 #include "plasticfem.h"
 
-PlasticFem::PlasticFem(HexahedralMesh3D* mesh, const std::vector<double> &strain, const std::vector<double> &stress, const double &nu, const std::vector<FEMCondition3DPointer> &boundaryForces, const std::vector<FEMCondition3DPointer> &boundaryConditions)
+PlasticFem::PlasticFem(HexahedralMesh3D* mesh, const std::vector<double> &strain, const std::vector<double> &stress, const double &nu, const std::vector<ForceCondition3DPointer> &forceCondition, const std::vector<FEMCondition3DPointer> &boundaryConditions)
 {
     const int stress_size = stress.size();
     std::vector<MechanicalParameters3D> layers;
@@ -14,7 +14,7 @@ PlasticFem::PlasticFem(HexahedralMesh3D* mesh, const std::vector<double> &strain
     }
     HexahedralFEM *hFem;
     std::cout << "Нулевое приближение..." << std::endl;
-    hFem = new HexahedralFEM(mesh, layers[0], boundaryForces, boundaryConditions);
+    hFem = new HexahedralFEM(mesh, layers[0], forceCondition, boundaryConditions);
     sigma_ = hFem->sigma();
     sigmaX_ = hFem->sigmaX();
     sigmaY_ = hFem->sigmaY();
@@ -71,7 +71,7 @@ PlasticFem::PlasticFem(HexahedralMesh3D* mesh, const std::vector<double> &strain
         if (!isRupture)
         {
             ++it;
-            hFem = new HexahedralFEM(mesh, layers, boundaryForces, boundaryConditions);
+            hFem = new HexahedralFEM(mesh, layers, forceCondition, boundaryConditions);
             vectorSumAB(u_, hFem->u());
             vectorSumAB(v_, hFem->v());
             vectorSumAB(w_, hFem->w());

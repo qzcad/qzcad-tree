@@ -573,13 +573,13 @@ void MainWindow::on_actionElasticFem_triggered()
                                                                                 dialog.boundaryIsW(i),
                                                                                 dialog.boundaryW(i).toDouble()));
                     }
-                    std::vector<FEMCondition3DPointer> forces;
+                    std::vector<ForceCondition3DPointer> forces;
                     for (int i = 0; i < dialog.forcesCount(); i++)
                     {
                         forces.push_back(new QtScriptForceCondition3D(dialog.forceCondition(i),
                                                                                   dialog.forceU(i),
                                                                                   dialog.forceV(i),
-                                                                                  dialog.forceW(i)));
+                                                                                  dialog.forceW(i), static_cast<ForceType>(dialog.forceTypeIndex(i))));
                     }
                     QTime beginTime = QTime::currentTime();
                     std::cout << beginTime.toString("HH:mm:ss").toAscii().data() << ": запущен расчет методом конечных элементов" << std::endl;

@@ -169,3 +169,8 @@ QString ElasticFemDialog::forceW(int i)
 {
     return ui->forces->w(i);
 }
+
+int ElasticFemDialog::forceTypeIndex(int i)
+{
+    return ui->forces->forceTypeIndex(i);
+}

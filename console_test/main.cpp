@@ -158,9 +158,14 @@ public:
     }
 };
 
-class ForceCondition: public FEMCondition3D
+class ForceCondition: public ForceCondition3D
 {
 public:
+    ForceCondition()
+    {
+        setForceType(SURFACE_FORCE);
+    }
+
     virtual bool isApplied(PointPointer point)
     {
         return isEquil(point->y(), 0.018);
@@ -300,9 +305,14 @@ public:
     }
 };
 
-class SpaceForceX: public FEMCondition3D
+class SpaceForceX: public ForceCondition3D
 {
 public:
+    SpaceForceX()
+    {
+        setForceType(SURFACE_FORCE);
+    }
+
     virtual bool isApplied(PointPointer point)
     {
         return isEquil(point->x(), 0.0);
@@ -402,9 +412,14 @@ public:
     }
 };
 
-class TankForce: public FEMCondition3D
+class TankForce: public ForceCondition3D
 {
 public:
+    TankForce()
+    {
+        setForceType(SURFACE_FORCE);
+    }
+
     virtual bool isApplied(PointPointer point)
     {
         x = point->x();
@@ -576,7 +591,7 @@ int main()
             return 0;
         }
         force.setForce(p);
-        std::vector<FEMCondition3DPointer> boundaryForces;
+        std::vector<ForceCondition3DPointer> boundaryForces;
         boundaryForces.push_back(&force);
 
         if (task == 1)
@@ -603,7 +618,7 @@ int main()
         boundaryConditions.push_back(&sbx);
         boundaryConditions.push_back(&sby);
         boundaryConditions.push_back(&sbz);
-        std::vector<FEMCondition3DPointer> forces;
+        std::vector<ForceCondition3DPointer> forces;
         SpaceForceX sfx;
         forces.push_back(&sfx);
         std::vector<MechanicalParameters3D> layers;
@@ -641,7 +656,7 @@ int main()
         TankBoundaryFixed fixed;
         TankBoundaryXMove xMove;
         std::vector<FEMCondition3DPointer> boundaryConditions;
-        std::vector<FEMCondition3DPointer> boundaryForces;
+        std::vector<ForceCondition3DPointer> boundaryForces;
         TankForce tankForce;
 
         int boundary_type = 0;
@@ -679,7 +694,7 @@ int main()
         TankBoundaryFixed fixed;
         TankBoundaryXMove xMove;
         std::vector<FEMCondition3DPointer> boundaryConditions;
-        std::vector<FEMCondition3DPointer> boundaryForces;
+        std::vector<ForceCondition3DPointer> boundaryForces;
         TankForce tankForce;
 
         int boundary_type = 0;

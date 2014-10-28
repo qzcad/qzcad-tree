@@ -111,6 +111,11 @@
        <string extracomment="Третье направление">W</string>
       </property>
      </column>
+     <column>
+      <property name="text">
+       <string>Force Type</string>
+      </property>
+     </column>
     </widget>
    </item>
   </layout>
