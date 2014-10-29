@@ -15,6 +15,7 @@ GLMeshPicture::GLMeshPicture(QWidget *parent) :
     showColorBar_ = false;
     isLighting_ = true;
     isUseVector_ = false;
+    isShowInitialFrames = false;
     setDefault();
 }
 
@@ -635,6 +636,12 @@ void GLMeshPicture::setVectorScale(double vectorScale)
     updateGL();
 }
 
+void GLMeshPicture::setShowInitialFrames(bool isShow)
+{
+    isShowInitialFrames = isShow;
+    updateGL();
+}
+
 void GLMeshPicture::initializeGL()
 {
     qglClearColor(backgroundColor_);
@@ -715,6 +722,20 @@ void GLMeshPicture::paintGL()
                 for (int p = 0; p < element->facesCount(); p++)
                 {
                     msh::UIntegerVector face = element->face(p);
+                    if (mesh_->dimesion() == 3)
+                    {
+                        bool isInnerFace = false;
+                        for (msh::UInteger j = 0; j < face.size(); j++)
+                        {
+                            if (mesh_->nodeType(face[j]) == msh::INNER)
+                            {
+                                isInnerFace = true;
+                                break;
+                            }
+                        }
+                        if (isInnerFace)
+                            continue; // для трехмерных объектов рисуются только наружные грани
+                    }
                     msh::PointPointer a = mesh_->node(face[1]);
                     msh::PointPointer b = mesh_->node(face[0]);
                     msh::PointPointer c = mesh_->node(face[2]);
@@ -776,6 +797,17 @@ void GLMeshPicture::paintGL()
                                             vectorScale_ * nodeValues_[2][face[j]]);
                                 else
                                     pointToGLVertex(mesh_->node(face[j]));
+                            }
+                            glEnd();
+                        }
+                        if (isUseVector_ && isShowInitialFrames)
+                        {
+                            // отрисовка исходного каркаса
+                            glBegin(GL_LINE_LOOP);
+                            glColor3f(0.5, 0.5, 0.5);
+                            for (msh::UInteger j = 0; j < face.size(); j++)
+                            {
+                                pointToGLVertex(mesh_->node(face[j]));
                             }
                             glEnd();
                         }

@@ -231,6 +231,11 @@ public slots:
      * @param vectorScale Значение множителя
      */
     void setVectorScale(double vectorScale);
+    /**
+     * @brief Включить/выключить отображение исходного каркаса
+     * @param isShow true для включения
+     */
+    void setShowInitialFrames(bool isShow);
 
 protected:
     /**
@@ -316,6 +321,7 @@ private:
     msh::UInteger valueIndex_; //!< Индекс текущего вектора для визуализации
     bool isUseVector_; //!< Применить вектор при визуализации
     double vectorScale_; //!< Множитель вектора
+    bool isShowInitialFrames; //!< Фглаг включения/выключения отображения каркаса исходного состояния в режиме использования вектора
 
 private:
     /**

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>677</width>
-    <height>514</height>
+    <width>701</width>
+    <height>559</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -496,7 +496,10 @@
       </layout>
      </item>
      <item>
-      <layout class="QHBoxLayout" name="horizontalLayout_8">
+      <layout class="QVBoxLayout" name="verticalLayout_8">
+       <property name="spacing">
+        <number>0</number>
+       </property>
        <item>
         <widget class="QCheckBox" name="isUseVector">
          <property name="text">
@@ -517,6 +520,13 @@
          </property>
          <property name="value">
           <double>1.000000000000000</double>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="showInitialFrames">
+         <property name="text">
+          <string>Исходный каркас</string>
          </property>
         </widget>
        </item>
@@ -597,6 +607,7 @@
     <slot>setIsUseVector(bool)</slot>
     <slot>setVectorScale(double)</slot>
     <slot>prevValueIndex()</slot>
+    <slot>setShowInitialFrames(bool)</slot>
    </slots>
   </customwidget>
  </customwidgets>
@@ -609,11 +620,11 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>507</x>
+     <x>464</x>
      <y>157</y>
     </hint>
     <hint type="destinationlabel">
-     <x>507</x>
+     <x>464</x>
      <y>133</y>
     </hint>
    </hints>
@@ -625,11 +636,11 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>507</x>
+     <x>464</x>
      <y>133</y>
     </hint>
     <hint type="destinationlabel">
-     <x>507</x>
+     <x>464</x>
      <y>157</y>
     </hint>
    </hints>
@@ -641,11 +652,11 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>584</x>
+     <x>563</x>
      <y>157</y>
     </hint>
     <hint type="destinationlabel">
-     <x>584</x>
+     <x>563</x>
      <y>133</y>
     </hint>
    </hints>
@@ -657,11 +668,11 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>584</x>
+     <x>563</x>
      <y>133</y>
     </hint>
     <hint type="destinationlabel">
-     <x>584</x>
+     <x>563</x>
      <y>157</y>
     </hint>
    </hints>
@@ -709,7 +720,7 @@
      <y>139</y>
     </hint>
     <hint type="destinationlabel">
-     <x>507</x>
+     <x>464</x>
      <y>133</y>
     </hint>
    </hints>
@@ -721,7 +732,7 @@
    <slot>setXRotation(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>507</x>
+     <x>464</x>
      <y>133</y>
     </hint>
     <hint type="destinationlabel">
@@ -741,7 +752,7 @@
      <y>80</y>
     </hint>
     <hint type="destinationlabel">
-     <x>584</x>
+     <x>563</x>
      <y>133</y>
     </hint>
    </hints>
@@ -753,7 +764,7 @@
    <slot>setYRotation(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>584</x>
+     <x>563</x>
      <y>133</y>
     </hint>
     <hint type="destinationlabel">
@@ -837,8 +848,8 @@
      <y>233</y>
     </hint>
     <hint type="destinationlabel">
-     <x>367</x>
-     <y>359</y>
+     <x>358</x>
+     <y>368</y>
     </hint>
    </hints>
   </connection>
@@ -885,8 +896,8 @@
      <y>260</y>
     </hint>
     <hint type="destinationlabel">
-     <x>422</x>
-     <y>403</y>
+     <x>358</x>
+     <y>412</y>
     </hint>
    </hints>
   </connection>
@@ -897,8 +908,8 @@
    <slot>setValue(double)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>422</x>
-     <y>264</y>
+     <x>358</x>
+     <y>273</y>
     </hint>
     <hint type="destinationlabel">
      <x>665</x>
@@ -913,7 +924,7 @@
    <slot>setVisualisationMode(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>513</x>
+     <x>480</x>
      <y>387</y>
     </hint>
     <hint type="destinationlabel">
@@ -933,8 +944,8 @@
      <y>387</y>
     </hint>
     <hint type="destinationlabel">
-     <x>417</x>
-     <y>416</y>
+     <x>358</x>
+     <y>425</y>
     </hint>
    </hints>
   </connection>
@@ -981,8 +992,8 @@
      <y>341</y>
     </hint>
     <hint type="destinationlabel">
-     <x>380</x>
-     <y>454</y>
+     <x>358</x>
+     <y>463</y>
     </hint>
    </hints>
   </connection>
@@ -1009,8 +1020,8 @@
    <slot>setValue(double)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>408</x>
-     <y>475</y>
+     <x>358</x>
+     <y>484</y>
     </hint>
     <hint type="destinationlabel">
      <x>665</x>
@@ -1045,7 +1056,7 @@
      <y>481</y>
     </hint>
     <hint type="destinationlabel">
-     <x>422</x>
+     <x>358</x>
      <y>504</y>
     </hint>
    </hints>
@@ -1089,11 +1100,11 @@
    <slot>setVisible(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>545</x>
+     <x>436</x>
      <y>412</y>
     </hint>
     <hint type="destinationlabel">
-     <x>665</x>
+     <x>523</x>
      <y>414</y>
     </hint>
    </hints>
@@ -1105,7 +1116,7 @@
    <slot>setIsUseVector(bool)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>545</x>
+     <x>436</x>
      <y>412</y>
     </hint>
     <hint type="destinationlabel">
@@ -1121,12 +1132,12 @@
    <slot>setVectorScale(double)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>665</x>
+     <x>523</x>
      <y>414</y>
     </hint>
     <hint type="destinationlabel">
-     <x>418</x>
-     <y>408</y>
+     <x>358</x>
+     <y>417</y>
     </hint>
    </hints>
   </connection>
@@ -1143,6 +1154,38 @@
     <hint type="destinationlabel">
      <x>176</x>
      <y>371</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>isUseVector</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>showInitialFrames</receiver>
+   <slot>setVisible(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>396</x>
+     <y>401</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>563</x>
+     <y>403</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>showInitialFrames</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>picture</receiver>
+   <slot>setShowInitialFrames(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>638</x>
+     <y>403</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>271</x>
+     <y>394</y>
     </hint>
    </hints>
   </connection>
