@@ -47,7 +47,7 @@ public:
      * @param messageStep Щаг печати сообщений (через сколько итеаций выводить сообщение
      * @return Решение СЛАУ
      */
-    DoubleVector conjugateGradient(const DoubleVector &B, double epsilon = 1.0E-6, unsigned int niter = 50000, bool printMessages = true, unsigned int messageStep = 25) const;
+    DoubleVector conjugateGradient(const DoubleVector &B, double epsilon = 1.0E-6, unsigned int niter = 100000, bool printMessages = true, unsigned int messageStep = 25) const;
 protected:
     /**
      * @brief Метод для очистки памяти

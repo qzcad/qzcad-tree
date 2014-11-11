@@ -687,9 +687,13 @@ int main()
     }
     else if (task == 5)
     {
-        double strn[] =  {0.002,    0.0024, 0.003,  0.004,  0.0055, 0.0079, 0.013,  0.015,  0.0248, 0.032,  0.0361, 0.05,   0.1,    0.15};
+//        double strn[] =  {0.002,    0.0024, 0.003,  0.004,  0.0055, 0.0079, 0.013,  0.015,  0.0248, 0.032,  0.0361, 0.05,   0.1,    0.15};
+//        std::vector<double> strain(strn, strn + sizeof(strn) / sizeof(strn[0]));
+//        double strs[] =  {130,      140,    150,    160,    170,    180,    190,    200,    210,    220,    230,    270,    309,    330};
+//        std::vector<double> stress(strs, strs + sizeof(strs) / sizeof(strs[0]));
+        double strn[] =  {0.0026,    0.003, 0.0032, 0.0033,  0.0036,    0.0038, 0.0041, 0.0052, 0.0067, 0.0079, 0.01, 0.016,   0.026,   0.032,  0.11};
         std::vector<double> strain(strn, strn + sizeof(strn) / sizeof(strn[0]));
-        double strs[] =  {130,      140,    150,    160,    170,    180,    190,    200,    210,    220,    230,    270,    309,    330};
+        double strs[] =  {180,      200,    210,    220,    240,        250,    260,    280,    300,    310,    320,    332,    350,    360,    400};
         std::vector<double> stress(strs, strs + sizeof(strs) / sizeof(strs[0]));
         TankBoundaryFixed fixed;
         TankBoundaryXMove xMove;

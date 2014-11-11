@@ -16,6 +16,7 @@ GLMeshPicture::GLMeshPicture(QWidget *parent) :
     isLighting_ = true;
     isUseVector_ = false;
     isShowInitialFrames = false;
+    setFont(QFont("Courier", 14, QFont::Bold));
     setDefault();
 }
 
