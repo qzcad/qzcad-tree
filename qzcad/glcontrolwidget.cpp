@@ -65,6 +65,11 @@ void GLControlWidget::clearElementValues()
     ui->picture->clearElementValues();
 }
 
+NamedFloatingVector GLControlWidget::currentValuesVector()
+{
+    return ui->picture->currentValuesVector();
+}
+
 void GLControlWidget::activateDoubleBufferGL(bool activate)
 {
     ui->picture->activateDoubleBufferGL(activate);

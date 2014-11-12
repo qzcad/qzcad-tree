@@ -109,6 +109,20 @@ void GLMeshPicture::clearElementValues()
     valueIndex_ = 0;
 }
 
+NamedFloatingVector GLMeshPicture::currentValuesVector()
+{
+    NamedFloatingVector nfv; // пустой вектор, для случая отсутсвия векторов
+    if (visualizationMode_ == NODE_VALUE && valueIndex_ < nodeValues_.size())
+    {
+        return nodeValues_[valueIndex_];
+    }
+    else if (visualizationMode_ == ELEMENT_VALUE && valueIndex_ < elementValues_.size())
+    {
+        return elementValues_[valueIndex_];
+    }
+    return nfv;
+}
+
 void GLMeshPicture::setDefault()
 {
     xRot_ = yRot_ = zRot_ = 0;

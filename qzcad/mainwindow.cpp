@@ -686,3 +686,42 @@ void MainWindow::on_actionLoadElementValue_triggered()
         }
     }
 }
+
+void MainWindow::on_actionExtremeValuesStatistica_triggered()
+{
+    msh::MeshPointer mesh = ui->pictureControl->getMesh();
+    if (mesh != NULL)
+    {
+        NamedFloatingVector nfv = ui->pictureControl->currentValuesVector();
+        if (mesh->elementsCount() == nfv.size())
+        {
+            std::vector<double> data = nfv.data();
+            std::vector<double>::iterator result;
+            std::vector<double>::size_type index;
+            result = std::max_element(data.begin(), data.end());
+            index = std::distance(data.begin(), result);
+            std::cout << "Максимальное значение: " << *result << " в элементе с номером: " << index << std::endl;
+            result = std::min_element(data.begin(), data.end());
+            index = std::distance(data.begin(), result);
+            std::cout << "Минимальное значение: " << *result << " в элементе с номером: " << index << std::endl;
+        }
+        else if (mesh->nodesCount() == nfv.size())
+        {
+            std::vector<double> data = nfv.data();
+            std::vector<double>::iterator result;
+            std::vector<double>::size_type index;
+            msh::PointPointer node;
+            result = std::max_element(data.begin(), data.end());
+            index = std::distance(data.begin(), result);
+            node = mesh->node(index);
+            std::cout << "Максимальное значение: " << *result << " в узле с номером: " << index << std::endl;
+            std::cout << "( " << node->x() << "; " << node->y() << "; " << node->z() << " )" << std::endl;
+
+            result = std::min_element(data.begin(), data.end());
+            index = std::distance(data.begin(), result);
+            node = mesh->node(index);
+            std::cout << "Минимальное значение: " << *result << " в узле с номером: " << index << std::endl;
+            std::cout << "( " << node->x() << "; " << node->y() << "; " << node->z() << " )" << std::endl;
+        }
+    }
+}

@@ -31,6 +31,12 @@ public:
      * @brief Очистить вектор значений, определенных на элементе
      */
     void clearElementValues();
+    /**
+     * @brief Получить текущий (выбранный) вектор значений
+     * @return Вектор значений, который выбрал пользователь для визуализации
+     * Если нет векторов в соответствующих массивах, будет возвращен пустой вектор.
+     */
+    NamedFloatingVector currentValuesVector();
 public slots:
     void activateDoubleBufferGL(bool activate);
 private slots:

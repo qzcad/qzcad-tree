@@ -124,6 +124,8 @@
     <addaction name="separator"/>
     <addaction name="actionLoadNodeValue"/>
     <addaction name="actionLoadElementValue"/>
+    <addaction name="separator"/>
+    <addaction name="actionExtremeValuesStatistica"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -492,6 +494,11 @@
   <action name="actionLoadElementValue">
    <property name="text">
     <string>Загрузить значения на элементе...</string>
+   </property>
+  </action>
+  <action name="actionExtremeValuesStatistica">
+   <property name="text">
+    <string>Критические значения вектора даных...</string>
    </property>
   </action>
  </widget>
