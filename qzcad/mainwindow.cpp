@@ -153,9 +153,10 @@ void MainWindow::on_actionStructQuads_triggered()
     {
         msh::MeshPointer meshPtr = ui->pictureControl->releaseMesh();
         clearMesh(meshPtr);
-        msh::QuadrilateralMesh2D * mesh = new msh::QuadrilateralMesh2D(dialog.xCount(), dialog.yCount(),
-                                                                       dialog.xMin(), dialog.yMin(),
-                                                                       dialog.rectWidth(), dialog.rectHeight());
+//        msh::QuadrilateralMesh2D * mesh = new msh::QuadrilateralMesh2D(dialog.xCount(), dialog.yCount(),
+//                                                                       dialog.xMin(), dialog.yMin(),
+//                                                                       dialog.rectWidth(), dialog.rectHeight());
+        msh::QuadrilateralMesh2D * mesh = new msh::QuadrilateralMesh2D (10, msh::Point2D(0, 0), 2.0);
         meshPtr = mesh;
         ui->pictureControl->setMesh(meshPtr);
     }

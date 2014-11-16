@@ -52,6 +52,14 @@ public:
      */
     QuadrilateralMesh2D(const UInteger &count, const Point2D &v0, const Point2D &v1, const Point2D &v2);
     /**
+     * @brief Конструктор создает блочно-структурированную сетку для круга (части круга)
+     * @param count Базовое количество узлов
+     * @param center Координаты центра
+     * @param radius Радиус
+     * @param part Часть круга для дискретизации (возможные значение: 1 - целыйкруг, 2 - половинка, 4 - четверть)
+     */
+    QuadrilateralMesh2D(const UInteger &count, const Point2D &center, const double &radius, unsigned short part = 1);
+    /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
      */

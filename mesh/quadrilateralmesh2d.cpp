@@ -141,6 +141,83 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &count, const Point2D &v
     std::cout << "Создана равномерная сетка четырехугольных элементов для тругольной области: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
+QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &count, const Point2D &center, const double &radius, unsigned short part)
+{
+    if (part == 1)
+    {
+        double h = 1.0 / (double)(count - 1);
+        double xi = 0.0;
+        double eta = 0.0;
+        Point2D rb0 (center.x(), center.y() + 0.5 * radius);
+        Point2D rb1 (center.x() + 0.5 * radius, center.y());
+        Point2D rt0 (center.x(), center.y() + radius);
+        Point2D rt1 (center.x() + radius, center.y());
+        for (UInteger i = 0; i < count; i++)
+        {
+            eta = 0.0;
+            for (UInteger j = 0; j < count; j++)
+            {
+                Point2D rt (center.x() + radius * cos(M_PI_2 - M_PI_2 * xi),
+                            center.y() + radius * sin(M_PI_2 - M_PI_2 * xi));
+                Point2D rb (center.x() + 0.5 * radius * xi,
+                            center.y() + 0.5 * radius - 0.5 * radius * xi);
+                Point2D rl (center.x(),
+                            center.y() + 0.5 * radius + 0.5 * radius * eta);
+                Point2D rr (center.x() + 0.5 * radius + 0.5 * radius * eta,
+                            center.y());
+                Point2D p;
+                p = (1.0 - xi) * rl + xi * rr + (1.0 - eta) * rb + eta * rt -
+                        (1.0 - xi) * (1.0 - eta) * rb0 - (1.0 - xi) * eta * rt0 -
+                        xi * (1.0 - eta) * rb1 - xi * eta * rt1;
+                if (j == count - 1)
+                    pushNode(p, BORDER);
+                else
+                    pushNode(p, INNER);
+                eta += h;
+            }
+            xi += h;
+        }
+        // формирование массива элементов
+        for (UInteger i = 0; i < count - 1; i++)
+        {
+            for (UInteger j = 0; j < count - 1; j++)
+            {
+                addElement(i * count + j, (i + 1) * count + j, (i + 1) * count + j + 1, i * count + j + 1);
+            }
+        }
+        // Отражение по вертикали
+        UInteger ec = elementsCount();
+        for (UInteger i = 0; i < ec; i++)
+        {
+            Quadrilateral q = element_[i];
+            q[0] = addNode(Point2D(-node_[q[0]].point.x(), node_[q[0]].point.y()), node_[q[0]].type);
+            q[1] = addNode(Point2D(-node_[q[1]].point.x(), node_[q[1]].point.y()), node_[q[1]].type);
+            q[2] = addNode(Point2D(-node_[q[2]].point.x(), node_[q[2]].point.y()), node_[q[2]].type);
+            q[3] = addNode(Point2D(-node_[q[3]].point.x(), node_[q[3]].point.y()), node_[q[3]].type);
+            std::swap(q[1], q[3]);
+            element_.push_back(q);
+
+        }
+        // отражение по горизонтали
+        UInteger ecc = elementsCount();
+        for (UInteger i = 0; i < ecc; i++)
+        {
+            Quadrilateral q = element_[i];
+            q[0] = addNode(Point2D(node_[q[0]].point.x(), -node_[q[0]].point.y()), node_[q[0]].type);
+            q[1] = addNode(Point2D(node_[q[1]].point.x(), -node_[q[1]].point.y()), node_[q[1]].type);
+            q[2] = addNode(Point2D(node_[q[2]].point.x(), -node_[q[2]].point.y()), node_[q[2]].type);
+            q[3] = addNode(Point2D(node_[q[3]].point.x(), -node_[q[3]].point.y()), node_[q[3]].type);
+            std::swap(q[1], q[3]);
+            element_.push_back(q);
+
+        }
+        xMin_ = center.x() - radius;
+        xMax_ = center.x() + radius;
+        yMin_ = center.y() - radius;
+        yMax_ = center.y() + radius;
+    }
+}
+
 UInteger QuadrilateralMesh2D::elementsCount() const
 {
     return element_.size();
