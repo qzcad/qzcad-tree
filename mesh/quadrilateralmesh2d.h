@@ -53,7 +53,7 @@ public:
     QuadrilateralMesh2D(const UInteger &count, const Point2D &v0, const Point2D &v1, const Point2D &v2);
     /**
      * @brief Конструктор создает блочно-структурированную сетку для круга (части круга)
-     * @param count Базовое количество узлов
+     * @param count Базовое количество узлов (По окружности будет 4n - для целого круга, 4n - для половинки, 2n - для четверти)
      * @param center Координаты центра
      * @param radius Радиус
      * @param part Часть круга для дискретизации (возможные значение: 1 - целыйкруг, 2 - половинка, 4 - четверть)
@@ -121,6 +121,19 @@ protected:
     void conjugateGradient(const UInteger &size, double *x0, double *xMin,
                            const std::vector<UInteger> &nodeVariable, double epsilon = 0.0001, UInteger maxIter = 300);
     //    double sqr(const Floating &a) { return a * a; }
+    /**
+     * @brief Метод для добавления сеток на основе трансфинитной интерполяции
+     * Все узлы добавляются как внутренние (INNER, @see NodeType). Функции top, bottom, left, right - функторы (functors), указатели на функции (function pointers) или лямбды (lambda), которые возвращают координаты точки кривой в соответствии с заданным параметром.
+     * Ограничения: top(0) = left(1), top(1) = right(1), bottom(0) = left(0), bottom(1) = right(0)
+     * @param top Верхняя граница (функция xi)
+     * @param bottom Нижняя граница (функция xi)
+     * @param left Левая граница (функция eta)
+     * @param roght Правая граница (функция eta)
+     * @param xiCount Количество узлов по "направлению" xi
+     * @param etaCount Количество узлов по "направлению" eta
+     */
+    template<typename TopFunc, typename BottomFunc, typename LeftFunc, typename RightFunc>
+    void addTransfiniteMesh(TopFunc top, BottomFunc bottom, LeftFunc left, RightFunc right, const UInteger &xiCount, const UInteger &etaCount);
 protected:
     std::vector<Quadrilateral> element_; //!< Массив элементов
 };

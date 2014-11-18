@@ -145,55 +145,39 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &count, const Point2D &c
 {
     if (part == 1)
     {
-        double h = 1.0 / (double)(count - 1);
-        double xi = 0.0;
-        double eta = 0.0;
-        Point2D rb0 (center.x(), center.y() + 0.5 * radius);
-        Point2D rb1 (center.x() + 0.5 * radius, center.y());
-        Point2D rt0 (center.x(), center.y() + radius);
-        Point2D rt1 (center.x() + radius, center.y());
-        for (UInteger i = 0; i < count; i++)
-        {
-            eta = 0.0;
-            for (UInteger j = 0; j < count; j++)
-            {
-                Point2D rt (center.x() + radius * cos(M_PI_2 - M_PI_2 * xi),
-                            center.y() + radius * sin(M_PI_2 - M_PI_2 * xi));
-                Point2D rb (center.x() + 0.5 * radius * xi,
-                            center.y() + 0.5 * radius - 0.5 * radius * xi);
-                Point2D rl (center.x(),
-                            center.y() + 0.5 * radius + 0.5 * radius * eta);
-                Point2D rr (center.x() + 0.5 * radius + 0.5 * radius * eta,
-                            center.y());
-                Point2D p;
-                p = (1.0 - xi) * rl + xi * rr + (1.0 - eta) * rb + eta * rt -
-                        (1.0 - xi) * (1.0 - eta) * rb0 - (1.0 - xi) * eta * rt0 -
-                        xi * (1.0 - eta) * rb1 - xi * eta * rt1;
-                if (j == count - 1)
-                    pushNode(p, BORDER);
-                else
-                    pushNode(p, INNER);
-                eta += h;
-            }
-            xi += h;
-        }
-        // формирование массива элементов
-        for (UInteger i = 0; i < count - 1; i++)
-        {
-            for (UInteger j = 0; j < count - 1; j++)
-            {
-                addElement(i * count + j, (i + 1) * count + j, (i + 1) * count + j + 1, i * count + j + 1);
-            }
-        }
+        xMin_ = center.x() - radius;
+        xMax_ = center.x() + radius;
+        yMin_ = center.y() - radius;
+        yMax_ = center.y() + radius;
+
+        auto topCircle = [&](const double &xi) {
+            return Point2D(center.x() + radius * cos(M_PI_2 - M_PI_2 * xi),
+                           center.y() + radius * sin(M_PI_2 - M_PI_2 * xi));
+        };
+        auto bottomCircle = [&](const double &xi) {
+            return Point2D(center.x() + 0.5 * radius * xi,
+                           center.y() + 0.5 * radius - 0.5 * radius * xi);
+        };
+        auto leftCircle = [&](const double &eta) {
+            return Point2D(center.x(),
+                           center.y() + 0.5 * radius + 0.5 * radius * eta);
+        };
+        auto rightCircle = [&](const double &eta) {
+            return Point2D(center.x() + 0.5 * radius + 0.5 * radius * eta,
+                           center.y());
+        };
+        addTransfiniteMesh(topCircle, bottomCircle, leftCircle, rightCircle, count, count);
+
+
         // Отражение по вертикали
         UInteger ec = elementsCount();
         for (UInteger i = 0; i < ec; i++)
         {
             Quadrilateral q = element_[i];
-            q[0] = addNode(Point2D(-node_[q[0]].point.x(), node_[q[0]].point.y()), node_[q[0]].type);
-            q[1] = addNode(Point2D(-node_[q[1]].point.x(), node_[q[1]].point.y()), node_[q[1]].type);
-            q[2] = addNode(Point2D(-node_[q[2]].point.x(), node_[q[2]].point.y()), node_[q[2]].type);
-            q[3] = addNode(Point2D(-node_[q[3]].point.x(), node_[q[3]].point.y()), node_[q[3]].type);
+            q[0] = addNode(Point2D(xMin_ + xMax_ - node_[q[0]].point.x(), node_[q[0]].point.y()), node_[q[0]].type);
+            q[1] = addNode(Point2D(xMin_ + xMax_ - node_[q[1]].point.x(), node_[q[1]].point.y()), node_[q[1]].type);
+            q[2] = addNode(Point2D(xMin_ + xMax_ - node_[q[2]].point.x(), node_[q[2]].point.y()), node_[q[2]].type);
+            q[3] = addNode(Point2D(xMin_ + xMax_ - node_[q[3]].point.x(), node_[q[3]].point.y()), node_[q[3]].type);
             std::swap(q[1], q[3]);
             element_.push_back(q);
 
@@ -203,18 +187,122 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &count, const Point2D &c
         for (UInteger i = 0; i < ecc; i++)
         {
             Quadrilateral q = element_[i];
-            q[0] = addNode(Point2D(node_[q[0]].point.x(), -node_[q[0]].point.y()), node_[q[0]].type);
-            q[1] = addNode(Point2D(node_[q[1]].point.x(), -node_[q[1]].point.y()), node_[q[1]].type);
-            q[2] = addNode(Point2D(node_[q[2]].point.x(), -node_[q[2]].point.y()), node_[q[2]].type);
-            q[3] = addNode(Point2D(node_[q[3]].point.x(), -node_[q[3]].point.y()), node_[q[3]].type);
+            q[0] = addNode(Point2D(node_[q[0]].point.x(), yMin_ + yMax_ - node_[q[0]].point.y()), node_[q[0]].type);
+            q[1] = addNode(Point2D(node_[q[1]].point.x(), yMin_ + yMax_ - node_[q[1]].point.y()), node_[q[1]].type);
+            q[2] = addNode(Point2D(node_[q[2]].point.x(), yMin_ + yMax_ - node_[q[2]].point.y()), node_[q[2]].type);
+            q[3] = addNode(Point2D(node_[q[3]].point.x(), yMin_ + yMax_ - node_[q[3]].point.y()), node_[q[3]].type);
             std::swap(q[1], q[3]);
             element_.push_back(q);
 
         }
-        xMin_ = center.x() - radius;
-        xMax_ = center.x() + radius;
-        yMin_ = center.y() - radius;
-        yMax_ = center.y() + radius;
+
+        auto topQuad = [&](const double &xi) {
+            return Point2D(center.x() + 0.5 * radius * xi,
+                           center.y() + 0.5 * radius - 0.5 * radius * xi);
+        };
+        auto bottomQuad = [&](const double &xi) {
+            return Point2D(center.x() - 0.5 * radius + 0.5 * radius * xi,
+                           center.y() - 0.5 * radius * xi);
+        };
+        auto leftQuad = [&](const double &eta) {
+            return Point2D(center.x() - 0.5 * radius + 0.5 * radius * eta,
+                           center.y() + 0.5 * radius * eta);
+        };
+        auto rightQuad = [&](const double &eta) {
+            return Point2D(center.x() + 0.5 * radius * eta,
+                           center.y() - 0.5 * radius + 0.5 * radius * eta);
+        };
+        addTransfiniteMesh(topQuad, bottomQuad, leftQuad, rightQuad, count, count);
+    }
+    else
+    {
+        auto topCircle1 = [&](const double &xi) {
+            return Point2D(center.x() + radius * cos(M_PI_2 - M_PI_4 * xi),
+                           center.y() + radius * sin(M_PI_2 - M_PI_4 * xi));
+        };
+        auto bottomCircle1 = [&](const double &xi) {
+            return Point2D(center.x() + 0.375 * radius * xi,
+                           center.y() + 0.5 * radius - (0.5 - 0.375) * radius * xi);
+        };
+        auto leftCircle1 = [&](const double &eta) {
+            return Point2D(center.x(),
+                           center.y() + 0.5 * radius + 0.5 * radius * eta);
+        };
+        auto rightCircle1 = [&](const double &eta) {
+            return Point2D(center.x() + 0.375 * radius + (radius * cos(M_PI_4) - 0.375 * radius) * eta,
+                           center.y() + 0.375 * radius + (radius * sin(M_PI_4) - 0.375 * radius) * eta);
+        };
+        addTransfiniteMesh(topCircle1, bottomCircle1, leftCircle1, rightCircle1, count, count);
+
+        auto topCircle2 = [&](const double &xi) {
+            return Point2D(center.x() + radius * cos(M_PI_4 - M_PI_4 * xi),
+                           center.y() + radius * sin(M_PI_4 - M_PI_4 * xi));
+        };
+        auto bottomCircle2 = [&](const double &xi) {
+            return Point2D(center.x() + 0.375 * radius  + (0.5 - 0.375) * radius * xi,
+                           center.y() + 0.3755 * radius + (0.0 - 0.375) * radius * xi);
+        };
+        auto leftCircle2 = [&](const double &eta) {
+            return Point2D(center.x() + 0.375 * radius + (radius * cos(M_PI_4) - 0.375 * radius) * eta,
+                           center.y() + 0.375 * radius + (radius * sin(M_PI_4) - 0.375 * radius) * eta);
+        };
+        auto rightCircle2 = [&](const double &eta) {
+            return Point2D(center.x() + 0.5 * radius + 0.5 * radius * eta,
+                           center.y());
+        };
+        addTransfiniteMesh(topCircle2, bottomCircle2, leftCircle2, rightCircle2, count, count);
+
+        auto topQuad = [&](const double &xi) {
+            return Point2D(center.x() + 0.375 * radius * xi,
+                           center.y() + 0.5 * radius + (0.5 - 0.375) * radius * xi);
+        };
+        auto bottomQuad = [&](const double &xi) {
+            return Point2D(center.x() + 0.5 * radius * xi,
+                           center.y());
+        };
+        auto leftQuad = [&](const double &eta) {
+            return Point2D(center.x(),
+                           center.y() + 0.5 * radius * eta);
+        };
+        auto rightQuad = [&](const double &eta) {
+            return Point2D(center.x() + 0.5 * radius + (0.375 - 0.5) * radius * eta,
+                           center.y() + 0.375 * radius * eta);
+        };
+        addTransfiniteMesh(topQuad, bottomQuad, leftQuad, rightQuad, count, count);
+
+        if (part == 4)
+        {
+            xMin_ = center.x();
+            xMax_ = center.x() + radius;
+            yMin_ = center.y();
+            yMax_ = center.y() + radius;
+        }
+        else
+        {
+            xMin_ = center.x() - radius;
+            xMax_ = center.x() + radius;
+            yMin_ = center.y();
+            yMax_ = center.y() + radius;
+            // Отражение по вертикали
+            UInteger ec = elementsCount();
+            for (UInteger i = 0; i < ec; i++)
+            {
+                Quadrilateral q = element_[i];
+                q[0] = addNode(Point2D(xMin_ + xMax_ - node_[q[0]].point.x(), node_[q[0]].point.y()), node_[q[0]].type);
+                q[1] = addNode(Point2D(xMin_ + xMax_ - node_[q[1]].point.x(), node_[q[1]].point.y()), node_[q[1]].type);
+                q[2] = addNode(Point2D(xMin_ + xMax_ - node_[q[2]].point.x(), node_[q[2]].point.y()), node_[q[2]].type);
+                q[3] = addNode(Point2D(xMin_ + xMax_ - node_[q[3]].point.x(), node_[q[3]].point.y()), node_[q[3]].type);
+                std::swap(q[1], q[3]);
+                element_.push_back(q);
+
+            }
+        }
+    }
+    // Коррректировка типа для граничных узлов
+    for (UInteger i = 0; i < node_.size(); i++)
+    {
+        auto circle = [&](const double &x, const double &y) { return (x - center.x()) * (x - center.x()) + (y - center.y()) * (y - center.y()) - radius * radius; };
+        if (fabs(circle(node_[i].point.x(), node_[i].point.y())) < 1.0E-7) node_[i].type = BORDER;
     }
 }
 
@@ -517,4 +605,51 @@ void QuadrilateralMesh2D::conjugateGradient(const UInteger &size, double *x0, do
     }
     for(UInteger i = 0; i < size; i++) xMin[i] = xk[i];
 }
+
+ template<typename TopFunc, typename BottomFunc, typename LeftFunc, typename RightFunc>
+void QuadrilateralMesh2D::addTransfiniteMesh(TopFunc top, BottomFunc bottom, LeftFunc left, RightFunc right, const UInteger &xiCount, const UInteger &etaCount)
+{
+    const double hXi = 1.0 / (double)(xiCount - 1);
+    const double hEta = 1.0 / (double)(etaCount - 1);
+    double xi = 0.0;
+    double eta = 0.0;
+    UInteger nodeNumber[xiCount * etaCount];
+    Point2D rb0 = bottom (0.0);
+    Point2D rb1 = bottom (1.0);
+    Point2D rt0 = top (0.0);
+    Point2D rt1 = top (1.0);
+    for (UInteger i = 0; i < xiCount; i++)
+    {
+        eta = 0.0;
+        for (UInteger j = 0; j < etaCount; j++)
+        {
+            Point2D rt = top (xi);
+            Point2D rb = bottom (xi);
+            Point2D rl = left (eta);
+            Point2D rr = right (eta);
+            Point2D p;
+            p = (1.0 - xi) * rl + xi * rr + (1.0 - eta) * rb + eta * rt -
+                    (1.0 - xi) * (1.0 - eta) * rb0 - (1.0 - xi) * eta * rt0 -
+                    xi * (1.0 - eta) * rb1 - xi * eta * rt1;
+            if (i == 0 || j ==0 || i == xiCount - 1 || j == etaCount - 1)
+                nodeNumber[i * etaCount + j] = addNode(p, INNER);
+            else
+                nodeNumber[i * etaCount + j] = pushNode(p, INNER);
+            eta += hEta;
+        }
+        xi += hXi;
+    }
+    // формирование массива элементов
+    for (UInteger i = 0; i < xiCount - 1; i++)
+    {
+        for (UInteger j = 0; j < etaCount - 1; j++)
+        {
+            addElement(nodeNumber[i * etaCount + j],
+                    nodeNumber[(i + 1) * etaCount + j],
+                    nodeNumber[(i + 1) * etaCount + j + 1],
+                    nodeNumber[i * etaCount + j + 1]);
+        }
+    }
+}
+
 }

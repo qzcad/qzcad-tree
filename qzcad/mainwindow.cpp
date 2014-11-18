@@ -156,7 +156,7 @@ void MainWindow::on_actionStructQuads_triggered()
 //        msh::QuadrilateralMesh2D * mesh = new msh::QuadrilateralMesh2D(dialog.xCount(), dialog.yCount(),
 //                                                                       dialog.xMin(), dialog.yMin(),
 //                                                                       dialog.rectWidth(), dialog.rectHeight());
-        msh::QuadrilateralMesh2D * mesh = new msh::QuadrilateralMesh2D (10, msh::Point2D(0, 0), 2.0);
+        msh::QuadrilateralMesh2D * mesh = new msh::QuadrilateralMesh2D (30, msh::Point2D(-2, -2), 2.0, 2);
         meshPtr = mesh;
         ui->pictureControl->setMesh(meshPtr);
     }
