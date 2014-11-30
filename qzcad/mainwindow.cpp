@@ -35,6 +35,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    // по умолчанию дерево с операциями скрыто
+    ui->dockWidgetStruct->hide();
     // устанавливаем UTF-8 по умолчанию
     QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)

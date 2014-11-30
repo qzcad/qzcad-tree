@@ -18,7 +18,7 @@
     <normaloff>:/icons/qzicons/application.ico</normaloff>:/icons/qzicons/application.ico</iconset>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QHBoxLayout" name="horizontalLayout_2">
+   <layout class="QVBoxLayout" name="verticalLayout_3">
     <property name="spacing">
      <number>2</number>
     </property>
@@ -35,7 +35,44 @@
      <number>2</number>
     </property>
     <item>
-     <widget class="GLControlWidget" name="pictureControl" native="true"/>
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="tabPosition">
+       <enum>QTabWidget::West</enum>
+      </property>
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="tabObject">
+       <attribute name="title">
+        <string>Объект</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+        <property name="spacing">
+         <number>2</number>
+        </property>
+        <property name="leftMargin">
+         <number>2</number>
+        </property>
+        <property name="topMargin">
+         <number>2</number>
+        </property>
+        <property name="rightMargin">
+         <number>2</number>
+        </property>
+        <property name="bottomMargin">
+         <number>2</number>
+        </property>
+        <item>
+         <widget class="GLControlWidget" name="pictureControl" native="true"/>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="tabScript">
+       <attribute name="title">
+        <string>Скрипт</string>
+       </attribute>
+      </widget>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -187,6 +224,9 @@
    <property name="floating">
     <bool>false</bool>
    </property>
+   <property name="features">
+    <set>QDockWidget::AllDockWidgetFeatures</set>
+   </property>
    <property name="windowTitle">
     <string>Структура</string>
    </property>
@@ -222,7 +262,7 @@
     </layout>
    </widget>
   </widget>
-  <widget class="QDockWidget" name="terminalDock">
+  <widget class="QDockWidget" name="dockWidgetTerminal">
    <property name="windowIcon">
     <iconset resource="qzresources.qrc">
      <normaloff>:/icons/qzicons/24x24/terminal.png</normaloff>:/icons/qzicons/24x24/terminal.png</iconset>
