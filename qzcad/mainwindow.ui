@@ -71,6 +71,11 @@
      <string>&amp;Файл</string>
     </property>
     <addaction name="separator"/>
+    <addaction name="actionNewScript"/>
+    <addaction name="actionOpenScript"/>
+    <addaction name="actionSaveScript"/>
+    <addaction name="actionSaveAsScript"/>
+    <addaction name="separator"/>
     <addaction name="actionLoadMesh"/>
     <addaction name="actionSaveMesh"/>
     <addaction name="separator"/>
@@ -174,6 +179,10 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionNewScript"/>
+   <addaction name="actionOpenScript"/>
+   <addaction name="actionSaveScript"/>
+   <addaction name="actionSaveAsScript"/>
    <addaction name="separator"/>
    <addaction name="actionUnion"/>
    <addaction name="actionIntersection"/>
@@ -426,6 +435,9 @@
    <property name="text">
     <string>Сохранить дискретную модель...</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
+   </property>
   </action>
   <action name="actionRotationBodyMesh">
    <property name="icon">
@@ -501,6 +513,9 @@
    <property name="text">
     <string>Загрузить дискретную модель...</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+O</string>
+   </property>
   </action>
   <action name="actionElasticFem">
    <property name="text">
@@ -520,6 +535,51 @@
   <action name="actionExtremeValuesStatistica">
    <property name="text">
     <string>Критические значения вектора даных...</string>
+   </property>
+  </action>
+  <action name="actionNewScript">
+   <property name="icon">
+    <iconset resource="qzresources.qrc">
+     <normaloff>:/icons/qzicons/24x24/new_document.png</normaloff>:/icons/qzicons/24x24/new_document.png</iconset>
+   </property>
+   <property name="text">
+    <string>Новый скрипт</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="actionOpenScript">
+   <property name="icon">
+    <iconset resource="qzresources.qrc">
+     <normaloff>:/icons/qzicons/24x24/folder.png</normaloff>:/icons/qzicons/24x24/folder.png</iconset>
+   </property>
+   <property name="text">
+    <string>Открыть скрипт...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionSaveScript">
+   <property name="icon">
+    <iconset resource="qzresources.qrc">
+     <normaloff>:/icons/qzicons/24x24/save.png</normaloff>:/icons/qzicons/24x24/save.png</iconset>
+   </property>
+   <property name="text">
+    <string>Сохранить скрипт</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionSaveAsScript">
+   <property name="icon">
+    <iconset resource="qzresources.qrc">
+     <normaloff>:/icons/qzicons/24x24/save_as.png</normaloff>:/icons/qzicons/24x24/save_as.png</iconset>
+   </property>
+   <property name="text">
+    <string>Сохранить скрипт как...</string>
    </property>
   </action>
  </widget>

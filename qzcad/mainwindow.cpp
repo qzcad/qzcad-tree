@@ -9,6 +9,7 @@
 #include <QTextStream>
 #include <QInputDialog>
 #include <QTime>
+#include <QFileInfo>
 
 #include "globalconsts.h"
 
@@ -63,6 +64,14 @@ MainWindow::~MainWindow()
     delete highlighter;
     delete stdRedirector;
     delete ui;
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    if (maybeSaveScript())
+        event->accept();
+    else
+        event->ignore();
 }
 
 void MainWindow::onConsoleMessage(QString message)
@@ -122,6 +131,109 @@ void MainWindow::clearMesh(MeshPointer mesh)
     {
         delete mesh;
     }
+}
+
+void MainWindow::setCurrentScriptName(const QString &fileName)
+{
+    scriptFileName = fileName;
+    ui->codeEditor->document()->setModified(false);
+    setWindowModified(false);
+    setWindowFilePath(scriptFileName);
+}
+
+bool MainWindow::writeScript(const QString &fileName)
+{
+    QFile file(fileName);
+    if(!file.open(QFile::WriteOnly | QFile::Text))
+    {
+        QString fileWriteErrorBoxTitle = tr("Ошибка");
+        QString fileWriteErrorBoxMessage = tr("Невозможно записать файл %1:\n%2").arg(fileName).arg(file.errorString());
+        QMessageBox::warning(this, fileWriteErrorBoxTitle, fileWriteErrorBoxMessage);
+        return false;
+    }
+    QTextStream out(&file);
+
+    out << ui->codeEditor->toPlainText();
+    setCurrentScriptName(fileName);
+
+    return true;
+}
+
+bool MainWindow::readScript(const QString &fileName)
+{
+    QFile file(fileName);
+    if(!file.open(QFile::ReadOnly | QFile::Text))
+    {
+        QString readFileErrorBoxTitle = tr("Ошибка");
+        QString readFileErrorBoxMessage = tr("Невозможно прочитать файл %1:\n%2").arg(fileName).arg(file.errorString());
+        QMessageBox::warning(this, readFileErrorBoxTitle, readFileErrorBoxMessage);
+        return false;
+    }
+    QTextStream in(&file);
+    ui->codeEditor->setPlainText(in.readAll());
+    setCurrentScriptName(fileName);
+
+    return true;
+}
+
+bool MainWindow::saveScriptAs()
+{
+    QString saveAsDialogTitle = tr("Сохранить как");
+    QString dir = (scriptFileName.isEmpty()) ? "" : QFileInfo(scriptFileName).absolutePath();
+    QString saveAsDialogVariants = tr("Qt Script файлы (*.js);;Текстовые файлы (*.txt);;Любой файл (*)");
+    QString fileName = QFileDialog::getSaveFileName(this,
+                                                    saveAsDialogTitle,
+                                                    dir,
+                                                    saveAsDialogVariants);
+
+    if(fileName.isEmpty())
+        return false;
+
+    return writeScript(fileName);
+}
+
+bool MainWindow::saveScript()
+{
+    if (scriptFileName.isEmpty())
+        return saveScriptAs();
+
+    return writeScript(scriptFileName);
+}
+
+bool MainWindow::maybeSaveScript()
+{
+    if(ui->codeEditor->document()->isModified())
+    {
+        QMessageBox::StandardButton ret;
+        QString maybeSaveDialogTitile = tr("Сохранить изменения?");
+        QString maybeSaveDialogMessage =  tr("Код модели модифицирован. Сохранить изменения?");
+        ret = QMessageBox::question(this,
+                                    maybeSaveDialogTitile,
+                                    maybeSaveDialogMessage,
+                                    QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+        if (ret == QMessageBox::Save)
+            return saveScript();
+        else if (ret == QMessageBox::Cancel)
+            return false;
+    }
+    return true;
+}
+
+bool MainWindow::openScript()
+{
+    if(maybeSaveScript())
+    {
+        QString openFileDialogTitle = tr("Открыть файл");
+        QString dir = (scriptFileName.isEmpty()) ? "" : QFileInfo(scriptFileName).absolutePath();
+        QString openFileDialogVariants = tr("Qt Script файлы (*.js);;Текстовые файлы (*.txt);;Любой файл (*)");
+        QString fileName = QFileDialog::getOpenFileName(this,
+                                                        openFileDialogTitle,
+                                                        dir,
+                                                        openFileDialogVariants);
+        if(!fileName.isEmpty())
+            return readScript(fileName);
+    }
+    return false;
 }
 
 void MainWindow::on_actionIntersection_triggered()
@@ -735,4 +847,28 @@ void MainWindow::on_actionExtremeValuesStatistica_triggered()
             std::cout << "( " << node->x() << "; " << node->y() << "; " << node->z() << " )" << std::endl;
         }
     }
+}
+
+void MainWindow::on_actionNewScript_triggered()
+{
+    if (maybeSaveScript())
+    {
+        ui->codeEditor->clear();
+        setCurrentScriptName("");
+    }
+}
+
+void MainWindow::on_actionOpenScript_triggered()
+{
+    openScript();
+}
+
+void MainWindow::on_actionSaveScript_triggered()
+{
+    saveScript();
+}
+
+void MainWindow::on_actionSaveAsScript_triggered()
+{
+    saveScriptAs();
 }

@@ -34,6 +34,8 @@ public:
       * @brief Деструктор
       */
     ~MainWindow();
+
+    virtual void closeEvent(QCloseEvent *event);
     
 private slots:
     void onConsoleMessage(QString message);
@@ -83,10 +85,19 @@ private slots:
 
     void on_actionExtremeValuesStatistica_triggered();
 
+    void on_actionNewScript_triggered();
+
+    void on_actionOpenScript_triggered();
+
+    void on_actionSaveScript_triggered();
+
+    void on_actionSaveAsScript_triggered();
+
 private:
     Ui::MainWindow *ui; //!< Контейнер элементов графического интерфейса
     QStdRedirector<> *stdRedirector; //!< Перехватчик сообщений стандартного потока
     Highlighter *highlighter;
+    QString scriptFileName;
 
 private:
     /**
@@ -110,6 +121,39 @@ private:
      */
     void addElement(const int &id, const QString &category, const QString &type, const QString &iconName, QString parameters = "");
     void clearMesh(msh::MeshPointer mesh);
+    /**
+     * @brief Установить имя текущего файла со скриптом модели
+     * @param fileName Имя файла
+     */
+    void setCurrentScriptName(const QString &fileName);
+    /**
+     * @brief Метод для записи скрипта модели в текстовый файл
+     * @param fileName Имя файла для записи
+     * @return true, если запись успешно выполнена
+     */
+    bool writeScript(const QString &fileName);
+    /**
+     * @brief Метод для чтения скрипта модели из текстового файла
+     * @param fileName Имя файла для считывания
+     * @return true, если файл успешно считан
+     */
+    bool readScript(const QString &fileName);
+    /**
+     * @brief Метод для сохранения файла по пути, указаному в диалоге выбора файла
+     * @return true, если сохранение файла успешно выполнено
+     */
+    bool saveScriptAs();
+    /**
+     * @brief Метод для сохранения файла, который при необходимости предлагает диалог выбора пути
+     * @return true, если сохранение файла успешно выполнено
+     */
+    bool saveScript();
+    /**
+     * @brief Метод при необходимости запрашивает подтвержедение сохранения изменение в скрипте модели
+     * @return true -- Ok, false -- Cancel
+     */
+    bool maybeSaveScript();
+    bool openScript();
 };
 
 #endif // MAINWINDOW_H
