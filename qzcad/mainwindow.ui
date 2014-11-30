@@ -19,21 +19,6 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout_3">
-    <property name="spacing">
-     <number>2</number>
-    </property>
-    <property name="leftMargin">
-     <number>2</number>
-    </property>
-    <property name="topMargin">
-     <number>2</number>
-    </property>
-    <property name="rightMargin">
-     <number>2</number>
-    </property>
-    <property name="bottomMargin">
-     <number>2</number>
-    </property>
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="tabPosition">
@@ -47,21 +32,6 @@
         <string>Объект</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_4">
-        <property name="spacing">
-         <number>2</number>
-        </property>
-        <property name="leftMargin">
-         <number>2</number>
-        </property>
-        <property name="topMargin">
-         <number>2</number>
-        </property>
-        <property name="rightMargin">
-         <number>2</number>
-        </property>
-        <property name="bottomMargin">
-         <number>2</number>
-        </property>
         <item>
          <widget class="GLControlWidget" name="pictureControl" native="true"/>
         </item>
@@ -71,6 +41,17 @@
        <attribute name="title">
         <string>Скрипт</string>
        </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_5">
+        <item>
+         <widget class="CodeEditor" name="codeEditor" native="true">
+          <property name="font">
+           <font>
+            <family>Monospace</family>
+           </font>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </widget>
      </widget>
     </item>
@@ -552,6 +533,12 @@
    <slots>
     <slot>activateDoubleBufferGL(bool)</slot>
    </slots>
+  </customwidget>
+  <customwidget>
+   <class>CodeEditor</class>
+   <extends>QWidget</extends>
+   <header location="global">codeeditor.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>

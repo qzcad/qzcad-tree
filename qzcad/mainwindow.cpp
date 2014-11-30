@@ -35,17 +35,24 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
     // по умолчанию дерево с операциями скрыто
     ui->dockWidgetStruct->hide();
+
     // устанавливаем UTF-8 по умолчанию
     QTextCodec::setCodecForLocale(QTextCodec::codecForName("UTF-8"));
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
     QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
     QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
 #endif
+
     showMaximized();
+
+    highlighter = new Highlighter(ui->codeEditor->document());
+
     stdRedirector = new QStdRedirector<>(std::cout, this);
     connect(stdRedirector, SIGNAL(messageChanged(QString)), this, SLOT(onConsoleMessage(QString)));
+
     std::cout << QTime::currentTime().toString("HH:mm:ss").toAscii().data() << ": система успешно запущена и готова к использованию..." << std::endl;
 }
 
@@ -53,6 +60,7 @@ MainWindow::~MainWindow()
 {
     msh::MeshPointer meshPtr = ui->pictureControl->releaseMesh();
     if (meshPtr != NULL) delete meshPtr; // чистим старые данные
+    delete highlighter;
     delete stdRedirector;
     delete ui;
 }

@@ -12,6 +12,7 @@
 #include <QTreeWidget>
 #include "meshpointer.h"
 #include "qstdredirector.h"
+#include "highlighter.h"
 
 namespace Ui {
 class MainWindow;
@@ -85,6 +86,7 @@ private slots:
 private:
     Ui::MainWindow *ui; //!< Контейнер элементов графического интерфейса
     QStdRedirector<> *stdRedirector; //!< Перехватчик сообщений стандартного потока
+    Highlighter *highlighter;
 
 private:
     /**
