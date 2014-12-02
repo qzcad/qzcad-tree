@@ -260,6 +260,18 @@ HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const double &
     std::cout << "Создана сетка шестигранных элементов вращением плоского профиля: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
+HexahedralMesh3D::HexahedralMesh3D(const HexahedralMesh3D &mesh)
+{
+    element_ = mesh.element_;
+    node_ = mesh.node_;
+    xMin_ = mesh.xMin_;
+    xMax_ = mesh.xMax_;
+    yMin_ = mesh.yMin_;
+    yMax_ = mesh.yMax_;
+    zMin_ = mesh.zMin_;
+    zMax_ = mesh.zMax_;
+}
+
 UInteger HexahedralMesh3D::elementsCount() const
 {
     return element_.size();

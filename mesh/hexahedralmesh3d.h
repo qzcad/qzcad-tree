@@ -47,7 +47,7 @@ public:
      */
     HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const double& xDelta, const double& yDelta, const int& lCount, bool x_axes, bool withLayersInfo = true);
     /**
-     * @brief HexahedralMesh3D Конструктор, который строит сетку как тело вращения на заданный угол
+     * @brief Конструктор, который строит сетку как тело вращения на заданный угол
      * @param baseMesh Указатель на базовую двумерную сетку четырехугольных элементов
      * @param xDelta Смещение вдоль оси ординат
      * @param yDelta Смещение вдоль оси абсцисс
@@ -57,6 +57,11 @@ public:
      * @param withLayersInfo Учеть номера слоев
      */
     HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const double& xDelta, const double& yDelta, const double& angle, const int& lCount, bool x_axes, bool withLayersInfo = true);
+    /**
+     * @brief Конструктор копирования
+     * @param mesh Экземпляр объекта для копирования
+     */
+    HexahedralMesh3D(const HexahedralMesh3D &mesh);
     /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
