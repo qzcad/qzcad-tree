@@ -60,6 +60,11 @@ public:
      */
     QuadrilateralMesh2D(const UInteger &count, const Point2D &center, const double &radius, unsigned short part = 1);
     /**
+     * @brief Конструктор копирования
+     * @param mesh Экземпляр объекта для копирования
+     */
+    QuadrilateralMesh2D(const QuadrilateralMesh2D &mesh);
+    /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
      */
