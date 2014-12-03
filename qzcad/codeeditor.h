@@ -42,7 +42,9 @@
 
 #include <QPlainTextEdit>
 #include <QObject>
-
+/**
+ * @brief Класс редактора кода
+ */
 class CodeEditor : public QPlainTextEdit
 {
     Q_OBJECT
@@ -56,29 +58,32 @@ private slots:
     void updateLineNumberAreaWidth(int newBlockCount);
     void highlightCurrentLine();
     void updateLineNumberArea(const QRect &rect, int dy);
+    void setTabStopSymbols(int symbols);
 private:
-    QWidget *lineNumberArea;
-    QPair<int, int> m_countCache;
+    QWidget *lineNumberArea_;
+    QPair<int, int> countCache_;
 };
-
+/**
+ * @brief Класс площади для вывода номеров строк
+ */
 class LineNumberArea : public QWidget
 {
 public:
     LineNumberArea(CodeEditor *editor) : QWidget(editor) {
-        codeEditor = editor;
+        codeEditor_ = editor;
     }
 
     QSize sizeHint() const {
-        return QSize(codeEditor->lineNumberAreaWidth(), 0);
+        return QSize(codeEditor_->lineNumberAreaWidth(), 0);
     }
 
 protected:
     void paintEvent(QPaintEvent *event) {
-        codeEditor->lineNumberAreaPaintEvent(event);
+        codeEditor_->lineNumberAreaPaintEvent(event);
     }
 
 private:
-    CodeEditor *codeEditor;
+    CodeEditor *codeEditor_;
 };
 
 #endif // CODEEDITOR_H

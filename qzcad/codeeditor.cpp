@@ -4,9 +4,9 @@
 CodeEditor::CodeEditor(QWidget *parent) :
     QPlainTextEdit(parent)
 {
-    m_countCache.first = -1;
-    m_countCache.second = -1;
-    lineNumberArea = new LineNumberArea(this);
+    countCache_.first = -1;
+    countCache_.second = -1;
+    lineNumberArea_ = new LineNumberArea(this);
 
     connect(this, SIGNAL(blockCountChanged(int)), this, SLOT(updateLineNumberAreaWidth(int)));
     connect(this, SIGNAL(updateRequest(QRect,int)), this, SLOT(updateLineNumberArea(QRect,int)));
@@ -14,11 +14,13 @@ CodeEditor::CodeEditor(QWidget *parent) :
 
     updateLineNumberAreaWidth(0);
     highlightCurrentLine();
+    setFont(QFont("Monospace"));
+    setTabStopWidth(fontMetrics().width(QLatin1Char(' ')) * 3); // ширина по умолчани - 3 символа
 }
 
 void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
 {
-    QPainter painter(lineNumberArea);
+    QPainter painter(lineNumberArea_);
     painter.fillRect(event->rect(), Qt::lightGray);
 
 
@@ -33,7 +35,7 @@ void CodeEditor::lineNumberAreaPaintEvent(QPaintEvent *event)
         {
             QString number = QString::number(blockNumber + 1);
             painter.setPen(Qt::black);
-            painter.drawText(0, top, lineNumberArea->width(), fontMetrics().height(),
+            painter.drawText(0, top, lineNumberArea_->width(), fontMetrics().height(),
                              Qt::AlignRight, number);
         }
 
@@ -64,7 +66,7 @@ void CodeEditor::resizeEvent(QResizeEvent *event)
     QPlainTextEdit::resizeEvent(event);
 
     QRect cr = contentsRect();
-    lineNumberArea->setGeometry(QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
+    lineNumberArea_->setGeometry(QRect(cr.left(), cr.top(), lineNumberAreaWidth(), cr.height()));
 }
 
 void CodeEditor::updateLineNumberAreaWidth(int newBlockCount)
@@ -94,15 +96,20 @@ void CodeEditor::updateLineNumberArea(const QRect &rect, int dy)
 {
     if (dy)
     {
-        lineNumberArea->scroll(0, dy);
-    } else if (m_countCache.first != blockCount()
-               || m_countCache.second != textCursor().block().lineCount())
+        lineNumberArea_->scroll(0, dy);
+    } else if (countCache_.first != blockCount()
+               || countCache_.second != textCursor().block().lineCount())
     {
-        lineNumberArea->update(0, rect.y(), lineNumberArea->width(), rect.height());
-        m_countCache.first = blockCount();
-        m_countCache.second = textCursor().block().lineCount();
+        lineNumberArea_->update(0, rect.y(), lineNumberArea_->width(), rect.height());
+        countCache_.first = blockCount();
+        countCache_.second = textCursor().block().lineCount();
     }
 
     if (rect.contains(viewport()->rect()))
         updateLineNumberAreaWidth(0);
+}
+
+void CodeEditor::setTabStopSymbols(int symbols)
+{
+    setTabStopWidth(fontMetrics().width(QLatin1Char(' ')) * symbols);
 }
