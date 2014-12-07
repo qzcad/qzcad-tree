@@ -1,8 +1,9 @@
 /**
-  * Заголовочный файл класса главного окна системы
-  * @author Чопоров Сергей
+  * @author Сергей Чопоров
   * @date 30/12/2013
-  * @version 1.0
+  * @version 1.0.1
+  * @copyright Copyright 2013 Sergey Choporov. All rights reserved.
+  * This project is released under the GNU Lesser General Public License.
   */
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H

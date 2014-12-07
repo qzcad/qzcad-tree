@@ -1,8 +1,10 @@
 /**
   * @author Сергей Чопоров
-  * @date 31/07/08
-  * @version 1.0.0
-  **/
+  * @date 31/07/2008
+  * @version 1.0.1
+  * @copyright Copyright 2008 Sergey Choporov. All rights reserved.
+  * This project is released under the GNU Lesser General Public License.
+  */
 #ifndef QSTDREDIRECTOR_H
 #define QSTDREDIRECTOR_H
 

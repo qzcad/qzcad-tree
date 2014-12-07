@@ -1,8 +1,10 @@
 /**
   * @author Сергей Чопоров
   * @date 12/09/2014
-  * @version 1.0.0
-  * */
+  * @version 1.0.1
+  * @copyright Copyright 2014 Sergey Choporov. All rights reserved.
+  * This project is released under the GNU Lesser General Public License.
+  */
 #ifndef NAMEDFLOATINGVECTOR_H
 #define NAMEDFLOATINGVECTOR_H
 

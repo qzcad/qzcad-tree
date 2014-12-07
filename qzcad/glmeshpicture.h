@@ -1,7 +1,9 @@
 /**
   * @author Сергей Чопоров
-  * @version 1.0.3
   * @date 30/12/2013
+  * @version 1.0.5
+  * @copyright Copyright 2013 Sergey Choporov. All rights reserved.
+  * This project is released under the GNU Lesser General Public License.
   */
 #ifndef GLMESHPICTURE_H
 #define GLMESHPICTURE_H

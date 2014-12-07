@@ -1,3 +1,10 @@
+/**
+  * @author Сергей Чопоров
+  * @date 24/08/2014
+  * @version 1.0.1
+  * @copyright Copyright 2014 Sergey Choporov. All rights reserved.
+  * This project is released under the GNU Lesser General Public License.
+  */
 #ifndef QTSCRIPTFORCECONDITION3D_H
 #define QTSCRIPTFORCECONDITION3D_H
 
