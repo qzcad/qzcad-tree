@@ -30,6 +30,7 @@
 #include "hexahedralfem.h"
 #include "qtscriptfemcondition3d.h"
 #include "qtscriptforcecondition3d.h"
+#include "qzscriptengine.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -871,4 +872,16 @@ void MainWindow::on_actionSaveScript_triggered()
 void MainWindow::on_actionSaveAsScript_triggered()
 {
     saveScriptAs();
+}
+
+void MainWindow::on_actionRunScript_triggered()
+{
+    QZScriptEngine engine(this);
+    std::cout << "QZScriptEngine started..." << std::endl;
+    QScriptValue result = engine.evaluate(ui->codeEditor->toPlainText());
+    if (engine.hasUncaughtException()) {
+        int line = engine.uncaughtExceptionLineNumber();
+        std::cout << "Uncaught exception at line " << line << ": " << result.toString().toAscii().data() << std::endl;
+    }
+    std::cout << "QZScriptEngine finished..." << std::endl;
 }

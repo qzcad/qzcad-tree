@@ -33,6 +33,9 @@ Highlighter::Highlighter(QTextDocument *parent) :
     rule.pattern = QRegExp("\".*\"");
     rule.format = quotationFormat;
     highlightingRules.append(rule);
+    rule.pattern = QRegExp("\'.*\'");
+    rule.format = quotationFormat;
+    highlightingRules.append(rule);
 
     functionFormat.setFontItalic(true);
     functionFormat.setForeground(Qt::blue);

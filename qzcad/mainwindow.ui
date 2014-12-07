@@ -163,7 +163,14 @@
     <addaction name="actionElasticFem"/>
     <addaction name="separator"/>
    </widget>
+   <widget class="QMenu" name="menuScrit">
+    <property name="title">
+     <string>Скрипт</string>
+    </property>
+    <addaction name="actionRunScript"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuScrit"/>
    <addaction name="menuObject"/>
    <addaction name="menuMesh"/>
    <addaction name="menuSettings"/>
@@ -184,9 +191,12 @@
    <addaction name="actionSaveScript"/>
    <addaction name="actionSaveAsScript"/>
    <addaction name="separator"/>
+   <addaction name="actionRunScript"/>
+   <addaction name="separator"/>
    <addaction name="actionUnion"/>
    <addaction name="actionIntersection"/>
    <addaction name="actionDifference"/>
+   <addaction name="separator"/>
    <addaction name="actionPath"/>
    <addaction name="actionModel"/>
    <addaction name="actionDeleteObject"/>
@@ -194,7 +204,6 @@
    <addaction name="actionStructQuads"/>
    <addaction name="actionStructIsoQuads"/>
    <addaction name="actionBaryQuads"/>
-   <addaction name="separator"/>
    <addaction name="actionPolygonalModel"/>
    <addaction name="actionStructHex"/>
    <addaction name="separator"/>
@@ -580,6 +589,18 @@
    </property>
    <property name="text">
     <string>Сохранить скрипт как...</string>
+   </property>
+  </action>
+  <action name="actionRunScript">
+   <property name="icon">
+    <iconset resource="qzresources.qrc">
+     <normaloff>:/icons/qzicons/24x24/build.png</normaloff>:/icons/qzicons/24x24/build.png</iconset>
+   </property>
+   <property name="text">
+    <string>Выполнить</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
    </property>
   </action>
  </widget>

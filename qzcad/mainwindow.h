@@ -94,6 +94,8 @@ private slots:
 
     void on_actionSaveAsScript_triggered();
 
+    void on_actionRunScript_triggered();
+
 private:
     Ui::MainWindow *ui; //!< Контейнер элементов графического интерфейса
     QStdRedirector<> *stdRedirector; //!< Перехватчик сообщений стандартного потока

@@ -41,7 +41,8 @@ SOURCES += main.cpp\
     qtscriptforcecondition3d.cpp \
     elasticconstatntswidget.cpp \
     namedfloatingvector.cpp \
-    codeeditor.cpp
+    codeeditor.cpp \
+    qzscriptengine.cpp
 
 HEADERS  += mainwindow.h \
     globalconsts.h \
@@ -66,7 +67,8 @@ HEADERS  += mainwindow.h \
     qtscriptforcecondition3d.h \
     elasticconstatntswidget.h \
     namedfloatingvector.h \
-    codeeditor.h
+    codeeditor.h \
+    qzscriptengine.h
 
 FORMS    += mainwindow.ui \
     glcontrolwidget.ui \
