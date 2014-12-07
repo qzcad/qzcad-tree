@@ -2,6 +2,8 @@
   * @author Сергей Чопоров
   * @date 28/11/2014
   * @version 1.0.0
+  * @copyright Copyright 2014 Sergey Choporov. All rights reserved.
+  * This project is released under the GNU Lesser General Public License.
   * */
 #ifndef FEMFORCE_H
 #define FEMFORCE_H
