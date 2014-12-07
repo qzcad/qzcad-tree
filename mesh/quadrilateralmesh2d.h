@@ -2,8 +2,8 @@
   * @author Сергей Чопоров
   * @date 12/02/2014
   * @version 1.0.2
-  * 1.0.2:
-  *     - добавлен конструктор по умолчанию
+  * @copyright Copyright 2014 Sergey Choporov. All rights reserved.
+  * This project is released under the GNU Lesser General Public License.
   */
 #ifndef QUADRILATERALMESH2D_H
 #define QUADRILATERALMESH2D_H

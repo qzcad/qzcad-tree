@@ -2,6 +2,8 @@
   * @author Сергей Чопоров
   * @date 15/10/2012
   * @version 1.0.4
+  * @copyright Copyright 2012 Sergey Choporov. All rights reserved.
+  * This project is released under the GNU Lesser General Public License.
   */
 #ifndef POINT2D_H
 #define POINT2D_H

@@ -2,6 +2,8 @@
   * @author Сергей Чопоров
   * @date 23/06/2014
   * @version 1.0.1
+  * @copyright Copyright 2014 Sergey Choporov. All rights reserved.
+  * This project is released under the GNU Lesser General Public License.
   */
 #ifndef HEXAHEDRALMESH3D_H
 #define HEXAHEDRALMESH3D_H

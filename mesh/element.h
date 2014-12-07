@@ -2,6 +2,8 @@
   * @author Сергей Чопоров
   * @date 15/10/2012
   * @version 1.0.5
+  * @copyright Copyright 2012 Sergey Choporov. All rights reserved.
+  * This project is released under the GNU Lesser General Public License.
   */
 #ifndef ELEMENT_H
 #define ELEMENT_H

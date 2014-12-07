@@ -2,6 +2,8 @@
  * @author Сергей Чопоров
  * @version 1.0.4
  * @date 19.11.2012
+ * @copyright Copyright 2012 Sergey Choporov. All rights reserved.
+  * This project is released under the GNU Lesser General Public License.
  */
 #ifndef QUADRILATERAL_H
 #define QUADRILATERAL_H
