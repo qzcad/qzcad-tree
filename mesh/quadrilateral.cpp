@@ -38,6 +38,23 @@ UInteger &Quadrilateral::operator [](int i)
     return vertex_[0];
 }
 
+const UInteger &Quadrilateral::operator [](int i) const
+{
+    switch (i)
+    {
+    case -1:
+        return vertex_[3];
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+        return vertex_[i];
+    case 4:
+        return vertex_[0];
+    }
+    return vertex_[0];
+}
+
 Quadrilateral &Quadrilateral::operator =(const Quadrilateral &quad)
 {
     if (this != &quad)

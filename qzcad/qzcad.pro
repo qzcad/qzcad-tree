@@ -42,7 +42,8 @@ SOURCES += main.cpp\
     elasticconstatntswidget.cpp \
     namedfloatingvector.cpp \
     codeeditor.cpp \
-    qzscriptengine.cpp
+    qzscriptengine.cpp \
+    qquadrilateralmesh2d.cpp
 
 HEADERS  += mainwindow.h \
     globalconsts.h \
@@ -68,7 +69,8 @@ HEADERS  += mainwindow.h \
     elasticconstatntswidget.h \
     namedfloatingvector.h \
     codeeditor.h \
-    qzscriptengine.h
+    qzscriptengine.h \
+    qquadrilateralmesh2d.h
 
 FORMS    += mainwindow.ui \
     glcontrolwidget.ui \

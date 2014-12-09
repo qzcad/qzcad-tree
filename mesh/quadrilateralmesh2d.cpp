@@ -179,8 +179,7 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &count, const Point2D &c
             q[2] = addNode(Point2D(xMin_ + xMax_ - node_[q[2]].point.x(), node_[q[2]].point.y()), node_[q[2]].type);
             q[3] = addNode(Point2D(xMin_ + xMax_ - node_[q[3]].point.x(), node_[q[3]].point.y()), node_[q[3]].type);
             std::swap(q[1], q[3]);
-            element_.push_back(q);
-
+            addElement(q);
         }
         // отражение по горизонтали
         UInteger ecc = elementsCount();
@@ -192,8 +191,7 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &count, const Point2D &c
             q[2] = addNode(Point2D(node_[q[2]].point.x(), yMin_ + yMax_ - node_[q[2]].point.y()), node_[q[2]].type);
             q[3] = addNode(Point2D(node_[q[3]].point.x(), yMin_ + yMax_ - node_[q[3]].point.y()), node_[q[3]].type);
             std::swap(q[1], q[3]);
-            element_.push_back(q);
-
+            addElement(q);
         }
 
         auto topQuad = [&](const double &xi) {
@@ -276,6 +274,12 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &count, const Point2D &c
             xMax_ = center.x() + radius;
             yMin_ = center.y();
             yMax_ = center.y() + radius;
+            // Коррректировка типа для граничных узлов
+            for (UInteger i = 0; i < node_.size(); i++)
+            {
+                if (fabs(node_[i].point.x() - center.x()) < 1.0E-7 ||
+                        fabs(node_[i].point.y() - center.y()) < 1.0E-7) node_[i].type = BORDER;
+            }
         }
         else
         {
@@ -293,8 +297,13 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &count, const Point2D &c
                 q[2] = addNode(Point2D(xMin_ + xMax_ - node_[q[2]].point.x(), node_[q[2]].point.y()), node_[q[2]].type);
                 q[3] = addNode(Point2D(xMin_ + xMax_ - node_[q[3]].point.x(), node_[q[3]].point.y()), node_[q[3]].type);
                 std::swap(q[1], q[3]);
-                element_.push_back(q);
+                addElement(q);
 
+            }
+            // Коррректировка типа для граничных узлов
+            for (UInteger i = 0; i < node_.size(); i++)
+            {
+                if (fabs(node_[i].point.y() - center.y()) < 1.0E-7) node_[i].type = BORDER;
             }
         }
     }
@@ -409,6 +418,16 @@ void QuadrilateralMesh2D::addElement(const UInteger &node0, const UInteger &node
     node_[node1].adjacent.insert(element_.size() - 1);
     node_[node2].adjacent.insert(element_.size() - 1);
     node_[node3].adjacent.insert(element_.size() - 1);
+}
+
+void QuadrilateralMesh2D::addElement(const Quadrilateral &quad)
+{
+    element_.push_back(quad);
+    // обновление списка смежных узлов
+    node_[quad[0]].adjacent.insert(element_.size() - 1);
+    node_[quad[1]].adjacent.insert(element_.size() - 1);
+    node_[quad[2]].adjacent.insert(element_.size() - 1);
+    node_[quad[3]].adjacent.insert(element_.size() - 1);
 }
 
 double QuadrilateralMesh2D::isoFunc(const UInteger &i, const double &xi, const double &eta)

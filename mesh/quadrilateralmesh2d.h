@@ -56,7 +56,7 @@ public:
      * @param count Базовое количество узлов (По окружности будет 4n - для целого круга, 4n - для половинки, 2n - для четверти)
      * @param center Координаты центра
      * @param radius Радиус
-     * @param part Часть круга для дискретизации (возможные значение: 1 - целыйкруг, 2 - половинка, 4 - четверть)
+     * @param part Часть круга для дискретизации (возможные значение: 1 - целый круг, 2 - половинка, 4 - четверть)
      */
     QuadrilateralMesh2D(const UInteger &count, const Point2D &center, const double &radius, unsigned short part = 1);
     /**
@@ -106,6 +106,11 @@ public:
      * @param node3 Номер узла в вершине 3
      */
     void addElement(const UInteger &node0, const UInteger &node1, const UInteger &node2, const UInteger &node3);
+    /**
+     * @brief Добавить элемент к сетке
+     * @param quad Ссылка на элемент, который необходимо добавить к сетке
+     */
+    void addElement(const Quadrilateral &quad);
 protected:
     /**
      * @brief Функция формы изопараметрического четырехугольного элемента
