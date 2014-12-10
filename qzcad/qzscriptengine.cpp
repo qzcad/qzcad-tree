@@ -10,6 +10,9 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     // Переопределение печати
     QScriptValue qsPrint = newFunction(printStd);
     globalObject().setProperty("print", qsPrint);
+    // Функция суммирования
+    QScriptValue qsSum = newFunction(sum);
+    globalObject().setProperty("sum", qsSum);
     // Точка на плоскости
     QScriptValue qsCreatePoint2D = newFunction(createPoint2D);
     globalObject().setProperty("Point2D", qsCreatePoint2D);
