@@ -20,8 +20,8 @@ class Point3D : public Point2D
 public:
     /**
      * @brief Конструктор
-     * @param x Ордината
-     * @param y Абсцисса
+     * @param x Абсцисса
+     * @param y Ордината
      * @param z Аппликата
      */
     Point3D(double x = 0.0, double y = 0.0, double z = 0.0);
@@ -77,12 +77,16 @@ public:
     Point3D product(const Point3D &point) const;
     /**
      * @brief Установить координаты точки
-     * @param x Ордината
-     * @param y Абсцисса
+     * @param x Абсцисса
+     * @param y Ордината
      * @param z Аппликата
      */
     void set(double x, double y, double z);
-
+    /**
+     * @brief Установить значение аппликаты
+     * @param z Новое значение аппликаты
+     */
+    void setZ(double z);
     /// @name Операторы
     /// @{
     /// Присваивание

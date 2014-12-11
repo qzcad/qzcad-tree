@@ -29,12 +29,12 @@ public:
     /**
      * @brief BaryQuadsDialog Конструктор для инициализации полей заданными значениями
      * @param parent Указатель на родительский виджет
-     * @param x0 Ордината точки 0
-     * @param y0 Абсцисса точки 0
-     * @param x1 Ордината точки 1
-     * @param y1 Абсцисса точки 1
-     * @param x2 Ордината точки 2
-     * @param y2 Адсцисса точки 2
+     * @param x0 Абсцисса точки 0
+     * @param y0 Ордината точки 0
+     * @param x1 Абсцисса точки 1
+     * @param y1 Ордината точки 1
+     * @param x2 Абсцисса точки 2
+     * @param y2 Ордината точки 2
      * @param nodesCount Количество узлов сетки на одну сторону треугольника
      */
     explicit BaryQuadsDialog(QWidget *parent, const double &x0, const double &y0, const double &x1, const double &y1, const double &x2, const double &y2, const int &nodesCount);

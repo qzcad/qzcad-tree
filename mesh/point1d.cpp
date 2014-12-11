@@ -47,6 +47,11 @@ void Point1D::set(double x)
     x_ = x;
 }
 
+void Point1D::setX(double x)
+{
+    x_ = x;
+}
+
 Point1D &Point1D::operator =(const Point1D &point)
 {
     if (this != &point)

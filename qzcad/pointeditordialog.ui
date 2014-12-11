@@ -55,7 +55,7 @@
           </sizepolicy>
          </property>
          <property name="toolTip">
-          <string>Ордината точки</string>
+          <string>Абсцисса точки</string>
          </property>
          <property name="whatsThis">
           <string>Ордината точки</string>
@@ -97,7 +97,7 @@
           </sizepolicy>
          </property>
          <property name="toolTip">
-          <string>Абсцисса точки</string>
+          <string>Ордината точки</string>
          </property>
          <property name="whatsThis">
           <string>Абсцисса точки</string>

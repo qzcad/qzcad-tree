@@ -34,6 +34,11 @@ void Point2D::set(double x, double y)
     y_ = y;
 }
 
+void Point2D::setY(double y)
+{
+    y_ = y;
+}
+
 Point2D &Point2D::operator =(const Point2D &point)
 {
     if (this != &point)

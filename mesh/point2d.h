@@ -21,8 +21,8 @@ class Point2D: public Point1D
 public:
     /**
      * @brief Конструктор
-     * @param x Ордината
-     * @param y Абсцисаа
+     * @param x Абсцисса
+     * @param y Ордината
      */
     Point2D(double x = 0.0, double y = 0.0);
     /**
@@ -42,8 +42,8 @@ public:
      */
     virtual int dimension() const;
     /**
-     * @brief Абсцисса
-     * @return Абсциссу точки
+     * @brief Ордината точки
+     * @return Значение ординаты точки
      */
     virtual double y() const;
     /**
@@ -53,10 +53,15 @@ public:
     virtual double length() const;
     /**
      * @brief Установить координаты точки
-     * @param x Ордината
-     * @param y Абсцисса
+     * @param x Абсцисса
+     * @param y Ордината
      */
     void set(double x, double y);
+    /**
+     * @brief Установить значение ординаты
+     * @param y Новое значение ординаты
+     */
+    void setY(double y);
     /// @name Операторы
     /// @{
     /// Присваивание
@@ -101,7 +106,7 @@ public:
      */
     double product(const Point2D &point) const;
 private:
-    double y_; //!< Абсцисса точки
+    double y_; //!< Ордината точки
 };
 }
 

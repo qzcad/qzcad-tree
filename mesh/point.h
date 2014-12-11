@@ -26,13 +26,13 @@ public:
      */
     virtual int dimension() const = 0;
     /**
-     * @brief Ордината
-     * @return Ординату точки или ее проекции
+     * @brief Абсцисса
+     * @return Абсциссу точки или ее проекции
      */
     virtual double x() const = 0;
     /**
-     * @brief Абсцисса
-     * @return Абсциссу точки или ее проекции
+     * @brief Ордината
+     * @return Ординату точки или ее проекции
      */
     virtual double y() const = 0;
     /**

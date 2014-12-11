@@ -55,7 +55,7 @@
            <item>
             <widget class="QDoubleSpinBox" name="x0">
              <property name="toolTip">
-              <string>Ордината точки 0</string>
+              <string>Абсцисса точки 0</string>
              </property>
              <property name="decimals">
               <number>10</number>
@@ -88,7 +88,7 @@
            <item>
             <widget class="QDoubleSpinBox" name="y0">
              <property name="toolTip">
-              <string>Абсцисса точки 0</string>
+              <string>Ордината точки 0</string>
              </property>
              <property name="decimals">
               <number>10</number>
@@ -125,7 +125,7 @@
            <item>
             <widget class="QDoubleSpinBox" name="x1">
              <property name="toolTip">
-              <string>Ордината точки 1</string>
+              <string>Абсцисса точки 1</string>
              </property>
              <property name="decimals">
               <number>10</number>
@@ -161,7 +161,7 @@
            <item>
             <widget class="QDoubleSpinBox" name="y1">
              <property name="toolTip">
-              <string>Абсцисса точки 1</string>
+              <string>Ордината точки 1</string>
              </property>
              <property name="decimals">
               <number>10</number>
@@ -198,7 +198,7 @@
            <item>
             <widget class="QDoubleSpinBox" name="x2">
              <property name="toolTip">
-              <string>Ордината точки 2</string>
+              <string>Абсцисса точки 2</string>
              </property>
              <property name="decimals">
               <number>10</number>
@@ -234,7 +234,7 @@
            <item>
             <widget class="QDoubleSpinBox" name="y2">
              <property name="toolTip">
-              <string>Абсцисса точки 2</string>
+              <string>Ордината точки 2</string>
              </property>
              <property name="decimals">
               <number>10</number>

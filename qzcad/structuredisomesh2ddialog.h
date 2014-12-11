@@ -22,64 +22,64 @@ class StructuredIsoMesh2DDialog : public QDialog
     
 public:
     /**
-     * @brief StructuredIsoMesh2DDialog Коснтруктор создает форму с параметрами полей по умолчанию
+     * @brief Коснтруктор создает форму с параметрами полей по умолчанию
      * @param parent Указатель на родительский виджет
      */
     explicit StructuredIsoMesh2DDialog(QWidget *parent = 0);
     /**
-     * @brief StructuredIsoMesh2DDialog Конструктор создает форму с инициализацией полей заданными значениями
+     * @brief Конструктор создает форму с инициализацией полей заданными значениями
      * @param parent Указатель на родительский виджет
-     * @param x0 Ордината точки 0
-     * @param y0 Абсцисса точки 0
-     * @param x1 Ордината точки 1
-     * @param y1 Абсцисса точки 1
-     * @param x2 Ордината точки 2
-     * @param y2 Абсцисса точки 2
-     * @param x3 Ордината точки 3
-     * @param y3 Абсцисса точки 3
+     * @param x0 Абсцисса точки 0
+     * @param y0 Ордината точки 0
+     * @param x1 Абсцисса точки 1
+     * @param y1 Ордината точки 1
+     * @param x2 Абсцисса точки 2
+     * @param y2 Ордината точки 2
+     * @param x3 Абсцисса точки 3
+     * @param y3 Ордината точки 3
      * @param xiCount Колчество узлов сетки вдоль первого напраления
      * @param etaCount Количество узлов сетки вдоль второго направления
      */
     explicit StructuredIsoMesh2DDialog(QWidget *parent, const double &x0, const double &y0, const double &x1, const double &y1, const double &x2, const double &y2, const double &x3, const double &y3, const int &xiCount, const int &etaCount);
     ~StructuredIsoMesh2DDialog();
     /**
-     * @brief x0 Ордината точки 0
-     * @return Значение ординаты точки 0
+     * @brief Абсцисса точки 0
+     * @return Значение абсциссы точки 0
      */
     double x0() const;
     /**
-     * @brief x1 Ордината точки 1
-     * @return Значение ординаты точки 1
+     * @brief Абсцисса точки 1
+     * @return Значение абсциссы точки 1
      */
     double x1() const;
     /**
-     * @brief x2 Ордината точки 2
-     * @return Значение ординаты точки 2
+     * @brief Абсцисса точки 2
+     * @return Значение абсциссы точки 2
      */
     double x2() const;
     /**
-     * @brief x3 Ордината точки 3
-     * @return Значение ординаты точки 3
+     * @brief Абсцисса точки 3
+     * @return Значение абсциссы точки 3
      */
     double x3() const;
     /**
-     * @brief y0 Абсцисса точки 0
-     * @return Значение абсциссы точки 0
+     * @brief Ордината точки 0
+     * @return Значение ординаты точки 0
      */
     double y0() const;
     /**
-     * @brief y1 Абсцисса точки 1
-     * @return Значение абсциссы точки 1
+     * @brief Ордината точки 1
+     * @return Значение ординаты точки 1
      */
     double y1() const;
     /**
-     * @brief y2 Абсцисса точки 2
-     * @return Значение абсциссы точки 2
+     * @brief Ордината точки 2
+     * @return Значение ординаты точки 2
      */
     double y2() const;
     /**
-     * @brief y3 Абсцисса точки 3
-     * @return Значение абсциссы точки 3
+     * @brief Ордината точки 3
+     * @return Значение ординаты точки 3
      */
     double y3() const;
     /**

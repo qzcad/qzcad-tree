@@ -41,17 +41,17 @@ public:
      */
     virtual int dimension() const;
     /**
-     * @brief Ордината
-     * @return Ординату точки или ее проекции в 1D
+     * @brief Абсцисса
+     * @return Абсциссу точки или ее проекции
      */
     virtual double x() const;
     /**
-     * @brief Абсцисса
+     * @brief Ордината (заглушка)
      * @return 0.0
      */
     virtual double y() const;
     /**
-     * @brief Аппликата
+     * @brief Аппликата (заглушка)
      * @return 0.0
      */
     virtual double z() const;
@@ -61,10 +61,15 @@ public:
      */
     virtual double length() const;
     /**
-     * @brief Установить координату точки
-     * @param x Новое значение ординаты точки
+     * @brief Установить координаты точки
+     * @param x Новое значение координаты точки
      */
     void set(double x);
+    /**
+     * @brief setX Установить значение абсциссы точки
+     * @param x Новое значение абсциссы точки
+     */
+    void setX(double x);
     /// @name Операторы
     /// @{
     /// Присваивание
@@ -101,9 +106,9 @@ public:
      * @param epsilon Точность
      * @return true, если точки приблизительно равны; false - иначе
      */
-    bool isEqualTo(const Point1D &point, double epsilon = 0.00001) const;
+    bool isEqualTo(const Point1D &point, double epsilon = 0.000001) const;
 private:
-    double x_; //!< Ордината точки
+    double x_; //!< Абсцисса точки
 };
 }
 

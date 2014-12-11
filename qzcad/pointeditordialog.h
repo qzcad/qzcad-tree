@@ -22,39 +22,39 @@ class PointEditorDialog : public QDialog
     
 public:
     /**
-     * @brief PointEditorDialog Конструктор редактора координат одномерной точки
+     * @brief Конструктор редактора координат одномерной точки
      * @param parent Указатель на родительский виджет
      * @param x Значение ординаты
      */
     explicit PointEditorDialog(QWidget *parent, const double &x);
     /**
-     * @brief PointEditorDialog Конструктор редактора двумерной точки
+     * @brief Конструктор редактора двумерной точки
      * @param parent Указатель на родительский виджет
-     * @param x Ордината
-     * @param y Абсцисса
+     * @param x Абсцисса
+     * @param y Ордината
      */
     explicit PointEditorDialog(QWidget *parent, const double &x, const double &y);
     /**
-     * @brief PointEditorDialog Конструктор редактора трехмерной точки
+     * @brief Конструктор редактора трехмерной точки
      * @param parent Указатель на родительский виджет
-     * @param x Ордината
-     * @param y Абсцисса
+     * @param x Абсцисса
+     * @param y Ордината
      * @param z Аппликата
      */
     explicit PointEditorDialog(QWidget *parent, const double &x, const double &y, const double &z);
     ~PointEditorDialog();
     /**
-     * @brief xValue Ордината
-     * @return Значение ординаты
+     * @brief Абсцисса
+     * @return Значение абсциссы
      */
     double xValue();
     /**
-     * @brief yValue Абсцисса
-     * @return Значение абсциссы
+     * @brief Ордината
+     * @return Значение ординаты
      */
     double yValue();
     /**
-     * @brief zValue Аппликата
+     * @brief Аппликата
      * @return Значение аппликаты
      */
     double zValue();
