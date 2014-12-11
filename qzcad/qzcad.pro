@@ -43,7 +43,8 @@ SOURCES += main.cpp\
     namedfloatingvector.cpp \
     codeeditor.cpp \
     qzscriptengine.cpp \
-    qquadrilateralmesh2d.cpp
+    qquadrilateralmesh2d.cpp \
+    qpoint2d.cpp
 
 HEADERS  += mainwindow.h \
     globalconsts.h \
@@ -70,7 +71,8 @@ HEADERS  += mainwindow.h \
     namedfloatingvector.h \
     codeeditor.h \
     qzscriptengine.h \
-    qquadrilateralmesh2d.h
+    qquadrilateralmesh2d.h \
+    qpoint2d.h
 
 FORMS    += mainwindow.ui \
     glcontrolwidget.ui \

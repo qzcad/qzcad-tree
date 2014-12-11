@@ -16,7 +16,6 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     // Точка на плоскости
     QScriptValue qsCreatePoint2D = newFunction(createPoint2D);
     globalObject().setProperty("Point2D", qsCreatePoint2D);
-    qScriptRegisterMetaType(this, toScriptValuePoint2D, fromScriptValuePoint2D);
     // Точка в пространстве
     QScriptValue qsCreatePoint3D = newFunction(createPoint3D);
     globalObject().setProperty("Point3D", qsCreatePoint3D);

@@ -18,10 +18,6 @@
  */
 QScriptValue approx(QScriptContext *context, QScriptEngine *engine);
 // Point2D
-Q_DECLARE_METATYPE(msh::Point2D)
-Q_DECLARE_METATYPE(msh::Point2D*)
-QScriptValue toScriptValuePoint2D(QScriptEngine *engine, const msh::Point2D &point);
-void fromScriptValuePoint2D(const QScriptValue &value, msh::Point2D &point);
 QScriptValue createPoint2D(QScriptContext *context, QScriptEngine *engine);
 // Point3D
 Q_DECLARE_METATYPE(msh::Point3D)

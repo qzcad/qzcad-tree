@@ -1,6 +1,7 @@
 #include <math.h>
 #include <QObject>
 #include <iostream>
+#include "qpoint2d.h"
 #include "qtscriptfunctions.h"
 
 QScriptValue approx(QScriptContext *context, QScriptEngine *engine)
@@ -29,19 +30,6 @@ QScriptValue approx(QScriptContext *context, QScriptEngine *engine)
     return fabs(a - b) < eps;
 }
 
-QScriptValue toScriptValuePoint2D(QScriptEngine *engine, const msh::Point2D &point)
-{
-    QScriptValue obj = engine->newObject();
-    obj.setProperty("x", point.x());
-    obj.setProperty("y", point.y());
-    return obj;
-}
-
-void fromScriptValuePoint2D(const QScriptValue &value, msh::Point2D &point)
-{
-    point.set(value.property("x").toNumber(), value.property("y").toNumber());
-}
-
 QScriptValue createPoint2D(QScriptContext *context, QScriptEngine *engine)
 {
     if (context->argumentCount() != 2)
@@ -52,9 +40,7 @@ QScriptValue createPoint2D(QScriptContext *context, QScriptEngine *engine)
         return context->throwError(QScriptContext::TypeError, QObject::tr("Point2D(): second argument is not a number"));
     double x = context->argument(0).toNumber();
     double y = context->argument(1).toNumber();
-    msh::Point2D point(x, y);
-    return engine->toScriptValue(point);
-//    return engine->newVariant(context->thisObject(), QVariant::fromValue(new msh::Point2D(x,y)));
+    return engine->newQObject(new QPoint2D(x, y), QScriptEngine::ScriptOwnership);
 }
 
 QScriptValue toScriptValuePoint3D(QScriptEngine *engine, const msh::Point3D &point)
@@ -102,16 +88,15 @@ QScriptValue printStd(QScriptContext *context, QScriptEngine *engine)
     return engine->undefinedValue();
 }
 
-
 QScriptValue sum(QScriptContext *context, QScriptEngine *engine)
 {
     if (context->argument(0).isNumber())
         std::cout << "Number" << std::endl;
     if (context->argument(0).isObject())
     {
-        msh::Point2D *point = qscriptvalue_cast<msh::Point2D*>(context->argument(0));
-        if ( point == NULL )
-        std::cout << "Point2D" << std::endl;
+        QPoint2D *point = qscriptvalue_cast<QPoint2D*>(context->argument(0));
+        if ( point != NULL )
+            std::cout << "Point2D" << std::endl;
     }
     if (context->argument(0).isQMetaObject())
         std::cout << "QMetaObject" << std::endl;
