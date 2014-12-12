@@ -20,11 +20,15 @@ class Point2D: public Point1D
 {
 public:
     /**
+     * @brief Конструктор по умолчанию иницализирует точку началом координат (0; 0)
+     */
+    Point2D();
+    /**
      * @brief Конструктор
      * @param x Абсцисса
      * @param y Ордината
      */
-    Point2D(double x = 0.0, double y = 0.0);
+    Point2D(const double &x, const double &y);
     /**
      * @brief Конструктор копирования
      * @param point Объект-точка для копирования
@@ -56,12 +60,12 @@ public:
      * @param x Абсцисса
      * @param y Ордината
      */
-    void set(double x, double y);
+    void set(const double &x, const double &y);
     /**
      * @brief Установить значение ординаты
      * @param y Новое значение ординаты
      */
-    void setY(double y);
+    void setY(const double &y);
     /// @name Операторы
     /// @{
     /// Присваивание

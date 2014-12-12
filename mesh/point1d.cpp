@@ -2,7 +2,12 @@
 
 namespace msh
 {
-Point1D::Point1D(double x)
+Point1D::Point1D()
+{
+    x_ = 0.0;
+}
+
+Point1D::Point1D(const double &x)
 {
     x_ = x;
 }
@@ -42,12 +47,12 @@ double Point1D::length() const
     return x_ >= 0.0 ? x_ : -x_;
 }
 
-void Point1D::set(double x)
+void Point1D::set(const double &x)
 {
     x_ = x;
 }
 
-void Point1D::setX(double x)
+void Point1D::setX(const double &x)
 {
     x_ = x;
 }

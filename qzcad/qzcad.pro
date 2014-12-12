@@ -44,7 +44,8 @@ SOURCES += main.cpp\
     codeeditor.cpp \
     qzscriptengine.cpp \
     qquadrilateralmesh2d.cpp \
-    qpoint2d.cpp
+    qpoint2d.cpp \
+    qpoint3d.cpp
 
 HEADERS  += mainwindow.h \
     globalconsts.h \
@@ -72,7 +73,8 @@ HEADERS  += mainwindow.h \
     codeeditor.h \
     qzscriptengine.h \
     qquadrilateralmesh2d.h \
-    qpoint2d.h
+    qpoint2d.h \
+    qpoint3d.h
 
 FORMS    += mainwindow.ui \
     glcontrolwidget.ui \

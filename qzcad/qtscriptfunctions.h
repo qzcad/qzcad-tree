@@ -8,8 +8,6 @@
 #ifndef QTSCRIPTFUNCTIONS_H
 #define QTSCRIPTFUNCTIONS_H
 #include <QtScript>
-#include "point2d.h"
-#include "point3d.h"
 /**
  * @brief Qt Script реализация операции приблизительного равенства
  * @param ctx Контекст
@@ -17,13 +15,19 @@
  * @return Резульатат операции приблизительного равенства
  */
 QScriptValue approx(QScriptContext *context, QScriptEngine *engine);
-// Point2D
+/**
+ * @brief "Конструктор" двумерных точек в скриптах
+ * @param context Контекст
+ * @param engine Двигатель
+ * @return Объект для использования в скриптах
+ */
 QScriptValue createPoint2D(QScriptContext *context, QScriptEngine *engine);
-// Point3D
-Q_DECLARE_METATYPE(msh::Point3D)
-Q_DECLARE_METATYPE(msh::Point3D*)
-QScriptValue toScriptValuePoint3D(QScriptEngine *engine, const msh::Point3D &point);
-void fromScriptValuePoint3D(const QScriptValue &value, msh::Point3D &point);
+/**
+ * @brief "Конструктор" трехмерных точек в скриптах
+ * @param context Контекст
+ * @param engine Двигатель
+ * @return Объект для использованиия в скриптах
+ */
 QScriptValue createPoint3D(QScriptContext *context, QScriptEngine *engine);
 /**
  * @brief Qt Script реализация операции печати на консоль через std::cout

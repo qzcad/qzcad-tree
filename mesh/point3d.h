@@ -19,12 +19,16 @@ class Point3D : public Point2D
 {
 public:
     /**
+     * @brief Конструктор по умолчанию инициализирует точку началом координат (0; 0; 0)
+     */
+    Point3D();
+    /**
      * @brief Конструктор
      * @param x Абсцисса
      * @param y Ордината
      * @param z Аппликата
      */
-    Point3D(double x = 0.0, double y = 0.0, double z = 0.0);
+    Point3D(const double &x, const double &y, const double &z);
     /**
      * @brief Конструктор копирования
      * @param point
@@ -81,12 +85,12 @@ public:
      * @param y Ордината
      * @param z Аппликата
      */
-    void set(double x, double y, double z);
+    void set(const double &x, const double &y, const double &z);
     /**
      * @brief Установить значение аппликаты
      * @param z Новое значение аппликаты
      */
-    void setZ(double z);
+    void setZ(const double &z);
     /// @name Операторы
     /// @{
     /// Присваивание

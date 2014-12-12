@@ -20,10 +20,14 @@ class Point1D: public Point
 {
 public:
     /**
+     * @brief Конструктор по умолчанию инициализирует абсциссу нулем
+     */
+    Point1D();
+    /**
      * @brief Конструктор
      * @param x Начальное значение ординаты
      */
-    Point1D(double x = 0);
+    Point1D(const double &x);
     /**
      * @brief Конструктор копирования
      * @param point Объект-точка для копирования
@@ -64,12 +68,12 @@ public:
      * @brief Установить координаты точки
      * @param x Новое значение координаты точки
      */
-    void set(double x);
+    void set(const double &x);
     /**
      * @brief setX Установить значение абсциссы точки
      * @param x Новое значение абсциссы точки
      */
-    void setX(double x);
+    void setX(const double &x);
     /// @name Операторы
     /// @{
     /// Присваивание

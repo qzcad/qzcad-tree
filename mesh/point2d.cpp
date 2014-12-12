@@ -3,17 +3,22 @@
 
 namespace msh
 {
-Point2D::Point2D(double x, double y): Point1D(x)
+Point2D::Point2D() : Point1D()
+{
+    y_ = 0.0;
+}
+
+Point2D::Point2D(const double &x, const double &y) : Point1D(x)
 {
     y_ = y;
 }
 
-Point2D::Point2D(const Point2D &point): Point1D(point)
+Point2D::Point2D(const Point2D &point) : Point1D(point)
 {
     y_ = point.y_;
 }
 
-Point2D::Point2D(const Point2D &firstPoint, const Point2D &secondPoint): Point1D(firstPoint, secondPoint)
+Point2D::Point2D(const Point2D &firstPoint, const Point2D &secondPoint) : Point1D(firstPoint, secondPoint)
 {
     y_ = secondPoint.y_ - firstPoint.y_;
 }
@@ -28,13 +33,13 @@ double Point2D::y() const
     return y_;
 }
 
-void Point2D::set(double x, double y)
+void Point2D::set(const double &x, const double &y)
 {
     Point1D::set(x);
     y_ = y;
 }
 
-void Point2D::setY(double y)
+void Point2D::setY(const double &y)
 {
     y_ = y;
 }

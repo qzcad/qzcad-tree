@@ -2,6 +2,7 @@
 #include <QObject>
 #include <iostream>
 #include "qpoint2d.h"
+#include "qpoint3d.h"
 #include "qtscriptfunctions.h"
 
 QScriptValue approx(QScriptContext *context, QScriptEngine *engine)
@@ -43,20 +44,6 @@ QScriptValue createPoint2D(QScriptContext *context, QScriptEngine *engine)
     return engine->newQObject(new QPoint2D(x, y), QScriptEngine::ScriptOwnership);
 }
 
-QScriptValue toScriptValuePoint3D(QScriptEngine *engine, const msh::Point3D &point)
-{
-    QScriptValue obj = engine->newObject();
-    obj.setProperty("x", point.x());
-    obj.setProperty("y", point.y());
-    obj.setProperty("z", point.z());
-    return obj;
-}
-
-void fromScriptValuePoint3D(const QScriptValue &value, msh::Point3D &point)
-{
-    point.set(value.property("x").toNumber(), value.property("y").toNumber(), value.property("z").toNumber());
-}
-
 QScriptValue createPoint3D(QScriptContext *context, QScriptEngine *engine)
 {
     if (context->argumentCount() != 3)
@@ -70,8 +57,7 @@ QScriptValue createPoint3D(QScriptContext *context, QScriptEngine *engine)
     double x = context->argument(0).toNumber();
     double y = context->argument(1).toNumber();
     double z = context->argument(2).toNumber();
-    msh::Point3D point(x, y, z);
-    return engine->toScriptValue(point);
+    return engine->newQObject(new QPoint3D(x, y, z), QScriptEngine::ScriptOwnership);
 }
 
 
@@ -90,16 +76,23 @@ QScriptValue printStd(QScriptContext *context, QScriptEngine *engine)
 
 QScriptValue sum(QScriptContext *context, QScriptEngine *engine)
 {
+    QString typeError = tr("Sum(a, b, c, ...): all arguments must be a same type: %1");
     if (context->argument(0).isNumber())
-        std::cout << "Number" << std::endl;
-    if (context->argument(0).isObject())
+    {
+        for (int i = 1; i < context->argumentCount(); i++)
+            if (!context->argument(i).isNumber())
+                return context->throwError(typeError.arg("number"));
+        double sum = 0.0;
+        for (int i = 1; i < context->argumentCount(); i++)
+            sum += context->argument(i).toNumber();
+        return sum;
+    }
+    if (context->argument(0).isQObject())
     {
         QPoint2D *point = qscriptvalue_cast<QPoint2D*>(context->argument(0));
         if ( point != NULL )
-            std::cout << "Point2D" << std::endl;
+        {
+
+        }
     }
-    if (context->argument(0).isQMetaObject())
-        std::cout << "QMetaObject" << std::endl;
-    if (context->argument(0).isQObject())
-        std::cout << "QObject" << std::endl;
 }

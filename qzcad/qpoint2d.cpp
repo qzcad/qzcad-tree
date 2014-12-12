@@ -5,7 +5,7 @@ QPoint2D::QPoint2D(QObject *parent) :
 {
 }
 
-QPoint2D::QPoint2D(double x, double y, QObject *parent) :
+QPoint2D::QPoint2D(const double &x, const double &y, QObject *parent) :
     QObject(parent), Point2D(x, y)
 {
 }

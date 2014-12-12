@@ -19,5 +19,4 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     // Точка в пространстве
     QScriptValue qsCreatePoint3D = newFunction(createPoint3D);
     globalObject().setProperty("Point3D", qsCreatePoint3D);
-    qScriptRegisterMetaType(this, toScriptValuePoint3D, fromScriptValuePoint3D);
 }
