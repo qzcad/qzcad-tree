@@ -76,23 +76,50 @@ QScriptValue printStd(QScriptContext *context, QScriptEngine *engine)
 
 QScriptValue sum(QScriptContext *context, QScriptEngine *engine)
 {
-    QString typeError = tr("Sum(a, b, c, ...): all arguments must be a same type: %1");
+    QString typeError = QObject::tr("Sum(a, b, c, ...): all arguments must be a same type: %1");
     if (context->argument(0).isNumber())
     {
         for (int i = 1; i < context->argumentCount(); i++)
             if (!context->argument(i).isNumber())
                 return context->throwError(typeError.arg("number"));
-        double sum = 0.0;
+        double sum = context->argument(0).toNumber();
         for (int i = 1; i < context->argumentCount(); i++)
             sum += context->argument(i).toNumber();
         return sum;
     }
     if (context->argument(0).isQObject())
     {
-        QPoint2D *point = qscriptvalue_cast<QPoint2D*>(context->argument(0));
-        if ( point != NULL )
+        if ( qscriptvalue_cast<QPoint2D*>(context->argument(0)) != NULL )
         {
-
+            for (int i = 1; i < context->argumentCount(); i++)
+                if (qscriptvalue_cast<QPoint2D*>(context->argument(i)) == NULL)
+                    return context->throwError(typeError.arg("Point2D"));
+            QPoint2D *p0 = qscriptvalue_cast<QPoint2D*>(context->argument(0));
+            QPoint2D *sum = new QPoint2D(*p0);
+            for (int i = 1; i < context->argumentCount(); i++)
+            {
+                QPoint2D *pi = qscriptvalue_cast<QPoint2D*>(context->argument(i));
+                sum->setX(sum->x() + pi->x());
+                sum->setY(sum->y() + pi->y());
+            }
+            return engine->newQObject(sum, QScriptEngine::ScriptOwnership);
+        }
+        if ( qscriptvalue_cast<QPoint3D*>(context->argument(0)) != NULL )
+        {
+            for (int i = 1; i < context->argumentCount(); i++)
+                if (qscriptvalue_cast<QPoint3D*>(context->argument(i)) == NULL)
+                    return context->throwError(typeError.arg("Point3D"));
+            QPoint3D *p0 = qscriptvalue_cast<QPoint3D*>(context->argument(0));
+            QPoint3D *sum = new QPoint3D(*p0);
+            for (int i = 1; i < context->argumentCount(); i++)
+            {
+                QPoint3D *pi = qscriptvalue_cast<QPoint3D*>(context->argument(i));
+                sum->setX(sum->x() + pi->x());
+                sum->setY(sum->y() + pi->y());
+                sum->setZ(sum->z() + pi->z());
+            }
+            return engine->newQObject(sum, QScriptEngine::ScriptOwnership);
         }
     }
+    return engine->undefinedValue();
 }
