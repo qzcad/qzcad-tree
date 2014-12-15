@@ -862,6 +862,7 @@ void MainWindow::on_actionNewScript_triggered()
 void MainWindow::on_actionOpenScript_triggered()
 {
     openScript();
+    ui->tabWidget->setCurrentIndex(1); // switch to script's tab
 }
 
 void MainWindow::on_actionSaveScript_triggered()
