@@ -4,7 +4,7 @@
 #include <QFileDialog>
 #include <QTextStream>
 #include <iostream>
-#include <QScriptEngine>
+#include "qzscriptengine.h"
 #include <QMessageBox>
 #include "structuredisomesh2ddialog.h"
 #include "pointeditordialog.h"
@@ -472,7 +472,7 @@ void PolygonalModelDialog::on_addTriangleButton_clicked()
 
 void PolygonalModelDialog::on_buildModelButton_clicked()
 {
-    QScriptEngine interpreter;
+    QZScriptEngine interpreter;
     QScriptValue qsModel = interpreter.newQObject(this);
 
     interpreter.globalObject().setProperty("Model", qsModel);

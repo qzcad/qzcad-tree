@@ -9,7 +9,7 @@
 #define QTSCRIPTFORCECONDITION3D_H
 
 #include "forcecondition3d.h"
-#include <QtScript/QScriptEngine>
+#include "qzscriptengine.h"
 
 class QtScriptForceCondition3D: public ForceCondition3D
 {
@@ -38,7 +38,7 @@ private:
     QString u_;
     QString v_;
     QString w_;
-    QScriptEngine engine_;
+    QZScriptEngine engine_;
     QScriptValue object_;
     double x_;
     double y_;

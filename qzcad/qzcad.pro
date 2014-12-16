@@ -37,7 +37,6 @@ SOURCES += main.cpp\
     boundaryconditionswidget.cpp \
     elasticfemdialog.cpp \
     qtscriptfemcondition3d.cpp \
-    qtscriptfunctions.cpp \
     qtscriptforcecondition3d.cpp \
     elasticconstatntswidget.cpp \
     namedfloatingvector.cpp \
@@ -66,7 +65,6 @@ HEADERS  += mainwindow.h \
     boundaryconditionswidget.h \
     elasticfemdialog.h \
     qtscriptfemcondition3d.h \
-    qtscriptfunctions.h \
     qtscriptforcecondition3d.h \
     elasticconstatntswidget.h \
     namedfloatingvector.h \

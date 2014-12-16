@@ -7,7 +7,7 @@
   */
 #ifndef QTSCRIPTFEMCONDITION3D_H
 #define QTSCRIPTFEMCONDITION3D_H
-#include <QtScript/QScriptEngine>
+#include "qzscriptengine.h"
 #include "femcondition3d.h"
 /**
  * @brief Граничные условия на базе QtScript
@@ -39,7 +39,7 @@ public:
     virtual bool isApplied(msh::PointPointer point);
     virtual ~QtScriptFemCondition3D(){}
 private:
-    QScriptEngine engine_;
+    QZScriptEngine engine_;
     QScriptValue object_;
     bool isU_;
     double u_;
