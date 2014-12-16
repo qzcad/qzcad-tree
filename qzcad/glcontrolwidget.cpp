@@ -25,49 +25,9 @@ GLControlWidget::~GLControlWidget()
     delete ui;
 }
 
-msh::MeshPointer GLControlWidget::getMesh()
+GLMeshPicture *GLControlWidget::getGlMeshPicture()
 {
-    return ui->picture->getMesh();
-}
-
-void GLControlWidget::setMesh(msh::MeshPointer mesh)
-{
-    ui->picture->setMesh(mesh);
-}
-
-void GLControlWidget::resetMesh()
-{
-    ui->picture->resetMesh();
-}
-
-msh::MeshPointer GLControlWidget::releaseMesh()
-{
-    return ui->picture->releaseMesh();
-}
-
-void GLControlWidget::pushNodeValuesVector(const NamedFloatingVector &vector)
-{
-    ui->picture->pushNodeValuesVector(vector);
-}
-
-void GLControlWidget::clearNodeValues()
-{
-    ui->picture->clearNodeValues();
-}
-
-void GLControlWidget::pushElementValuesVector(const NamedFloatingVector &vector)
-{
-    ui->picture->pushElementValuesVector(vector);
-}
-
-void GLControlWidget::clearElementValues()
-{
-    ui->picture->clearElementValues();
-}
-
-NamedFloatingVector GLControlWidget::currentValuesVector()
-{
-    return ui->picture->currentValuesVector();
+    return ui->picture;
 }
 
 void GLControlWidget::activateDoubleBufferGL(bool activate)

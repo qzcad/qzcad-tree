@@ -9,6 +9,7 @@
 #define GLCONTROLWIDGET_H
 
 #include <QWidget>
+#include "glmeshpicture.h"
 #include "meshpointer.h"
 #include "namedfloatingvector.h"
 
@@ -23,12 +24,6 @@ class GLControlWidget : public QWidget
 public:
     explicit GLControlWidget(QWidget *parent = 0);
     ~GLControlWidget();
-    msh::MeshPointer getMesh();
-    void setMesh(msh::MeshPointer mesh);
-    void resetMesh();
-    msh::MeshPointer releaseMesh();
-    void pushNodeValuesVector(const NamedFloatingVector &vector);
-    void clearNodeValues();
     /**
      * @brief Добавить вектор значений, определенных на элементе
      * @param vector Вектор значений определенных на элементе
@@ -44,6 +39,12 @@ public:
      * Если нет векторов в соответствующих массивах, будет возвращен пустой вектор.
      */
     NamedFloatingVector currentValuesVector();
+    /**
+     * @brief Получить указатель на экземпляр отрисовщика сеток
+     * @return Укзатаель типа GLMeshPicture
+     * @see GLMeshPicture
+     */
+    GLMeshPicture *getGlMeshPicture();
 public slots:
     void activateDoubleBufferGL(bool activate);
 private slots:

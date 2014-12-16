@@ -60,7 +60,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    msh::MeshPointer meshPtr = ui->pictureControl->releaseMesh();
+    msh::MeshPointer meshPtr = ui->pictureControl->getGlMeshPicture()->releaseMesh();
     if (meshPtr != NULL) delete meshPtr; // чистим старые данные
     delete highlighter;
     delete stdRedirector;
@@ -274,14 +274,14 @@ void MainWindow::on_actionStructQuads_triggered()
     dialog.exec();
     if (dialog.result() == QDialog::Accepted)
     {
-        msh::MeshPointer meshPtr = ui->pictureControl->releaseMesh();
+        msh::MeshPointer meshPtr = ui->pictureControl->getGlMeshPicture()->releaseMesh();
         clearMesh(meshPtr);
 //        msh::QuadrilateralMesh2D * mesh = new msh::QuadrilateralMesh2D(dialog.xCount(), dialog.yCount(),
 //                                                                       dialog.xMin(), dialog.yMin(),
 //                                                                       dialog.rectWidth(), dialog.rectHeight());
         msh::QuadrilateralMesh2D * mesh = new msh::QuadrilateralMesh2D (30, msh::Point2D(-2, -2), 2.0, 2);
         meshPtr = mesh;
-        ui->pictureControl->setMesh(meshPtr);
+        ui->pictureControl->getGlMeshPicture()->setMesh(meshPtr);
     }
 }
 
@@ -291,7 +291,7 @@ void MainWindow::on_actionStructIsoQuads_triggered()
     dialog.exec();
     if (dialog.result() == QDialog::Accepted)
     {
-        msh::MeshPointer meshPtr = ui->pictureControl->releaseMesh();
+        msh::MeshPointer meshPtr = ui->pictureControl->getGlMeshPicture()->releaseMesh();
         clearMesh(meshPtr);
         msh::QuadrilateralMesh2D * mesh = new msh::QuadrilateralMesh2D(dialog.xiCount(),
                                                                        dialog.etaCount(),
@@ -300,7 +300,7 @@ void MainWindow::on_actionStructIsoQuads_triggered()
                                                                        msh::Point2D(dialog.x2(), dialog.y2()),
                                                                        msh::Point2D(dialog.x3(), dialog.y3()));
         meshPtr = mesh;
-        ui->pictureControl->setMesh(meshPtr);
+        ui->pictureControl->getGlMeshPicture()->setMesh(meshPtr);
     }
 }
 
@@ -310,14 +310,14 @@ void MainWindow::on_actionBaryQuads_triggered()
     dialog.exec();
     if (dialog.result() == QDialog::Accepted)
     {
-        msh::MeshPointer meshPtr = ui->pictureControl->releaseMesh();
+        msh::MeshPointer meshPtr = ui->pictureControl->getGlMeshPicture()->releaseMesh();
         clearMesh(meshPtr);
         msh::QuadrilateralMesh2D * mesh = new msh::QuadrilateralMesh2D(dialog.nodesCount(),
                                                                        msh::Point2D(dialog.x0(), dialog.y0()),
                                                                        msh::Point2D(dialog.x1(), dialog.y1()),
                                                                        msh::Point2D(dialog.x2(), dialog.y2()));
         meshPtr = mesh;
-        ui->pictureControl->setMesh(meshPtr);
+        ui->pictureControl->getGlMeshPicture()->setMesh(meshPtr);
     }
 }
 
@@ -327,7 +327,7 @@ void MainWindow::on_actionPolygonalModel_triggered()
     dialog.exec();
     if (dialog.result() == QDialog::Accepted)
     {
-        msh::MeshPointer meshPtr = ui->pictureControl->releaseMesh();
+        msh::MeshPointer meshPtr = ui->pictureControl->getGlMeshPicture()->releaseMesh();
         clearMesh(meshPtr);
         msh::QuadrilateralUnion2D * mesh = new msh::QuadrilateralUnion2D();
         int quadsCount = dialog.quadsCount();
@@ -349,7 +349,7 @@ void MainWindow::on_actionPolygonalModel_triggered()
             mesh->addMesh(&qmesh);
         }
         meshPtr = mesh;
-        ui->pictureControl->setMesh(meshPtr);
+        ui->pictureControl->getGlMeshPicture()->setMesh(meshPtr);
     }
 }
 
@@ -359,19 +359,19 @@ void MainWindow::on_actionStructHex_triggered()
     dialog.exec();
     if (dialog.result() == QDialog::Accepted)
     {
-        msh::MeshPointer meshPtr = ui->pictureControl->releaseMesh();
+        msh::MeshPointer meshPtr = ui->pictureControl->getGlMeshPicture()->releaseMesh();
         clearMesh(meshPtr);
         msh::HexahedralMesh3D * mesh = new msh::HexahedralMesh3D(dialog.xCount(), dialog.yCount(), dialog.zCount(),
                                                                  dialog.xMin(), dialog.yMin(), dialog.zMin(),
                                                                  dialog.rectWidth(), dialog.rectHeight(), dialog.rectDepth());
         meshPtr = mesh;
-        ui->pictureControl->setMesh(meshPtr);
+        ui->pictureControl->getGlMeshPicture()->setMesh(meshPtr);
     }
 }
 
 void MainWindow::on_actionSaveMesh_triggered()
 {
-    msh::MeshPointer mesh = ui->pictureControl->releaseMesh();
+    msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->releaseMesh();
     if (mesh)
     {
         QString fileName = QFileDialog::getSaveFileName(this, "qMesher: Сохранить дискретную модель", "", tr("Текстовые файлы (*.txt);;Любой файл (*)"));
@@ -412,13 +412,13 @@ void MainWindow::on_actionSaveMesh_triggered()
             }
         }
 
-        ui->pictureControl->setMesh(mesh);
+        ui->pictureControl->getGlMeshPicture()->setMesh(mesh);
     }
 }
 
 void MainWindow::on_actionRotationBodyMesh_triggered()
 {
-    msh::MeshPointer mesh = ui->pictureControl->getMesh();
+    msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
     if (mesh)
     {
         msh::QuadrilateralMesh2D *qmesh = dynamic_cast<msh::QuadrilateralMesh2D *>(mesh);
@@ -429,7 +429,7 @@ void MainWindow::on_actionRotationBodyMesh_triggered()
             dialog.exec();
             if (dialog.result() == QDialog::Accepted)
             {
-                ui->pictureControl->resetMesh();
+                ui->pictureControl->getGlMeshPicture()->resetMesh();
                 msh::HexahedralMesh3D *hmesh;
                 int axe = dialog.axe();
                 double radius = dialog.radius();
@@ -441,7 +441,7 @@ void MainWindow::on_actionRotationBodyMesh_triggered()
                 else
                     hmesh = new msh::HexahedralMesh3D(qmesh, (axe == 0) ? 0.0 : radius, (axe == 0) ? radius : 0.0, angle, layersCount, (axe == 0) ? true : false );
                 msh::MeshPointer mesh3d(hmesh);
-                ui->pictureControl->setMesh(mesh3d);
+                ui->pictureControl->getGlMeshPicture()->setMesh(mesh3d);
                 // !!! удаляем старые данные
                 clearMesh(qmesh);
 
@@ -457,15 +457,15 @@ void MainWindow::on_actionRotationBodyMesh_triggered()
 
 void MainWindow::on_actionFlipVertically_triggered()
 {
-    msh::MeshPointer mesh = ui->pictureControl->getMesh();
+    msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
     if (mesh)
     {
         msh::Mesh2D *mesh2d = dynamic_cast<msh::Mesh2D*>(mesh);
         if (mesh2d)
         {
-            ui->pictureControl->resetMesh();
+            ui->pictureControl->getGlMeshPicture()->resetMesh();
             mesh2d->flipVertically();
-            ui->pictureControl->setMesh(mesh2d);
+            ui->pictureControl->getGlMeshPicture()->setMesh(mesh2d);
         }
         else
         {
@@ -477,15 +477,15 @@ void MainWindow::on_actionFlipVertically_triggered()
 
 void MainWindow::on_actionFlipHorizontally_triggered()
 {
-    msh::MeshPointer mesh = ui->pictureControl->getMesh();
+    msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
     if (mesh)
     {
         msh::Mesh2D *mesh2d = dynamic_cast<msh::Mesh2D*>(mesh);
         if (mesh2d)
         {
-            ui->pictureControl->resetMesh();
+            ui->pictureControl->getGlMeshPicture()->resetMesh();
             mesh2d->flipHorizontally();
-            ui->pictureControl->setMesh(mesh2d);
+            ui->pictureControl->getGlMeshPicture()->setMesh(mesh2d);
         }
         else
         {
@@ -497,15 +497,15 @@ void MainWindow::on_actionFlipHorizontally_triggered()
 
 void MainWindow::on_actionMirrorVertically_triggered()
 {
-    msh::MeshPointer mesh = ui->pictureControl->getMesh();
+    msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
     if (mesh)
     {
         msh::Mesh2D *mesh2d = dynamic_cast<msh::Mesh2D*>(mesh);
         if (mesh2d)
         {
-            ui->pictureControl->resetMesh();
+            ui->pictureControl->getGlMeshPicture()->resetMesh();
             mesh2d->mirrorVertically();
-            ui->pictureControl->setMesh(mesh2d);
+            ui->pictureControl->getGlMeshPicture()->setMesh(mesh2d);
         }
         else
         {
@@ -517,15 +517,15 @@ void MainWindow::on_actionMirrorVertically_triggered()
 
 void MainWindow::on_actionMirrorrHorizontally_triggered()
 {
-    msh::MeshPointer mesh = ui->pictureControl->getMesh();
+    msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
     if (mesh)
     {
         msh::Mesh2D *mesh2d = dynamic_cast<msh::Mesh2D*>(mesh);
         if (mesh2d)
         {
-            ui->pictureControl->resetMesh();
+            ui->pictureControl->getGlMeshPicture()->resetMesh();
             mesh2d->mirrorHorizontally();
-            ui->pictureControl->setMesh(mesh2d);
+            ui->pictureControl->getGlMeshPicture()->setMesh(mesh2d);
         }
         else
         {
@@ -537,7 +537,7 @@ void MainWindow::on_actionMirrorrHorizontally_triggered()
 
 void MainWindow::on_actionArea_triggered()
 {
-    msh::MeshPointer mesh = ui->pictureControl->getMesh();
+    msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
     if (mesh)
     {
         msh::Mesh2D *mesh2d = dynamic_cast<msh::Mesh2D*>(mesh);
@@ -565,7 +565,7 @@ void MainWindow::on_actionArea_triggered()
 
 void MainWindow::on_actionLoadMesh_triggered()
 {
-    msh::MeshPointer mesh = ui->pictureControl->releaseMesh();
+    msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->releaseMesh();
 
     clearMesh(mesh);
 
@@ -617,7 +617,7 @@ void MainWindow::on_actionLoadMesh_triggered()
             }
         }
         qMesh->updateDomain();
-        ui->pictureControl->setMesh(qMesh);
+        ui->pictureControl->getGlMeshPicture()->setMesh(qMesh);
     }
     if (dim == 3 && elementNodes == 8) // шестигранники
     {
@@ -651,13 +651,13 @@ void MainWindow::on_actionLoadMesh_triggered()
             }
         }
         hMesh->updateDomain();
-        ui->pictureControl->setMesh(hMesh);
+        ui->pictureControl->getGlMeshPicture()->setMesh(hMesh);
     }
 }
 
 void MainWindow::on_actionElasticFem_triggered()
 {
-    msh::MeshPointer mesh = ui->pictureControl->releaseMesh();
+    msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->releaseMesh();
     ElasticFemDialog dialog(this);
 
     if (mesh)
@@ -717,17 +717,17 @@ void MainWindow::on_actionElasticFem_triggered()
                     for (int i = 0; i < dialog.forcesCount(); i++)
                         delete forces[i];
 
-                    ui->pictureControl->setMesh(hexahedralMesh);
-                    ui->pictureControl->pushNodeValuesVector(NamedFloatingVector("u", fem.u()));
-                    ui->pictureControl->pushNodeValuesVector(NamedFloatingVector("v", fem.v()));
-                    ui->pictureControl->pushNodeValuesVector(NamedFloatingVector("w", fem.w()));
-                    ui->pictureControl->pushElementValuesVector(NamedFloatingVector("Sigma u", fem.sigmaX()));
-                    ui->pictureControl->pushElementValuesVector(NamedFloatingVector("Sigma v", fem.sigmaY()));
-                    ui->pictureControl->pushElementValuesVector(NamedFloatingVector("Sigma w", fem.sigmaZ()));
-                    ui->pictureControl->pushElementValuesVector(NamedFloatingVector("Tau uv", fem.tauXY()));
-                    ui->pictureControl->pushElementValuesVector(NamedFloatingVector("Tau vw", fem.tauYZ()));
-                    ui->pictureControl->pushElementValuesVector(NamedFloatingVector("Tau wu", fem.tauZX()));
-                    ui->pictureControl->pushElementValuesVector(NamedFloatingVector("sigma", fem.sigma()));
+                    ui->pictureControl->getGlMeshPicture()->setMesh(hexahedralMesh);
+                    ui->pictureControl->getGlMeshPicture()->pushNodeValuesVector(NamedFloatingVector("u", fem.u()));
+                    ui->pictureControl->getGlMeshPicture()->pushNodeValuesVector(NamedFloatingVector("v", fem.v()));
+                    ui->pictureControl->getGlMeshPicture()->pushNodeValuesVector(NamedFloatingVector("w", fem.w()));
+                    ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector("Sigma u", fem.sigmaX()));
+                    ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector("Sigma v", fem.sigmaY()));
+                    ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector("Sigma w", fem.sigmaZ()));
+                    ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector("Tau uv", fem.tauXY()));
+                    ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector("Tau vw", fem.tauYZ()));
+                    ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector("Tau wu", fem.tauZX()));
+                    ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector("sigma", fem.sigma()));
                 }
             }
         }
@@ -737,7 +737,7 @@ void MainWindow::on_actionElasticFem_triggered()
 
 void MainWindow::on_actionLoadNodeValue_triggered()
 {
-    msh::MeshPointer mesh = ui->pictureControl->getMesh();
+    msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
     if (mesh != NULL)
     {
         QString fileName = QFileDialog::getOpenFileName(this, "Загрузить значение в узле", "", tr("Текстовые файлы (*.txt);;Любой файл (*)"));
@@ -768,14 +768,14 @@ void MainWindow::on_actionLoadNodeValue_triggered()
                 in >> val;
                 v.push_back(val);
             }
-            ui->pictureControl->pushNodeValuesVector(NamedFloatingVector(name, v));
+            ui->pictureControl->getGlMeshPicture()->pushNodeValuesVector(NamedFloatingVector(name, v));
         }
     }
 }
 
 void MainWindow::on_actionLoadElementValue_triggered()
 {
-    msh::MeshPointer mesh = ui->pictureControl->getMesh();
+    msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
     if (mesh != NULL)
     {
         QString fileName = QFileDialog::getOpenFileName(this, "Загрузить значение на элементе", "", tr("Текстовые файлы (*.txt);;Любой файл (*)"));
@@ -806,17 +806,17 @@ void MainWindow::on_actionLoadElementValue_triggered()
                 in >> val;
                 v.push_back(val);
             }
-            ui->pictureControl->pushElementValuesVector(NamedFloatingVector(name, v));
+            ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector(name, v));
         }
     }
 }
 
 void MainWindow::on_actionExtremeValuesStatistica_triggered()
 {
-    msh::MeshPointer mesh = ui->pictureControl->getMesh();
+    msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
     if (mesh != NULL)
     {
-        NamedFloatingVector nfv = ui->pictureControl->currentValuesVector();
+        NamedFloatingVector nfv = ui->pictureControl->getGlMeshPicture()->currentValuesVector();
         if (mesh->elementsCount() == nfv.size())
         {
             std::vector<double> data = nfv.data();
