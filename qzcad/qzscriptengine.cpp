@@ -12,6 +12,7 @@ double QZScriptEngine::epsilon_ = 1.0E-6;
 QZScriptEngine::QZScriptEngine(QObject *parent) :
     QScriptEngine(parent)
 {
+    mesh_ = NULL;
     // Операция приблизительного равентсва
     QScriptValue qsApprox = newFunction(approx);
     globalObject().setProperty("approx", qsApprox);
@@ -30,6 +31,41 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
 
     QScriptValue qsAbout = newFunction(about);
     globalObject().setProperty("About", qsAbout);
+}
+
+double QZScriptEngine::epsilon() const
+{
+    return epsilon_;
+}
+
+void QZScriptEngine::setEpsilon(double epsilon)
+{
+    epsilon_ = epsilon;
+}
+
+Mesh *QZScriptEngine::mesh()
+{
+    return mesh_;
+}
+
+unsigned long QZScriptEngine::getNodeValuesSize() const
+{
+    return nodeValues_.size();
+}
+
+NamedFloatingVector &QZScriptEngine::getNodeValues(const unsigned long &i)
+{
+    return nodeValues_[i];
+}
+
+unsigned long QZScriptEngine::getElementValuesSize() const
+{
+    return elementValues_.size();
+}
+
+NamedFloatingVector &QZScriptEngine::getElementValues(const unsigned long &i)
+{
+    return elementValues_[i];
 }
 
 QScriptValue QZScriptEngine::about(QScriptContext *context, QScriptEngine *engine)
@@ -158,13 +194,5 @@ QScriptValue QZScriptEngine::sum(QScriptContext *context, QScriptEngine *engine)
     }
     return engine->undefinedValue();
 }
-double QZScriptEngine::epsilon() const
-{
-    return epsilon_;
-}
 
-void QZScriptEngine::setEpsilon(double epsilon)
-{
-    epsilon_ = epsilon;
-}
 
