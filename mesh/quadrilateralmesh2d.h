@@ -65,6 +65,11 @@ public:
      */
     QuadrilateralMesh2D(const QuadrilateralMesh2D &mesh);
     /**
+     * @brief Конструктор создает копию объекта, переданого по ссылке
+     * @param mesh Ссылка на объект для копирования
+     */
+    QuadrilateralMesh2D(const QuadrilateralMesh2D *mesh);
+    /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
      */

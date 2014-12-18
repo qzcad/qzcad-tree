@@ -325,6 +325,16 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const QuadrilateralMesh2D &mesh)
     yMax_ = mesh.yMax_;
 }
 
+QuadrilateralMesh2D::QuadrilateralMesh2D(const QuadrilateralMesh2D *mesh)
+{
+    element_ = mesh->element_;
+    node_ = mesh->node_;
+    xMin_ = mesh->xMin_;
+    xMax_ = mesh->xMax_;
+    yMin_ = mesh->yMin_;
+    yMax_ = mesh->yMax_;
+}
+
 UInteger QuadrilateralMesh2D::elementsCount() const
 {
     return element_.size();
