@@ -56,6 +56,11 @@ public:
      * @param parent Указатель на родительский объект
      */
     explicit QQuadrilateralMesh2D(const UInteger &count, const Point2D &v0, const Point2D &v1, const Point2D &v2, QObject *parent = 0);
+    /**
+     * @brief Конструктор копирования
+     * @param mesh Экземпляр объекта для копирования
+     */
+    explicit QQuadrilateralMesh2D(const QQuadrilateralMesh2D &mesh);
 signals:
 
 public slots:
