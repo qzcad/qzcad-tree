@@ -61,6 +61,11 @@ public:
      * @param mesh Экземпляр объекта для копирования
      */
     explicit QQuadrilateralMesh2D(const QQuadrilateralMesh2D &mesh);
+    /**
+     * @brief Метод формирует строку с информацией о сетке
+     * @return Строка с информацией о сетке
+     */
+    Q_INVOKABLE QString toString() const;
 signals:
 
 public slots:

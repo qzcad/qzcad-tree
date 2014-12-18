@@ -24,3 +24,8 @@ QQuadrilateralMesh2D::QQuadrilateralMesh2D(const QQuadrilateralMesh2D &mesh) :
     QObject(mesh.parent()), QuadrilateralMesh2D(&mesh)
 {
 }
+
+QString QQuadrilateralMesh2D::toString() const
+{
+    return tr("Сетка четырехугольных элементов. Узлов: %1; элементов: %2.").arg(nodesCount()).arg(elementsCount());
+}
