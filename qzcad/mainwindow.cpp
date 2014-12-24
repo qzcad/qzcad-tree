@@ -885,4 +885,10 @@ void MainWindow::on_actionRunScript_triggered()
         std::cout << "Uncaught exception at line " << line << ": " << result.toString().toAscii().data() << std::endl;
     }
     std::cout << "QZScriptEngine finished..." << std::endl;
+    if (engine.mesh() != NULL)
+    {
+        clearMesh(ui->pictureControl->getGlMeshPicture()->releaseMesh());
+        ui->pictureControl->getGlMeshPicture()->setMesh(engine.mesh());
+        ui->tabWidget->setCurrentIndex(0); // switch to picture's tab
+    }
 }

@@ -97,12 +97,26 @@ private:
      */
     static QScriptValue createPoint3D(QScriptContext *context, QScriptEngine *engine);
     /**
+     * @brief "Конструктор" сеток четырехугольных элементов на плоскости
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Объект для использования в скриптах
+     */
+    static QScriptValue createQuadrilateralMesh2D(QScriptContext *context, QScriptEngine *engine);
+    /**
      * @brief Qt Script реализация операции печати на консоль через std::cout
      * @param context Контекст скрипта
      * @param engine Двигатель скрипта
      * @return engine->undefinedValue()
      */
     static QScriptValue printStd(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief Установить результирующую сетку
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return engine->undefinedValue()
+     */
+    static QScriptValue setMesh(QScriptContext *context, QScriptEngine *engine);
     /**
      * @brief Функция суммирования с произвольным числом аргументов
      * @param context Конетекст скрипта
@@ -112,7 +126,7 @@ private:
     static QScriptValue sum(QScriptContext *context, QScriptEngine *engine);
 private:
     static double epsilon_; //!< Точность численных операций
-    msh::Mesh *mesh_; //!< Сетка, построенная в результате интерпретации скрипта
+    static msh::Mesh *mesh_; //!< Сетка, построенная в результате интерпретации скрипта
     std::vector<NamedFloatingVector> nodeValues_; //!< Массив векторов значений, определенных в узле сетки
     std::vector<NamedFloatingVector> elementValues_; //!< Массив векторов значений, определенных в узле сетки
 };

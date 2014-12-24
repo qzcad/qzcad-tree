@@ -9,6 +9,7 @@
 #define QQUADRILATERALMESH2D_H
 
 #include <QObject>
+#include <qmetatype.h>
 #include "quadrilateralmesh2d.h"
 
 using namespace msh;
@@ -64,6 +65,7 @@ public:
     /**
      * @brief Метод формирует строку с информацией о сетке
      * @return Строка с информацией о сетке
+     * Метод доступен в скриптах
      */
     Q_INVOKABLE QString toString() const;
 signals:
@@ -71,5 +73,7 @@ signals:
 public slots:
 
 };
-
+// Регистрация класса для использования в скриптах моделей
+Q_DECLARE_METATYPE(QQuadrilateralMesh2D)
+Q_DECLARE_METATYPE(QQuadrilateralMesh2D *)
 #endif // QQUADRILATERALMESH2D_H

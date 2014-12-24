@@ -2,12 +2,14 @@
 #include <math.h>
 #include "qpoint2d.h"
 #include "qpoint3d.h"
+#include "qquadrilateralmesh2d.h"
 
 #include "qzscriptengine.h"
 
 //using namespace msh;
 
 double QZScriptEngine::epsilon_ = 1.0E-6;
+Mesh *QZScriptEngine::mesh_ = NULL;
 
 QZScriptEngine::QZScriptEngine(QObject *parent) :
     QScriptEngine(parent)
@@ -28,7 +30,13 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     // Точка в пространстве
     QScriptValue qsCreatePoint3D = newFunction(createPoint3D);
     globalObject().setProperty("Point3D", qsCreatePoint3D);
-
+    // Двумерная сетка четырехугольников
+    QScriptValue qsCreateQuadrilateralMesh2D = newFunction(createQuadrilateralMesh2D);
+    globalObject().setProperty("Quads2D", qsCreateQuadrilateralMesh2D);
+    // setMesh
+    QScriptValue qsSetMesh = newFunction(setMesh);
+    globalObject().setProperty("setMesh", qsSetMesh);
+    // About
     QScriptValue qsAbout = newFunction(about);
     globalObject().setProperty("About", qsAbout);
 }
@@ -131,6 +139,31 @@ QScriptValue QZScriptEngine::createPoint3D(QScriptContext *context, QScriptEngin
     return engine->newQObject(new QPoint3D(x, y, z), QScriptEngine::ScriptOwnership);
 }
 
+QScriptValue QZScriptEngine::createQuadrilateralMesh2D(QScriptContext *context, QScriptEngine *engine)
+{
+    if (context->argumentCount() == 5)
+    {
+        QString typeError = QObject::tr("Quads2D(xCount: Integer, yCount: Integer, origin: Point2D, width: Floating, height: Floating): argument type error (%1).");
+        if (!context->argument(0).isNumber())
+            return context->throwError(typeError.arg("xCount"));
+        if (!context->argument(1).isNumber())
+            return context->throwError(typeError.arg("yCount"));
+        if (!context->argument(2).isQObject() || qscriptvalue_cast<QPoint2D *>(context->argument(2)) == NULL)
+            return context->throwError(typeError.arg("origin"));
+        if (!context->argument(3).isNumber())
+            return context->throwError(typeError.arg("width"));
+        if (!context->argument(4).isNumber())
+            return context->throwError(typeError.arg("height"));
+        UInteger xCount = context->argument(0).toUInt32();
+        UInteger yCount = context->argument(1).toUInt32();
+        QPoint2D *origin = qscriptvalue_cast<QPoint2D *>(context->argument(2));
+        double width = context->argument(3).toNumber();
+        double height = context->argument(4).toNumber();
+        return engine->newQObject(new QQuadrilateralMesh2D(xCount, yCount, origin->x(), origin->y(), width, height), QScriptEngine::ScriptOwnership);
+    }
+    return context->throwError(QObject::tr("Quads2D(xCount: Integer, yCount: Integer, origin: Point2D, width: Floating, height: Floating): arguments count error."));
+}
+
 QScriptValue QZScriptEngine::printStd(QScriptContext *context, QScriptEngine *engine)
 {
     for (register int i = 0; i < context->argumentCount(); ++i)
@@ -142,6 +175,29 @@ QScriptValue QZScriptEngine::printStd(QScriptContext *context, QScriptEngine *en
 
     std::cout << std::endl;
 
+    return engine->undefinedValue();
+}
+
+QScriptValue QZScriptEngine::setMesh(QScriptContext *context, QScriptEngine *engine)
+{
+    QString typeError = QObject::tr("setMesh(mesh): argument must be a mesh object");
+    if (mesh_ != NULL)
+    {
+        delete mesh_;
+        mesh_ = NULL;
+    }
+    if (context->argumentCount() != 1)
+        return context->throwError(QObject::tr("setMesh() takes exactly one argument: setMesh(mesh)"));
+    if (!context->argument(0).isQObject())
+        return context->throwError(typeError);
+    if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != NULL)
+    {
+        mesh_ = new QuadrilateralMesh2D(qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)));
+    }
+    else
+    {
+        return context->throwError(typeError);
+    }
     return engine->undefinedValue();
 }
 
