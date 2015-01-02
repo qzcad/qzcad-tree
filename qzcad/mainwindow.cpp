@@ -55,7 +55,7 @@ MainWindow::MainWindow(QWidget *parent) :
     stdRedirector = new QStdRedirector<>(std::cout, this);
     connect(stdRedirector, SIGNAL(messageChanged(QString)), this, SLOT(onConsoleMessage(QString)));
 
-    std::cout << QTime::currentTime().toString("HH:mm:ss").toAscii().data() << ": система успешно запущена и готова к использованию..." << std::endl;
+    std::cout << QTime::currentTime().toString("HH:mm:ss").toStdString() << ": система успешно запущена и готова к использованию..." << std::endl;
 }
 
 MainWindow::~MainWindow()
@@ -575,7 +575,7 @@ void MainWindow::on_actionLoadMesh_triggered()
     QFile file(fileName);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
         return;
-    std::cout << "Загррузка дискретной модели из файла: " << fileName.toAscii().constData() << std::endl;
+    std::cout << "Загррузка дискретной модели из файла: " << fileName.toStdString() << std::endl;
     QTextStream in(&file);
     int dim;
     int elementNodes;
@@ -706,10 +706,10 @@ void MainWindow::on_actionElasticFem_triggered()
                                                                                   dialog.forceW(i), static_cast<ForceType>(dialog.forceTypeIndex(i))));
                     }
                     QTime beginTime = QTime::currentTime();
-                    std::cout << beginTime.toString("HH:mm:ss").toAscii().data() << ": запущен расчет методом конечных элементов" << std::endl;
+                    std::cout << beginTime.toString("HH:mm:ss").toStdString() << ": запущен расчет методом конечных элементов" << std::endl;
                     HexahedralFEM fem(hexahedralMesh, *params, forces, boundaryConditions);
                     QTime endTime = QTime::currentTime();
-                    std::cout << endTime.toString("HH:mm:ss").toAscii().data() << ": завершен расчет методом конечных элементов; продолжительность рачета: " << beginTime.secsTo(endTime) << " секунд." << std::endl;
+                    std::cout << endTime.toString("HH:mm:ss").toStdString() << ": завершен расчет методом конечных элементов; продолжительность рачета: " << beginTime.secsTo(endTime) << " секунд." << std::endl;
                     // очистка памяти
                     delete params;
                     for (int i = 0; i < dialog.boundaryCount(); i++)
@@ -882,7 +882,7 @@ void MainWindow::on_actionRunScript_triggered()
     QScriptValue result = engine.evaluate(ui->codeEditor->toPlainText());
     if (engine.hasUncaughtException()) {
         int line = engine.uncaughtExceptionLineNumber();
-        std::cout << "Uncaught exception at line " << line << ": " << result.toString().toAscii().data() << std::endl;
+        std::cout << "Uncaught exception at line " << line << ": " << result.toString().toStdString() << std::endl;
     }
     std::cout << "QZScriptEngine finished..." << std::endl;
     if (engine.mesh() != NULL)

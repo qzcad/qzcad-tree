@@ -1,9 +1,10 @@
 #include <iostream>
 #include <float.h>
 #include <math.h>
-#include <boost/progress.hpp>
 
 #include "rowdoublematrix.h"
+
+#include "consoleprogress.h"
 
 #include "hexahedralfem.h"
 
@@ -233,7 +234,7 @@ void HexahedralFEM::assebly(HexahedralMesh3D *mesh, const DoubleMatrix &D, Mappe
 
     std::cout << "Построение глобальной матрицы..." << std::endl;
 
-    boost::progress_display progressBar(elementsCount);
+    ConsoleProgress progressBar(elementsCount);
     for (UInteger elementNumber = 0; elementNumber < elementsCount; elementNumber++)
     {
         ++progressBar;
@@ -417,7 +418,7 @@ void HexahedralFEM::assebly(HexahedralMesh3D *mesh, DoubleMatrix D[], MappedDoub
 
     std::cout << "Построение глобальной матрицы..." << std::endl;
 
-    boost::progress_display progressBar(elementsCount);
+    ConsoleProgress progressBar(elementsCount);
     for (UInteger elementNumber = 0; elementNumber < elementsCount; elementNumber++)
     {
         ++progressBar;
@@ -594,7 +595,7 @@ void HexahedralFEM::assebly(HexahedralMesh3D *mesh, DoubleMatrix D[], MappedDoub
 
 void HexahedralFEM::processForce(HexahedralMesh3D *mesh, ForceCondition3DPointer forceCondition, DoubleVector &force)
 {
-    boost::progress_display progressBar(mesh->elementsCount());
+    ConsoleProgress progressBar(mesh->elementsCount());
     const UInteger nodesCount = mesh->nodesCount();
     double area = 0.0;
     if (forceCondition->forceType() == SURFACE_FORCE)
@@ -661,7 +662,7 @@ void HexahedralFEM::processForce(HexahedralMesh3D *mesh, ForceCondition3DPointer
 void HexahedralFEM::processBoundaryConditions(HexahedralMesh3D *mesh, const std::vector<FEMCondition3DPointer> &boundaryConditions, MappedDoubleMatrix &globalMatrix, DoubleVector &force)
 {
     const UInteger nodesCount = mesh->nodesCount();
-    boost::progress_display progressBar(nodesCount);
+    ConsoleProgress progressBar(nodesCount);
     const UInteger freedom = 3;
     const UInteger systemDimension = nodesCount * freedom;
     UInteger boundaryNodes = 0;
@@ -727,7 +728,7 @@ void HexahedralFEM::processBoundaryConditions(HexahedralMesh3D *mesh, const std:
 void HexahedralFEM::printDisplacementExtremum()
 {
     std::cout << "Обработка вектора перемещений..." << std::endl;
-    boost::progress_display progressBar(u_.size());
+    ConsoleProgress progressBar(u_.size());
     double maxU = u_[0];
     double maxV = v_[0];
     double maxW = w_[0];
@@ -793,7 +794,7 @@ void HexahedralFEM::recoverStress(HexahedralMesh3D *mesh, const DoubleMatrix &D)
 
     std::cout << "Вычисление напряжений..." << std::endl;
 
-    boost::progress_display progressBar(elementsCount);
+    ConsoleProgress progressBar(elementsCount);
     for (UInteger elementNumber = 0; elementNumber < elementsCount; elementNumber++)
     {
         ++progressBar;
@@ -975,7 +976,7 @@ void HexahedralFEM::recoverStress(HexahedralMesh3D *mesh, const DoubleMatrix D[]
 
     std::cout << "Вычисление напряжений..." << std::endl;
 
-    boost::progress_display progressBar(elementsCount);
+    ConsoleProgress progressBar(elementsCount);
     for (UInteger elementNumber = 0; elementNumber < elementsCount; elementNumber++)
     {
         ++progressBar;

@@ -6,4 +6,5 @@ SUBDIRS += \
     qzfem \
     qzcad \
     console_test \
-    qzmatrix_test
+    qzmatrix_test \
+    qzio

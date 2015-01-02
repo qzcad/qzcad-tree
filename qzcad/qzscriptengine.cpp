@@ -170,7 +170,7 @@ QScriptValue QZScriptEngine::printStd(QScriptContext *context, QScriptEngine *en
     {
         if (i > 0)
             std::cout << ' ';
-        std::cout << context->argument(i).toString().toAscii().data() ;
+        std::cout << context->argument(i).toString().toStdString() ;
     }
 
     std::cout << std::endl;

@@ -33,7 +33,7 @@ bool QtScriptFemCondition3D::setCondition(QString script)
     QScriptSyntaxCheckResult chk = QScriptEngine::checkSyntax(func);
     if (chk.state() != QScriptSyntaxCheckResult::Valid)
     {
-        std::cout << "Ошибка анализа граничного условия: " << chk.errorMessage().toAscii().data() << std::endl;
+        std::cout << "Ошибка анализа граничного условия: " << chk.errorMessage().toStdString() << std::endl;
         return false;
     }
     object_ = engine_.evaluate(func);
