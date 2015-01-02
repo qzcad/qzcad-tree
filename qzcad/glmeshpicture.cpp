@@ -16,7 +16,7 @@ GLMeshPicture::GLMeshPicture(QWidget *parent) :
     isLighting_ = true;
     isUseVector_ = false;
     isShowInitialFrames = false;
-    setFont(QFont("Courier", 14, QFont::Bold));
+    setFont(QFont("Monospace", 14, QFont::Bold));
     setDefault();
 }
 
@@ -214,6 +214,7 @@ void GLMeshPicture::drawRegionBorders()
     qglColor (textColor_);
     if (mesh_)
     {
+        glDisable(GL_DEPTH_TEST);
         renderText (xmin, ymin, zmin,
                     QString::number(mesh_->xMin()) +
                     "; " +
@@ -262,6 +263,7 @@ void GLMeshPicture::drawRegionBorders()
                     QString::number(mesh_->yMax()) +
                     "; " +
                     QString::number(mesh_->zMax()));
+        glEnable(GL_DEPTH_TEST);
     }
 }
 
@@ -316,6 +318,7 @@ void GLMeshPicture::drawColorBar()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     qglColor (textColor_);
+    glDisable(GL_DEPTH_TEST);
     renderText (right, top - length, maxVal, QString::number(min));
     renderText (right, top, maxVal, QString::number(max));
     if (visualizationMode_ == NODE_VALUE && valueIndex_ < nodeValues_.size())
@@ -326,6 +329,7 @@ void GLMeshPicture::drawColorBar()
     {
         renderText (right, top + 0.07, maxVal, elementValues_[valueIndex_].name());
     }
+    glEnable(GL_DEPTH_TEST);
     if (isLighting_) glDisable(GL_LIGHTING);
     glBegin(GL_POLYGON);
     qglColor(map_.color(min));
@@ -372,21 +376,27 @@ void GLMeshPicture::drawAxesDirection()
         glVertex3d(c, c, c);
         glVertex3d(e, c, c);
     glEnd();
-    renderText (e, c, c, "x");
+
     // y
     qglColor(Qt::green);
     glBegin(GL_LINES);
         glVertex3d(c, c, c);
         glVertex3d(c, e, c);
     glEnd();
-    renderText (c, e, c, "y");
+
     // z
     qglColor(Qt::blue);
     glBegin(GL_LINES);
         glVertex3d(c, c, c);
         glVertex3d(c, c, e);
     glEnd();
+    // подписи к осям
+    qglColor (textColor_);
+    glDisable(GL_DEPTH_TEST);
+    renderText (e, c, c, "x");
+    renderText (c, e, c, "y");
     renderText (c, c, e, "z");
+    glEnable(GL_DEPTH_TEST);
     // востановление исходного режима проекции
     resetProjectionMatrix();
 }
