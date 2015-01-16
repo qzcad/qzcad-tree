@@ -23,7 +23,7 @@ inline bool isEquil (const double &a, const double &b, double tol = 0.00001)
     return fabs(a - b) < tol;
 }
 
-class XCondition: public FEMCondition3D
+class XCondition: public FEMCondition3D // Запрет перемещений вдоль оси Ox
 {
 public:
     virtual bool isApplied(PointPointer point)
@@ -56,7 +56,40 @@ public:
     }
 };
 
-class ZCondition: public FEMCondition3D
+class YCondition: public FEMCondition3D // Запрет перемещений вдоль оси Oy
+{
+public:
+    virtual bool isApplied(PointPointer point)
+    {
+        return isEquil(point->y(), 0.0);
+    }
+    virtual double u()
+    {
+        return 0.0;
+    }
+    virtual bool isU()
+    {
+        return false;
+    }
+    virtual double v()
+    {
+        return 0.0;
+    }
+    virtual bool isV()
+    {
+        return true;
+    }
+    virtual double w()
+    {
+        return 0.0;
+    }
+    virtual bool isW()
+    {
+        return false;
+    }
+};
+
+class ZCondition: public FEMCondition3D // Запрет перемещений вдоль оси Oz
 {
 public:
     virtual bool isApplied(PointPointer point)
@@ -89,13 +122,130 @@ public:
     }
 };
 
-class FixedCondition: public FEMCondition3D // защемление
+class CircularPlateSupport: public FEMCondition3D // опирание
 {
 public:
     virtual bool isApplied(PointPointer point)
     {
+        return  isEquil(point->z(), 0.0) && isEquil(point->x() * point->x() + point->y() * point->y(), 0.4 * 0.4);
+    }
+    virtual double u()
+    {
+        return 0.0;
+    }
+    virtual bool isU()
+    {
+        return false;
+    }
+    virtual double v()
+    {
+        return 0.0;
+    }
+    virtual bool isV()
+    {
+        return false;
+    }
+    virtual double w()
+    {
+        return 0.0;
+    }
+    virtual bool isW()
+    {
+        return true;
+    }
+    bool isInner;
+};
+
+class CircularPlateFixed: public FEMCondition3D // защемление
+{
+public:
+    virtual bool isApplied(PointPointer point)
+    {
+        return isEquil(point->x() * point->x() + point->y() * point->y(), 0.4 * 0.4);
+    }
+    virtual double u()
+    {
+        return 0.0;
+    }
+    virtual bool isU()
+    {
+        return true;
+    }
+    virtual double v()
+    {
+        return 0.0;
+    }
+    virtual bool isV()
+    {
+        return true;
+    }
+    virtual double w()
+    {
+        return 0.0;
+    }
+    virtual bool isW()
+    {
+        return true;
+    }
+};
+
+class CircularForceCondition: public ForceCondition3D
+{
+public:
+    CircularForceCondition()
+    {
+        setForceType(SURFACE_FORCE);
+    }
+
+    virtual bool isApplied(PointPointer point)
+    {
+        return isEquil(point->z(), 0.018);
+    }
+    virtual double u()
+    {
+        return 0.0;
+    }
+    virtual bool isU()
+    {
+        return true;
+    }
+    virtual double v()
+    {
+        return 0.0;
+    }
+    virtual bool isV()
+    {
+        return true;
+    }
+    virtual double w()
+    {
+        return -force_; // давление напралено в ни
+    }
+    virtual bool isW()
+    {
+        return true;
+    }
+    double force() const
+    {
+    return force_;
+    }
+    void setForce(double force)
+    {
+        force_ = force;
+    }
+private:
+    double force_;
+};
+
+class AnnularPlateFixed: public FEMCondition3D // защемление
+{
+public:
+    virtual bool isApplied(PointPointer point)
+    {
+        if (isInner)
+            return  isEquil(point->x() * point->x() + point->z() * point->z(), 0.2 * 0.2);
+
         return isEquil(point->x() * point->x() + point->z() * point->z(), 0.4 * 0.4);
-//        return  isEquil(point->x() * point->x() + point->z() * point->z(), 0.2 * 0.2) || isEquil(point->x() * point->x() + point->z() * point->z(), 0.4 * 0.4);
     }
     virtual double u()
     {
@@ -121,16 +271,18 @@ public:
     {
         return true;
     }
+    bool isInner;
 };
 
-class RotCondition: public FEMCondition3D // опирание
+class AnnularPlateSupport: public FEMCondition3D // опирание
 {
 public:
     virtual bool isApplied(PointPointer point)
     {
+        if (isInner)
+            return  isEquil(point->y(), 0.0) && isEquil(point->x() * point->x() + point->z() * point->z(), 0.2 * 0.2);
+
         return  isEquil(point->y(), 0.0) && isEquil(point->x() * point->x() + point->z() * point->z(), 0.4 * 0.4);
-//        return  isEquil(point->y(), 0.0) && isEquil(point->x() * point->x() + point->z() * point->z(), 0.2 * 0.2);
-//        return  isEquil(point->y(), 0.0) && (isEquil(point->x() * point->x() + point->z() * point->z(), 0.2 * 0.2) || isEquil(point->x() * point->x() + point->z() * point->z(), 0.4 * 0.4));
     }
     virtual double u()
     {
@@ -156,12 +308,13 @@ public:
     {
         return false;
     }
+    bool isInner;
 };
 
-class ForceCondition: public ForceCondition3D
+class AnnularForceCondition: public ForceCondition3D
 {
 public:
-    ForceCondition()
+    AnnularForceCondition()
     {
         setForceType(SURFACE_FORCE);
     }
@@ -507,9 +660,24 @@ int main()
     }
 
     cout << "Загрузка дискретной модели..."<< endl;
-
+    int plate_form = 0;
     if (task == 1 || task == 2)
-        input.open("plate_0_x_04_0_y_0018_0_z_04.txt", fstream::in);
+    {
+
+        cout << "Введите форму пластики:" << endl <<
+                "1 - круговая;" << endl <<
+                "2 - кольцевая." << endl;
+        cin >> plate_form;
+        if (plate_form == 1)
+            input.open("circular_plate.txt", fstream::in);
+        else if (plate_form == 2)
+            input.open("plate_0_x_04_0_y_0018_0_z_04.txt", fstream::in);
+        else
+        {
+            cout << "Ошибка: неверно задана форма пластинки.";
+            return 0;
+        }
+    }
     else if (task == 3)
         input.open("spacecraft.txt", fstream::in);
     else if (task == 4 || task == 5)
@@ -564,9 +732,13 @@ int main()
         MechanicalParameters3D paramsInner(innerE, innerNu);
         std::vector<FEMCondition3DPointer> boundaryConditions;
         XCondition xcond;
+        YCondition ycond;
         ZCondition zcond;
-        FixedCondition fixcond;
-        RotCondition rotcond;
+        CircularPlateFixed circular_fixed;
+        CircularPlateSupport circular_support;
+        AnnularPlateFixed annular_fixed;
+        AnnularPlateSupport annular_support;
+        int annularEdge = 0;
         int boundary_type = 0;
         cout << "Выберите тип граничных условий (1 - защемеление; 2 - свободное обперание): ";
         cin >> boundary_type;
@@ -576,12 +748,43 @@ int main()
             return 0;
         }
         boundaryConditions.push_back(&xcond);
-        boundaryConditions.push_back(&zcond);
+        if (plate_form == 1)
+            boundaryConditions.push_back(&ycond);
+        if (plate_form == 2)
+            boundaryConditions.push_back(&zcond);
+
+        if (plate_form == 2)
+        {
+            cout << "Укажите контур, на которому применить граничные условия (0 - внешний; 1 - внутрений): ";
+            cin >> annularEdge;
+            if (annularEdge == 0)
+            {
+                annular_fixed.isInner = false;
+                annular_support.isInner = false;
+            }
+            else
+            {
+                annular_fixed.isInner = true;
+                annular_support.isInner = true;
+            }
+        }
+
         if (boundary_type == 1)
-            boundaryConditions.push_back(&fixcond);
+        {
+            if (plate_form == 1)
+                boundaryConditions.push_back(&circular_fixed);
+            else
+                boundaryConditions.push_back(&annular_fixed);
+        }
         else
-            boundaryConditions.push_back(&rotcond);
-        ForceCondition force;
+        {
+            if (plate_form == 1)
+                boundaryConditions.push_back(&circular_support);
+            else
+                boundaryConditions.push_back(&annular_support);
+        }
+        AnnularForceCondition annular_force;
+        CircularForceCondition circular_force;
         double p = 0;
         cout << "Введите значение распределенного по верхней грани пластике давления (p > 0): ";
         cin >> p;
@@ -590,9 +793,13 @@ int main()
             cout << "Ошибка: введено некорректное значение давления." << endl;
             return 0;
         }
-        force.setForce(p);
+        annular_force.setForce(p);
+        circular_force.setForce(p);
         std::vector<ForceCondition3DPointer> boundaryForces;
-        boundaryForces.push_back(&force);
+        if (plate_form == 1)
+            boundaryForces.push_back(&circular_force);
+        else
+            boundaryForces.push_back(&annular_force);
 
         if (task == 1)
         {
