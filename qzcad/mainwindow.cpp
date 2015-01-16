@@ -749,7 +749,7 @@ void MainWindow::on_actionLoadNodeValue_triggered()
         bool ok;
         QString name = QInputDialog::getText(this, tr("QInputDialog::getText()"),
                                              tr("Название вектора значений:"), QLineEdit::Normal,
-                                             QDir::home().dirName(), &ok);
+                                             QFileInfo(fileName).baseName(), &ok);
         if (ok && !name.isEmpty())
         {
             QTextStream in(&file);
@@ -787,7 +787,7 @@ void MainWindow::on_actionLoadElementValue_triggered()
         bool ok;
         QString name = QInputDialog::getText(this, tr("QInputDialog::getText()"),
                                              tr("Название вектора значений:"), QLineEdit::Normal,
-                                             QDir::home().dirName(), &ok);
+                                             QFileInfo(fileName).baseName(), &ok);
         if (ok && !name.isEmpty())
         {
             QTextStream in(&file);
