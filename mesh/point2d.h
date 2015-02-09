@@ -109,6 +109,29 @@ public:
      * @return Значение векторного произведения в третьем направлении (на плоскости два других обнуляются)
      */
     double product(const Point2D &point) const;
+    /**
+     * @brief Относительное положение точки и отрезка
+     * LEFT - слева
+     * RIGHT - справа
+     * BEYOND - впереди
+     * BEHIND - позади
+     * BETWEEN - между началом и концом отрезка
+     * ORIGIN -
+     * DESTINATION
+     */
+    /**
+     * @brief Относительное положение точки и отрезка
+     */
+    enum PointToSegment{
+        LEFT,       //!< Слева
+        RIGHT,      //!< Справа
+        BEYOND,     //!< Впереди
+        BEHIND,     //!< Позади
+        BETWEEN,    //!< Между началом и концом
+        ORIGIN,     //!< Начало
+        DESTINATION //!< Конец
+    };
+    PointToSegment classify(const Point2D &p0, const Point2D &p1);
 private:
     double y_; //!< Ордината точки
 };

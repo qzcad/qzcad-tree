@@ -119,4 +119,25 @@ double Point2D::product(const Point2D &point) const
 {
     return x() * point.y() - point.x() * y();
 }
+
+Point2D::PointToSegment Point2D::classify(const Point2D &p0, const Point2D &p1)
+{
+    Point2D p2 = *this;
+    Point2D a = p1 - p0;
+    Point2D b = p2 - p0;
+    double sa = a.x() * b.y() - b.x() * a.y();
+    if (sa > 0.0)
+        return LEFT;
+    if (sa < 0.0)
+        return RIGHT;
+    if ((a.x() * b.x() < 0.0) || (a.y() * b.y() < 0.0))
+        return BEHIND;
+    if (a.length() < b.length())
+        return BEYOND;
+    if (p0 == p2)
+        return ORIGIN;
+    if (p1 == p2)
+        return DESTINATION;
+    return BETWEEN;
+}
 }
