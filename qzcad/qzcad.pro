@@ -103,8 +103,7 @@ else:win32:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../mesh/deb
 else:unix: PRE_TARGETDEPS += $$OUT_PWD/../mesh/libmesh.a
 
 OTHER_FILES += \
-    license.txt \
-    qzscript.odt
+    license.txt
 
 win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../qzfem/release/ -lqzfem
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../qzfem/debug/ -lqzfem
