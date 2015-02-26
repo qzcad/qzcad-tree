@@ -111,16 +111,6 @@ public:
     double product(const Point2D &point) const;
     /**
      * @brief Относительное положение точки и отрезка
-     * LEFT - слева
-     * RIGHT - справа
-     * BEYOND - впереди
-     * BEHIND - позади
-     * BETWEEN - между началом и концом отрезка
-     * ORIGIN -
-     * DESTINATION
-     */
-    /**
-     * @brief Относительное положение точки и отрезка
      */
     enum PointToSegment{
         LEFT,       //!< Слева
