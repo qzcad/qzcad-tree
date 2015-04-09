@@ -96,7 +96,7 @@ int Quadrilateral::facesCount() const
 
 UIntegerVector Quadrilateral::face(const int &i) const
 {
-    UIntegerVector face(vertex_, vertex_ + sizeof(vertex_) / sizeof(UInteger));
+    UIntegerVector face(vertex_, vertex_ + 4);
     return face;
 }
 }
