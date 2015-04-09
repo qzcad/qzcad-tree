@@ -25,7 +25,8 @@ SOURCES += mesh.cpp \
     point3d.cpp \
     mesh3d.cpp \
     hexahedral.cpp \
-    hexahedralmesh3d.cpp
+    hexahedralmesh3d.cpp \
+    triangle.cpp
 
 HEADERS += mesh.h \
     point.h \
@@ -50,7 +51,8 @@ HEADERS += mesh.h \
     node3d.h \
     mesh3d.h \
     hexahedral.h \
-    hexahedralmesh3d.h
+    hexahedralmesh3d.h \
+    triangle.h
 unix:!symbian {
     maemo5 {
         target.path = /opt/usr/lib
