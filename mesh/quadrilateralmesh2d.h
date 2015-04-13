@@ -24,9 +24,9 @@ public:
      */
     QuadrilateralMesh2D();
     /**
-     * @brief Конструктор создает равномерную структурированную секту в прямоугольной областе
-     * @param xCount Количество узлов вдоль оси ординат
-     * @param yCount Количество узлов вдоль оси абсцисс
+     * @brief Конструктор создает равномерную структурированную секту в прямоугольной области
+     * @param xCount Количество узлов вдоль оси абсцисс
+     * @param yCount Количество узлов вдоль оси ординат
      * @param xMin Абсцисса нижнего левого угла прямоугольной области
      * @param yMin Ордината нижнего левого угла прямоугольной области
      * @param width Ширина прямоугольной области
@@ -102,18 +102,20 @@ public:
      * @param number Номер элемента
      * @return Площадь элемента
      */
-    virtual double area(const UInteger &number);
+    virtual double area(const UInteger &number) const;
     /**
      * @brief Добавить элемент к  сетке
      * @param node0 Номер узла в вершине 0
      * @param node1 Номер узла в вершине 1
      * @param node2 Номер узла в вершине 2
      * @param node3 Номер узла в вершине 3
+     * Этот метод не является потокобезопасным.
      */
     void addElement(const UInteger &node0, const UInteger &node1, const UInteger &node2, const UInteger &node3);
     /**
      * @brief Добавить элемент к сетке
      * @param quad Ссылка на элемент, который необходимо добавить к сетке
+     * Этот метод не является потокобезопасным.
      */
     void addElement(const Quadrilateral &quad);
 protected:

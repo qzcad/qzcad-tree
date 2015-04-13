@@ -102,13 +102,13 @@ public:
      * @brief Подсчитать площадь дискретной модели
      * @return Сумма площадей конечных элементов
      */
-    virtual double area();
+    virtual double area() const;
     /**
      * @brief area Подсчитать площадь конечного элемента
      * @param number Номер элемента
      * @return Площадь элемента
      */
-    virtual double area(const UInteger &number) = 0;
+    virtual double area(const UInteger &number) const = 0;
     /**
      * @brief Добавить узел, заданный точкой, без проверки на наличие в массиве узлов
      * @param point Координаты узла для вставки

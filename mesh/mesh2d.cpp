@@ -105,7 +105,7 @@ void Mesh2D::mirrorHorizontally()
     directionChange();
 }
 
-double Mesh2D::area()
+double Mesh2D::area() const
 {
     double sum = 0.0;
     for (UInteger i = 0; i < elementsCount(); i++)

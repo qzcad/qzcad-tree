@@ -381,8 +381,11 @@ void QuadrilateralMesh2D::minimizeFunctional()
 
 bool QuadrilateralMesh2D::isBorderElement(const UInteger &number) const
 {
-    if (node_[number].type == BORDER || node_[number].type == CHARACTER)
-        return true;
+    for (int i = 0; i < 4; i++)
+    {
+        if (node_[element_[number].vertexNode(i)].type == BORDER || node_[element_[number].vertexNode(i)].type == CHARACTER)
+            return true;
+    }
     return false;
 }
 
@@ -399,7 +402,7 @@ void QuadrilateralMesh2D::directionChange()
     }
 }
 
-double QuadrilateralMesh2D::area(const UInteger &number)
+double QuadrilateralMesh2D::area(const UInteger &number) const
 {
     Quadrilateral quad = element_[number];
     Point2D p0 = node_[quad[0]].point;
