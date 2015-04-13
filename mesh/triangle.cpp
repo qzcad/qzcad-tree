@@ -95,4 +95,9 @@ UIntegerVector Triangle::face(const int &i) const
     return face;
 }
 
+bool Triangle::in(const UInteger &node)
+{
+    return vertex_[0] == node || vertex_[1] == node || vertex_[2] == node;
+}
+
 }

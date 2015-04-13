@@ -1,6 +1,8 @@
 #include "trianglemesh2d.h"
 #include <iostream>
 #include <math.h>
+#include <map>
+#include <climits>
 
 namespace msh
 {
@@ -120,6 +122,152 @@ void TriangleMesh2D::addElement(const UInteger &node0, const UInteger &node1, co
     node_[node0].adjacent.insert(element_.size() - 1);
     node_[node1].adjacent.insert(element_.size() - 1);
     node_[node2].adjacent.insert(element_.size() - 1);
+}
+
+TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func)
+{
+    const double epsilon = 1.0E-6;
+    xMin_ = xMin;
+    xMax_ = xMin + width;
+    yMin_ = yMin;
+    yMax_ = yMin + height;
+    double hx = width / (double)(xCount - 1);
+    double hy = height / (double)(yCount - 1);
+    std::map<UInteger, UInteger> nodesMap;
+    // формирование массива узлов
+    for (UInteger i = 0; i < xCount; i++)
+    {
+        double x = xMin + (double) i * hx;
+        for (UInteger j = 0; j < yCount; j++)
+        {
+            double y = yMin + (double) j * hy;
+            Point2D point(x, y);
+
+            if (func(x, y) > 0.0)
+            {
+                nodesMap[i * yCount + j] = pushNode(point, INNER);
+            }
+        }
+    }
+    // формирование начальной сетки
+    for (UInteger i = 0; i < xCount - 1; i++)
+    {
+        for (UInteger j = 0; j < yCount - 1; j++)
+        {
+            std::map<UInteger, UInteger>::iterator iter0 = nodesMap.find(i * yCount + j);
+            std::map<UInteger, UInteger>::iterator iter1 = nodesMap.find((i + 1) * yCount + j);
+            std::map<UInteger, UInteger>::iterator iter2 = nodesMap.find((i + 1) * yCount + j + 1);
+            std::map<UInteger, UInteger>::iterator iter3 = nodesMap.find(i * yCount + j + 1);
+            if (iter0 != nodesMap.end() && iter1 != nodesMap.end() && iter2 != nodesMap.end() && iter3 != nodesMap.end())
+            {
+                addElement(iter0->second, iter1->second, iter3->second);
+                addElement(iter1->second, iter2->second, iter3->second);
+            }
+        }
+    }
+
+    std::vector<Point2D> normal(nodesCount()); // нормали к узлам
+//    std::vector<Point2D> iso(nodesCount()); // изо-точки
+    std::vector<UInteger> iso(nodesCount()); // изо-точки (номера)
+    UInteger baseElementCount = elementsCount();
+    // построение нормалей для всех узлов начальной сетки
+    for (UInteger i = 0; i < normal.size(); i++)
+    {
+        Point2D currentPoint = node_[i].point;
+        AdjacentSet triangles = node_[i].adjacent;
+        // обработка смежных элементов
+        for (AdjacentSet::iterator it = triangles.begin(); it != triangles.end(); ++it)
+        {
+            Triangle tri = element_[*it];
+            Point2D prevPoint;
+            Point2D nextPoint;
+            Point2D prevNormal;
+            Point2D nextNormal;
+            if (tri[0] == i)
+            {
+                prevPoint = node_[tri[2]].point;
+                nextPoint = node_[tri[1]].point;
+            }
+            else if (tri[1] == i)
+            {
+                prevPoint = node_[tri[0]].point;
+                nextPoint = node_[tri[2]].point;
+            }
+            else // if (tri[2] == i)
+            {
+                prevPoint = node_[tri[1]].point;
+                nextPoint = node_[tri[0]].point;
+            }
+            prevNormal.set((currentPoint.y() - prevPoint.y()), -(currentPoint.x() - prevPoint.x()));
+            nextNormal.set((nextPoint.y() - currentPoint.y()), -(nextPoint.x() - currentPoint.x()));
+            normal[i] = normal[i] + prevNormal.normalized() + nextNormal.normalized();
+        }
+    }
+    // поиск изо-точек на границе
+    for (UInteger i = 0; i < normal.size(); i++)
+    {
+        iso[i] = ULONG_MAX;
+        if (normal[i].length() > epsilon)
+        {
+            Point2D current = node_[i].point;
+            // двоичный поиск граничной точки
+            Point2D inner = current;
+            Point2D outer = current + sqrt(hx*hx + hy*hy) * normal[i];
+            Point2D mid;
+            do
+            {
+                mid = 0.5 * (inner + outer);
+                double val = func(mid.x(), mid.y());
+                if (val < 0.0)
+                    outer = mid;
+                else if (val > 0.0)
+                    inner = mid;
+                else
+                    break;
+            } while(inner.distanceTo(outer) > epsilon);
+            if (current.distanceTo(mid) < 0.25 * sqrt(hx*hx + hy*hy))
+            {
+                node_[i].point = mid;
+                node_[i].type = BORDER;
+                iso[i] = i;
+            }
+            else
+            {
+                // Добавить сравнение с существующими изо-точками перед всатвкой!!!
+                for (UInteger j = 0; j < normal.size(); j++)
+                iso[i] = pushNode(mid, BORDER);
+            }
+        }
+    }
+    // Форимрование приграничного слоя элементов
+    for (UInteger i = 0; i < baseElementCount; i++)
+    {
+        Triangle triangle = element_[i];
+        for (int j = 0; j < 3; j++)
+        {
+            if (iso[triangle[j]] < ULONG_MAX && iso[triangle[j + 1]] < ULONG_MAX)
+            {
+                AdjacentSet adjacent = node_[triangle[j]].adjacent;
+                int adjacnetCount = 0;
+                // обработка смежных элементов
+                for (AdjacentSet::iterator it = adjacent.begin(); it != adjacent.end(); ++it)
+                {
+                    Triangle atri = element_[*it];
+                    if (atri.in(triangle[j]) && atri.in(triangle[j + 1]))
+                        ++adjacnetCount;
+                }
+                if (adjacnetCount == 1)
+                {
+                    if (triangle[j + 1] != iso[triangle[j + 1]])
+                        addElement(triangle[j + 1], triangle[j], iso[triangle[j + 1]]);
+                    if (triangle[j] != iso[triangle[j]])
+                    addElement(triangle[j], iso[triangle[j]], iso[triangle[j + 1]]);
+                }
+            }
+        }
+    }
+    //
+    std::cout << "Создана сетка треугольных элементов для функционального объекта: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
 }

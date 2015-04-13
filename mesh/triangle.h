@@ -78,6 +78,12 @@ public:
      * @return Грань элемента, номер которойс равен i
      */
     virtual UIntegerVector face(const int &i) const;
+    /**
+     * @brief Проверка принадлежности узла элементу
+     * @param node Номер (хеш-код) узла
+     * @return true, если узел принадлежит элементу, false, иначе
+     */
+    bool in(const UInteger &node);
 private:
     UInteger vertex_[3]; //!< Вершины треугольника (номера или хеш-коды)
 };

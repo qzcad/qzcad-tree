@@ -648,7 +648,7 @@ void QuadrilateralMesh2D::conjugateGradient(const UInteger &size, double *x0, do
     for(UInteger i = 0; i < size; i++) xMin[i] = xk[i];
 }
 
- template<typename TopFunc, typename BottomFunc, typename LeftFunc, typename RightFunc>
+template<typename TopFunc, typename BottomFunc, typename LeftFunc, typename RightFunc>
 void QuadrilateralMesh2D::addTransfiniteMesh(TopFunc top, BottomFunc bottom, LeftFunc left, RightFunc right, const UInteger &xiCount, const UInteger &etaCount)
 {
     const double hXi = 1.0 / (double)(xiCount - 1);

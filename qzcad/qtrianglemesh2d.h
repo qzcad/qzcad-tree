@@ -39,6 +39,17 @@ public:
      */
     explicit QTriangleMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, QObject *parent = 0);
     /**
+     * @brief Конструктор создает равномерную секту области, определенной функционально
+     * @param xCount Количество узлов вдоль оси абсцисс
+     * @param yCount Количество узлов вдоль оси ординат
+     * @param xMin Абсцисса нижнего левого угла прямоугольной области
+     * @param yMin Ордината нижнего левого угла прямоугольной области
+     * @param width Ширина прямоугольной области
+     * @param height Высота прямоугольной области
+     * @param func Функция области
+     */
+    explicit QTriangleMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, QObject *parent = 0);
+    /**
      * @brief Конструктор копирования
      * @param qmesh Экземпляр объекта для копирования
      */

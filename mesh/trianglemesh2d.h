@@ -8,6 +8,8 @@
 #ifndef TRIANGLEMESH2D_H
 #define TRIANGLEMESH2D_H
 
+#include <functional>
+
 #include "mesh2d.h"
 #include "triangle.h"
 
@@ -34,6 +36,17 @@ public:
      * @param height Высота прямоугольной области
      */
     TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height);
+    /**
+     * @brief Конструктор создает равномерную секту области, определенной функционально
+     * @param xCount Количество узлов вдоль оси абсцисс
+     * @param yCount Количество узлов вдоль оси ординат
+     * @param xMin Абсцисса нижнего левого угла прямоугольной области
+     * @param yMin Ордината нижнего левого угла прямоугольной области
+     * @param width Ширина прямоугольной области
+     * @param height Высота прямоугольной области
+     * @param func Функция области
+     */
+    TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func);
     /**
      * @brief Конструктор копирования
      * @param mesh Экземпляр объекта для копирования

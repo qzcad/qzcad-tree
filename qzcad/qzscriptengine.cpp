@@ -190,6 +190,36 @@ QScriptValue QZScriptEngine::createTriangleMesh2D(QScriptContext *context, QScri
         double height = context->argument(4).toNumber();
         return engine->newQObject(new QTriangleMesh2D(xCount, yCount, origin->x(), origin->y(), width, height), QScriptEngine::ScriptOwnership);
     }
+    else if (context->argumentCount() == 6)
+    {
+        QString typeError = QObject::tr("Triangles2D(xCount: Integer, yCount: Integer, origin: Point2D, width: Floating, height: Floating, function: Function): argument type error (%1).");
+        if (!context->argument(0).isNumber())
+            return context->throwError(typeError.arg("xCount"));
+        if (!context->argument(1).isNumber())
+            return context->throwError(typeError.arg("yCount"));
+        if (!context->argument(2).isQObject() || qscriptvalue_cast<QPoint2D *>(context->argument(2)) == NULL)
+            return context->throwError(typeError.arg("origin"));
+        if (!context->argument(3).isNumber())
+            return context->throwError(typeError.arg("width"));
+        if (!context->argument(4).isNumber())
+            return context->throwError(typeError.arg("height"));
+        QScriptValue function = context->argument(5);
+        if (!function.isFunction())
+            return context->throwError(typeError.arg("function"));
+        UInteger xCount = context->argument(0).toUInt32();
+        UInteger yCount = context->argument(1).toUInt32();
+        QPoint2D *origin = qscriptvalue_cast<QPoint2D *>(context->argument(2));
+        double width = context->argument(3).toNumber();
+        double height = context->argument(4).toNumber();
+        // функция для вычисления квадрата числа (C++0x)
+        auto func = [&](double x, double y)
+        {
+            QScriptValueList args;
+            args << x << y;
+            return function.call(QScriptValue(), args).toNumber();
+        };
+        return engine->newQObject(new QTriangleMesh2D(xCount, yCount, origin->x(), origin->y(), width, height, func), QScriptEngine::ScriptOwnership);
+    }
     return context->throwError(QObject::tr("Triangles2D(xCount: Integer, yCount: Integer, origin: Point2D, width: Floating, height: Floating): arguments count error."));
 }
 
