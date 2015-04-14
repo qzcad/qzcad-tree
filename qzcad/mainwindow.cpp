@@ -10,6 +10,7 @@
 #include <QInputDialog>
 #include <QTime>
 #include <QFileInfo>
+#include <QTime>
 
 #include "globalconsts.h"
 
@@ -878,13 +879,15 @@ void MainWindow::on_actionSaveAsScript_triggered()
 void MainWindow::on_actionRunScript_triggered()
 {
     QZScriptEngine engine(this);
+    QTime time;
     std::cout << "QZScriptEngine started..." << std::endl;
+    time.start();
     QScriptValue result = engine.evaluate(ui->codeEditor->toPlainText());
     if (engine.hasUncaughtException()) {
         int line = engine.uncaughtExceptionLineNumber();
         std::cout << "Uncaught exception at line " << line << ": " << result.toString().toStdString() << std::endl;
     }
-    std::cout << "QZScriptEngine finished..." << std::endl;
+    std::cout << "QZScriptEngine finished in " << time.elapsed() << " ms" << std::endl;
     if (engine.mesh() != NULL)
     {
         clearMesh(ui->pictureControl->getGlMeshPicture()->releaseMesh());
