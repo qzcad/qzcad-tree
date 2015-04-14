@@ -26,6 +26,9 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     // Функция суммирования
     QScriptValue qsSum = newFunction(sum);
     globalObject().setProperty("sum", qsSum);
+    // Функция конъюнкции
+    QScriptValue qsCon = newFunction(con);
+    globalObject().setProperty("con", qsCon);
     // Точка на плоскости
     QScriptValue qsCreatePoint2D = newFunction(createPoint2D);
     globalObject().setProperty("Point2D", qsCreatePoint2D);
@@ -281,7 +284,7 @@ QScriptValue QZScriptEngine::setMesh(QScriptContext *context, QScriptEngine *eng
 
 QScriptValue QZScriptEngine::sum(QScriptContext *context, QScriptEngine *engine)
 {
-    QString typeError = QObject::tr("Sum(a, b, c, ...): all arguments must be a same type: %1");
+    QString typeError = QObject::tr("sum(a, b, c, ...): all arguments must be a same type: %1");
     if (context->argument(0).isNumber())
     {
         for (int i = 1; i < context->argumentCount(); i++)
@@ -327,6 +330,22 @@ QScriptValue QZScriptEngine::sum(QScriptContext *context, QScriptEngine *engine)
         }
     }
     return engine->undefinedValue();
+}
+
+QScriptValue QZScriptEngine::con(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(engine);
+    QString typeError = QObject::tr("con(a, b, c, ...): all arguments must have type Number. Argument # %1.");
+    for (int i = 0; i < context->argumentCount(); i++)
+        if (!context->argument(i).isNumber())
+            return context->throwError(typeError.arg(i + 1));
+    double con = context->argument(0).toNumber();
+    for (int i = 1; i < context->argumentCount(); i++)
+    {
+        double x = context->argument(i).toNumber();
+        con += (x - sqrt(con*con + x*x));
+    }
+    return con;
 }
 
 

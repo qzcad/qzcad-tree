@@ -126,11 +126,18 @@ private:
     static QScriptValue setMesh(QScriptContext *context, QScriptEngine *engine);
     /**
      * @brief Функция суммирования с произвольным числом аргументов
-     * @param context Конетекст скрипта
+     * @param context Контекст скрипта
      * @param engine Двигатель скрипта
      * @return Если аргументы корректны, то их сумму, иначе engine->undefinedValue()
      */
     static QScriptValue sum(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief Конъюнкция произвольного числа аргументов
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны (тип Number), то значение конъюнкции для них, иначе engine->undefinedValue()
+     */
+    static QScriptValue con(QScriptContext *context, QScriptEngine *engine);
 private:
     static double epsilon_; //!< Точность численных операций
     static msh::Mesh *mesh_; //!< Сетка, построенная в результате интерпретации скрипта
