@@ -131,8 +131,9 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
     xMax_ = xMin + width;
     yMin_ = yMin;
     yMax_ = yMin + height;
-    double hx = width / (double)(xCount - 1);
-    double hy = height / (double)(yCount - 1);
+    const double hx = width / (double)(xCount - 1);
+    const double hy = height / (double)(yCount - 1);
+    const double minDistance = 0.25 * sqrt(hx*hx + hy*hy);
     std::map<UInteger, UInteger> nodesMap;
     // формирование массива узлов
     for (UInteger i = 0; i < xCount; i++)
@@ -167,7 +168,6 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
     }
 
     std::vector<Point2D> normal(nodesCount()); // нормали к узлам
-//    std::vector<Point2D> iso(nodesCount()); // изо-точки
     std::vector<UInteger> iso(nodesCount()); // изо-точки (номера)
     UInteger baseElementCount = elementsCount();
     // построение нормалей для всех узлов начальной сетки
@@ -225,7 +225,7 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
                 else
                     break;
             } while(inner.distanceTo(outer) > epsilon);
-            if (current.distanceTo(mid) < 0.25 * sqrt(hx*hx + hy*hy))
+            if (current.distanceTo(mid) < minDistance)
             {
                 node_[i].point = mid;
                 node_[i].type = BORDER;
@@ -233,9 +233,19 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
             }
             else
             {
-                // Добавить сравнение с существующими изо-точками перед всатвкой!!!
-                for (UInteger j = 0; j < normal.size(); j++)
-                iso[i] = pushNode(mid, BORDER);
+                // сравнение с существующими изо-точками перед всатвкой
+                bool isExist = false;
+                for (UInteger j = normal.size(); j < nodesCount(); j++)
+                {
+                    Point2D border = node_[j].point;
+                    if (border.distanceTo(mid) < minDistance)
+                    {
+                        iso[i] = j;
+                        isExist = true;
+                        break;
+                    }
+                }
+                if (!isExist) iso[i] = pushNode(mid, BORDER);
             }
         }
     }
@@ -260,8 +270,8 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
                 {
                     if (triangle[j + 1] != iso[triangle[j + 1]])
                         addElement(triangle[j + 1], triangle[j], iso[triangle[j + 1]]);
-                    if (triangle[j] != iso[triangle[j]])
-                    addElement(triangle[j], iso[triangle[j]], iso[triangle[j + 1]]);
+                    if (triangle[j] != iso[triangle[j]] || iso[triangle[j]] == iso[triangle[j + 1]])
+                        addElement(triangle[j], iso[triangle[j]], iso[triangle[j + 1]]);
                 }
             }
         }
