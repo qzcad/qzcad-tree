@@ -887,7 +887,7 @@ void MainWindow::on_actionRunScript_triggered()
         int line = engine.uncaughtExceptionLineNumber();
         std::cout << "Uncaught exception at line " << line << ": " << result.toString().toStdString() << std::endl;
     }
-    std::cout << "QZScriptEngine finished in " << time.elapsed() << " ms" << std::endl;
+    std::cout << "QZScriptEngine finished in " << time.elapsed() << " ms." << std::endl;
     if (engine.mesh() != NULL)
     {
         clearMesh(ui->pictureControl->getGlMeshPicture()->releaseMesh());

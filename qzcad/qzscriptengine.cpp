@@ -1,5 +1,6 @@
 #include <iostream>
 #include <math.h>
+#include <list>
 #include "qpoint2d.h"
 #include "qpoint3d.h"
 #include "qquadrilateralmesh2d.h"
@@ -190,9 +191,10 @@ QScriptValue QZScriptEngine::createTriangleMesh2D(QScriptContext *context, QScri
         double height = context->argument(4).toNumber();
         return engine->newQObject(new QTriangleMesh2D(xCount, yCount, origin->x(), origin->y(), width, height), QScriptEngine::ScriptOwnership);
     }
-    else if (context->argumentCount() == 6)
+    else if (context->argumentCount() == 6 || context->argumentCount() == 7)
     {
-        QString typeError = QObject::tr("Triangles2D(xCount: Integer, yCount: Integer, origin: Point2D, width: Floating, height: Floating, function: Function): argument type error (%1).");
+        QString typeError = QObject::tr("Triangles2D(xCount: Integer, yCount: Integer, origin: Point2D, width: Floating, height: Floating, function: Function[, points: Array]): argument type error (%1).");
+        std::list<msh::Point2D> pointList;
         if (!context->argument(0).isNumber())
             return context->throwError(typeError.arg("xCount"));
         if (!context->argument(1).isNumber())
@@ -206,6 +208,7 @@ QScriptValue QZScriptEngine::createTriangleMesh2D(QScriptContext *context, QScri
         QScriptValue function = context->argument(5);
         if (!function.isFunction())
             return context->throwError(typeError.arg("function"));
+
         UInteger xCount = context->argument(0).toUInt32();
         UInteger yCount = context->argument(1).toUInt32();
         QPoint2D *origin = qscriptvalue_cast<QPoint2D *>(context->argument(2));
@@ -218,7 +221,19 @@ QScriptValue QZScriptEngine::createTriangleMesh2D(QScriptContext *context, QScri
             args << x << y;
             return function.call(QScriptValue(), args).toNumber();
         };
-        return engine->newQObject(new QTriangleMesh2D(xCount, yCount, origin->x(), origin->y(), width, height, func), QScriptEngine::ScriptOwnership);
+        if (context->argumentCount() == 7)
+        {
+            if (!context->argument(6).isArray())
+                return context->throwError(typeError.arg("points"));
+            QScriptValue array = context->argument(6);
+            for (int i = 0; i < array.property("length").toInteger(); i++)
+            {
+                QPoint2D *point = qscriptvalue_cast<QPoint2D *>(array.property(i));
+                pointList.push_back(Point2D(point->x(), point->y()));
+                std::cout << point->x() << " " << point->y() << "\n";
+            }
+        }
+        return engine->newQObject(new QTriangleMesh2D(xCount, yCount, origin->x(), origin->y(), width, height, func, pointList), QScriptEngine::ScriptOwnership);
     }
     return context->throwError(QObject::tr("Triangles2D(xCount: Integer, yCount: Integer, origin: Point2D, width: Floating, height: Floating): arguments count error."));
 }

@@ -124,7 +124,7 @@ void TriangleMesh2D::addElement(const UInteger &node0, const UInteger &node1, co
     node_[node2].adjacent.insert(element_.size() - 1);
 }
 
-TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func)
+TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint)
 {
     const double epsilon = 1.0E-6;
     xMin_ = xMin;
@@ -151,6 +151,8 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
         }
     }
     // формирование начальной сетки
+    const double xCenter = (xMax_ + xMin_) / 2.0;
+    const double yCenter = (yMax_ + yMin_) / 2.0;
     for (UInteger i = 0; i < xCount - 1; i++)
     {
         for (UInteger j = 0; j < yCount - 1; j++)
@@ -161,8 +163,23 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
             std::map<UInteger, UInteger>::iterator iter3 = nodesMap.find(i * yCount + j + 1);
             if (iter0 != nodesMap.end() && iter1 != nodesMap.end() && iter2 != nodesMap.end() && iter3 != nodesMap.end())
             {
-                addElement(iter0->second, iter1->second, iter3->second);
-                addElement(iter1->second, iter2->second, iter3->second);
+                // Для симметричности сетки необходимо смена направления диагоналей в зависимости от четверти области
+                Point2D p0 = node_[iter0->second].point;
+                Point2D p1 = node_[iter1->second].point;
+                Point2D p2 = node_[iter2->second].point;
+                Point2D p3 = node_[iter3->second].point;
+                if ((xCenter <= p0.x() && yCenter <= p0.y() && xCenter <= p1.x() && yCenter <= p1.y() && xCenter <= p2.x() && yCenter <= p2.y() && xCenter <= p3.x() && yCenter <= p3.y())
+                        ||
+                        (xCenter >= p0.x() && yCenter >= p0.y() && xCenter >= p1.x() && yCenter >= p1.y() && xCenter >= p2.x() && yCenter >= p2.y() && xCenter >= p3.x() && yCenter >= p3.y()))
+                {
+                    addElement(iter0->second, iter1->second, iter3->second);
+                    addElement(iter1->second, iter2->second, iter3->second);
+                }
+                else
+                {
+                    addElement(iter0->second, iter1->second, iter2->second);
+                    addElement(iter0->second, iter2->second, iter3->second);
+                }
             }
         }
     }
@@ -245,7 +262,20 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
                         break;
                     }
                 }
-                if (!isExist) iso[i] = pushNode(mid, BORDER);
+                if (!isExist)
+                {
+                    // поиск соответствующей характерной точки
+                    for (std::list<Point2D>::iterator cPoint = charPoint.begin(); cPoint != charPoint.end(); ++cPoint)
+                    {
+                        if (mid.distanceTo(*cPoint) < minDistance)
+                        {
+                            mid = *cPoint;
+                            charPoint.erase(cPoint);
+                            break;
+                        }
+                    }
+                    iso[i] = pushNode(mid, BORDER);
+                }
             }
         }
     }

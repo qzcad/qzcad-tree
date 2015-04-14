@@ -47,8 +47,10 @@ public:
      * @param width Ширина прямоугольной области
      * @param height Высота прямоугольной области
      * @param func Функция области
+     * @param charPoint Список характерных точек
+     * @param parent Указатель на родительский объект
      */
-    explicit QTriangleMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, QObject *parent = 0);
+    explicit QTriangleMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, QObject *parent = 0);
     /**
      * @brief Конструктор копирования
      * @param qmesh Экземпляр объекта для копирования

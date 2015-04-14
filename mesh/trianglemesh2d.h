@@ -9,6 +9,7 @@
 #define TRIANGLEMESH2D_H
 
 #include <functional>
+#include <list>
 
 #include "mesh2d.h"
 #include "triangle.h"
@@ -45,8 +46,9 @@ public:
      * @param width Ширина прямоугольной области
      * @param height Высота прямоугольной области
      * @param func Функция области
+     * @param charPoint Список характерных точек
      */
-    TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func);
+    TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint);
     /**
      * @brief Конструктор копирования
      * @param mesh Экземпляр объекта для копирования
