@@ -124,6 +124,26 @@ void TriangleMesh2D::addElement(const UInteger &node0, const UInteger &node1, co
     node_[node2].adjacent.insert(element_.size() - 1);
 }
 
+double TriangleMesh2D::minAngle(const Point2D &A, const Point2D &B, const Point2D &C)
+{
+    const double epsilon = 1.0E-6;
+    const double a = B.distanceTo(C); // сторона, противолежащяя вершине A (BC)
+    const double b = A.distanceTo(C); // сторона, противолежащяя вершине B (AC)
+    const double c = A.distanceTo(B); // сторона, противолежащяя вершине C (AB)
+    if (a < epsilon || b < epsilon || c < epsilon)
+    {
+        // треугольник вырожденный минимальный угол равен 0
+        return 0.0;
+    }
+    // Теорема косинусов
+    const double alpha = acos((b*b + c*c - a*a) / (2.0 * b * c)); // Угол в вершине A
+    // Теорема синусов
+    const double beta = asin(sin(alpha) * b / a); // Угол в вершине B
+    // Теорема о сумме углов треугольника
+    const double gamma = M_PI - (alpha + beta); // Угол в вершине C
+    return std::min(alpha, std::min(beta, gamma));
+}
+
 TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint)
 {
     const double epsilon = 1.0E-6;
@@ -279,6 +299,26 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
             }
         }
     }
+    // для характерных точек, которым не нашлась пара на этапе формирования нормалей, используем метод близжайшего узла
+    for (std::list<Point2D>::iterator cPoint = charPoint.begin(); cPoint != charPoint.end(); ++cPoint)
+    {
+        std::vector<Node2D>::iterator min_n;
+        double min_d = 10.0 * minDistance;
+        for (std::vector<Node2D>::iterator n = node_.begin(); n != node_.end(); ++n)
+        {
+            double d = (n->point).distanceTo(*cPoint);
+            if (d < min_d)
+            {
+                min_d = d;
+                min_n = n;
+            }
+        }
+        if (min_n != node_.end())
+        {
+            min_n->point = *cPoint;
+            min_n->type = BORDER;
+        }
+    }
     // Форимрование приграничного слоя элементов
     for (UInteger i = 0; i < baseElementCount; i++)
     {
@@ -298,15 +338,35 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
                 }
                 if (adjacnetCount == 1)
                 {
-                    if (triangle[j + 1] != iso[triangle[j + 1]])
-                        addElement(triangle[j + 1], triangle[j], iso[triangle[j + 1]]);
-                    if (triangle[j] != iso[triangle[j]] || iso[triangle[j]] == iso[triangle[j + 1]])
-                        addElement(triangle[j], iso[triangle[j]], iso[triangle[j + 1]]);
+                    // из двух возможных способов гегенрации треугольников выбирается тот, для которого минимальные углы будут максимальными
+                    Point2D p0 = node_[triangle[j + 1]].point;
+                    Point2D p1 = node_[triangle[j]].point;
+                    Point2D p2 = node_[iso[triangle[j]]].point;
+                    Point2D p3 = node_[iso[triangle[j+ 1]]].point;
+                    double ma1 = minAngle(p0, p1, p3);
+                    double mb1 = minAngle(p1, p2, p3);
+                    double ma2 = minAngle(p0, p1, p2);
+                    double mb2 = minAngle(p0, p2, p3);
+                    if (std::min(ma1, mb1) > std::min(ma2, mb2))
+                    {
+                        if (triangle[j + 1] != iso[triangle[j + 1]])
+                            addElement(triangle[j + 1], triangle[j], iso[triangle[j + 1]]);
+                        if (triangle[j] != iso[triangle[j]] || iso[triangle[j]] == iso[triangle[j + 1]])
+                            addElement(triangle[j], iso[triangle[j]], iso[triangle[j + 1]]);
+                    }
+                    else
+                    {
+                        if (triangle[j] != iso[triangle[j]])
+                            addElement(triangle[j + 1], triangle[j], iso[triangle[j]]);
+                        if (triangle[j + 1] != iso[triangle[j + 1]] || iso[triangle[j]] == iso[triangle[j + 1]])
+                            addElement(triangle[j + 1], iso[triangle[j]], iso[triangle[j + 1]]);
+                    }
                 }
             }
         }
     }
-    //
+
+    // the end.
     std::cout << "Создана сетка треугольных элементов для функционального объекта: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 

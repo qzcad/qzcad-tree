@@ -95,6 +95,20 @@ public:
      */
     void addElement(const UInteger &node0, const UInteger &node1, const UInteger &node2);
 protected:
+    /**
+     * @brief Метод находит значение минимального угла в треугольнике, определенном координатами вершин
+     * @param A Координаты вершины
+     * @param B Координаты вершины
+     * @param C Координаты вершины
+     *       C
+     *       ^
+     *     b/ \a
+     *    A --- B
+     *       c
+     * @return Значение минимального угла в треугольнике
+     */
+    double minAngle(const Point2D &A, const Point2D &B, const Point2D &C);
+protected:
     std::vector<Triangle> element_; //!< Массив элементов
 };
 }
