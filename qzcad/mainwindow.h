@@ -96,6 +96,8 @@ private slots:
 
     void on_actionRunScript_triggered();
 
+    void on_actionJacobianMetric_triggered();
+
 private:
     Ui::MainWindow *ui; //!< Контейнер элементов графического интерфейса
     QStdRedirector<> *stdRedirector; //!< Перехватчик сообщений стандартного потока

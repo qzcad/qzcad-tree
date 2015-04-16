@@ -22,6 +22,7 @@
 #include "rotationbodymeshdialog.h"
 #include "elasticfemdialog.h"
 
+#include "trianglemesh2d.h"
 #include "quadrilateralmesh2d.h"
 #include "quadrilateralunion2d.h"
 #include "hexahedralmesh3d.h"
@@ -893,5 +894,24 @@ void MainWindow::on_actionRunScript_triggered()
         clearMesh(ui->pictureControl->getGlMeshPicture()->releaseMesh());
         ui->pictureControl->getGlMeshPicture()->setMesh(engine.mesh());
         ui->tabWidget->setCurrentIndex(0); // switch to picture's tab
+    }
+}
+
+void MainWindow::on_actionJacobianMetric_triggered()
+{
+    msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
+    if (mesh != NULL)
+    {
+        if (dynamic_cast<msh::TriangleMesh2D*>(mesh))
+        {
+            msh::TriangleMesh2D *triangles = dynamic_cast<msh::TriangleMesh2D*>(mesh);
+            if (triangles->elementsCount() > 0)
+            {
+                std::vector<double> j(triangles->elementsCount());
+                for (msh::UInteger i = 0; i < triangles->elementsCount(); i++)
+                    j[i] = triangles->jacobianMetric(i);
+                ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector(tr("якобиан"), j));
+            }
+        }
     }
 }

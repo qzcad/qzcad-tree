@@ -136,6 +136,12 @@
      <addaction name="actionMirrorVertically"/>
      <addaction name="actionMirrorrHorizontally"/>
     </widget>
+    <widget class="QMenu" name="menuMetric">
+     <property name="title">
+      <string>&amp;Метрика</string>
+     </property>
+     <addaction name="actionJacobianMetric"/>
+    </widget>
     <addaction name="menuStruct"/>
     <addaction name="separator"/>
     <addaction name="actionPolygonalModel"/>
@@ -149,6 +155,8 @@
     <addaction name="actionLoadElementValue"/>
     <addaction name="separator"/>
     <addaction name="actionExtremeValuesStatistica"/>
+    <addaction name="separator"/>
+    <addaction name="menuMetric"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -601,6 +609,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+R</string>
+   </property>
+  </action>
+  <action name="actionJacobianMetric">
+   <property name="text">
+    <string>&amp;Якобиан</string>
    </property>
   </action>
  </widget>

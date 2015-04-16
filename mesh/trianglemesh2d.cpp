@@ -132,12 +132,12 @@ double TriangleMesh2D::jacobian(const UInteger &elementNum, const double &xi, co
     const Point2D p1 = node_[tri[1]].point;
     const Point2D p2 = node_[tri[2]].point;
     double dNdXi[3] = {
-        1.0 - eta,
+        -1.0,
         1.0,
         0.0
     };
     double dNdEta[3] = {
-        1.0 - xi,
+        -1.0,
         0.0,
         1.0
     };
@@ -150,21 +150,23 @@ double TriangleMesh2D::jacobian(const UInteger &elementNum, const double &xi, co
 double TriangleMesh2D::jacobianMetric(const UInteger &elementNum)
 {
     double minJ = DBL_MAX;
-    double maxJ = 0.0;
-    double h = 0.2;
-    int n = 6;
+    double maxJ = -DBL_MAX;
+    int n = 3;
+    double coords[3][2] = {
+        {0.5, 0.5},
+        {0.5, 0.0},
+        {0.0, 0.5}
+    };
     for (int i = 0; i < n; i++)
     {
-        double xi = (double)i * h;
-        for (int j = 0; j < n; j++)
-        {
-            double eta = (double)j * h;
-            double jac = jacobian(elementNum, xi, eta);
-            if (jac < minJ) minJ = jac;
-            if (jac > maxJ) maxJ = jac;
-        }
+        double xi = coords[i][0];
+        double eta = coords[i][1];
+        double jac = jacobian(elementNum, xi, eta);
+        if (jac < minJ) minJ = jac;
+        if (jac > maxJ) maxJ = jac;
     }
-    return minJ / maxJ;
+    std::cout << "min = " << minJ << "max = " << maxJ << std::endl;
+    return maxJ;
 }
 
 double TriangleMesh2D::minAngle(const Point2D &A, const Point2D &B, const Point2D &C)
