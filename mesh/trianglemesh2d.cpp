@@ -3,6 +3,7 @@
 #include <math.h>
 #include <map>
 #include <climits>
+#include <float.h>
 
 namespace msh
 {
@@ -122,6 +123,48 @@ void TriangleMesh2D::addElement(const UInteger &node0, const UInteger &node1, co
     node_[node0].adjacent.insert(element_.size() - 1);
     node_[node1].adjacent.insert(element_.size() - 1);
     node_[node2].adjacent.insert(element_.size() - 1);
+}
+
+double TriangleMesh2D::jacobian(const UInteger &elementNum, const double &xi, const double &eta)
+{
+    const Triangle tri = element_[elementNum];
+    const Point2D p0 = node_[tri[0]].point;
+    const Point2D p1 = node_[tri[1]].point;
+    const Point2D p2 = node_[tri[2]].point;
+    double dNdXi[3] = {
+        1.0 - eta,
+        1.0,
+        0.0
+    };
+    double dNdEta[3] = {
+        1.0 - xi,
+        0.0,
+        1.0
+    };
+    double j[2][2];
+    j[0][0] = p0.x() * dNdXi[0] + p1.x() * dNdXi[1] + p2.x() * dNdXi[2];    j[0][1] = p0.y() * dNdXi[0] + p1.y() * dNdXi[1] + p2.y() * dNdXi[2];
+    j[1][0] = p0.x() * dNdEta[0] + p1.x() * dNdEta[1] + p2.x() * dNdEta[2]; j[1][1] = p0.y() * dNdEta[0] + p1.y() * dNdEta[1] + p2.y() * dNdEta[2];
+    return j[0][0] * j[1][1] - j[0][1] * j[1][0];
+}
+
+double TriangleMesh2D::jacobianMetric(const UInteger &elementNum)
+{
+    double minJ = DBL_MAX;
+    double maxJ = 0.0;
+    double h = 0.2;
+    int n = 6;
+    for (int i = 0; i < n; i++)
+    {
+        double xi = (double)i * h;
+        for (int j = 0; j < n; j++)
+        {
+            double eta = (double)j * h;
+            double jac = jacobian(elementNum, xi, eta);
+            if (jac < minJ) minJ = jac;
+            if (jac > maxJ) maxJ = jac;
+        }
+    }
+    return minJ / maxJ;
 }
 
 double TriangleMesh2D::minAngle(const Point2D &A, const Point2D &B, const Point2D &C)
