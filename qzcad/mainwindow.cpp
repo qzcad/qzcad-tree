@@ -909,7 +909,7 @@ void MainWindow::on_actionJacobianMetric_triggered()
             {
                 std::vector<double> j(triangles->elementsCount());
                 for (msh::UInteger i = 0; i < triangles->elementsCount(); i++)
-                    j[i] = triangles->jacobianMetric(i);
+                    j[i] = triangles->jacobian(i);
                 ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector(tr("якобиан"), j));
             }
         }

@@ -95,19 +95,12 @@ public:
      */
     void addElement(const UInteger &node0, const UInteger &node1, const UInteger &node2);
     /**
-     * @brief Вычислить значение якобиана элемента
+     * @brief Вычислить значение якобиана элемента (линейный случай)
      * @param elementNum Номер элемента
-     * @param xi Первая координата
-     * @param eta Вторая координата
-     * @return Значение якобиана элемента номер elementNum в точке (xi, eta)
+     * Для линейных функций формы треугольного элемента значение якобиана не зависит от параметров xi (L1) и eta (L2).
+     * @return Значение якобиана элемента номер elementNum
      */
-    double jacobian(const UInteger &elementNum, const double &xi, const double &eta);
-    /**
-     * @brief Значение метрики на основе отношения значений якобиана элемента
-     * @param elementNum Номер элемента
-     * @return Соотношение минимального значения якобина элемента к минимальному
-     */
-    double jacobianMetric(const UInteger &elementNum);
+    double jacobian(const UInteger &elementNum);
 protected:
     /**
      * @brief Метод находит значение минимального угла в треугольнике, определенном координатами вершин

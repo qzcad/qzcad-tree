@@ -125,7 +125,7 @@ void TriangleMesh2D::addElement(const UInteger &node0, const UInteger &node1, co
     node_[node2].adjacent.insert(element_.size() - 1);
 }
 
-double TriangleMesh2D::jacobian(const UInteger &elementNum, const double &xi, const double &eta)
+double TriangleMesh2D::jacobian(const UInteger &elementNum)
 {
     const Triangle tri = element_[elementNum];
     const Point2D p0 = node_[tri[0]].point;
@@ -147,27 +147,6 @@ double TriangleMesh2D::jacobian(const UInteger &elementNum, const double &xi, co
     return j[0][0] * j[1][1] - j[0][1] * j[1][0];
 }
 
-double TriangleMesh2D::jacobianMetric(const UInteger &elementNum)
-{
-    double minJ = DBL_MAX;
-    double maxJ = -DBL_MAX;
-    int n = 3;
-    double coords[3][2] = {
-        {0.5, 0.5},
-        {0.5, 0.0},
-        {0.0, 0.5}
-    };
-    for (int i = 0; i < n; i++)
-    {
-        double xi = coords[i][0];
-        double eta = coords[i][1];
-        double jac = jacobian(elementNum, xi, eta);
-        if (jac < minJ) minJ = jac;
-        if (jac > maxJ) maxJ = jac;
-    }
-    std::cout << "min = " << minJ << "max = " << maxJ << std::endl;
-    return maxJ;
-}
 
 double TriangleMesh2D::minAngle(const Point2D &A, const Point2D &B, const Point2D &C)
 {
@@ -396,14 +375,14 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
                     {
                         if (triangle[j + 1] != iso[triangle[j + 1]])
                             addElement(triangle[j + 1], triangle[j], iso[triangle[j + 1]]);
-                        if (triangle[j] != iso[triangle[j]] || iso[triangle[j]] == iso[triangle[j + 1]])
+                        if (triangle[j] != iso[triangle[j]] && iso[triangle[j]] != iso[triangle[j + 1]])
                             addElement(triangle[j], iso[triangle[j]], iso[triangle[j + 1]]);
                     }
                     else
                     {
                         if (triangle[j] != iso[triangle[j]])
                             addElement(triangle[j + 1], triangle[j], iso[triangle[j]]);
-                        if (triangle[j + 1] != iso[triangle[j + 1]] || iso[triangle[j]] == iso[triangle[j + 1]])
+                        if (triangle[j + 1] != iso[triangle[j + 1]] && iso[triangle[j]] != iso[triangle[j + 1]])
                             addElement(triangle[j + 1], iso[triangle[j]], iso[triangle[j + 1]]);
                     }
                 }
