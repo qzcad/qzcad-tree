@@ -147,6 +147,20 @@ double TriangleMesh2D::jacobian(const UInteger &elementNum)
     return j[0][0] * j[1][1] - j[0][1] * j[1][0];
 }
 
+double TriangleMesh2D::lengthAspect(const UInteger &elNum)
+{
+    const Triangle tri = element_[elNum];
+    const Point2D p0 = node_[tri[0]].point;
+    const Point2D p1 = node_[tri[1]].point;
+    const Point2D p2 = node_[tri[2]].point;
+    const double d01 = p0.distanceTo(p1);
+    const double d12 = p1.distanceTo(p2);
+    const double d20 = p2.distanceTo(p0);
+    double min = std::min(d01, std::min(d12, d20));
+    double max = std::max(d01, std::max(d12, d20));
+    return min / max;
+}
+
 
 double TriangleMesh2D::minAngle(const Point2D &A, const Point2D &B, const Point2D &C)
 {

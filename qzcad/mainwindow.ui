@@ -141,6 +141,7 @@
       <string>&amp;Метрика</string>
      </property>
      <addaction name="actionJacobianMetric"/>
+     <addaction name="actionLengthAspect"/>
     </widget>
     <addaction name="menuStruct"/>
     <addaction name="separator"/>
@@ -614,6 +615,11 @@
   <action name="actionJacobianMetric">
    <property name="text">
     <string>&amp;Якобиан</string>
+   </property>
+  </action>
+  <action name="actionLengthAspect">
+   <property name="text">
+    <string>Длины сторон</string>
    </property>
   </action>
  </widget>

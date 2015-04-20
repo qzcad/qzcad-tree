@@ -98,6 +98,8 @@ private slots:
 
     void on_actionJacobianMetric_triggered();
 
+    void on_actionLengthAspect_triggered();
+
 private:
     Ui::MainWindow *ui; //!< Контейнер элементов графического интерфейса
     QStdRedirector<> *stdRedirector; //!< Перехватчик сообщений стандартного потока

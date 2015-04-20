@@ -101,6 +101,12 @@ public:
      * @return Значение якобиана элемента номер elementNum
      */
     double jacobian(const UInteger &elementNum);
+    /**
+     * @brief Вычислить соотношение длин сторон (минимальной к максимальной)
+     * @param elNum Номер элемента
+     * @return Соотношение длин сторон (минимальной к максимальной)
+     */
+    double lengthAspect(const UInteger &elNum);
 protected:
     /**
      * @brief Метод находит значение минимального угла в треугольнике, определенном координатами вершин
