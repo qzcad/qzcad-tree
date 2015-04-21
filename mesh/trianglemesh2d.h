@@ -107,6 +107,12 @@ public:
      * @return Соотношение длин сторон (минимальной к максимальной)
      */
     double lengthAspect(const UInteger &elNum);
+    /**
+     * @brief Вычислить значение минимального угла в элементе
+     * @param elNum Номер элемента
+     * @return Минимальный угол элемента
+     */
+    double minAngle(const UInteger &elNum);
 protected:
     /**
      * @brief Метод находит значение минимального угла в треугольнике, определенном координатами вершин

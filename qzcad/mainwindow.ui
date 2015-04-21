@@ -141,6 +141,7 @@
       <string>&amp;Метрика</string>
      </property>
      <addaction name="actionJacobianMetric"/>
+     <addaction name="actionMinAngleMetric"/>
      <addaction name="actionLengthAspect"/>
     </widget>
     <addaction name="menuStruct"/>
@@ -620,6 +621,11 @@
   <action name="actionLengthAspect">
    <property name="text">
     <string>Длины сторон</string>
+   </property>
+  </action>
+  <action name="actionMinAngleMetric">
+   <property name="text">
+    <string>Минимальный угол</string>
    </property>
   </action>
  </widget>

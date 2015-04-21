@@ -161,6 +161,15 @@ double TriangleMesh2D::lengthAspect(const UInteger &elNum)
     return min / max;
 }
 
+double TriangleMesh2D::minAngle(const UInteger &elNum)
+{
+    const Triangle tri = element_[elNum];
+    const Point2D p0 = node_[tri[0]].point;
+    const Point2D p1 = node_[tri[1]].point;
+    const Point2D p2 = node_[tri[2]].point;
+    return minAngle(p0, p1, p2);
+}
+
 
 double TriangleMesh2D::minAngle(const Point2D &A, const Point2D &B, const Point2D &C)
 {

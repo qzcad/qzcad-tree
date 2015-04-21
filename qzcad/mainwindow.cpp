@@ -938,3 +938,24 @@ void MainWindow::on_actionLengthAspect_triggered()
         std::cout << "Выполнено." << std::endl;
     }
 }
+
+void MainWindow::on_actionMinAngleMetric_triggered()
+{
+    msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
+    if (mesh != NULL)
+    {
+        std::cout << "Вычисление значений минимальных углов... ";
+        if (dynamic_cast<msh::TriangleMesh2D*>(mesh))
+        {
+            msh::TriangleMesh2D *triangles = dynamic_cast<msh::TriangleMesh2D*>(mesh);
+            if (triangles->elementsCount() > 0)
+            {
+                std::vector<double> j(triangles->elementsCount());
+                for (msh::UInteger i = 0; i < triangles->elementsCount(); i++)
+                    j[i] = triangles->minAngle(i) * 180 / M_PI;
+                ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector(tr("Минимальный угол"), j));
+            }
+        }
+        std::cout << "Выполнено." << std::endl;
+    }
+}
