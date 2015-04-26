@@ -170,6 +170,24 @@ double TriangleMesh2D::minAngle(const UInteger &elNum)
     return minAngle(p0, p1, p2);
 }
 
+double TriangleMesh2D::angleAspect(const UInteger &elNum)
+{
+    const Triangle tri = element_[elNum];
+    const Point2D p0 = node_[tri[0]].point;
+    const Point2D p1 = node_[tri[1]].point;
+    const Point2D p2 = node_[tri[2]].point;
+    double alpha = 0.0, beta = 0.0, gamma = 0.0;
+    double min, max;
+    if (angles(p0, p1, p2, alpha, beta, gamma))
+    {
+        // Треугольник невырожденный
+        min = std::min(alpha, std::min(beta, gamma));
+        max = std::max(alpha, std::max(beta, gamma));
+        return min / max;
+    }
+    return 0.0;
+}
+
 
 double TriangleMesh2D::minAngle(const Point2D &A, const Point2D &B, const Point2D &C)
 {
@@ -192,7 +210,9 @@ bool TriangleMesh2D::angles(const Point2D &A, const Point2D &B, const Point2D &C
     // Теорема косинусов
     alpha = acos((b*b + c*c - a*a) / (2.0 * b * c)); // Угол в вершине A
     // Теорема синусов
-    beta = asin(sin(alpha) * b / a); // Угол в вершине B
+    // обеспечение вычислительной устойчисвости: значение может на бесконечно малую отклоняться от единицы для угла 90 градусов
+    double sinBeta = sin(alpha) * b / a;
+    beta = (sinBeta > 1.0) ? M_PI_2 : asin(sinBeta); // Угол в вершине B
     // Теорема о сумме углов треугольника
     gamma = M_PI - (alpha + beta); // Угол в вершине C
     return true;

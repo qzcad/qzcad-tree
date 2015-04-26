@@ -102,6 +102,8 @@ private slots:
 
     void on_actionMinAngleMetric_triggered();
 
+    void on_actionAngleAspect_triggered();
+
 private:
     Ui::MainWindow *ui; //!< Контейнер элементов графического интерфейса
     QStdRedirector<> *stdRedirector; //!< Перехватчик сообщений стандартного потока

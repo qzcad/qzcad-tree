@@ -110,9 +110,15 @@ public:
     /**
      * @brief Вычислить значение минимального угла в элементе
      * @param elNum Номер элемента
-     * @return Минимальный угол элемента
+     * @return Минимальный угол элемента (радианы)
      */
     double minAngle(const UInteger &elNum);
+    /**
+     * @brief Вычислить соотношение углов элемента
+     * @param elNum Номер элемента
+     * @return Соотношение углов элемента (радианы)
+     */
+    double angleAspect(const UInteger &elNum);
 protected:
     /**
      * @brief Метод находит значение минимального угла в треугольнике, определенном координатами вершин
@@ -124,7 +130,7 @@ protected:
      *     b/ \a
      *    A --- B
      *       c
-     * @return Значение минимального угла в треугольнике
+     * @return Значение минимального угла в треугольнике (радианы)
      */
     double minAngle(const Point2D &A, const Point2D &B, const Point2D &C);
     /**
@@ -132,9 +138,9 @@ protected:
      * @param A Координаты первой вершины
      * @param B Координаты второй вершины
      * @param C Координаты третей вершины
-     * @param alpha Угол в вершине A
-     * @param beta Угол в вершине B
-     * @param gamma Угол в вершине C
+     * @param alpha Угол в вершине A (радианы)
+     * @param beta Угол в вершине B (радианы)
+     * @param gamma Угол в вершине C (радианы)
      * @return true, если трейгольник невырожденный, иначе - false
      *       C
      *       ^

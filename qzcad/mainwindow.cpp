@@ -959,3 +959,24 @@ void MainWindow::on_actionMinAngleMetric_triggered()
         std::cout << "Выполнено." << std::endl;
     }
 }
+
+void MainWindow::on_actionAngleAspect_triggered()
+{
+    msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
+    if (mesh != NULL)
+    {
+        std::cout << "Вычисление соотношений углов... ";
+        if (dynamic_cast<msh::TriangleMesh2D*>(mesh))
+        {
+            msh::TriangleMesh2D *triangles = dynamic_cast<msh::TriangleMesh2D*>(mesh);
+            if (triangles->elementsCount() > 0)
+            {
+                std::vector<double> j(triangles->elementsCount());
+                for (msh::UInteger i = 0; i < triangles->elementsCount(); i++)
+                    j[i] = triangles->angleAspect(i);
+                ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector(tr("Соотношение углов"), j));
+            }
+        }
+        std::cout << "Выполнено." << std::endl;
+    }
+}
