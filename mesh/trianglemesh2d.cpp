@@ -173,22 +173,29 @@ double TriangleMesh2D::minAngle(const UInteger &elNum)
 
 double TriangleMesh2D::minAngle(const Point2D &A, const Point2D &B, const Point2D &C)
 {
-    const double epsilon = 1.0E-6;
+    double alpha, beta, gamma;
+    angles(A, B, C, alpha, beta, gamma);
+    return std::min(alpha, std::min(beta, gamma));
+}
+
+bool TriangleMesh2D::angles(const Point2D &A, const Point2D &B, const Point2D &C, double &alpha, double &beta, double &gamma)
+{
+    const double epsilon = 1.0E-12;
     const double a = B.distanceTo(C); // сторона, противолежащяя вершине A (BC)
     const double b = A.distanceTo(C); // сторона, противолежащяя вершине B (AC)
     const double c = A.distanceTo(B); // сторона, противолежащяя вершине C (AB)
     if (a < epsilon || b < epsilon || c < epsilon)
     {
-        // треугольник вырожденный минимальный угол равен 0
-        return 0.0;
+        alpha = beta = gamma = 0.0;
+        return false;
     }
     // Теорема косинусов
-    const double alpha = acos((b*b + c*c - a*a) / (2.0 * b * c)); // Угол в вершине A
+    alpha = acos((b*b + c*c - a*a) / (2.0 * b * c)); // Угол в вершине A
     // Теорема синусов
-    const double beta = asin(sin(alpha) * b / a); // Угол в вершине B
+    beta = asin(sin(alpha) * b / a); // Угол в вершине B
     // Теорема о сумме углов треугольника
-    const double gamma = M_PI - (alpha + beta); // Угол в вершине C
-    return std::min(alpha, std::min(beta, gamma));
+    gamma = M_PI - (alpha + beta); // Угол в вершине C
+    return true;
 }
 
 TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint)

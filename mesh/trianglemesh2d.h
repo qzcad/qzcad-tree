@@ -127,6 +127,22 @@ protected:
      * @return Значение минимального угла в треугольнике
      */
     double minAngle(const Point2D &A, const Point2D &B, const Point2D &C);
+    /**
+     * @brief Функция для подсчета значений углов треугольника
+     * @param A Координаты первой вершины
+     * @param B Координаты второй вершины
+     * @param C Координаты третей вершины
+     * @param alpha Угол в вершине A
+     * @param beta Угол в вершине B
+     * @param gamma Угол в вершине C
+     * @return true, если трейгольник невырожденный, иначе - false
+     *       C
+     *       ^
+     *     b/ \a
+     *    A --- B
+     *       c
+     */
+    bool angles(const Point2D &A, const Point2D &B, const Point2D &C, double &alpha, double &beta, double &gamma);
 protected:
     std::vector<Triangle> element_; //!< Массив элементов
 };
