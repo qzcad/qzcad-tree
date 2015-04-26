@@ -1,6 +1,9 @@
 #include "mesh.h"
 
 namespace msh {
+
+double Mesh::epsilon_ = 1.0E-10; // инициализация точности
+
 int Mesh::layer(const msh::UInteger &number) const
 {
     return layer_[number];
@@ -25,6 +28,16 @@ UInteger Mesh::sizeOfLayers() const
 {
     return layer_.size();
 }
+double Mesh::epsilon()
+{
+    return epsilon_;
+}
+
+void Mesh::setEpsilon(double epsilon)
+{
+    epsilon_ = epsilon;
+}
+
 }
 
 

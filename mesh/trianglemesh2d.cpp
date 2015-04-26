@@ -198,11 +198,10 @@ double TriangleMesh2D::minAngle(const Point2D &A, const Point2D &B, const Point2
 
 bool TriangleMesh2D::angles(const Point2D &A, const Point2D &B, const Point2D &C, double &alpha, double &beta, double &gamma)
 {
-    const double epsilon = 1.0E-12;
     const double a = B.distanceTo(C); // сторона, противолежащяя вершине A (BC)
     const double b = A.distanceTo(C); // сторона, противолежащяя вершине B (AC)
     const double c = A.distanceTo(B); // сторона, противолежащяя вершине C (AB)
-    if (a < epsilon || b < epsilon || c < epsilon)
+    if (a < epsilon_ || b < epsilon_ || c < epsilon_)
     {
         alpha = beta = gamma = 0.0;
         return false;
@@ -220,7 +219,6 @@ bool TriangleMesh2D::angles(const Point2D &A, const Point2D &B, const Point2D &C
 
 TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint)
 {
-    const double epsilon = 1.0E-6;
     xMin_ = xMin;
     xMax_ = xMin + width;
     yMin_ = yMin;
@@ -318,7 +316,7 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
     for (UInteger i = 0; i < normal.size(); i++)
     {
         iso[i] = ULONG_MAX;
-        if (normal[i].length() > epsilon)
+        if (normal[i].length() > epsilon_)
         {
             Point2D current = node_[i].point;
             // двоичный поиск граничной точки
@@ -335,7 +333,7 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
                     inner = mid;
                 else
                     break;
-            } while(inner.distanceTo(outer) > epsilon);
+            } while(inner.distanceTo(outer) > epsilon_);
             if (current.distanceTo(mid) < minDistance)
             {
                 node_[i].point = mid;
