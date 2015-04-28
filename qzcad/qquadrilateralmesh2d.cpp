@@ -20,6 +20,12 @@ QQuadrilateralMesh2D::QQuadrilateralMesh2D(const UInteger &count, const Point2D 
 {
 }
 
+QQuadrilateralMesh2D::QQuadrilateralMesh2D(const UInteger &count, const Point2D &center, const double &radius, unsigned short part, QObject *parent) :
+    QObject(parent), QuadrilateralMesh2D(count, center, radius, part)
+{
+
+}
+
 QQuadrilateralMesh2D::QQuadrilateralMesh2D(const QQuadrilateralMesh2D &mesh) :
     QObject(mesh.parent()), QuadrilateralMesh2D(&mesh)
 {

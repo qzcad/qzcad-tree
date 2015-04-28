@@ -149,6 +149,23 @@ QScriptValue QZScriptEngine::createPoint3D(QScriptContext *context, QScriptEngin
 
 QScriptValue QZScriptEngine::createQuadrilateralMesh2D(QScriptContext *context, QScriptEngine *engine)
 {
+    if (context->argumentCount() == 4)
+    {
+        QString typeError = QObject::tr("Quads2D(count: Integer, center: Point2D, radius: Floating, part: {1, 2, 4}): argument type error (%1).");
+        if (!context->argument(0).isNumber())
+            return context->throwError(typeError.arg("count"));
+        if (!context->argument(1).isQObject() || qscriptvalue_cast<QPoint2D *>(context->argument(1)) == NULL)
+            return context->throwError(typeError.arg("center"));
+        if (!context->argument(2).isNumber())
+            return context->throwError(typeError.arg("radius"));
+        if (!context->argument(3).isNumber())
+            return context->throwError(typeError.arg("part"));
+        UInteger count = context->argument(0).toUInt32();
+        QPoint2D *center = qscriptvalue_cast<QPoint2D *>(context->argument(1));
+        double radius = context->argument(2).toNumber();
+        int part = context->argument(3).toNumber();
+        return engine->newQObject(new QQuadrilateralMesh2D(count, msh::Point2D(center->x(), center->y()), radius, part), QScriptEngine::ScriptOwnership);
+    }
     if (context->argumentCount() == 5)
     {
         QString typeError = QObject::tr("Quads2D(xCount: Integer, yCount: Integer, origin: Point2D, width: Floating, height: Floating): argument type error (%1).");
@@ -169,7 +186,7 @@ QScriptValue QZScriptEngine::createQuadrilateralMesh2D(QScriptContext *context, 
         double height = context->argument(4).toNumber();
         return engine->newQObject(new QQuadrilateralMesh2D(xCount, yCount, origin->x(), origin->y(), width, height), QScriptEngine::ScriptOwnership);
     }
-    return context->throwError(QObject::tr("Quads2D(xCount: Integer, yCount: Integer, origin: Point2D, width: Floating, height: Floating): arguments count error."));
+    return context->throwError(QObject::tr("Quads2D(): arguments count error."));
 }
 
 QScriptValue QZScriptEngine::createTriangleMesh2D(QScriptContext *context, QScriptEngine *engine)

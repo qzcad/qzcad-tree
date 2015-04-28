@@ -58,6 +58,14 @@ public:
      */
     explicit QQuadrilateralMesh2D(const UInteger &count, const Point2D &v0, const Point2D &v1, const Point2D &v2, QObject *parent = 0);
     /**
+     * @brief Конструктор создает блочно-структурированную сетку для круга (части круга)
+     * @param count Базовое количество узлов (По окружности будет 4n - для целого круга, 4n - для половинки, 2n - для четверти)
+     * @param center Координаты центра
+     * @param radius Радиус
+     * @param part Часть круга для дискретизации (возможные значение: 1 - целый круг, 2 - половинка, 4 - четверть)
+     */
+    explicit QQuadrilateralMesh2D(const UInteger &count, const Point2D &center, const double &radius, unsigned short part = 1, QObject *parent = 0);
+    /**
      * @brief Конструктор копирования
      * @param mesh Экземпляр объекта для копирования
      */
