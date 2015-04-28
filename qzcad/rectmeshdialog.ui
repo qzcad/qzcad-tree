@@ -196,7 +196,7 @@
      <item>
       <widget class="QLabel" name="xCountLabel">
        <property name="text">
-        <string>Количество точек вдоль оси ординат:</string>
+        <string>Количество точек вдоль оси абсцисс:</string>
        </property>
       </widget>
      </item>
@@ -220,7 +220,7 @@
      <item>
       <widget class="QLabel" name="yCountLabel">
        <property name="text">
-        <string>Количество точек вдоль оси абсцисс:</string>
+        <string>Количество точек вдоль оси ординат:</string>
        </property>
       </widget>
      </item>
