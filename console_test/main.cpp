@@ -633,6 +633,7 @@ void save_vector(const std::vector<double> &v, const char *name)
 int main()
 {
     cout << "Программа для тестирования расчетов при помощи МКЭ" << endl;
+    cout << setprecision(9);
     fstream input;
     UInteger nodesCount;
     int freedom = 0;
