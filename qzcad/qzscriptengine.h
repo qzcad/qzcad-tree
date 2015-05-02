@@ -138,6 +138,13 @@ private:
      * @return Если аргументы корректны (тип Number), то значение конъюнкции для них, иначе engine->undefinedValue()
      */
     static QScriptValue con(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief Дизъюнкция произвольного числа аргументов
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны (тип Number), то значение дизъюнкции для них, иначе engine->undefinedValue()
+     */
+    static QScriptValue dis(QScriptContext *context, QScriptEngine *engine);
 private:
     static double epsilon_; //!< Точность численных операций
     static msh::Mesh *mesh_; //!< Сетка, построенная в результате интерпретации скрипта

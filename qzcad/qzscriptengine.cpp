@@ -29,6 +29,9 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     // Функция конъюнкции
     QScriptValue qsCon = newFunction(con);
     globalObject().setProperty("con", qsCon);
+    // Функция дизъюнкции
+    QScriptValue qsDis = newFunction(dis);
+    globalObject().setProperty("dis", qsDis);
     // Точка на плоскости
     QScriptValue qsCreatePoint2D = newFunction(createPoint2D);
     globalObject().setProperty("Point2D", qsCreatePoint2D);
@@ -363,6 +366,22 @@ QScriptValue QZScriptEngine::con(QScriptContext *context, QScriptEngine *engine)
         con += (x - sqrt(con*con + x*x));
     }
     return con;
+}
+
+QScriptValue QZScriptEngine::dis(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(engine);
+    QString typeError = QObject::tr("dis(a, b, c, ...): all arguments must have type Number. Argument # %1.");
+    for (int i = 0; i < context->argumentCount(); i++)
+        if (!context->argument(i).isNumber())
+            return context->throwError(typeError.arg(i + 1));
+    double dis = context->argument(0).toNumber();
+    for (int i = 1; i < context->argumentCount(); i++)
+    {
+        double x = context->argument(i).toNumber();
+        dis += (x + sqrt(dis*dis + x*x));
+    }
+    return dis;
 }
 
 
