@@ -225,7 +225,7 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
     yMax_ = yMin + height;
     const double hx = width / (double)(xCount - 1);
     const double hy = height / (double)(yCount - 1);
-    const double minDistance = 0.25 * sqrt(hx*hx + hy*hy);
+    const double minDistance = 0.4 * sqrt(hx*hx + hy*hy);
     std::map<UInteger, UInteger> nodesMap;
     // формирование массива узлов
     for (UInteger i = 0; i < xCount; i++)
@@ -334,27 +334,31 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
                 else
                     break;
             } while(inner.distanceTo(outer) > epsilon_);
-            if (current.distanceTo(mid) < minDistance)
+
+            // сравнение с существующими изо-точками перед всатвкой
+            bool isExist = false;
+            for (UInteger j = 0; j < i; j++)
             {
-                node_[i].point = mid;
-                node_[i].type = BORDER;
-                iso[i] = i;
-            }
-            else
-            {
-                // сравнение с существующими изо-точками перед всатвкой
-                bool isExist = false;
-                for (UInteger j = normal.size(); j < nodesCount(); j++)
+                if (iso[j] < ULONG_MAX)
                 {
-                    Point2D border = node_[j].point;
+                    Point2D border = node_[iso[j]].point;
                     if (border.distanceTo(mid) < minDistance)
                     {
-                        iso[i] = j;
+                        iso[i] = iso[j];
                         isExist = true;
                         break;
                     }
                 }
-                if (!isExist)
+            }
+            if (!isExist)
+            {
+                if (current.distanceTo(mid) < minDistance)
+                {
+                    node_[i].point = mid;
+                    node_[i].type = BORDER;
+                    iso[i] = i;
+                }
+                else
                 {
                     // поиск соответствующей характерной точки
                     for (std::list<Point2D>::iterator cPoint = charPoint.begin(); cPoint != charPoint.end(); ++cPoint)
@@ -421,14 +425,14 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
                     double mb2 = minAngle(p0, p2, p3);
                     if (std::min(ma1, mb1) > std::min(ma2, mb2))
                     {
-                        if (triangle[j + 1] != iso[triangle[j + 1]])
+                        if (triangle[j + 1] != iso[triangle[j + 1]] && triangle[j] != iso[triangle[j + 1]])
                             addElement(triangle[j + 1], triangle[j], iso[triangle[j + 1]]);
                         if (triangle[j] != iso[triangle[j]] && iso[triangle[j]] != iso[triangle[j + 1]])
                             addElement(triangle[j], iso[triangle[j]], iso[triangle[j + 1]]);
                     }
                     else
                     {
-                        if (triangle[j] != iso[triangle[j]])
+                        if (triangle[j] != iso[triangle[j]] && triangle[j + 1] != iso[triangle[j]])
                             addElement(triangle[j + 1], triangle[j], iso[triangle[j]]);
                         if (triangle[j + 1] != iso[triangle[j + 1]] && iso[triangle[j]] != iso[triangle[j + 1]])
                             addElement(triangle[j + 1], iso[triangle[j]], iso[triangle[j + 1]]);
