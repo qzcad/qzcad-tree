@@ -576,6 +576,7 @@ void MainWindow::on_actionLoadMesh_triggered()
     QFile file(fileName);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
         return;
+    std::cout << std::endl;
     std::cout << "Загррузка дискретной модели из файла: " << fileName.toStdString() << std::endl;
     QTextStream in(&file);
     int dim;
@@ -818,6 +819,7 @@ void MainWindow::on_actionExtremeValuesStatistica_triggered()
     if (mesh != NULL)
     {
         NamedFloatingVector nfv = ui->pictureControl->getGlMeshPicture()->currentValuesVector();
+        std::cout << std::endl;
         if (mesh->elementsCount() == nfv.size())
         {
             std::vector<double> data = nfv.data();
@@ -880,6 +882,7 @@ void MainWindow::on_actionRunScript_triggered()
 {
     QZScriptEngine engine(this);
     QTime time;
+    std::cout << std::endl;
     std::cout << "QZScriptEngine started..." << std::endl;
     time.start();
     QScriptValue result = engine.evaluate(ui->codeEditor->toPlainText());
@@ -901,19 +904,35 @@ void MainWindow::on_actionJacobianMetric_triggered()
     msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
     if (mesh != NULL)
     {
+        std::cout << std::endl;
         std::cout << "Вчисление значений якобиана... ";
+        double min = 0.0, max = 0.0;
         if (dynamic_cast<msh::TriangleMesh2D*>(mesh))
         {
             msh::TriangleMesh2D *triangles = dynamic_cast<msh::TriangleMesh2D*>(mesh);
+
             if (triangles->elementsCount() > 0)
             {
                 std::vector<double> j(triangles->elementsCount());
                 for (msh::UInteger i = 0; i < triangles->elementsCount(); i++)
+                {
                     j[i] = triangles->jacobian(i);
+                    if (i == 0)
+                    {
+                        min = max = j[i];
+                    }
+                    else
+                    {
+                        if (min > j[i])
+                            min = j[i];
+                        if (max < j[i])
+                            max = j[i];
+                    }
+                }
                 ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector(tr("якобиан"), j));
             }
         }
-        std::cout << "Выполнено." << std::endl;
+        std::cout << "Выполнено: " << min << " <= J <= " << max << std::endl;
     }
 }
 
@@ -922,7 +941,9 @@ void MainWindow::on_actionLengthAspect_triggered()
     msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
     if (mesh != NULL)
     {
+        std::cout << std::endl;
         std::cout << "Вычисление соотношений длин сторон элементов... ";
+        double min = 0.0, max = 0.0;
         if (dynamic_cast<msh::TriangleMesh2D*>(mesh))
         {
             msh::TriangleMesh2D *triangles = dynamic_cast<msh::TriangleMesh2D*>(mesh);
@@ -930,11 +951,24 @@ void MainWindow::on_actionLengthAspect_triggered()
             {
                 std::vector<double> j(triangles->elementsCount());
                 for (msh::UInteger i = 0; i < triangles->elementsCount(); i++)
+                {
                     j[i] = triangles->lengthAspect(i);
+                    if (i == 0)
+                    {
+                        min = max = j[i];
+                    }
+                    else
+                    {
+                        if (min > j[i])
+                            min = j[i];
+                        if (max < j[i])
+                            max = j[i];
+                    }
+                }
                 ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector(tr("Соотношение длин сторон"), j));
             }
         }
-        std::cout << "Выполнено." << std::endl;
+        std::cout << "Выполнено: " << min << "<= aspect(l) <= " << max << std::endl;
     }
 }
 
@@ -943,7 +977,9 @@ void MainWindow::on_actionMinAngleMetric_triggered()
     msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
     if (mesh != NULL)
     {
+        std::cout << std::endl;
         std::cout << "Вычисление значений минимальных углов... ";
+        double min = 0.0, max = 0.0;
         if (dynamic_cast<msh::TriangleMesh2D*>(mesh))
         {
             msh::TriangleMesh2D *triangles = dynamic_cast<msh::TriangleMesh2D*>(mesh);
@@ -951,11 +987,24 @@ void MainWindow::on_actionMinAngleMetric_triggered()
             {
                 std::vector<double> j(triangles->elementsCount());
                 for (msh::UInteger i = 0; i < triangles->elementsCount(); i++)
-                    j[i] = triangles->minAngle(i) * 180 / M_PI;
-                ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector(tr("Минимальный угол"), j));
+                {
+                    j[i] = triangles->minAngle(i) * 180.0 / M_PI;
+                    if (i == 0)
+                    {
+                        min = max = j[i];
+                    }
+                    else
+                    {
+                        if (min > j[i])
+                            min = j[i];
+                        if (max < j[i])
+                            max = j[i];
+                    }
+                }
+                ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector(tr("Минимальный угол, °"), j));
             }
         }
-        std::cout << "Выполнено." << std::endl;
+        std::cout << "Выполнено: " << min << " <= min(alpha) <= " << max << std::endl;
     }
 }
 
@@ -964,7 +1013,9 @@ void MainWindow::on_actionAngleAspect_triggered()
     msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
     if (mesh != NULL)
     {
+        std::cout << std::endl;
         std::cout << "Вычисление соотношений углов... ";
+        double min = 0.0, max = 0.0;
         if (dynamic_cast<msh::TriangleMesh2D*>(mesh))
         {
             msh::TriangleMesh2D *triangles = dynamic_cast<msh::TriangleMesh2D*>(mesh);
@@ -972,10 +1023,23 @@ void MainWindow::on_actionAngleAspect_triggered()
             {
                 std::vector<double> j(triangles->elementsCount());
                 for (msh::UInteger i = 0; i < triangles->elementsCount(); i++)
+                {
                     j[i] = triangles->angleAspect(i);
+                    if (i == 0)
+                    {
+                        min = max = j[i];
+                    }
+                    else
+                    {
+                        if (min > j[i])
+                            min = j[i];
+                        if (max < j[i])
+                            max = j[i];
+                    }
+                }
                 ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector(tr("Соотношение углов"), j));
             }
         }
-        std::cout << "Выполнено." << std::endl;
+        std::cout << "Выполнено: " << min << "<= aspect(alpha) <= " << max << std::endl;
     }
 }

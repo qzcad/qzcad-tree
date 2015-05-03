@@ -253,7 +253,6 @@ QScriptValue QZScriptEngine::createTriangleMesh2D(QScriptContext *context, QScri
             {
                 QPoint2D *point = qscriptvalue_cast<QPoint2D *>(array.property(i));
                 pointList.push_back(Point2D(point->x(), point->y()));
-                std::cout << point->x() << " " << point->y() << "\n";
             }
         }
         return engine->newQObject(new QTriangleMesh2D(xCount, yCount, origin->x(), origin->y(), width, height, func, pointList), QScriptEngine::ScriptOwnership);
