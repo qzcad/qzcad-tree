@@ -382,11 +382,14 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
         double min_d = 10.0 * minDistance;
         for (std::vector<Node2D>::iterator n = node_.begin(); n != node_.end(); ++n)
         {
-            double d = (n->point).distanceTo(*cPoint);
-            if (d < min_d)
+            if (n->type == BORDER)
             {
-                min_d = d;
-                min_n = n;
+                double d = (n->point).distanceTo(*cPoint);
+                if (d < min_d)
+                {
+                    min_d = d;
+                    min_n = n;
+                }
             }
         }
         if (min_n != node_.end())
