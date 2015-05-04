@@ -342,6 +342,17 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
                     inner = mid;
             } while(inner.distanceTo(outer) > epsilon_);
 
+            // поиск соответствующей характерной точки
+            for (std::list<Point2D>::iterator cPoint = charPoint.begin(); cPoint != charPoint.end(); ++cPoint)
+            {
+                if (mid.distanceTo(*cPoint) < minDistance)
+                {
+                    mid = *cPoint;
+                    //charPoint.erase(cPoint);
+                    break;
+                }
+            }
+
             // сравнение с существующими изо-точками перед всатвкой
             bool isExist = false;
             for (UInteger j = 0; j < i; j++)
@@ -367,16 +378,6 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
                 }
                 else
                 {
-                    // поиск соответствующей характерной точки
-                    for (std::list<Point2D>::iterator cPoint = charPoint.begin(); cPoint != charPoint.end(); ++cPoint)
-                    {
-                        if (mid.distanceTo(*cPoint) < minDistance)
-                        {
-                            mid = *cPoint;
-                            charPoint.erase(cPoint);
-                            break;
-                        }
-                    }
                     iso[i] = pushNode(mid, BORDER);
                 }
             }
