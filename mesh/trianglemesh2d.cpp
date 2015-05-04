@@ -236,7 +236,7 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
             double y = yMin + (double) j * hy;
             Point2D point(x, y);
 
-            if (func(x, y) > 0.0)
+            if (func(x, y) >= 0.0)
             {
                 nodesMap[i * yCount + j] = pushNode(point, INNER);
             }
@@ -318,11 +318,20 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
         iso[i] = ULONG_MAX;
         if (normal[i].length() > epsilon_)
         {
+            Point2D n = normal[i].normalized();
             Point2D current = node_[i].point;
             // двоичный поиск граничной точки
             Point2D inner = current;
-            Point2D outer = current + sqrt(hx*hx + hy*hy) * normal[i];
+            Point2D outer = current + sqrt(hx*hx + hy*hy) * n;
             Point2D mid;
+            if (func(outer.x(), outer.y()) > 0.0)
+            {
+                // внешняя точка перескачила через границу и попала внутрь
+                // ищем внешнюю точку пошагово сканированием
+                outer = current;
+                while (func(outer.x(), outer.y()) >= 0.0)
+                    outer = outer + (0.0001 * sqrt(hx*hx + hy*hy)) * n;
+            }
             do
             {
                 mid = 0.5 * (inner + outer);
