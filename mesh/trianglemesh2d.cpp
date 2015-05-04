@@ -327,12 +327,10 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
             {
                 mid = 0.5 * (inner + outer);
                 double val = func(mid.x(), mid.y());
-                if (val < 0.0)
+                if (val <= 0.0)
                     outer = mid;
-                else if (val > 0.0)
+                else //if (val > 0.0)
                     inner = mid;
-                else
-                    break;
             } while(inner.distanceTo(outer) > epsilon_);
 
             // сравнение с существующими изо-точками перед всатвкой
