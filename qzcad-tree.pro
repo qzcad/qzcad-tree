@@ -7,4 +7,5 @@ SUBDIRS += \
     qzcad \
     console_test \
     qzmatrix_test \
-    qzio
+    qzio \
+    openmp_test

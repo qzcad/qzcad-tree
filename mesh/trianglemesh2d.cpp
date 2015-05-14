@@ -4,6 +4,9 @@
 #include <map>
 #include <climits>
 #include <float.h>
+#ifdef WITH_OPENMP
+#include <omp.h>
+#endif
 
 namespace msh
 {
@@ -228,6 +231,9 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
     const double minDistance = 0.4 * sqrt(hx*hx + hy*hy);
     std::map<UInteger, UInteger> nodesMap;
     // формирование массива узлов
+#ifdef WITH_OPENMP
+#pragma omp parallel for
+#endif
     for (UInteger i = 0; i < xCount; i++)
     {
         double x = xMin + (double) i * hx;
@@ -238,13 +244,20 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
 
             if (func(x, y) >= 0.0)
             {
+#ifdef WITH_OPENMP
+#pragma omp critical
+#endif
                 nodesMap[i * yCount + j] = pushNode(point, INNER);
             }
         }
     }
+
     // формирование начальной сетки
     const double xCenter = (xMax_ + xMin_) / 2.0;
     const double yCenter = (yMax_ + yMin_) / 2.0;
+#ifdef WITH_OPENMP
+#pragma omp parallel for
+#endif
     for (UInteger i = 0; i < xCount - 1; i++)
     {
         for (UInteger j = 0; j < yCount - 1; j++)
@@ -264,14 +277,28 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
                         ||
                         (xCenter >= p0.x() && yCenter >= p0.y() && xCenter >= p1.x() && yCenter >= p1.y() && xCenter >= p2.x() && yCenter >= p2.y() && xCenter >= p3.x() && yCenter >= p3.y()))
                 {
-                    addElement(iter0->second, iter1->second, iter3->second);
-                    addElement(iter1->second, iter2->second, iter3->second);
-                }
+#ifdef WITH_OPENMP
+#pragma omp critical
+                    {
+#endif
+                        addElement(iter0->second, iter1->second, iter3->second);
+                        addElement(iter1->second, iter2->second, iter3->second);
+#ifdef WITH_OPENMP
+                    } // omp critical
+#endif
+                } // if
                 else
                 {
+#ifdef WITH_OPENMP
+#pragma omp critical
+                    {
+#endif
                     addElement(iter0->second, iter1->second, iter2->second);
                     addElement(iter0->second, iter2->second, iter3->second);
-                }
+#ifdef WITH_OPENMP
+                    } // omp critical
+#endif
+                } // else
             }
         }
     }
@@ -280,6 +307,9 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
     std::vector<UInteger> iso(nodesCount()); // изо-точки (номера)
     UInteger baseElementCount = elementsCount();
     // построение нормалей для всех узлов начальной сетки
+#ifdef WITH_OPENMP
+#pragma omp parallel for
+#endif
     for (UInteger i = 0; i < normal.size(); i++)
     {
         Point2D currentPoint = node_[i].point;
@@ -313,6 +343,9 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
         }
     }
     // поиск изо-точек на границе
+#ifdef WITH_OPENMP
+#pragma omp parallel for schedule(static, 1)
+#endif
     for (UInteger i = 0; i < normal.size(); i++)
     {
         iso[i] = ULONG_MAX;
@@ -378,6 +411,9 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
                 }
                 else
                 {
+#ifdef WITH_OPENMP
+#pragma omp critical
+#endif
                     iso[i] = pushNode(mid, BORDER);
                 }
             }
@@ -440,14 +476,14 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
                             addElement(triangle[j + 1], triangle[j], iso[triangle[j + 1]]);
                         if (triangle[j] != iso[triangle[j]] && iso[triangle[j]] != iso[triangle[j + 1]])
                             addElement(triangle[j], iso[triangle[j]], iso[triangle[j + 1]]);
-                    }
+                    } // if
                     else
                     {
                         if (triangle[j] != iso[triangle[j]] && triangle[j + 1] != iso[triangle[j]])
                             addElement(triangle[j + 1], triangle[j], iso[triangle[j]]);
                         if (triangle[j + 1] != iso[triangle[j + 1]] && iso[triangle[j]] != iso[triangle[j + 1]])
                             addElement(triangle[j + 1], iso[triangle[j]], iso[triangle[j + 1]]);
-                    }
+                    } // else
                 }
             }
         }

@@ -11,6 +11,12 @@ TEMPLATE = lib
 CONFIG += staticlib
 QMAKE_CXXFLAGS += -std=c++0x
 
+# OpenMP section ####################################
+#QMAKE_CXXFLAGS += -DWITH_OPENMP # global definition for macro
+#QMAKE_CXXFLAGS += -fopenmp
+#QMAKE_LFLAGS += -fopenmp
+#####################################################
+
 SOURCES += mesh.cpp \
     point.cpp \
     element.cpp \
