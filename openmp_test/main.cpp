@@ -211,9 +211,10 @@ int main()
 {
     omp_set_num_threads(4);
 
-    for (int c = 101; c <= 1001; c += 100)
+    for (int c = 21; c <= 101; c += 20)
     {
-        msh::TriangleMesh2D *triangles = meshPerfor(c);
+//        msh::TriangleMesh2D *triangles = meshPerfor(c);
+        msh::TriangleMesh2D *triangles = meshPlanka1(c);
         delete triangles;
     }
     return 0;
