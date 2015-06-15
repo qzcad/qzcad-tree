@@ -23,7 +23,9 @@ SOURCES += hexahedralfem.cpp \
     mechanicalparameters3d.cpp \
     plasticfem.cpp \
     forcecondition3d.cpp \
-    femforce.cpp
+    femforce.cpp \
+    quadrilateralfem.cpp \
+    elasticmatrix.cpp
 
 HEADERS += hexahedralfem.h \
     globalmatrix.h \
@@ -34,7 +36,9 @@ HEADERS += hexahedralfem.h \
     mechanicalparameters3d.h \
     plasticfem.h \
     forcecondition3d.h \
-    femforce.h
+    femforce.h \
+    quadrilateralfem.h \
+    elasticmatrix.h
 unix {
     target.path = /usr/lib
     INSTALLS += target
