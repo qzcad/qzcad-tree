@@ -32,6 +32,9 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     // Функция дизъюнкции
     QScriptValue qsDis = newFunction(dis);
     globalObject().setProperty("dis", qsDis);
+    // Функция разности
+    QScriptValue qsDiff = newFunction(diff);
+    globalObject().setProperty("diff", qsDiff);
     // Точка на плоскости
     QScriptValue qsCreatePoint2D = newFunction(createPoint2D);
     globalObject().setProperty("Point2D", qsCreatePoint2D);
@@ -381,6 +384,22 @@ QScriptValue QZScriptEngine::dis(QScriptContext *context, QScriptEngine *engine)
         dis += (x + sqrt(dis*dis + x*x));
     }
     return dis;
+}
+
+QScriptValue QZScriptEngine::diff(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(engine);
+    QString typeError = QObject::tr("diff(a, b, c, ...): all arguments must have type Number. Argument # %1.");
+    for (int i = 0; i < context->argumentCount(); i++)
+        if (!context->argument(i).isNumber())
+            return context->throwError(typeError.arg(i + 1));
+    double diff = context->argument(0).toNumber();
+    for (int i = 1; i < context->argumentCount(); i++)
+    {
+        double x = -context->argument(i).toNumber();
+        diff += (x - sqrt(diff*diff + x*x));
+    }
+    return diff;
 }
 
 
