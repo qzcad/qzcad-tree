@@ -2,7 +2,7 @@
 
 ElasticMatrix::ElasticMatrix(double E, double nu, bool isPlaneStress)
 {
-    DoubleMatrix d(3, 3);
+    DoubleMatrix d(3);
     if (isPlaneStress)
     { // плоское напряженное состояние
         d(0, 0) = 1.0;  d(0, 1) = nu;   d(0, 2) = 0.0;

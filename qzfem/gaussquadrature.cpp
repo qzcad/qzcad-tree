@@ -1,4 +1,5 @@
 #include "gaussquadrature.h"
+#include <math.h>
 
 GaussQuadrature::GaussQuadrature()
 {

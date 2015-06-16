@@ -11,13 +11,10 @@
 #include <functional>
 
 #include "quadrilateralmesh2d.h"
-#include "doublevector.h"
-#include "doublematrix.h"
-#include "mappeddoublematrix.h"
 #include "elasticmatrix.h"
 
 using namespace msh;
-using namespace mtx;
+
 /**
  * @brief Класс для решения задач МКЭ на базе четырехугольных конечных элементов
  */
@@ -32,9 +29,10 @@ public:
                            double thickness,
                            const ElasticMatrix &elasticMatrix,
                            std::function<int(double, double)> fixFunc,
-                           std::function<double(double, double)> nodalForce,
-                           std::function<double(double, double)> surfaceForce,
-                           std::function<double(double, double)> volumeForce);
+                           std::function<Point2D(double, double)> boundaryValue,
+                           std::function<Point2D(double, double)> nodalForce,
+                           std::function<Point2D(double, double)> surfaceForce,
+                           std::function<Point2D(double, double)> volumeForce);
 private:
 };
 
