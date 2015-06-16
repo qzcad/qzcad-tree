@@ -1,4 +1,7 @@
 #include "quadrilateralfem.h"
+
+#include <iostream>
+
 #include "gaussquadrature.h"
 #include "doublevector.h"
 #include "doublematrix.h"
@@ -25,7 +28,7 @@ void QuadrilateralFEM::planeStressStrain(QuadrilateralMesh2D *mesh,
     DoubleVector gweight;
     int gaussPoints = 2; // количество точек квадратуры
 
-    int elementNodes = 4;
+    unsigned int elementNodes = 4;
 
     DoubleMatrix D = elasticMatrix.D();
 
@@ -48,7 +51,7 @@ void QuadrilateralFEM::planeStressStrain(QuadrilateralMesh2D *mesh,
         double y[elementNodes];
         // извлечение координат узлов
         ElementPointer element = mesh->element(elNum);
-        for (int i = 0; i < elementNodes; i++)
+        for (unsigned int i = 0; i < elementNodes; i++)
         {
             PointPointer point = mesh->node(element->vertexNode(i));
             x[i] = point->x();
@@ -85,7 +88,7 @@ void QuadrilateralFEM::planeStressStrain(QuadrilateralMesh2D *mesh,
                 dNdEta(2) = (1.0 + xi) / 4.0;
                 dNdEta(3) = (1.0 - xi) / 4.0;
                 // матрица Якоби
-                for (int i = 0; i < elementNodes; i++)
+                for (unsigned int i = 0; i < elementNodes; i++)
                 {
                     Jacobi(0, 0) += dNdXi(i) * x[i];  Jacobi(0, 1) += dNdXi(i) * y[i];
                     Jacobi(1, 0) += dNdEta(i) * x[i]; Jacobi(1, 1) += dNdEta(i) * y[i];
@@ -95,7 +98,7 @@ void QuadrilateralFEM::planeStressStrain(QuadrilateralMesh2D *mesh,
                 // обратный якобиан
                 DoubleMatrix invJacobi = Jacobi.inverted2x2();
                 // производные в глобальных координатах
-                for (int i = 0; i < elementNodes; i++)
+                for (unsigned int i = 0; i < elementNodes; i++)
                 {
                     dNdX(i) = invJacobi(0, 0) * dNdXi(i) + invJacobi(0, 1) * dNdEta(i);
                     dNdY(i) = invJacobi(1, 0) * dNdXi(i) + invJacobi(1, 1) * dNdEta(i);
@@ -112,7 +115,7 @@ void QuadrilateralFEM::planeStressStrain(QuadrilateralMesh2D *mesh,
         // Ансамблирование
         UInteger index_i = 0;
         UInteger index_j = 0;
-        for (int i = 0; i < elementNodes * freedom; i++)
+        for (unsigned int i = 0; i < elementNodes * freedom; i++)
         {
             if (i < elementNodes)
             {
@@ -123,7 +126,7 @@ void QuadrilateralFEM::planeStressStrain(QuadrilateralMesh2D *mesh,
                 index_i = element->vertexNode(i - elementNodes) + nodesCount;
             }
 
-            for (int j = i; j < elementNodes * freedom; j++)
+            for (unsigned int j = i; j < elementNodes * freedom; j++)
             {
                 if (j < elementNodes)
                 {
@@ -147,6 +150,45 @@ void QuadrilateralFEM::planeStressStrain(QuadrilateralMesh2D *mesh,
         force(i) += f.x();
         force(i + nodesCount) = f.y();
     } // for i
+    // поверхностные нагрузки
+    for (UInteger elNum = 0; elNum < elementsCount; elNum++)
+    {
+        if (mesh->isBorderElement(elNum))
+        {
+            ElementPointer element = mesh->element(elNum);
+            for (unsigned int i = 0; i < elementNodes; i++)
+            {
+                if ((mesh->nodeType(element->vertexNode(i)) == BORDER || mesh->nodeType(element->vertexNode(i)) == CHARACTER) &&
+                        (mesh->nodeType(element->vertexNode(i + 1)) == BORDER || mesh->nodeType(element->vertexNode(i + 1)) == CHARACTER))
+                {
+                    PointPointer point0 = mesh->node(element->vertexNode(i));
+                    PointPointer point1 = mesh->node(element->vertexNode(i + 1));
+                    Point2D p0(point0->x(), point0->y());
+                    Point2D p1(point1->x(), point1->y());
+                    double l = p0.distanceTo(p1);
+                    double jacobian = l / 2.0;
+                    Point2D f0(0.0, 0.0);
+                    Point2D f1(0.0, 0.0);
+                    for (int ixi = 0; ixi < gaussPoints; ixi++)
+                    {
+
+                        double xi = gpoint(ixi);
+                        double w = gweight(ixi);
+                        double N0 = (1.0 - xi) / 2.0;
+                        double N1 = (1.0 + xi) / 2.0;
+                        Point2D p = surfaceForce(p0.x() * N0 + p1.x() * N1,
+                                                 p0.y() * N0 + p1.y() * N1);
+                        f0 = f0 + (N0 * jacobian * w * p);
+                        f1 = f1 + (N1 * jacobian * w * p);
+                    } // for ixi
+                    force(element->vertexNode(i)) += f0.x();
+                    force(element->vertexNode(i) + nodesCount) += f0.y();
+                    force(element->vertexNode(i + 1)) += f1.x();
+                    force(element->vertexNode(i + 1) + nodesCount) += f1.y();
+                } // if
+            } // for i
+        } // if
+    } // for elNum
     // учет граничных условий
     for (UInteger i = 0; i < nodesCount; i++)
     {
@@ -184,4 +226,92 @@ void QuadrilateralFEM::planeStressStrain(QuadrilateralMesh2D *mesh,
 
     RowDoubleMatrix rdm(global);
     displacement = rdm.conjugateGradient(force);
+    u_.clear();
+    v_.clear();
+    for (UInteger i = 0; i < nodesCount; i++)
+    {
+        u_.push_back(displacement[i]);
+        v_.push_back(displacement[i + nodesCount]);
+    }
+    double maxU = u_[0];
+    double maxV = v_[0];
+    double minU = u_[0];
+    double minV = v_[0];
+    for (UInteger i = 1; i < u_.size(); i++)
+    {
+        double u = u_[i], v = v_[i];
+        // max
+        if (maxU < u)
+        {
+            maxU = u;
+        }
+        if (maxV < v)
+        {
+            maxV = v;
+        }
+        // min
+        if (minU > u)
+        {
+            minU = u;
+        }
+        if (minV > v)
+        {
+            minV = v;
+        }
+    } // for i
+    std::cout << "Первое (x) направление:\t" << minU << " <= U <= " << maxU << std::endl;
+    std::cout << "Второе (y) направление:\t" << minV << " <= V <= " << maxV << std::endl;
 }
+
+std::vector<double> QuadrilateralFEM::u() const
+{
+    return u_;
+}
+
+void QuadrilateralFEM::setU(const std::vector<double> &u)
+{
+    u_ = u;
+}
+
+std::vector<double> QuadrilateralFEM::v() const
+{
+    return v_;
+}
+
+void QuadrilateralFEM::setV(const std::vector<double> &v)
+{
+    v_ = v;
+}
+
+std::vector<double> QuadrilateralFEM::sigmaX() const
+{
+    return sigmaX_;
+}
+
+void QuadrilateralFEM::setSigmaX(const std::vector<double> &sigmaX)
+{
+    sigmaX_ = sigmaX;
+}
+std::vector<double> QuadrilateralFEM::sigmaY() const
+{
+    return sigmaY_;
+}
+
+void QuadrilateralFEM::setSigmaY(const std::vector<double> &sigmaY)
+{
+    sigmaY_ = sigmaY;
+}
+std::vector<double> QuadrilateralFEM::tauXY() const
+{
+    return tauXY_;
+}
+
+void QuadrilateralFEM::setTauXY(const std::vector<double> &tauXY)
+{
+    tauXY_ = tauXY;
+}
+
+
+
+
+
