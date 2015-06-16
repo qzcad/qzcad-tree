@@ -14,6 +14,7 @@
 #include "doublevector.h"
 #include "doublematrix.h"
 #include "mappeddoublematrix.h"
+#include "elasticmatrix.h"
 
 using namespace msh;
 using namespace mtx;
@@ -27,7 +28,13 @@ public:
      * @brief Конструктор по умолчанию
      */
     QuadrilateralFEM();
-//    void planeStress(QuadrilateralMesh2D *mesh, std::function<double(double, double)> func)
+    void planeStressStrain(QuadrilateralMesh2D *mesh,
+                           double thickness,
+                           const ElasticMatrix &elasticMatrix,
+                           std::function<int(double, double)> fixFunc,
+                           std::function<double(double, double)> nodalForce,
+                           std::function<double(double, double)> surfaceForce,
+                           std::function<double(double, double)> volumeForce);
 private:
 };
 

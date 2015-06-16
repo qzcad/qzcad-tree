@@ -29,6 +29,17 @@ public:
      * @param ematrix Экземпляр объекта для копирования
      */
     ElasticMatrix(const ElasticMatrix &ematrix);
+    /**
+     * @brief Метод возвращает матрицу упругости
+     * @return Матрица упругости
+     */
+    DoubleMatrix D() const;
+    /**
+     * @brief Установить значение матрицы упругости
+     * @param D Матрица упругости
+     */
+    void setD(const DoubleMatrix &D);
+
 private:
     DoubleMatrix D_; //!< Матрица упругости
 };
