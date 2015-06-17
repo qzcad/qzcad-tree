@@ -654,10 +654,11 @@ int main()
             "4 - цилиндрическая оболочка бака (упругий случай);" << endl <<
             "5 - цилиндрическая оболочка (упруго-пластичность)." << endl <<
             "6 - изгиб консоли нагрузкой, приложенной на конце" << endl <<
-            "7 - прогиб балки под равномерно распределенной нагрузкой" << endl;
+            "7 - прогиб балки под равномерно распределенной нагрузкой" << endl <<
+            "8 - удлинение бруса под действием собсвенного веса" << endl;
     cin >> task;
 
-    if (task < 1 || task > 7)
+    if (task < 1 || task > 8)
     {
         cout << "Ошибка: теста с указанным номером не сучествует.";
         return 0;
@@ -743,6 +744,45 @@ int main()
         };
         PlaneStressStrain fem(&beam, 1.0, D, fixedPoints, fixedValues, nodalForce, surfaceForce, volumeForce);
         fem.printNodeValuesExtremums();
+        return 0;
+    }
+    if (task == 8)
+    {
+        double l = 10.0;
+        double c = 0.5;
+        double E = 203200.0;
+        double nu = 0.0;
+        double gamma = 10.0;
+        msh::QuadrilateralMesh2D beam(101, 11, -c, -l, 2.0 * c, 2.0 * l);
+        ElasticMatrix D(E, nu, false);
+        // функция закрепления (C++0x)
+        auto fixedPoints = [&](double x, double y)
+        {
+            if (isEquil(y, l))
+                return 0;
+            return -1;
+        };
+        // значения на границе
+        auto fixedValues = [&](double x, double y)
+        {
+            return msh::Point2D(0.0, 0.0);
+        };
+        // узловые нагрузки
+        auto nodalForce = [&](double x, double y)
+        {
+            return msh::Point2D(0.0, 0.0);
+        };
+        auto surfaceForce = [&](double x, double y)
+        {
+            return msh::Point2D(0.0, 0.0);
+        };
+        auto volumeForce = [&](double x, double y)
+        {
+            return msh::Point2D(0.0, -gamma);
+        };
+        PlaneStressStrain fem(&beam, 1.0, D, fixedPoints, fixedValues, nodalForce, surfaceForce, volumeForce);
+        fem.printNodeValuesExtremums();
+        cout << "Сопромат: dL = " << 2.0 * l * gamma * l / E << endl;
         return 0;
     }
 

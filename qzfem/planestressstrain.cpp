@@ -1,5 +1,7 @@
 #include "planestressstrain.h"
 
+#include <iostream>
+
 #include "doublematrix.h"
 #include "doublevector.h"
 #include "rowdoublematrix.h"
@@ -38,6 +40,7 @@ PlaneStressStrain::PlaneStressStrain(QuadrilateralMesh2D *mesh,
         DoubleMatrix local(freedom_ * elementNodes, freedom_ * elementNodes, 0.0);
         double x[elementNodes];
         double y[elementNodes];
+        Point2D vForce[elementNodes]; // значения объемных сил в узлах
         // извлечение координат узлов
         ElementPointer element = mesh->element(elNum);
         for (unsigned int i = 0; i < elementNodes; i++)
@@ -99,6 +102,14 @@ PlaneStressStrain::PlaneStressStrain(QuadrilateralMesh2D *mesh,
                 B(2, 0) = dNdY(0); B(2, 1) = dNdY(1); B(2, 2) = dNdY(2); B(2, 3) = dNdY(3);
                 B(2, 4) = dNdX(0); B(2, 5) = dNdX(1); B(2, 6) = dNdX(2); B(2, 7) = dNdX(3);
                 local += jacobian * wi * wj * thickness * (B.transpose() * D * B);
+                // вычисление объемных сил
+                double xLocal = x[0] * N[0] + x[1] * N[1] + x[2] * N[2] + x[3] * N[3];
+                double yLocal = y[0] * N[0] + y[1] * N[1] + y[2] * N[2] + y[3] * N[3];
+                Point2D fLocal = volumeForce(xLocal, yLocal);
+                for (unsigned int i = 0; i < elementNodes; i++)
+                {
+                    vForce[i] = vForce[i] + (N[i] * jacobian * wi * wj) * fLocal;
+                }
             } // jeta
         } // ieta
         // Ансамблирование
@@ -130,6 +141,12 @@ PlaneStressStrain::PlaneStressStrain(QuadrilateralMesh2D *mesh,
                 if (index_i != index_j) global(index_j, index_i) = global(index_i, index_j);
             } // for j
         } // for i
+        // ансамбль объемных сил
+        for (UInteger i = 0 ; i < elementNodes; i++)
+        {
+            force(element->vertexNode(i)) += vForce[i].x();
+            force(element->vertexNode(i) + nodesCount) += vForce[i].y();
+        }
     } //for elNum
     // узловые нагрузки
     for (UInteger i = 0; i < nodesCount; i++)
@@ -137,7 +154,7 @@ PlaneStressStrain::PlaneStressStrain(QuadrilateralMesh2D *mesh,
         PointPointer point = mesh->node(i);
         Point2D f = nodalForce(point->x(), point->y());
         force(i) += f.x();
-        force(i + nodesCount) = f.y();
+        force(i + nodesCount) += f.y();
     } // for i
     // поверхностные нагрузки
     for (UInteger elNum = 0; elNum < elementsCount; elNum++)
