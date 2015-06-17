@@ -12,6 +12,8 @@
 
 #include "mesh.h"
 
+#include "fem.h"
+
 #include "namedfloatingvector.h"
 
 /**
@@ -52,7 +54,7 @@ public:
      * @param i Номер вектора
      * @return Вектор, значений определенных в узлах
      */
-    NamedFloatingVector &getNodeValues(const unsigned long &i);
+    NamedFloatingVector getNodeValues(const unsigned long &i);
     /**
      * @brief Получить количество векторов со значениями, определенными на элементах
      * @return Количество векторов со значениями, определенными на элементах
@@ -63,7 +65,7 @@ public:
      * @param i Номер вектора
      * @return Вектор, значений определенных на элементах
      */
-    NamedFloatingVector &getElementValues(const unsigned long &i);
+    NamedFloatingVector getElementValues(const unsigned long &i);
 signals:
 
 public slots:
@@ -152,11 +154,17 @@ private:
      * @return Если аргументы корректны (тип Number), то значение дизъюнкции для них, иначе engine->undefinedValue()
      */
     static QScriptValue diff(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief МКЭ: плоское напряжение
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны (тип Number), то значение дизъюнкции для них, иначе engine->undefinedValue()
+     */
+    static QScriptValue planeStress(QScriptContext *context, QScriptEngine *engine);
 private:
     static double epsilon_; //!< Точность численных операций
     static msh::Mesh *mesh_; //!< Сетка, построенная в результате интерпретации скрипта
-    std::vector<NamedFloatingVector> nodeValues_; //!< Массив векторов значений, определенных в узле сетки
-    std::vector<NamedFloatingVector> elementValues_; //!< Массив векторов значений, определенных в узле сетки
+    static Fem *fem_; //!< Результаты МКЭ
 };
 
 #endif // QZSCRIPTENGINE_H

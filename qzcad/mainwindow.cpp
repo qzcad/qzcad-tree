@@ -895,6 +895,9 @@ void MainWindow::on_actionRunScript_triggered()
     {
         clearMesh(ui->pictureControl->getGlMeshPicture()->releaseMesh());
         ui->pictureControl->getGlMeshPicture()->setMesh(engine.mesh());
+
+        for (unsigned i = 0; i < engine.getNodeValuesSize(); i++)
+            ui->pictureControl->getGlMeshPicture()->pushNodeValuesVector(engine.getNodeValues(i));
         ui->tabWidget->setCurrentIndex(0); // switch to picture's tab
     }
 }
