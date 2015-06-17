@@ -26,7 +26,8 @@ SOURCES += hexahedralfem.cpp \
     femforce.cpp \
     quadrilateralfem.cpp \
     elasticmatrix.cpp \
-    gaussquadrature.cpp
+    gaussquadrature.cpp \
+    fem.cpp
 
 HEADERS += hexahedralfem.h \
     globalmatrix.h \
@@ -40,7 +41,8 @@ HEADERS += hexahedralfem.h \
     femforce.h \
     quadrilateralfem.h \
     elasticmatrix.h \
-    gaussquadrature.h
+    gaussquadrature.h \
+    fem.h
 unix {
     target.path = /usr/lib
     INSTALLS += target
