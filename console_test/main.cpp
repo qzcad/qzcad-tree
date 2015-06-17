@@ -7,7 +7,7 @@
 #include <math.h>
 #include "hexahedralfem.h"
 #include "plasticfem.h"
-#include "quadrilateralfem.h"
+#include "planestressstrain.h"
 
 using namespace std;
 using namespace msh;
@@ -672,7 +672,6 @@ int main()
         double P = 100.0;
         msh::QuadrilateralMesh2D beam(41, 17, 0.0, -c, l, 2.0 * c);
         ElasticMatrix D(E, nu, false);
-        QuadrilateralFEM fem;
         // функция закрепления (C++0x)
         auto fixedPoints = [&](double x, double y)
         {
@@ -700,7 +699,8 @@ int main()
         {
             return msh::Point2D(0.0, 0.0);
         };
-        fem.planeStressStrain(&beam, 1.0, D, fixedPoints, fixedValues, nodalForce, surfaceForce, volumeForce);
+        PlaneStressStrain fem(&beam, 1.0, D, fixedPoints, fixedValues, nodalForce, surfaceForce, volumeForce);
+        fem.printNodeValuesExtremums();
         return 0;
     }
     if (task == 7)
@@ -712,7 +712,6 @@ int main()
         double q = 200.0;
         msh::QuadrilateralMesh2D beam(51, 11, -l, -c, 2.0 * l, 2.0 * c);
         ElasticMatrix D(E, nu, false);
-        QuadrilateralFEM fem;
         // функция закрепления (C++0x)
         auto fixedPoints = [&](double x, double y)
         {
@@ -742,7 +741,8 @@ int main()
         {
             return msh::Point2D(0.0, 0.0);
         };
-        fem.planeStressStrain(&beam, 1.0, D, fixedPoints, fixedValues, nodalForce, surfaceForce, volumeForce);
+        PlaneStressStrain fem(&beam, 1.0, D, fixedPoints, fixedValues, nodalForce, surfaceForce, volumeForce);
+        fem.printNodeValuesExtremums();
         return 0;
     }
 

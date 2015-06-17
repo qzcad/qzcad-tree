@@ -6,6 +6,8 @@
 Fem::Fem(Mesh *mesh)
 {
     mesh_ = mesh;
+    freedom_ = 0;
+    elementVectorsCount_ = 0;
 }
 
 Mesh *Fem::mesh()

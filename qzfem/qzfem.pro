@@ -24,10 +24,10 @@ SOURCES += hexahedralfem.cpp \
     plasticfem.cpp \
     forcecondition3d.cpp \
     femforce.cpp \
-    quadrilateralfem.cpp \
     elasticmatrix.cpp \
     gaussquadrature.cpp \
-    fem.cpp
+    fem.cpp \
+    planestressstrain.cpp
 
 HEADERS += hexahedralfem.h \
     globalmatrix.h \
@@ -39,10 +39,10 @@ HEADERS += hexahedralfem.h \
     plasticfem.h \
     forcecondition3d.h \
     femforce.h \
-    quadrilateralfem.h \
     elasticmatrix.h \
     gaussquadrature.h \
-    fem.h
+    fem.h \
+    planestressstrain.h
 unix {
     target.path = /usr/lib
     INSTALLS += target

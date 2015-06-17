@@ -1,52 +1,41 @@
-#include "quadrilateralfem.h"
+#include "planestressstrain.h"
 
-#include <iostream>
-
-#include "gaussquadrature.h"
-#include "doublevector.h"
 #include "doublematrix.h"
-#include "mappeddoublematrix.h"
+#include "doublevector.h"
 #include "rowdoublematrix.h"
+#include "mappeddoublematrix.h"
 
-using namespace mtx;
-
-QuadrilateralFEM::QuadrilateralFEM()
+PlaneStressStrain::PlaneStressStrain(QuadrilateralMesh2D *mesh,
+                                     double thickness,
+                                     const ElasticMatrix &elasticMatrix,
+                                     std::function<int(double, double)> fixFunc,
+                                     std::function<Point2D(double, double)> boundaryValue,
+                                     std::function<Point2D(double, double)> nodalForce,
+                                     std::function<Point2D(double, double)> surfaceForce,
+                                     std::function<Point2D(double, double)> volumeForce) : Fem(mesh)
 {
-}
-
-void QuadrilateralFEM::planeStressStrain(QuadrilateralMesh2D *mesh,
-                                         double thickness,
-                                         const ElasticMatrix &elasticMatrix,
-                                         std::function<int (double, double)> fixFunc,
-                                         std::function<Point2D(double, double)> boundaryValue,
-                                         std::function<Point2D(double, double)> nodalForce,
-                                         std::function<Point2D(double, double)> surfaceForce,
-                                         std::function<Point2D(double, double)> volumeForce)
-{
-    GaussQuadrature quadrature;
-    DoubleVector gpoint;
-    DoubleVector gweight;
+    freedom_ = 2; // количество степеней свободы
+    DoubleVector gpoint; // координаты квадратур Гаусса
+    DoubleVector gweight; // весовые коэффициенты квадратур
     int gaussPoints = 2; // количество точек квадратуры
 
-    unsigned int elementNodes = 4;
+    unsigned int elementNodes = 4; // количество узлов в элементе
 
-    DoubleMatrix D = elasticMatrix.D();
+    DoubleMatrix D = elasticMatrix.D(); // матрица упругости
 
-    UInteger nodesCount = mesh->nodesCount();
-    UInteger elementsCount = mesh->elementsCount();
+    UInteger nodesCount = mesh->nodesCount(); // количество узлов сетки
+    UInteger elementsCount = mesh->elementsCount(); // количество элементов
 
-    UInteger freedom = 2; // количество степеней свободы
-    UInteger dimension = freedom * nodesCount; // размер системы
+    UInteger dimension = freedom_ * nodesCount; // размер системы
 
-    MappedDoubleMatrix global (dimension);
-    DoubleVector force(dimension, 0.0);
-    DoubleVector displacement(dimension);
+    MappedDoubleMatrix global (dimension); // глобальная матрица жесткости
+    DoubleVector force(dimension, 0.0); // вектор сил
 
-    quadrature.quadrature(gaussPoints, gpoint, gweight);
-
+    quadrature(gaussPoints, gpoint, gweight); // генерация квадратур
+    // построение глобальной матрицы жесткости
     for (UInteger elNum = 0; elNum < elementsCount; elNum++)
     {
-        DoubleMatrix local(freedom * elementNodes, freedom * elementNodes, 0.0);
+        DoubleMatrix local(freedom_ * elementNodes, freedom_ * elementNodes, 0.0);
         double x[elementNodes];
         double y[elementNodes];
         // извлечение координат узлов
@@ -115,7 +104,7 @@ void QuadrilateralFEM::planeStressStrain(QuadrilateralMesh2D *mesh,
         // Ансамблирование
         UInteger index_i = 0;
         UInteger index_j = 0;
-        for (unsigned int i = 0; i < elementNodes * freedom; i++)
+        for (unsigned int i = 0; i < elementNodes * freedom_; i++)
         {
             if (i < elementNodes)
             {
@@ -126,7 +115,7 @@ void QuadrilateralFEM::planeStressStrain(QuadrilateralMesh2D *mesh,
                 index_i = element->vertexNode(i - elementNodes) + nodesCount;
             }
 
-            for (unsigned int j = i; j < elementNodes * freedom; j++)
+            for (unsigned int j = i; j < elementNodes * freedom_; j++)
             {
                 if (j < elementNodes)
                 {
@@ -197,121 +186,40 @@ void QuadrilateralFEM::planeStressStrain(QuadrilateralMesh2D *mesh,
         Point2D fixVal = boundaryValue(point->x(), point->y());
         if (fixType == 0 || fixType == 1)
         {
-            for (UInteger j = 0; j < dimension; j++)
-            {
-                if (i != j && global.data(i, j) != 0)
-                { // см. Зенкевич, стр. 485
-                    force(j) = force(j) - global.data(i, j) * fixVal.x();
-                }
-            } // for j
-            global.zeroSym(i);
-            force(i) = fixVal.x();
-            global(i, i) = 1.0;
+            setInitialNodalValue(global, force, i, fixVal.x());
         }
         if (fixType == 0 || fixType == 2)
         {
-            UInteger rowNumber = i + nodesCount;
-            for (UInteger j = 0; j < dimension; j++)
-            {
-                if (rowNumber != j && global.data(rowNumber, j) != 0)
-                { // см. Зенкевич, стр. 485
-                    force(j) = force(j) - global.data(rowNumber, j) * fixVal.y();
-                }
-            } // for j
-            global.zeroSym(rowNumber);
-            force(rowNumber) = fixVal.y();
-            global(rowNumber, rowNumber) = 1.0;
+            setInitialNodalValue(global, force, i + nodesCount, fixVal.y());
         }
     } // for i
 
     RowDoubleMatrix rdm(global);
-    displacement = rdm.conjugateGradient(force);
-    u_.clear();
-    v_.clear();
-    for (UInteger i = 0; i < nodesCount; i++)
-    {
-        u_.push_back(displacement[i]);
-        v_.push_back(displacement[i + nodesCount]);
+    nodeValues_ = rdm.conjugateGradient(force);
+}
+
+std::string PlaneStressStrain::nodeVectorName(UInteger num) const
+{
+    switch (num) {
+    case 0:
+        return "X";
+    case 1:
+        return "Y";
+    default:
+        return "undefined";
     }
-    double maxU = u_[0];
-    double maxV = v_[0];
-    double minU = u_[0];
-    double minV = v_[0];
-    for (UInteger i = 1; i < u_.size(); i++)
-    {
-        double u = u_[i], v = v_[i];
-        // max
-        if (maxU < u)
-        {
-            maxU = u;
-        }
-        if (maxV < v)
-        {
-            maxV = v;
-        }
-        // min
-        if (minU > u)
-        {
-            minU = u;
-        }
-        if (minV > v)
-        {
-            minV = v;
-        }
-    } // for i
-    std::cout << "Первое (x) направление:\t" << minU << " <= U <= " << maxU << std::endl;
-    std::cout << "Второе (y) направление:\t" << minV << " <= V <= " << maxV << std::endl;
 }
 
-std::vector<double> QuadrilateralFEM::u() const
+std::string PlaneStressStrain::elementVectorName(UInteger num) const
 {
-    return u_;
+    switch (num) {
+    case 0:
+        return "Sigma X";
+    case 1:
+        return "Sigma Y";
+    case 2:
+        return "Tau XY";
+    default:
+        return "undefined";
+    }
 }
-
-void QuadrilateralFEM::setU(const std::vector<double> &u)
-{
-    u_ = u;
-}
-
-std::vector<double> QuadrilateralFEM::v() const
-{
-    return v_;
-}
-
-void QuadrilateralFEM::setV(const std::vector<double> &v)
-{
-    v_ = v;
-}
-
-std::vector<double> QuadrilateralFEM::sigmaX() const
-{
-    return sigmaX_;
-}
-
-void QuadrilateralFEM::setSigmaX(const std::vector<double> &sigmaX)
-{
-    sigmaX_ = sigmaX;
-}
-std::vector<double> QuadrilateralFEM::sigmaY() const
-{
-    return sigmaY_;
-}
-
-void QuadrilateralFEM::setSigmaY(const std::vector<double> &sigmaY)
-{
-    sigmaY_ = sigmaY;
-}
-std::vector<double> QuadrilateralFEM::tauXY() const
-{
-    return tauXY_;
-}
-
-void QuadrilateralFEM::setTauXY(const std::vector<double> &tauXY)
-{
-    tauXY_ = tauXY;
-}
-
-
-
-
-
