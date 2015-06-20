@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 
 #include <float.h>
+#include <iomanip>
 
 #include <QMessageBox>
 #include <QTextCodec>
@@ -56,6 +57,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     stdRedirector = new QStdRedirector<>(std::cout, this);
     connect(stdRedirector, SIGNAL(messageChanged(QString)), this, SLOT(onConsoleMessage(QString)));
+
+    std::cout << std::setprecision(10);
 
     std::cout << QTime::currentTime().toString("HH:mm:ss").toStdString() << ": система успешно запущена и готова к использованию..." << std::endl;
 }
@@ -900,6 +903,8 @@ void MainWindow::on_actionRunScript_triggered()
 
         for (unsigned i = 0; i < engine.getNodeValuesSize(); i++)
             ui->pictureControl->getGlMeshPicture()->pushNodeValuesVector(engine.getNodeValues(i));
+        for (unsigned i = 0; i < engine.getElementValuesSize(); i++)
+            ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(engine.getElementValues(i));
         ui->tabWidget->setCurrentIndex(0); // switch to picture's tab
     }
 }

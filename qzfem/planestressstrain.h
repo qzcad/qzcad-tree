@@ -16,6 +16,10 @@
 #include "quadrilateralmesh2d.h"
 using namespace msh;
 
+#include "doublematrix.h"
+#include "doublevector.h"
+using namespace mtx;
+
 /**
  * @brief Класс для решения задач плоского напряжения и плоской деформации МКЭ
  */
@@ -53,6 +57,20 @@ public:
      * @return Название вектора значений, определенных на элеменете
      */
     virtual std::string elementVectorName(UInteger num) const;
+protected:
+    /**
+     * @brief Метод для построения значений функций формы билинейного элемента
+     * @param xi Значение параметра первого направления местной системы координат
+     * @param eta Значения параметра второго направления местной системы координат
+     * @param x Массив x-координат узлов
+     * @param y Массив y-координат узлов
+     * @param N Значения функций формы
+     * @param dNdX Значения x-производной функций формы
+     * @param dNdY Значения y-производной функций формы
+     * @return Якобиан преобразования в местную систему координат
+     */
+    double isoQuad4(const double &xi, const double &eta, double x[], double y[],
+                    DoubleVector &N, DoubleVector &dNdX, DoubleVector &dNdY);
 };
 
 #endif // PLANESTRESSSTRAIN_H

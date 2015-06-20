@@ -2,10 +2,10 @@
 
 #include <iostream>
 
-#include "doublematrix.h"
-#include "doublevector.h"
 #include "rowdoublematrix.h"
 #include "mappeddoublematrix.h"
+
+#include "consoleprogress.h"
 
 PlaneStressStrain::PlaneStressStrain(QuadrilateralMesh2D *mesh,
                                      double thickness,
@@ -35,8 +35,13 @@ PlaneStressStrain::PlaneStressStrain(QuadrilateralMesh2D *mesh,
 
     quadrature(gaussPoints, gpoint, gweight); // генерация квадратур
     // построение глобальной матрицы жесткости
+    std::cout << "Stiffness Matrix & Volume Forces (матрица жесткости и объемные силы)...";
+    ConsoleProgress progressBar(elementsCount);
+
     for (UInteger elNum = 0; elNum < elementsCount; elNum++)
     {
+
+        ++progressBar;
         DoubleMatrix local(freedom_ * elementNodes, freedom_ * elementNodes, 0.0);
         double x[elementNodes];
         double y[elementNodes];
@@ -57,44 +62,13 @@ PlaneStressStrain::PlaneStressStrain(QuadrilateralMesh2D *mesh,
             {
                 double eta = gpoint(jeta);
                 double wj = gweight(jeta);
-
+                // значения функций формы
                 DoubleVector N(elementNodes);
-                DoubleVector dNdXi(elementNodes);
-                DoubleVector dNdEta(elementNodes);
-                DoubleMatrix Jacobi(2, 0.0); // матрица Якоби
+                // значения производных функций формы
                 DoubleVector dNdX(elementNodes);
                 DoubleVector dNdY(elementNodes);
-                // билинейные функции формы
-                N(0) = (1.0 - xi) * (1.0 - eta) / 4.0;
-                N(1) = (1.0 + xi) * (1.0 - eta) / 4.0;
-                N(2) = (1.0 + xi) * (1.0 + eta) / 4.0;
-                N(3) = (1.0 - xi) * (1.0 + eta) / 4.0;
-                // производные функций формы
-                dNdXi(0) = -(1.0 - eta) / 4.0;
-                dNdXi(1) = (1.0 - eta) / 4.0;
-                dNdXi(2) = (1.0 + eta) / 4.0;
-                dNdXi(3) = -(1.0 + eta) / 4.0;
-
-                dNdEta(0) = -(1.0 - xi) / 4.0;
-                dNdEta(1) = -(1.0 + xi) / 4.0;
-                dNdEta(2) = (1.0 + xi) / 4.0;
-                dNdEta(3) = (1.0 - xi) / 4.0;
-                // матрица Якоби
-                for (unsigned int i = 0; i < elementNodes; i++)
-                {
-                    Jacobi(0, 0) += dNdXi(i) * x[i];  Jacobi(0, 1) += dNdXi(i) * y[i];
-                    Jacobi(1, 0) += dNdEta(i) * x[i]; Jacobi(1, 1) += dNdEta(i) * y[i];
-                }
                 // якобиан
-                double jacobian = Jacobi.det2x2();
-                // обратный якобиан
-                DoubleMatrix invJacobi = Jacobi.inverted2x2();
-                // производные в глобальных координатах
-                for (unsigned int i = 0; i < elementNodes; i++)
-                {
-                    dNdX(i) = invJacobi(0, 0) * dNdXi(i) + invJacobi(0, 1) * dNdEta(i);
-                    dNdY(i) = invJacobi(1, 0) * dNdXi(i) + invJacobi(1, 1) * dNdEta(i);
-                }
+                double jacobian = isoQuad4(xi, eta, x, y, N, dNdX, dNdY);
                 //
                 DoubleMatrix B(3, 8, 0.0);
                 B(0, 0) = dNdX(0); B(0, 1) = dNdX(1); B(0, 2) = dNdX(2); B(0, 3) = dNdX(3);
@@ -148,17 +122,28 @@ PlaneStressStrain::PlaneStressStrain(QuadrilateralMesh2D *mesh,
             force(element->vertexNode(i) + nodesCount) += vForce[i].y();
         }
     } //for elNum
+
     // узловые нагрузки
+    std::cout << "Nodal Forces (узловые нагрузки)...";
+    progressBar.restart(nodesCount);
     for (UInteger i = 0; i < nodesCount; i++)
     {
         PointPointer point = mesh->node(i);
         Point2D f = nodalForce(point->x(), point->y());
         force(i) += f.x();
         force(i + nodesCount) += f.y();
+
+        ++progressBar;
     } // for i
+
     // поверхностные нагрузки
+    std::cout << "Surface Forces (поверхностные нагрузки)...";
+    progressBar.restart(elementsCount);
+    double length = 0.0;
     for (UInteger elNum = 0; elNum < elementsCount; elNum++)
     {
+        ++progressBar;
+
         if (mesh->isBorderElement(elNum))
         {
             ElementPointer element = mesh->element(elNum);
@@ -173,6 +158,7 @@ PlaneStressStrain::PlaneStressStrain(QuadrilateralMesh2D *mesh,
                     Point2D p1(point1->x(), point1->y());
                     double l = p0.distanceTo(p1);
                     double jacobian = l / 2.0;
+                    length += l;
                     Point2D f0(0.0, 0.0);
                     Point2D f1(0.0, 0.0);
                     for (int ixi = 0; ixi < gaussPoints; ixi++)
@@ -195,7 +181,10 @@ PlaneStressStrain::PlaneStressStrain(QuadrilateralMesh2D *mesh,
             } // for i
         } // if
     } // for elNum
+    std::cout << "length = " << length << std::endl;
     // учет граничных условий
+    std::cout << "Boundary Conditions (граничные условия)...";
+    progressBar.restart(nodesCount);
     for (UInteger i = 0; i < nodesCount; i++)
     {
         PointPointer point = mesh->node(i);
@@ -209,10 +198,64 @@ PlaneStressStrain::PlaneStressStrain(QuadrilateralMesh2D *mesh,
         {
             setInitialNodalValue(global, force, i + nodesCount, fixVal.y());
         }
-    } // for i
 
+        ++progressBar;
+    } // for i
+    // решение СЛАУ
+    std::cout << "Linear Equations (СЛАУ)..." << std::endl;
     RowDoubleMatrix rdm(global);
     nodeValues_ = rdm.conjugateGradient(force);
+
+    // вычисление напряжений
+    elementVectorsCount_ = 3;
+    elementValues_.resize(elementVectorsCount_ * elementsCount);
+    std::cout << "Stresses (напряжения)...";
+    progressBar.restart(elementsCount);
+    for (UInteger elNum = 0; elNum < elementsCount; elNum++)
+    {
+
+        ++progressBar;
+
+        double x[elementNodes];
+        double y[elementNodes];
+        // извлечение координат узлов
+        ElementPointer element = mesh->element(elNum);
+        for (unsigned int i = 0; i < elementNodes; i++)
+        {
+            PointPointer point = mesh->node(element->vertexNode(i));
+            x[i] = point->x();
+            y[i] = point->y();
+        }
+
+        double xi = 0.0;
+        double eta = 0.0;
+
+        DoubleVector N(elementNodes);
+        DoubleVector dNdX(elementNodes);
+        DoubleVector dNdY(elementNodes);
+        DoubleMatrix displacement((size_type)(freedom_ * elementNodes), (size_type)1);
+        DoubleMatrix sigma((size_type)3, (size_type)1);
+        // якобиан
+        double jacobian = isoQuad4(xi, eta, x, y, N, dNdX, dNdY);
+        //
+        DoubleMatrix B(3, 8, 0.0);
+        B(0, 0) = dNdX(0); B(0, 1) = dNdX(1); B(0, 2) = dNdX(2); B(0, 3) = dNdX(3);
+        B(1, 4) = dNdY(0); B(1, 5) = dNdY(1); B(1, 6) = dNdY(2); B(1, 7) = dNdY(3);
+        B(2, 0) = dNdY(0); B(2, 1) = dNdY(1); B(2, 2) = dNdY(2); B(2, 3) = dNdY(3);
+        B(2, 4) = dNdX(0); B(2, 5) = dNdX(1); B(2, 6) = dNdX(2); B(2, 7) = dNdX(3);
+
+        for (unsigned int i = 0; i < elementNodes; i++)
+        {
+            displacement(i, 0) = nodeValues_[element->vertexNode(i)];
+            displacement(i + elementNodes, 0) = nodeValues_[element->vertexNode(i) + nodesCount];
+        }
+
+        sigma = (D * B) * displacement;
+
+        elementValues_[elNum] = sigma(0, 0);
+        elementValues_[elNum + elementsCount] = sigma(1, 0);
+        elementValues_[elNum + 2UL * elementsCount] = sigma(2, 0);
+    } //for elNum
 }
 
 std::string PlaneStressStrain::nodeVectorName(UInteger num) const
@@ -239,4 +282,44 @@ std::string PlaneStressStrain::elementVectorName(UInteger num) const
     default:
         return "undefined";
     }
+}
+
+double PlaneStressStrain::isoQuad4(const double &xi, const double &eta, double x[], double y[], DoubleVector &N, DoubleVector &dNdX, DoubleVector &dNdY)
+{
+    const unsigned int elementNodes = 4;
+    DoubleVector dNdXi(elementNodes);
+    DoubleVector dNdEta(elementNodes);
+    DoubleMatrix Jacobi(2, 0.0); // матрица Якоби
+    // билинейные функции формы
+    N(0) = (1.0 - xi) * (1.0 - eta) / 4.0;
+    N(1) = (1.0 + xi) * (1.0 - eta) / 4.0;
+    N(2) = (1.0 + xi) * (1.0 + eta) / 4.0;
+    N(3) = (1.0 - xi) * (1.0 + eta) / 4.0;
+    // производные функций формы
+    dNdXi(0) = -(1.0 - eta) / 4.0;
+    dNdXi(1) = (1.0 - eta) / 4.0;
+    dNdXi(2) = (1.0 + eta) / 4.0;
+    dNdXi(3) = -(1.0 + eta) / 4.0;
+
+    dNdEta(0) = -(1.0 - xi) / 4.0;
+    dNdEta(1) = -(1.0 + xi) / 4.0;
+    dNdEta(2) = (1.0 + xi) / 4.0;
+    dNdEta(3) = (1.0 - xi) / 4.0;
+    // матрица Якоби
+    for (unsigned int i = 0; i < elementNodes; i++)
+    {
+        Jacobi(0, 0) += dNdXi(i) * x[i];  Jacobi(0, 1) += dNdXi(i) * y[i];
+        Jacobi(1, 0) += dNdEta(i) * x[i]; Jacobi(1, 1) += dNdEta(i) * y[i];
+    }
+    // якобиан
+    double jacobian = Jacobi.det2x2();
+    // обратный якобиан
+    DoubleMatrix invJacobi = Jacobi.inverted2x2();
+    // производные в глобальных координатах
+    for (unsigned int i = 0; i < elementNodes; i++)
+    {
+        dNdX(i) = invJacobi(0, 0) * dNdXi(i) + invJacobi(0, 1) * dNdEta(i);
+        dNdY(i) = invJacobi(1, 0) * dNdXi(i) + invJacobi(1, 1) * dNdEta(i);
+    }
+    return jacobian;
 }

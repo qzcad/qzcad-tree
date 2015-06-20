@@ -63,7 +63,7 @@ void Fem::printNodeValuesExtremums() const
             if (max < v) max = v;
             if (min > v) min = v;
         }
-        std::cout << f << "\t:\t" << min << " <= " << nodeVectorName(f) << " <= " << max << std::endl;
+        std::cout << f+1 << ":\t" << min << " <= " << nodeVectorName(f) << " <= " << max << std::endl;
     }
 }
 
@@ -81,7 +81,7 @@ void Fem::printElementValuesExtremums() const
             if (max < v) max = v;
             if (min > v) min = v;
         }
-        std::cout << f << "\t:\t" << min << " <= " << elementVectorName(f) << " <= " << max << std::endl;
+        std::cout << f+1 << ":\t" << min << " <= " << elementVectorName(f) << " <= " << max << std::endl;
     }
 }
 

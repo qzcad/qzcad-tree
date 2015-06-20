@@ -53,9 +53,9 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab">
+      <widget class="QWidget" name="tabTerminal">
        <attribute name="title">
-        <string>Terminal</string>
+        <string>Журнал</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_6">
         <item>
