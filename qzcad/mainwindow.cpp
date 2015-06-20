@@ -818,6 +818,7 @@ void MainWindow::on_actionExtremeValuesStatistica_triggered()
     msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
     if (mesh != NULL)
     {
+        ui->tabWidget->setCurrentIndex(2); // switch to terminal's tab
         NamedFloatingVector nfv = ui->pictureControl->getGlMeshPicture()->currentValuesVector();
         std::cout << std::endl;
         if (mesh->elementsCount() == nfv.size())
@@ -882,6 +883,7 @@ void MainWindow::on_actionRunScript_triggered()
 {
     QZScriptEngine engine(this);
     QTime time;
+    ui->tabWidget->setCurrentIndex(2); // switch to terminal's tab
     std::cout << std::endl;
     std::cout << "QZScriptEngine started..." << std::endl;
     time.start();
@@ -907,6 +909,7 @@ void MainWindow::on_actionJacobianMetric_triggered()
     msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
     if (mesh != NULL)
     {
+        ui->tabWidget->setCurrentIndex(2); // switch to terminal's tab
         std::cout << std::endl;
         std::cout << "Вчисление значений якобиана... ";
         double min = 0.0, max = 0.0;
@@ -944,6 +947,7 @@ void MainWindow::on_actionLengthAspect_triggered()
     msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
     if (mesh != NULL)
     {
+        ui->tabWidget->setCurrentIndex(2); // switch to terminal's tab
         std::cout << std::endl;
         std::cout << "Вычисление соотношений длин сторон элементов... ";
         double min = 0.0, max = 0.0;
@@ -980,6 +984,7 @@ void MainWindow::on_actionMinAngleMetric_triggered()
     msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
     if (mesh != NULL)
     {
+        ui->tabWidget->setCurrentIndex(2); // switch to terminal's tab
         std::cout << std::endl;
         std::cout << "Вычисление значений минимальных углов... ";
         double min = 0.0, max = 0.0;
@@ -1016,6 +1021,7 @@ void MainWindow::on_actionAngleAspect_triggered()
     msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
     if (mesh != NULL)
     {
+        ui->tabWidget->setCurrentIndex(2); // switch to terminal's tab
         std::cout << std::endl;
         std::cout << "Вычисление соотношений углов... ";
         double min = 0.0, max = 0.0;

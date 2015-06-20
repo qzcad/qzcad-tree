@@ -53,6 +53,28 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="tab">
+       <attribute name="title">
+        <string>Terminal</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_6">
+        <item>
+         <widget class="QTextEdit" name="terminalText">
+          <property name="font">
+           <font>
+            <family>Monospace</family>
+           </font>
+          </property>
+          <property name="documentTitle">
+           <string>Сообщения системы</string>
+          </property>
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -267,40 +289,6 @@
          <string>ID</string>
         </property>
        </column>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-  </widget>
-  <widget class="QDockWidget" name="dockWidgetTerminal">
-   <property name="windowIcon">
-    <iconset resource="qzresources.qrc">
-     <normaloff>:/icons/qzicons/24x24/terminal.png</normaloff>:/icons/qzicons/24x24/terminal.png</iconset>
-   </property>
-   <property name="floating">
-    <bool>false</bool>
-   </property>
-   <property name="windowTitle">
-    <string>Терминал</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>1</number>
-   </attribute>
-   <widget class="QWidget" name="dockWidgetContents_2">
-    <layout class="QVBoxLayout" name="verticalLayout_2">
-     <item>
-      <widget class="QTextEdit" name="terminalText">
-       <property name="font">
-        <font>
-         <family>Monospace</family>
-        </font>
-       </property>
-       <property name="documentTitle">
-        <string>Сообщения системы</string>
-       </property>
-       <property name="readOnly">
-        <bool>true</bool>
-       </property>
       </widget>
      </item>
     </layout>
