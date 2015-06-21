@@ -357,6 +357,7 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
             Point2D inner = current;
             Point2D outer = current + sqrt(hx*hx + hy*hy) * n;
             Point2D mid;
+            double val = 0.0;
             if (func(outer.x(), outer.y()) > 0.0)
             {
                 // внешняя точка перескачила через границу и попала внутрь
@@ -368,12 +369,12 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
             do
             {
                 mid = 0.5 * (inner + outer);
-                double val = func(mid.x(), mid.y());
+                val = func(mid.x(), mid.y());
                 if (val <= 0.0)
                     outer = mid;
                 else //if (val > 0.0)
                     inner = mid;
-            } while(inner.distanceTo(outer) > epsilon_);
+            } while(fabs(val) > epsilon_);
 
             // поиск соответствующей характерной точки
             for (std::list<Point2D>::iterator cPoint = charPoint.begin(); cPoint != charPoint.end(); ++cPoint)
