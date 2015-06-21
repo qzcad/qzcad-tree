@@ -92,6 +92,7 @@ NamedFloatingVector QZScriptEngine::getNodeValues(const unsigned long &i)
 
 unsigned long QZScriptEngine::getElementValuesSize() const
 {
+    if (fem_ == NULL) return 0;
     return fem_->elementVectorsCount();
 }
 
@@ -423,10 +424,10 @@ QScriptValue QZScriptEngine::planeStress(QScriptContext *context, QScriptEngine 
         {
             mesh_ = new QuadrilateralMesh2D(qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)));
         }
-//        else if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != NULL)
-//        {
-//            mesh_ = new TriangleMesh2D(qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)));
-//        }
+        else if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != NULL)
+        {
+            mesh_ = new TriangleMesh2D(qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)));
+        }
         else
         {
             return context->throwError(typeError.arg("mesh"));
@@ -517,6 +518,15 @@ QScriptValue QZScriptEngine::planeStress(QScriptContext *context, QScriptEngine 
                                           nodalForceFunc,
                                           surfaceForceFunc,
                                           volumeForceFunc);
+        if (dynamic_cast<TriangleMesh2D*>(mesh_))
+            fem_ = new PlaneStressStrain (dynamic_cast<TriangleMesh2D*>(mesh_), //!
+                                          h,
+                                          D,
+                                          boundaryConditionTypeFunc,
+                                          boundaryValueFunc,
+                                          nodalForceFunc,
+                                          surfaceForceFunc,
+                                          volumeForceFunc);
 
         fem_->printNodeValuesExtremums();
         fem_->printElementValuesExtremums();
@@ -537,10 +547,10 @@ QScriptValue QZScriptEngine::planeStrain(QScriptContext *context, QScriptEngine 
         {
             mesh_ = new QuadrilateralMesh2D(qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)));
         }
-//        else if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != NULL)
-//        {
-//            mesh_ = new TriangleMesh2D(qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)));
-//        }
+        else if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != NULL)
+        {
+            mesh_ = new TriangleMesh2D(qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)));
+        }
         else
         {
             return context->throwError(typeError.arg("mesh"));
@@ -624,6 +634,15 @@ QScriptValue QZScriptEngine::planeStrain(QScriptContext *context, QScriptEngine 
 
         if (dynamic_cast<QuadrilateralMesh2D*>(mesh_))
             fem_ = new PlaneStressStrain (dynamic_cast<QuadrilateralMesh2D*>(mesh_), //!
+                                          h,
+                                          D,
+                                          boundaryConditionTypeFunc,
+                                          boundaryValueFunc,
+                                          nodalForceFunc,
+                                          surfaceForceFunc,
+                                          volumeForceFunc);
+        if (dynamic_cast<TriangleMesh2D*>(mesh_))
+            fem_ = new PlaneStressStrain (dynamic_cast<TriangleMesh2D*>(mesh_), //!
                                           h,
                                           D,
                                           boundaryConditionTypeFunc,

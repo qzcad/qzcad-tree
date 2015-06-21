@@ -14,6 +14,7 @@
 #include "elasticmatrix.h"
 
 #include "quadrilateralmesh2d.h"
+#include "trianglemesh2d.h"
 using namespace msh;
 
 #include "doublematrix.h"
@@ -26,6 +27,8 @@ using namespace mtx;
 class PlaneStressStrain : public Fem
 {
 public:
+    typedef std::function<int(double, double)> BoundaryConditionFunction;
+    typedef std::function<Point2D(double, double)> ValueFunction;
     /**
      * @brief Конструктор для решения задачи исследования плоского напряженного или плоского деформированного состояния двумерного объекта
      * @param mesh Указатель на сетку
@@ -40,11 +43,30 @@ public:
     PlaneStressStrain(QuadrilateralMesh2D *mesh,
                       double thickness,
                       const ElasticMatrix &elasticMatrix,
-                      std::function<int(double, double)> fixFunc,
-                      std::function<Point2D(double, double)> boundaryValue,
-                      std::function<Point2D(double, double)> nodalForce,
-                      std::function<Point2D(double, double)> surfaceForce,
-                      std::function<Point2D(double, double)> volumeForce);
+                      BoundaryConditionFunction fixFunc,
+                      ValueFunction boundaryValue,
+                      ValueFunction nodalForce,
+                      ValueFunction surfaceForce,
+                      ValueFunction volumeForce);
+    /**
+     * @brief Конструктор для решения задачи исследования плоского напряженного или плоского деформированного состояния двумерного объекта
+     * @param mesh Указатель на сетку
+     * @param thickness Толщина объекта
+     * @param elasticMatrix Матрица упругости
+     * @param fixFunc Функция условий закрепеления (параметры - координаты; возвращает 0, если начальное значение применяется для обеих компонент перемещения, 1 - начальные значения при меняются только в первом направлении, 2 - зтолько во втором напралении)
+     * @param boundaryValue Функция начальных значений (параметры - координаты; результат начальные перемещения, соответствующие узлу с указанными координатами)
+     * @param nodalForce Функция узловых нагрузок
+     * @param surfaceForce Функция поверхностных нагрузок
+     * @param volumeForce Фукнция объемных нагрузок
+     */
+    PlaneStressStrain(TriangleMesh2D *mesh,
+                      double thickness,
+                      const ElasticMatrix &elasticMatrix,
+                      BoundaryConditionFunction fixFunc,
+                      ValueFunction boundaryValue,
+                      ValueFunction nodalForce,
+                      ValueFunction surfaceForce,
+                      ValueFunction volumeForce);
     /**
      * @brief Метод возвращает название вектора узловых значений
      * @param num Номер вектора узловых значений
@@ -59,7 +81,7 @@ public:
     virtual std::string elementVectorName(UInteger num) const;
 protected:
     /**
-     * @brief Метод для построения значений функций формы билинейного элемента
+     * @brief Метод для построения значений функций формы билинейного четырехугольного элемента
      * @param xi Значение параметра первого направления местной системы координат
      * @param eta Значения параметра второго направления местной системы координат
      * @param x Массив x-координат узлов
@@ -70,6 +92,19 @@ protected:
      * @return Якобиан преобразования в местную систему координат
      */
     double isoQuad4(const double &xi, const double &eta, double x[], double y[],
+                    DoubleVector &N, DoubleVector &dNdX, DoubleVector &dNdY);
+    /**
+     * @brief Метод для построения значений функций формы линейного треугольного элемента
+     * @param xi Значение параметра первого направления местной системы координат
+     * @param eta Значения параметра второго направления местной системы координат
+     * @param x Массив x-координат узлов
+     * @param y Массив y-координат узлов
+     * @param N Значения функций формы
+     * @param dNdX Значения x-производной функций формы
+     * @param dNdY Значения y-производной функций формы
+     * @return Якобиан преобразования в местную систему координат
+     */
+    double isoTriangle3(const double &xi, const double &eta, double x[], double y[],
                     DoubleVector &N, DoubleVector &dNdX, DoubleVector &dNdY);
 };
 
