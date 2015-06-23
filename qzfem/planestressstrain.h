@@ -10,7 +10,7 @@
 
 #include <functional>
 
-#include "fem.h"
+#include "fem2d.h"
 #include "elasticmatrix.h"
 
 #include "quadrilateralmesh2d.h"
@@ -24,11 +24,9 @@ using namespace mtx;
 /**
  * @brief Класс для решения задач плоского напряжения и плоской деформации МКЭ
  */
-class PlaneStressStrain : public Fem
+class PlaneStressStrain : public Fem2D
 {
 public:
-    typedef std::function<int(double, double)> BoundaryConditionFunction;
-    typedef std::function<Point2D(double, double)> ValueFunction;
     /**
      * @brief Конструктор для решения задачи исследования плоского напряженного или плоского деформированного состояния двумерного объекта
      * @param mesh Указатель на сетку
@@ -44,10 +42,10 @@ public:
                       double thickness,
                       const ElasticMatrix &elasticMatrix,
                       BoundaryConditionFunction fixFunc,
-                      ValueFunction boundaryValue,
-                      ValueFunction nodalForce,
-                      ValueFunction surfaceForce,
-                      ValueFunction volumeForce);
+                      VectorFunction2D boundaryValue,
+                      VectorFunction2D nodalForce,
+                      VectorFunction2D surfaceForce,
+                      VectorFunction2D volumeForce);
     /**
      * @brief Конструктор для решения задачи исследования плоского напряженного или плоского деформированного состояния двумерного объекта
      * @param mesh Указатель на сетку
@@ -63,10 +61,10 @@ public:
                       double thickness,
                       const ElasticMatrix &elasticMatrix,
                       BoundaryConditionFunction fixFunc,
-                      ValueFunction boundaryValue,
-                      ValueFunction nodalForce,
-                      ValueFunction surfaceForce,
-                      ValueFunction volumeForce);
+                      VectorFunction2D boundaryValue,
+                      VectorFunction2D nodalForce,
+                      VectorFunction2D surfaceForce,
+                      VectorFunction2D volumeForce);
     /**
      * @brief Метод возвращает название вектора узловых значений
      * @param num Номер вектора узловых значений
@@ -79,33 +77,6 @@ public:
      * @return Название вектора значений, определенных на элеменете
      */
     virtual std::string elementVectorName(UInteger num) const;
-protected:
-    /**
-     * @brief Метод для построения значений функций формы билинейного четырехугольного элемента
-     * @param xi Значение параметра первого направления местной системы координат
-     * @param eta Значения параметра второго направления местной системы координат
-     * @param x Массив x-координат узлов
-     * @param y Массив y-координат узлов
-     * @param N Значения функций формы
-     * @param dNdX Значения x-производной функций формы
-     * @param dNdY Значения y-производной функций формы
-     * @return Якобиан преобразования в местную систему координат
-     */
-    double isoQuad4(const double &xi, const double &eta, double x[], double y[],
-                    DoubleVector &N, DoubleVector &dNdX, DoubleVector &dNdY);
-    /**
-     * @brief Метод для построения значений функций формы линейного треугольного элемента
-     * @param xi Значение параметра первого направления местной системы координат
-     * @param eta Значения параметра второго направления местной системы координат
-     * @param x Массив x-координат узлов
-     * @param y Массив y-координат узлов
-     * @param N Значения функций формы
-     * @param dNdX Значения x-производной функций формы
-     * @param dNdY Значения y-производной функций формы
-     * @return Якобиан преобразования в местную систему координат
-     */
-    double isoTriangle3(const double &xi, const double &eta, double x[], double y[],
-                    DoubleVector &N, DoubleVector &dNdX, DoubleVector &dNdY);
 };
 
 #endif // PLANESTRESSSTRAIN_H

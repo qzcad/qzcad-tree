@@ -27,7 +27,9 @@ SOURCES += hexahedralfem.cpp \
     elasticmatrix.cpp \
     gaussquadrature.cpp \
     fem.cpp \
-    planestressstrain.cpp
+    planestressstrain.cpp \
+    mindlinplatebending.cpp \
+    fem2d.cpp
 
 HEADERS += hexahedralfem.h \
     globalmatrix.h \
@@ -42,7 +44,9 @@ HEADERS += hexahedralfem.h \
     elasticmatrix.h \
     gaussquadrature.h \
     fem.h \
-    planestressstrain.h
+    planestressstrain.h \
+    mindlinplatebending.h \
+    fem2d.h
 unix {
     target.path = /usr/lib
     INSTALLS += target
