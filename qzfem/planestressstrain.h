@@ -9,9 +9,12 @@
 #define PLANESTRESSSTRAIN_H
 
 #include <functional>
+#include <list>
 
 #include "fem2d.h"
 #include "elasticmatrix.h"
+
+#include "femcondition.h"
 
 #include "quadrilateralmesh2d.h"
 #include "trianglemesh2d.h"
@@ -48,6 +51,17 @@ public:
                       VectorFunction2D volumeForce);
     /**
      * @brief Конструктор для решения задачи исследования плоского напряженного или плоского деформированного состояния двумерного объекта
+     * @param mesh Указатель на сетку четырехугольников
+     * @param thickness Толщина объекта
+     * @param elasticMatrix Матрица упругости
+     * @param conditions Список указателей на граничные условия и силы
+     */
+    PlaneStressStrain(QuadrilateralMesh2D *mesh,
+                      double thickness,
+                      const ElasticMatrix &elasticMatrix,
+                      std::list<FemCondition *> conditions);
+    /**
+     * @brief Конструктор для решения задачи исследования плоского напряженного или плоского деформированного состояния двумерного объекта
      * @param mesh Указатель на сетку
      * @param thickness Толщина объекта
      * @param elasticMatrix Матрица упругости
@@ -65,6 +79,17 @@ public:
                       VectorFunction2D nodalForce,
                       VectorFunction2D surfaceForce,
                       VectorFunction2D volumeForce);
+    /**
+     * @brief Конструктор для решения задачи исследования плоского напряженного или плоского деформированного состояния двумерного объекта
+     * @param mesh Указатель на сетку треугольников
+     * @param thickness Толщина объекта
+     * @param elasticMatrix Матрица упругости
+     * @param conditions Список указателей на граничные условия и силы
+     */
+    PlaneStressStrain(TriangleMesh2D *mesh,
+                      double thickness,
+                      const ElasticMatrix &elasticMatrix,
+                      std::list<FemCondition *> conditions);
     /**
      * @brief Метод возвращает название вектора узловых значений
      * @param num Номер вектора узловых значений

@@ -168,6 +168,34 @@ private:
      * @return Если аргументы корректны (тип Number), то значение дизъюнкции для них, иначе engine->undefinedValue()
      */
     static QScriptValue planeStrain(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief Функция регистрации граничного условия
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны, то зарегистрированное граничное условие, иначе engine->undefinedValue()
+     */
+    static QScriptValue createBoundaryCondition(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief Функция регистрации узловой нагрузки
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны, то зарегистрированное граничное условие, иначе engine->undefinedValue()
+     */
+    static QScriptValue createNodalForce(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief Функция регистрации поверхностной нагрузки
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны, то зарегистрированное граничное условие, иначе engine->undefinedValue()
+     */
+    static QScriptValue createSurfaceForce(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief Функция регистрации объемной нагрузки
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны, то зарегистрированное граничное условие, иначе engine->undefinedValue()
+     */
+    static QScriptValue createVolumeForce(QScriptContext *context, QScriptEngine *engine);
 private:
     static double epsilon_; //!< Точность численных операций
     static msh::Mesh *mesh_; //!< Сетка, построенная в результате интерпретации скрипта

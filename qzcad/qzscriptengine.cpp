@@ -6,6 +6,8 @@
 #include "qquadrilateralmesh2d.h"
 #include "qtrianglemesh2d.h"
 
+#include "qfemcondition.h"
+
 #include "planestressstrain.h"
 
 #include "qzscriptengine.h"
@@ -62,6 +64,15 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     globalObject().setProperty("PlaneStress", qsPlaneStress);
     QScriptValue qsPlaneStrain = newFunction(planeStrain);
     globalObject().setProperty("PlaneStrain", qsPlaneStrain);
+
+    QScriptValue qsBoundaryCondition = newFunction(createBoundaryCondition);
+    globalObject().setProperty("BoundaryCondition", qsBoundaryCondition);
+    QScriptValue qsNodalForce = newFunction(createNodalForce);
+    globalObject().setProperty("NodalForce", qsNodalForce);
+    QScriptValue qsSurfaceForce = newFunction(createSurfaceForce);
+    globalObject().setProperty("SurfaceForce", qsSurfaceForce);
+    QScriptValue qsVolumeForce = newFunction(createVolumeForce);
+    globalObject().setProperty("VolumeForce", qsVolumeForce);
 }
 
 double QZScriptEngine::epsilon() const
@@ -415,9 +426,128 @@ QScriptValue QZScriptEngine::diff(QScriptContext *context, QScriptEngine *engine
 
 QScriptValue QZScriptEngine::planeStress(QScriptContext *context, QScriptEngine *engine)
 {
-    if (context->argumentCount() == 9)
+//    if (context->argumentCount() == 9)
+//    {
+//        QString typeError = QObject::tr("PlaneStress(mesh: Mesh, h: Floating, E: Floating, nu: Floating, boundaryConditionType: Function, boundaryValue: Function, nodalForce: Function, surfaceForce: Function, volumeForce: Function): argument type error (%1).");
+//        if (!context->argument(0).isQObject())
+//            return context->throwError(typeError.arg("mesh"));
+//        if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != NULL)
+//        {
+//            mesh_ = new QuadrilateralMesh2D(qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)));
+//        }
+//        else if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != NULL)
+//        {
+//            mesh_ = new TriangleMesh2D(qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)));
+//        }
+//        else
+//        {
+//            return context->throwError(typeError.arg("mesh"));
+//        }
+
+//        if (!context->argument(1).isNumber())
+//            return context->throwError(typeError.arg("h"));
+
+//        if (!context->argument(2).isNumber())
+//            return context->throwError(typeError.arg("E"));
+
+//        if (!context->argument(3).isNumber())
+//            return context->throwError(typeError.arg("nu"));
+
+//        QScriptValue boundaryConditionType = context->argument(4);
+//        if (!boundaryConditionType.isFunction())
+//            return context->throwError(typeError.arg("boundaryConditionType"));
+
+//        QScriptValue boundaryValue = context->argument(5);
+//        if (!boundaryValue.isFunction())
+//            return context->throwError(typeError.arg("boundaryValue"));
+
+//        QScriptValue nodalForce = context->argument(6);
+//        if (!nodalForce.isFunction())
+//            return context->throwError(typeError.arg("nodalForce"));
+
+//        QScriptValue surfaceForce = context->argument(7);
+//        if (!surfaceForce.isFunction())
+//            return context->throwError(typeError.arg("surfaceForce"));
+
+//        QScriptValue volumeForce = context->argument(8);
+//        if (!volumeForce.isFunction())
+//            return context->throwError(typeError.arg("volumeForce"));
+
+//        double h = context->argument(1).toNumber();
+//        double E = context->argument(2).toNumber();
+//        double nu = context->argument(3).toNumber();
+//        // функция отбора узлов для применения граничных условий
+//        auto boundaryConditionTypeFunc = [&](double x, double y)
+//        {
+//            QScriptValueList args;
+//            args << x << y;
+//            return boundaryConditionType.call(QScriptValue(), args).toInteger();
+//        };
+//        // функция начений начальных перемещений
+//        auto boundaryValueFunc = [&](double x, double y)
+//        {
+//            QScriptValueList args;
+//            args << x << y;
+//            QPoint2D *point = qscriptvalue_cast<QPoint2D *>(boundaryValue.call(QScriptValue(), args));
+//            return Point2D(point->x(), point->y());
+//        };
+//        // функция узловых нагрузок
+//        auto nodalForceFunc = [&](double x, double y)
+//        {
+//            QScriptValueList args;
+//            args << x << y;
+//            QPoint2D *point = qscriptvalue_cast<QPoint2D *>(nodalForce.call(QScriptValue(), args));
+//            return Point2D(point->x(), point->y());
+//        };
+//        // функция поверхностных нагрузок
+//        auto surfaceForceFunc = [&](double x, double y)
+//        {
+//            QScriptValueList args;
+//            args << x << y;
+//            QPoint2D *point = qscriptvalue_cast<QPoint2D *>(surfaceForce.call(QScriptValue(), args));
+//            return Point2D(point->x(), point->y());
+//        };
+//        // функция поверхностных нагрузок
+//        auto volumeForceFunc = [&](double x, double y)
+//        {
+//            QScriptValueList args;
+//            args << x << y;
+//            QPoint2D *point = qscriptvalue_cast<QPoint2D *>(volumeForce.call(QScriptValue(), args));
+//            return Point2D(point->x(), point->y());
+//        };
+
+//        ElasticMatrix D(E, nu, true); //!
+
+//        if (fem_ != NULL) delete fem_;
+
+//        if (dynamic_cast<QuadrilateralMesh2D*>(mesh_))
+//            fem_ = new PlaneStressStrain (dynamic_cast<QuadrilateralMesh2D*>(mesh_), //!
+//                                          h,
+//                                          D,
+//                                          boundaryConditionTypeFunc,
+//                                          boundaryValueFunc,
+//                                          nodalForceFunc,
+//                                          surfaceForceFunc,
+//                                          volumeForceFunc);
+//        if (dynamic_cast<TriangleMesh2D*>(mesh_))
+//            fem_ = new PlaneStressStrain (dynamic_cast<TriangleMesh2D*>(mesh_), //!
+//                                          h,
+//                                          D,
+//                                          boundaryConditionTypeFunc,
+//                                          boundaryValueFunc,
+//                                          nodalForceFunc,
+//                                          surfaceForceFunc,
+//                                          volumeForceFunc);
+
+//        fem_->printNodeValuesExtremums();
+//        fem_->printElementValuesExtremums();
+
+//        return engine->undefinedValue();;
+//    }
+//    return context->throwError(QObject::tr("PlaneStress(mesh: Mesh, h: Floating, E: Floating, nu: Floating, boundaryConditionType: Function, boundaryValue: Function, nodalForce: Function, surfaceForce: Function, volumeForce: Function): arguments count error."));
+    if (context->argumentCount() > 4)
     {
-        QString typeError = QObject::tr("PlaneStress(mesh: Mesh, h: Floating, E: Floating, nu: Floating, boundaryConditionType: Function, boundaryValue: Function, nodalForce: Function, surfaceForce: Function, volumeForce: Function): argument type error (%1).");
+        QString typeError = QObject::tr("PlaneStress(mesh: Mesh, h: Floating, E: Floating, nu: Floating, ...): argument type error (%1).");
         if (!context->argument(0).isQObject())
             return context->throwError(typeError.arg("mesh"));
         if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != NULL)
@@ -442,68 +572,21 @@ QScriptValue QZScriptEngine::planeStress(QScriptContext *context, QScriptEngine 
         if (!context->argument(3).isNumber())
             return context->throwError(typeError.arg("nu"));
 
-        QScriptValue boundaryConditionType = context->argument(4);
-        if (!boundaryConditionType.isFunction())
-            return context->throwError(typeError.arg("boundaryConditionType"));
+        std::list<FemCondition*> conditions;
 
-        QScriptValue boundaryValue = context->argument(5);
-        if (!boundaryValue.isFunction())
-            return context->throwError(typeError.arg("boundaryValue"));
-
-        QScriptValue nodalForce = context->argument(6);
-        if (!nodalForce.isFunction())
-            return context->throwError(typeError.arg("nodalForce"));
-
-        QScriptValue surfaceForce = context->argument(7);
-        if (!surfaceForce.isFunction())
-            return context->throwError(typeError.arg("surfaceForce"));
-
-        QScriptValue volumeForce = context->argument(8);
-        if (!volumeForce.isFunction())
-            return context->throwError(typeError.arg("volumeForce"));
+        for (int i = 4; i < context->argumentCount(); i++)
+        {
+            if (!context->argument(i).isQObject())
+                return context->throwError(typeError.arg("boundary condition"));
+            QFemCondition *cond = qscriptvalue_cast<QFemCondition *>(context->argument(i));
+            if (cond == NULL)
+                return context->throwError(typeError.arg("boundary condition"));
+            conditions.push_back(cond);
+        }
 
         double h = context->argument(1).toNumber();
         double E = context->argument(2).toNumber();
         double nu = context->argument(3).toNumber();
-        // функция отбора узлов для применения граничных условий
-        auto boundaryConditionTypeFunc = [&](double x, double y)
-        {
-            QScriptValueList args;
-            args << x << y;
-            return boundaryConditionType.call(QScriptValue(), args).toInteger();
-        };
-        // функция начений начальных перемещений
-        auto boundaryValueFunc = [&](double x, double y)
-        {
-            QScriptValueList args;
-            args << x << y;
-            QPoint2D *point = qscriptvalue_cast<QPoint2D *>(boundaryValue.call(QScriptValue(), args));
-            return Point2D(point->x(), point->y());
-        };
-        // функция узловых нагрузок
-        auto nodalForceFunc = [&](double x, double y)
-        {
-            QScriptValueList args;
-            args << x << y;
-            QPoint2D *point = qscriptvalue_cast<QPoint2D *>(nodalForce.call(QScriptValue(), args));
-            return Point2D(point->x(), point->y());
-        };
-        // функция поверхностных нагрузок
-        auto surfaceForceFunc = [&](double x, double y)
-        {
-            QScriptValueList args;
-            args << x << y;
-            QPoint2D *point = qscriptvalue_cast<QPoint2D *>(surfaceForce.call(QScriptValue(), args));
-            return Point2D(point->x(), point->y());
-        };
-        // функция поверхностных нагрузок
-        auto volumeForceFunc = [&](double x, double y)
-        {
-            QScriptValueList args;
-            args << x << y;
-            QPoint2D *point = qscriptvalue_cast<QPoint2D *>(volumeForce.call(QScriptValue(), args));
-            return Point2D(point->x(), point->y());
-        };
 
         ElasticMatrix D(E, nu, true); //!
 
@@ -513,20 +596,12 @@ QScriptValue QZScriptEngine::planeStress(QScriptContext *context, QScriptEngine 
             fem_ = new PlaneStressStrain (dynamic_cast<QuadrilateralMesh2D*>(mesh_), //!
                                           h,
                                           D,
-                                          boundaryConditionTypeFunc,
-                                          boundaryValueFunc,
-                                          nodalForceFunc,
-                                          surfaceForceFunc,
-                                          volumeForceFunc);
+                                          conditions);
         if (dynamic_cast<TriangleMesh2D*>(mesh_))
             fem_ = new PlaneStressStrain (dynamic_cast<TriangleMesh2D*>(mesh_), //!
                                           h,
                                           D,
-                                          boundaryConditionTypeFunc,
-                                          boundaryValueFunc,
-                                          nodalForceFunc,
-                                          surfaceForceFunc,
-                                          volumeForceFunc);
+                                          conditions);
 
         fem_->printNodeValuesExtremums();
         fem_->printElementValuesExtremums();
@@ -657,6 +732,90 @@ QScriptValue QZScriptEngine::planeStrain(QScriptContext *context, QScriptEngine 
         return engine->undefinedValue();;
     }
     return context->throwError(QObject::tr("PlaneStrain(mesh: Mesh, h: Floating, E: Floating, nu: Floating, boundaryConditionType: Function, boundaryValue: Function, nodalForce: Function, surfaceForce: Function, volumeForce: Function): arguments count error."));
+}
+
+QScriptValue QZScriptEngine::createBoundaryCondition(QScriptContext *context, QScriptEngine *engine)
+{
+    if (context->argumentCount() == 3)
+    {
+        QString typeError = QObject::tr("BoundaryCondition(direction: Integer, condition: Function, value: {Floating or Function}): argument type error (%1)");
+        if (!context->argument(0).isNumber())
+            return context->throwError(typeError.arg("direction"));
+
+        QScriptValue condition = context->argument(1);
+        if (!condition.isFunction())
+            return context->throwError(typeError.arg("condition"));
+
+        QScriptValue value = context->argument(2);
+
+        int direction = context->argument(0).toInteger();
+
+        return engine->newQObject(new QFemCondition(FemCondition::INITIAL_VALUE, static_cast<FemCondition::FemDirection>(direction), condition, value), QScriptEngine::ScriptOwnership);
+    }
+    return context->throwError(QObject::tr("BoundaryCondition(direction: Integer, condition: Function, value: {Floating or Function}): arguments count error."));
+}
+
+QScriptValue QZScriptEngine::createNodalForce(QScriptContext *context, QScriptEngine *engine)
+{
+    if (context->argumentCount() == 3)
+    {
+        QString typeError = QObject::tr("NodalForce(direction: Integer, condition: Function, value: {Floating or Function}): argument type error (%1)");
+        if (!context->argument(0).isNumber())
+            return context->throwError(typeError.arg("direction"));
+
+        QScriptValue condition = context->argument(1);
+        if (!condition.isFunction())
+            return context->throwError(typeError.arg("condition"));
+
+        QScriptValue value = context->argument(2);
+
+        int direction = context->argument(0).toInteger();
+
+        return engine->newQObject(new QFemCondition(FemCondition::NODAL_FORCE, static_cast<FemCondition::FemDirection>(direction), condition, value), QScriptEngine::ScriptOwnership);
+    }
+    return context->throwError(QObject::tr("NodalForce(direction: Integer, condition: Function, value: {Floating or Function}): arguments count error."));
+}
+
+QScriptValue QZScriptEngine::createSurfaceForce(QScriptContext *context, QScriptEngine *engine)
+{
+    if (context->argumentCount() == 3)
+    {
+        QString typeError = QObject::tr("SurfaceForce(direction: Integer, condition: Function, value: {Floating or Function}): argument type error (%1)");
+        if (!context->argument(0).isNumber())
+            return context->throwError(typeError.arg("direction"));
+
+        QScriptValue condition = context->argument(1);
+        if (!condition.isFunction())
+            return context->throwError(typeError.arg("condition"));
+
+        QScriptValue value = context->argument(2);
+
+        int direction = context->argument(0).toInteger();
+
+        return engine->newQObject(new QFemCondition(FemCondition::SURFACE_FORCE, static_cast<FemCondition::FemDirection>(direction), condition, value), QScriptEngine::ScriptOwnership);
+    }
+    return context->throwError(QObject::tr("SurfaceForce(direction: Integer, condition: Function, value: {Floating or Function}): arguments count error."));
+}
+
+QScriptValue QZScriptEngine::createVolumeForce(QScriptContext *context, QScriptEngine *engine)
+{
+    if (context->argumentCount() == 3)
+    {
+        QString typeError = QObject::tr("VolumeForce(direction: Integer, condition: Function, value: {Floating or Function}): argument type error (%1)");
+        if (!context->argument(0).isNumber())
+            return context->throwError(typeError.arg("direction"));
+
+        QScriptValue condition = context->argument(1);
+        if (!condition.isFunction())
+            return context->throwError(typeError.arg("condition"));
+
+        QScriptValue value = context->argument(2);
+
+        int direction = context->argument(0).toInteger();
+
+        return engine->newQObject(new QFemCondition(FemCondition::VOLUME_FORCE, static_cast<FemCondition::FemDirection>(direction), condition, value), QScriptEngine::ScriptOwnership);
+    }
+    return context->throwError(QObject::tr("VolumeForce(direction: Integer, condition: Function, value: {Floating or Function}): arguments count error."));
 }
 
 
