@@ -663,6 +663,7 @@ void QuadrilateralMesh2D::addTransfiniteMesh(TopFunc top, BottomFunc bottom, Lef
     for (UInteger i = 0; i < xiCount; i++)
     {
         eta = 0.0;
+        if (i == xiCount - 1) xi = 1.0;
         for (UInteger j = 0; j < etaCount; j++)
         {
             Point2D rt = top (xi);
@@ -670,6 +671,7 @@ void QuadrilateralMesh2D::addTransfiniteMesh(TopFunc top, BottomFunc bottom, Lef
             Point2D rl = left (eta);
             Point2D rr = right (eta);
             Point2D p;
+            if (j == etaCount - 1) eta = 1.0;
             p = (1.0 - xi) * rl + xi * rr + (1.0 - eta) * rb + eta * rt -
                     (1.0 - xi) * (1.0 - eta) * rb0 - (1.0 - xi) * eta * rt0 -
                     xi * (1.0 - eta) * rb1 - xi * eta * rt1;
