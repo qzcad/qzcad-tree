@@ -158,14 +158,14 @@ private:
      * @brief МКЭ: плоское напряжение
      * @param context Контекст скрипта
      * @param engine Двигатель скрипта
-     * @return Если аргументы корректны (тип Number), то значение дизъюнкции для них, иначе engine->undefinedValue()
+     * @return Если аргументы корректны, то будет найдено решение задачи, иначе engine->undefinedValue()
      */
     static QScriptValue planeStress(QScriptContext *context, QScriptEngine *engine);
     /**
      * @brief МКЭ: плоская деформация
      * @param context Контекст скрипта
      * @param engine Двигатель скрипта
-     * @return Если аргументы корректны (тип Number), то значение дизъюнкции для них, иначе engine->undefinedValue()
+     * @return Если аргументы корректны, то будет найдено решение задачи, иначе engine->undefinedValue()
      */
     static QScriptValue planeStrain(QScriptContext *context, QScriptEngine *engine);
     /**
@@ -196,6 +196,13 @@ private:
      * @return Если аргументы корректны, то зарегистрированное граничное условие, иначе engine->undefinedValue()
      */
     static QScriptValue createVolumeForce(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief МКЭ: Прогиб пластинки (теория Миндлина)
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны, то будет найдено решение задачи, иначе engine->undefinedValue()
+     */
+    static QScriptValue mindlinPlate(QScriptContext *context, QScriptEngine *engine);
 private:
     static double epsilon_; //!< Точность численных операций
     static msh::Mesh *mesh_; //!< Сетка, построенная в результате интерпретации скрипта

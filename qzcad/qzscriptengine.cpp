@@ -9,6 +9,7 @@
 #include "qfemcondition.h"
 
 #include "planestressstrain.h"
+#include "mindlinplatebending.h"
 
 #include "qzscriptengine.h"
 
@@ -85,6 +86,9 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     globalObject().setProperty("EIGHTH", FemCondition::EIGHTH);
     globalObject().setProperty("NINETH", FemCondition::NINETH);
     globalObject().setProperty("TENTH", FemCondition::TENTH);
+
+    QScriptValue qsMindlinPlate = newFunction(mindlinPlate);
+    globalObject().setProperty("MindlinPlate", qsMindlinPlate);
 
 }
 
@@ -893,6 +897,74 @@ QScriptValue QZScriptEngine::createVolumeForce(QScriptContext *context, QScriptE
         return engine->newQObject(new QFemCondition(FemCondition::VOLUME_FORCE, static_cast<FemCondition::FemDirection>(direction), condition, value), QScriptEngine::ScriptOwnership);
     }
     return context->throwError(QObject::tr("VolumeForce(direction: Integer, condition: Function, value: {Floating or Function}): arguments count error."));
+}
+
+QScriptValue QZScriptEngine::mindlinPlate(QScriptContext *context, QScriptEngine *engine)
+{
+    if (context->argumentCount() > 4)
+    {
+        QString typeError = QObject::tr("MindlinPlate(mesh: Mesh, h: Floating, E: Floating, nu: Floating, ...): argument type error (%1).");
+        if (!context->argument(0).isQObject())
+            return context->throwError(typeError.arg("mesh"));
+        if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != NULL)
+        {
+            mesh_ = new QuadrilateralMesh2D(qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)));
+        }
+        else if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != NULL)
+        {
+            mesh_ = new TriangleMesh2D(qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)));
+        }
+        else
+        {
+            return context->throwError(typeError.arg("mesh"));
+        }
+
+        if (!context->argument(1).isNumber())
+            return context->throwError(typeError.arg("h"));
+
+        if (!context->argument(2).isNumber())
+            return context->throwError(typeError.arg("E"));
+
+        if (!context->argument(3).isNumber())
+            return context->throwError(typeError.arg("nu"));
+
+        std::list<FemCondition*> conditions;
+
+        for (int i = 4; i < context->argumentCount(); i++)
+        {
+            if (!context->argument(i).isQObject())
+                return context->throwError(typeError.arg("boundary condition"));
+            QFemCondition *cond = qscriptvalue_cast<QFemCondition *>(context->argument(i));
+            if (cond == NULL)
+                return context->throwError(typeError.arg("boundary condition"));
+            conditions.push_back(cond);
+        }
+
+        double h = context->argument(1).toNumber();
+        double E = context->argument(2).toNumber();
+        double nu = context->argument(3).toNumber();
+
+        ElasticMatrix D(E, nu, true); //!
+
+        if (fem_ != NULL) delete fem_;
+
+        if (dynamic_cast<QuadrilateralMesh2D*>(mesh_))
+            fem_ = new MindlinPlateBending (dynamic_cast<QuadrilateralMesh2D*>(mesh_), //!
+                                          h,
+                                          D,
+                                          conditions);
+//        if (dynamic_cast<TriangleMesh2D*>(mesh_))
+//            fem_ = new PlaneStressStrain (dynamic_cast<TriangleMesh2D*>(mesh_), //!
+//                                          h,
+//                                          D,
+//                                          conditions);
+
+        fem_->printNodeValuesExtremums();
+        fem_->printElementValuesExtremums();
+
+        return engine->undefinedValue();;
+    }
+    return context->throwError(QObject::tr("PlaneStress(mesh: Mesh, h: Floating, E: Floating, nu: Floating, boundaryConditionType: Function, boundaryValue: Function, nodalForce: Function, surfaceForce: Function, volumeForce: Function): arguments count error."));
 }
 
 

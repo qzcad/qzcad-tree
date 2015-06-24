@@ -1,9 +1,12 @@
 #include "mindlinplatebending.h"
 
+#include "consoleprogress.h"
+#include "rowdoublematrix.h"
+
 MindlinPlateBending::MindlinPlateBending(QuadrilateralMesh2D *mesh,
                                          double thickness,
                                          const ElasticMatrix &elasticMatrix,
-                                         std::list<FemCondition *> condition) : Fem2D(mesh)
+                                         std::list<FemCondition *> conditions) : Fem2D(mesh)
 {
     freedom_ = 3; // количество степеней свободы
     DoubleVector gpoint; // координаты квадратур Гаусса
@@ -70,7 +73,8 @@ MindlinPlateBending::MindlinPlateBending(QuadrilateralMesh2D *mesh,
 
                 Bc(0, 0) = dNdX(0); Bc(0, 1) = N(0);    Bc(0, 2) = 0.0;     Bc(0, 3) = dNdX(1); Bc(0, 4) = N(1);    Bc(0, 5) = 0.0;     Bc(0, 6) = dNdX(2); Bc(0, 7) = N(2);    Bc(0, 8) = 0.0;     Bc(0, 9) = dNdX(3); Bc(0, 10) = N(3);   Bc(0, 11) = 0.0;
                 Bc(1, 0) = dNdY(0); Bc(1, 1) = 0.0;     Bc(1, 2) = N(0);    Bc(1, 3) = dNdY(1); Bc(1, 4) = 0.0;     Bc(1, 5) = N(1);    Bc(1, 6) = dNdY(2); Bc(1, 7) = 0.0;     Bc(1, 8) = N(2);    Bc(1, 9) = dNdY(3); Bc(1, 10) = 0.0;    Bc(1, 11) = N(3);
-                local += jacobian * wi * wj * ((thickness*thickness*thickness / 12.0 * (Bf.transpose() * D * Bf)) + (kappa * thickness * (Bc.transpose() * Dc * Bc)));
+                local += jacobian * wi * wj * thickness*thickness*thickness / 12.0 * (Bf.transpose() * D * Bf);
+                local += jacobian * wi * wj * kappa * thickness * (Bc.transpose() * Dc * Bc);
             } // jeta
         } // ieta
         // Ансамблирование
@@ -131,6 +135,8 @@ MindlinPlateBending::MindlinPlateBending(QuadrilateralMesh2D *mesh,
                         force(i) += f;
                     if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
                         force(i + nodesCount) += f;
+                    if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
+                        force(i + nodesCount + nodesCount) += f;
                 }
                 ++progressBar;
             } // for i
@@ -185,6 +191,11 @@ MindlinPlateBending::MindlinPlateBending(QuadrilateralMesh2D *mesh,
                                 {
                                     force(element->vertexNode(i) + nodesCount) += f0;
                                     force(element->vertexNode(i + 1) + nodesCount) += f1;
+                                }
+                                if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
+                                {
+                                    force(element->vertexNode(i) + nodesCount + nodesCount) += f0;
+                                    force(element->vertexNode(i + 1) + nodesCount + nodesCount) += f1;
                                 }
                             }
                         } // if
@@ -247,6 +258,8 @@ MindlinPlateBending::MindlinPlateBending(QuadrilateralMesh2D *mesh,
                         force(element->vertexNode(i)) += vForce[i];
                     if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
                         force(element->vertexNode(i) + nodesCount) += vForce[i];
+                    if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
+                        force(element->vertexNode(i) + nodesCount + nodesCount) += vForce[i];
                 }
             } //for elNum
         }
@@ -270,19 +283,18 @@ MindlinPlateBending::MindlinPlateBending(QuadrilateralMesh2D *mesh,
                         setInitialNodalValue(global, force, i, (*condition)->value(point));
                     if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
                         setInitialNodalValue(global, force, i + nodesCount, (*condition)->value(point));
+                    if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
+                        setInitialNodalValue(global, force, i + nodesCount + nodesCount, (*condition)->value(point));
                 }
                 ++progressBar;
             } // for i
         }
     } // iterator
 
-    // решение СЛАУ
-    std::cout << "Linear Equations (СЛАУ)..." << std::endl;
-    RowDoubleMatrix rdm(global);
-    nodeValues_ = rdm.conjugateGradient(force);
+    solve(global, force);
 
     // вычисление напряжений
-    elementVectorsCount_ = 3;
+    elementVectorsCount_ = 5UL;
     elementValues_.resize(elementVectorsCount_ * elementsCount);
     std::cout << "Stresses (напряжения)...";
     progressBar.restart(elementsCount);
@@ -310,26 +322,35 @@ MindlinPlateBending::MindlinPlateBending(QuadrilateralMesh2D *mesh,
         DoubleVector dNdY(elementNodes);
         DoubleMatrix displacement((size_type)(freedom_ * elementNodes), (size_type)1);
         DoubleMatrix sigma((size_type)3, (size_type)1);
+        DoubleMatrix tau((size_type)2, (size_type)1);
         // функции формы
         isoQuad4(xi, eta, x, y, N, dNdX, dNdY);
         //
-        DoubleMatrix B(3, 8, 0.0);
-        B(0, 0) = dNdX(0); B(0, 1) = dNdX(1); B(0, 2) = dNdX(2); B(0, 3) = dNdX(3);
-        B(1, 4) = dNdY(0); B(1, 5) = dNdY(1); B(1, 6) = dNdY(2); B(1, 7) = dNdY(3);
-        B(2, 0) = dNdY(0); B(2, 1) = dNdY(1); B(2, 2) = dNdY(2); B(2, 3) = dNdY(3);
-        B(2, 4) = dNdX(0); B(2, 5) = dNdX(1); B(2, 6) = dNdX(2); B(2, 7) = dNdX(3);
+        DoubleMatrix Bf(3, 12, 0.0);
+        DoubleMatrix Bc(2, 12, 0.0);
+
+        Bf(0, 0) = 0.0; Bf(0, 1) = dNdX(0); Bf(0, 2) = 0.0;     Bf(0, 3) = 0.0; Bf(0, 4) = dNdX(1); Bf(0, 5) = 0.0;     Bf(0, 6) = 0.0; Bf(0, 7) = dNdX(2); Bf(0, 8) = 0.0;     Bf(0, 9) = 0.0; Bf(0, 10) = dNdX(3);    Bf(0, 11) = 0.0;
+        Bf(1, 0) = 0.0; Bf(1, 1) = 0.0;     Bf(1, 2) = dNdY(0); Bf(1, 3) = 0.0; Bf(1, 4) = 0.0;     Bf(1, 5) = dNdY(1); Bf(1, 6) = 0.0; Bf(1, 7) = 0.0;     Bf(1, 8) = dNdY(2); Bf(1, 9) = 0.0; Bf(1, 10) = 0.0;        Bf(1, 11) = dNdY(3);
+        Bf(2, 0) = 0.0; Bf(2, 1) = dNdY(0); Bf(2, 2) = dNdX(0); Bf(2, 3) = 0.0; Bf(2, 4) = dNdY(1); Bf(2, 5) = dNdX(1); Bf(2, 6) = 0.0; Bf(2, 7) = dNdY(2); Bf(2, 8) = dNdX(2); Bf(2, 9) = 0.0; Bf(2, 10) = dNdY(3);    Bf(2, 11) = dNdX(3);
+
+        Bc(0, 0) = dNdX(0); Bc(0, 1) = N(0);    Bc(0, 2) = 0.0;     Bc(0, 3) = dNdX(1); Bc(0, 4) = N(1);    Bc(0, 5) = 0.0;     Bc(0, 6) = dNdX(2); Bc(0, 7) = N(2);    Bc(0, 8) = 0.0;     Bc(0, 9) = dNdX(3); Bc(0, 10) = N(3);   Bc(0, 11) = 0.0;
+        Bc(1, 0) = dNdY(0); Bc(1, 1) = 0.0;     Bc(1, 2) = N(0);    Bc(1, 3) = dNdY(1); Bc(1, 4) = 0.0;     Bc(1, 5) = N(1);    Bc(1, 6) = dNdY(2); Bc(1, 7) = 0.0;     Bc(1, 8) = N(2);    Bc(1, 9) = dNdY(3); Bc(1, 10) = 0.0;    Bc(1, 11) = N(3);
 
         for (unsigned int i = 0; i < elementNodes; i++)
         {
-            displacement(i, 0) = nodeValues_[element->vertexNode(i)];
-            displacement(i + elementNodes, 0) = nodeValues_[element->vertexNode(i) + nodesCount];
+            displacement(3 * i, 0) = nodeValues_[element->vertexNode(i)];
+            displacement(3 * i + 1, 0) = nodeValues_[element->vertexNode(i) + nodesCount];
+            displacement(3 * i + 2, 0) = nodeValues_[element->vertexNode(i) + nodesCount + nodesCount];
         }
 
-        sigma = (D * B) * displacement;
+        sigma = (D * Bf) * displacement;
+        tau = (Dc * Bc) * displacement;
 
         elementValues_[elNum] = sigma(0, 0);
         elementValues_[elNum + elementsCount] = sigma(1, 0);
         elementValues_[elNum + 2UL * elementsCount] = sigma(2, 0);
+        elementValues_[elNum + 3UL * elementsCount] = tau(0, 0);
+        elementValues_[elNum + 4UL * elementsCount] = tau(1, 0);
     } //for elNum
 }
 

@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <math.h>
+#include "rowdoublematrix.h"
 
 Fem::Fem(Mesh *mesh)
 {
@@ -176,4 +177,12 @@ void Fem::setInitialNodalValue(MappedDoubleMatrix &global, DoubleVector &force, 
     global.zeroSym(rowNumber);
     force(rowNumber) = value;
     global(rowNumber, rowNumber) = 1.0;
+}
+
+void Fem::solve(MappedDoubleMatrix &global, DoubleVector &force)
+{
+    // решение СЛАУ
+    std::cout << "Linear Equations (СЛАУ)..." << std::endl;
+    RowDoubleMatrix rdm(global);
+    nodeValues_ = rdm.conjugateGradient(force);
 }

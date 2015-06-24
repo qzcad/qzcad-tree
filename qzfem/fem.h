@@ -97,11 +97,17 @@ protected:
     /**
      * @brief Метод для учета граничных условий (начальных перемещений, температур и т.п.)
      * @param global Ссылка на глобальную матрицу жесткости
-     * @param force Ссылка на вектор столбец (сила, температура и т.п.)
+     * @param force Ссылка на вектор-столбец (сила, температура и т.п.)
      * @param rowNumber Номер строки, которой соответствует начальное значение
      * @param value Начальное значение
      */
     void setInitialNodalValue(MappedDoubleMatrix &global, DoubleVector &force, const UInteger &rowNumber, const double value);
+    /**
+     * @brief Метод для решения СЛАУ в МКЭ
+     * @param global Ссылка на глобальную матрицу жесткости
+     * @param force Ссылка на вектор-столбец
+     */
+    void solve(MappedDoubleMatrix &global, DoubleVector &force);
 protected:
     Mesh *mesh_; //!< Указатель на сетку конечных элементов
     UInteger freedom_; //!< Количество степеней свободы (= количество векторов узловых значений)

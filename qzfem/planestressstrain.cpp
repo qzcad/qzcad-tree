@@ -202,9 +202,7 @@ PlaneStressStrain::PlaneStressStrain(QuadrilateralMesh2D *mesh,
         ++progressBar;
     } // for i
     // решение СЛАУ
-    std::cout << "Linear Equations (СЛАУ)..." << std::endl;
-    RowDoubleMatrix rdm(global);
-    nodeValues_ = rdm.conjugateGradient(force);
+    solve(global, force);
 
     // вычисление напряжений
     elementVectorsCount_ = 3;
@@ -521,9 +519,7 @@ PlaneStressStrain::PlaneStressStrain(QuadrilateralMesh2D *mesh,
     } // iterator
 
     // решение СЛАУ
-    std::cout << "Linear Equations (СЛАУ)..." << std::endl;
-    RowDoubleMatrix rdm(global);
-    nodeValues_ = rdm.conjugateGradient(force);
+    solve(global, force);
 
     // вычисление напряжений
     elementVectorsCount_ = 3;
@@ -774,9 +770,7 @@ PlaneStressStrain::PlaneStressStrain(TriangleMesh2D *mesh,
         ++progressBar;
     } // for i
     // решение СЛАУ
-    std::cout << "Linear Equations (СЛАУ)..." << std::endl;
-    RowDoubleMatrix rdm(global);
-    nodeValues_ = rdm.conjugateGradient(force);
+    solve(global, force);
 
     // вычисление напряжений
     elementVectorsCount_ = 3;
@@ -1110,9 +1104,7 @@ PlaneStressStrain::PlaneStressStrain(TriangleMesh2D *mesh,
     } // iterator
 
     // решение СЛАУ
-    std::cout << "Linear Equations (СЛАУ)..." << std::endl;
-    RowDoubleMatrix rdm(global);
-    nodeValues_ = rdm.conjugateGradient(force);
+    solve(global, force);
 
     // вычисление напряжений
     elementVectorsCount_ = 3;
