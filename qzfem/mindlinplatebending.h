@@ -5,6 +5,7 @@
 
 #include "fem2d.h"
 #include "elasticmatrix.h"
+#include "femcondition.h"
 
 #include "quadrilateralmesh2d.h"
 #include "trianglemesh2d.h"
@@ -17,8 +18,22 @@ using namespace mtx;
 class MindlinPlateBending : public Fem2D
 {
 public:
-    typedef std::function<double(double, double)> DistributedValueFunc;
-    MindlinPlateBending(QuadrilateralMesh2D *mesh, double thickness, BoundaryConditionFunction fixFunc, DistributedValueFunc distributed);
+    MindlinPlateBending(QuadrilateralMesh2D *mesh,
+                        double thickness,
+                        const ElasticMatrix &elasticMatrix,
+                        std::list<FemCondition *> conditions);
+    /**
+     * @brief Метод возвращает название вектора узловых значений
+     * @param num Номер вектора узловых значений
+     * @return Название вектора узловых значений
+     */
+    virtual std::string nodeVectorName(UInteger num) const;
+    /**
+     * @brief Метод возвращает название вектора значений, определенных на элементе
+     * @param num Номер вектора значений, определеных на элементе
+     * @return Название вектора значений, определенных на элеменете
+     */
+    virtual std::string elementVectorName(UInteger num) const;
 };
 
 #endif // MINDLINPLATEBENDING_H
