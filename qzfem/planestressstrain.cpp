@@ -356,29 +356,10 @@ PlaneStressStrain::PlaneStressStrain(QuadrilateralMesh2D *mesh,
         } // for i
     } //for elNum
 
-    // Учет граничных условий и сил
+    // Учет сил
     for (std::list<FemCondition *>::iterator condition = conditions.begin(); condition != conditions.end(); condition++)
     {
-        if ((*condition)->type() == FemCondition::INITIAL_VALUE)
-        {
-            // учет граничных условий
-            std::cout << "Boundary Conditions (граничные условия)...";
-            progressBar.restart(nodesCount);
-            for (UInteger i = 0; i < nodesCount; i++)
-            {
-                PointPointer point = mesh->node(i);
-                if ((*condition)->isApplied(point))
-                {
-                    FemCondition::FemDirection dir = (*condition)->direction();
-                    if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
-                        setInitialNodalValue(global, force, i, (*condition)->value(point));
-                    if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
-                        setInitialNodalValue(global, force, i + nodesCount, (*condition)->value(point));
-                }
-                ++progressBar;
-            } // for i
-        }
-        else if ((*condition)->type() == FemCondition::NODAL_FORCE)
+        if ((*condition)->type() == FemCondition::NODAL_FORCE)
         {
             // узловые нагрузки
             std::cout << "Nodal Forces (узловые нагрузки)...";
@@ -474,6 +455,7 @@ PlaneStressStrain::PlaneStressStrain(QuadrilateralMesh2D *mesh,
                     PointPointer point = mesh->node(element->vertexNode(i));
                     x[i] = point->x();
                     y[i] = point->y();
+                    vForce[i] = 0.0;
                 }
                 for (int ixi = 0; ixi < gaussPoints; ixi++)
                 {
@@ -511,6 +493,30 @@ PlaneStressStrain::PlaneStressStrain(QuadrilateralMesh2D *mesh,
                         force(element->vertexNode(i) + nodesCount) += vForce[i];
                 }
             } //for elNum
+        }
+    } // iterator
+
+    //учет условий закрепления
+    for (std::list<FemCondition *>::iterator condition = conditions.begin(); condition != conditions.end(); condition++)
+    {
+        if ((*condition)->type() == FemCondition::INITIAL_VALUE)
+        {
+            // учет граничных условий
+            std::cout << "Boundary Conditions (граничные условия)...";
+            progressBar.restart(nodesCount);
+            for (UInteger i = 0; i < nodesCount; i++)
+            {
+                PointPointer point = mesh->node(i);
+                if ((*condition)->isApplied(point))
+                {
+                    FemCondition::FemDirection dir = (*condition)->direction();
+                    if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
+                        setInitialNodalValue(global, force, i, (*condition)->value(point));
+                    if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
+                        setInitialNodalValue(global, force, i + nodesCount, (*condition)->value(point));
+                }
+                ++progressBar;
+            } // for i
         }
     } // iterator
 
@@ -920,7 +926,7 @@ PlaneStressStrain::PlaneStressStrain(TriangleMesh2D *mesh,
         } // for i
     } //for elNum
 
-    // Учет граничных условий и сил
+    // Учет сил
     for (std::list<FemCondition *>::iterator condition = conditions.begin(); condition != conditions.end(); condition++)
     {
         if ((*condition)->type() == FemCondition::INITIAL_VALUE)
@@ -1042,6 +1048,7 @@ PlaneStressStrain::PlaneStressStrain(TriangleMesh2D *mesh,
                     PointPointer point = mesh->node(element->vertexNode(i));
                     x[i] = point->x();
                     y[i] = point->y();
+                    vForce[i] = 0.0;
                 }
                 for (int ig = 0; ig < gaussPoints; ig++)
                 {
@@ -1075,6 +1082,30 @@ PlaneStressStrain::PlaneStressStrain(TriangleMesh2D *mesh,
                         force(element->vertexNode(i) + nodesCount) += vForce[i];
                 }
             } //for elNum
+        }
+    } // iterator
+
+    // Учет условий закрепления
+    for (std::list<FemCondition *>::iterator condition = conditions.begin(); condition != conditions.end(); condition++)
+    {
+        if ((*condition)->type() == FemCondition::INITIAL_VALUE)
+        {
+            // учет граничных условий
+            std::cout << "Boundary Conditions (граничные условия)...";
+            progressBar.restart(nodesCount);
+            for (UInteger i = 0; i < nodesCount; i++)
+            {
+                PointPointer point = mesh->node(i);
+                if ((*condition)->isApplied(point))
+                {
+                    FemCondition::FemDirection dir = (*condition)->direction();
+                    if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
+                        setInitialNodalValue(global, force, i, (*condition)->value(point));
+                    if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
+                        setInitialNodalValue(global, force, i + nodesCount, (*condition)->value(point));
+                }
+                ++progressBar;
+            } // for i
         }
     } // iterator
 

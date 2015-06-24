@@ -73,6 +73,19 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     globalObject().setProperty("SurfaceForce", qsSurfaceForce);
     QScriptValue qsVolumeForce = newFunction(createVolumeForce);
     globalObject().setProperty("VolumeForce", qsVolumeForce);
+    // направления действия нагрузки
+    globalObject().setProperty("ALL", FemCondition::ALL);
+    globalObject().setProperty("FIRST", FemCondition::FIRST);
+    globalObject().setProperty("SECOND", FemCondition::SECOND);
+    globalObject().setProperty("THIRD", FemCondition::THIRD);
+    globalObject().setProperty("FOURTH", FemCondition::FOURTH);
+    globalObject().setProperty("FIFTH", FemCondition::FIFTH);
+    globalObject().setProperty("SIXTH", FemCondition::SIXTH);
+    globalObject().setProperty("SEVENTH", FemCondition::SEVENTH);
+    globalObject().setProperty("EIGHTH", FemCondition::EIGHTH);
+    globalObject().setProperty("NINETH", FemCondition::NINETH);
+    globalObject().setProperty("TENTH", FemCondition::TENTH);
+
 }
 
 double QZScriptEngine::epsilon() const
@@ -613,9 +626,128 @@ QScriptValue QZScriptEngine::planeStress(QScriptContext *context, QScriptEngine 
 
 QScriptValue QZScriptEngine::planeStrain(QScriptContext *context, QScriptEngine *engine)
 {
-    if (context->argumentCount() == 9)
+//    if (context->argumentCount() == 9)
+//    {
+//        QString typeError = QObject::tr("PlaneStrain(mesh: Mesh, h: Floating, E: Floating, nu: Floating, boundaryConditionType: Function, boundaryValue: Function, nodalForce: Function, surfaceForce: Function, volumeForce: Function): argument type error (%1).");
+//        if (!context->argument(0).isQObject())
+//            return context->throwError(typeError.arg("mesh"));
+//        if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != NULL)
+//        {
+//            mesh_ = new QuadrilateralMesh2D(qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)));
+//        }
+//        else if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != NULL)
+//        {
+//            mesh_ = new TriangleMesh2D(qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)));
+//        }
+//        else
+//        {
+//            return context->throwError(typeError.arg("mesh"));
+//        }
+
+//        if (!context->argument(1).isNumber())
+//            return context->throwError(typeError.arg("h"));
+
+//        if (!context->argument(2).isNumber())
+//            return context->throwError(typeError.arg("E"));
+
+//        if (!context->argument(3).isNumber())
+//            return context->throwError(typeError.arg("nu"));
+
+//        QScriptValue boundaryConditionType = context->argument(4);
+//        if (!boundaryConditionType.isFunction())
+//            return context->throwError(typeError.arg("boundaryConditionType"));
+
+//        QScriptValue boundaryValue = context->argument(5);
+//        if (!boundaryValue.isFunction())
+//            return context->throwError(typeError.arg("boundaryValue"));
+
+//        QScriptValue nodalForce = context->argument(6);
+//        if (!nodalForce.isFunction())
+//            return context->throwError(typeError.arg("nodalForce"));
+
+//        QScriptValue surfaceForce = context->argument(7);
+//        if (!surfaceForce.isFunction())
+//            return context->throwError(typeError.arg("surfaceForce"));
+
+//        QScriptValue volumeForce = context->argument(8);
+//        if (!volumeForce.isFunction())
+//            return context->throwError(typeError.arg("volumeForce"));
+
+//        double h = context->argument(1).toNumber();
+//        double E = context->argument(2).toNumber();
+//        double nu = context->argument(3).toNumber();
+//        // функция отбора узлов для применения граничных условий
+//        auto boundaryConditionTypeFunc = [&](double x, double y)
+//        {
+//            QScriptValueList args;
+//            args << x << y;
+//            return boundaryConditionType.call(QScriptValue(), args).toInteger();
+//        };
+//        // функция начений начальных перемещений
+//        auto boundaryValueFunc = [&](double x, double y)
+//        {
+//            QScriptValueList args;
+//            args << x << y;
+//            QPoint2D *point = qscriptvalue_cast<QPoint2D *>(boundaryValue.call(QScriptValue(), args));
+//            return Point2D(point->x(), point->y());
+//        };
+//        // функция узловых нагрузок
+//        auto nodalForceFunc = [&](double x, double y)
+//        {
+//            QScriptValueList args;
+//            args << x << y;
+//            QPoint2D *point = qscriptvalue_cast<QPoint2D *>(nodalForce.call(QScriptValue(), args));
+//            return Point2D(point->x(), point->y());
+//        };
+//        // функция поверхностных нагрузок
+//        auto surfaceForceFunc = [&](double x, double y)
+//        {
+//            QScriptValueList args;
+//            args << x << y;
+//            QPoint2D *point = qscriptvalue_cast<QPoint2D *>(surfaceForce.call(QScriptValue(), args));
+//            return Point2D(point->x(), point->y());
+//        };
+//        // функция поверхностных нагрузок
+//        auto volumeForceFunc = [&](double x, double y)
+//        {
+//            QScriptValueList args;
+//            args << x << y;
+//            QPoint2D *point = qscriptvalue_cast<QPoint2D *>(volumeForce.call(QScriptValue(), args));
+//            return Point2D(point->x(), point->y());
+//        };
+
+//        ElasticMatrix D(E, nu, false);
+
+//        if (fem_ != NULL) delete fem_;
+
+//        if (dynamic_cast<QuadrilateralMesh2D*>(mesh_))
+//            fem_ = new PlaneStressStrain (dynamic_cast<QuadrilateralMesh2D*>(mesh_), //!
+//                                          h,
+//                                          D,
+//                                          boundaryConditionTypeFunc,
+//                                          boundaryValueFunc,
+//                                          nodalForceFunc,
+//                                          surfaceForceFunc,
+//                                          volumeForceFunc);
+//        if (dynamic_cast<TriangleMesh2D*>(mesh_))
+//            fem_ = new PlaneStressStrain (dynamic_cast<TriangleMesh2D*>(mesh_), //!
+//                                          h,
+//                                          D,
+//                                          boundaryConditionTypeFunc,
+//                                          boundaryValueFunc,
+//                                          nodalForceFunc,
+//                                          surfaceForceFunc,
+//                                          volumeForceFunc);
+
+//        fem_->printNodeValuesExtremums();
+//        fem_->printElementValuesExtremums();
+
+//        return engine->undefinedValue();;
+//    }
+//    return context->throwError(QObject::tr("PlaneStrain(mesh: Mesh, h: Floating, E: Floating, nu: Floating, boundaryConditionType: Function, boundaryValue: Function, nodalForce: Function, surfaceForce: Function, volumeForce: Function): arguments count error."));
+    if (context->argumentCount() > 4)
     {
-        QString typeError = QObject::tr("PlaneStrain(mesh: Mesh, h: Floating, E: Floating, nu: Floating, boundaryConditionType: Function, boundaryValue: Function, nodalForce: Function, surfaceForce: Function, volumeForce: Function): argument type error (%1).");
+        QString typeError = QObject::tr("PlaneStrain(mesh: Mesh, h: Floating, E: Floating, nu: Floating, ...): argument type error (%1).");
         if (!context->argument(0).isQObject())
             return context->throwError(typeError.arg("mesh"));
         if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != NULL)
@@ -640,70 +772,23 @@ QScriptValue QZScriptEngine::planeStrain(QScriptContext *context, QScriptEngine 
         if (!context->argument(3).isNumber())
             return context->throwError(typeError.arg("nu"));
 
-        QScriptValue boundaryConditionType = context->argument(4);
-        if (!boundaryConditionType.isFunction())
-            return context->throwError(typeError.arg("boundaryConditionType"));
+        std::list<FemCondition*> conditions;
 
-        QScriptValue boundaryValue = context->argument(5);
-        if (!boundaryValue.isFunction())
-            return context->throwError(typeError.arg("boundaryValue"));
-
-        QScriptValue nodalForce = context->argument(6);
-        if (!nodalForce.isFunction())
-            return context->throwError(typeError.arg("nodalForce"));
-
-        QScriptValue surfaceForce = context->argument(7);
-        if (!surfaceForce.isFunction())
-            return context->throwError(typeError.arg("surfaceForce"));
-
-        QScriptValue volumeForce = context->argument(8);
-        if (!volumeForce.isFunction())
-            return context->throwError(typeError.arg("volumeForce"));
+        for (int i = 4; i < context->argumentCount(); i++)
+        {
+            if (!context->argument(i).isQObject())
+                return context->throwError(typeError.arg("boundary condition"));
+            QFemCondition *cond = qscriptvalue_cast<QFemCondition *>(context->argument(i));
+            if (cond == NULL)
+                return context->throwError(typeError.arg("boundary condition"));
+            conditions.push_back(cond);
+        }
 
         double h = context->argument(1).toNumber();
         double E = context->argument(2).toNumber();
         double nu = context->argument(3).toNumber();
-        // функция отбора узлов для применения граничных условий
-        auto boundaryConditionTypeFunc = [&](double x, double y)
-        {
-            QScriptValueList args;
-            args << x << y;
-            return boundaryConditionType.call(QScriptValue(), args).toInteger();
-        };
-        // функция начений начальных перемещений
-        auto boundaryValueFunc = [&](double x, double y)
-        {
-            QScriptValueList args;
-            args << x << y;
-            QPoint2D *point = qscriptvalue_cast<QPoint2D *>(boundaryValue.call(QScriptValue(), args));
-            return Point2D(point->x(), point->y());
-        };
-        // функция узловых нагрузок
-        auto nodalForceFunc = [&](double x, double y)
-        {
-            QScriptValueList args;
-            args << x << y;
-            QPoint2D *point = qscriptvalue_cast<QPoint2D *>(nodalForce.call(QScriptValue(), args));
-            return Point2D(point->x(), point->y());
-        };
-        // функция поверхностных нагрузок
-        auto surfaceForceFunc = [&](double x, double y)
-        {
-            QScriptValueList args;
-            args << x << y;
-            QPoint2D *point = qscriptvalue_cast<QPoint2D *>(surfaceForce.call(QScriptValue(), args));
-            return Point2D(point->x(), point->y());
-        };
-        // функция поверхностных нагрузок
-        auto volumeForceFunc = [&](double x, double y)
-        {
-            QScriptValueList args;
-            args << x << y;
-            QPoint2D *point = qscriptvalue_cast<QPoint2D *>(volumeForce.call(QScriptValue(), args));
-            return Point2D(point->x(), point->y());
-        };
 
-        ElasticMatrix D(E, nu, false);
+        ElasticMatrix D(E, nu, false); //!
 
         if (fem_ != NULL) delete fem_;
 
@@ -711,20 +796,12 @@ QScriptValue QZScriptEngine::planeStrain(QScriptContext *context, QScriptEngine 
             fem_ = new PlaneStressStrain (dynamic_cast<QuadrilateralMesh2D*>(mesh_), //!
                                           h,
                                           D,
-                                          boundaryConditionTypeFunc,
-                                          boundaryValueFunc,
-                                          nodalForceFunc,
-                                          surfaceForceFunc,
-                                          volumeForceFunc);
+                                          conditions);
         if (dynamic_cast<TriangleMesh2D*>(mesh_))
             fem_ = new PlaneStressStrain (dynamic_cast<TriangleMesh2D*>(mesh_), //!
                                           h,
                                           D,
-                                          boundaryConditionTypeFunc,
-                                          boundaryValueFunc,
-                                          nodalForceFunc,
-                                          surfaceForceFunc,
-                                          volumeForceFunc);
+                                          conditions);
 
         fem_->printNodeValuesExtremums();
         fem_->printElementValuesExtremums();

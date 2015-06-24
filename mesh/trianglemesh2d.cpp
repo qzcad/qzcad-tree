@@ -23,6 +23,12 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
 {
     double hx = width / (double)(xCount - 1);
     double hy = height / (double)(yCount - 1);
+    xMin_ = xMin;
+    xMax_ = xMin + width;
+    yMin_ = yMin;
+    yMax_ = yMin + height;
+    const double xCenter = (xMax_ + xMin_) / 2.0;
+    const double yCenter = (yMax_ + yMin_) / 2.0;
     // формирование массива узлов
     for (UInteger i = 0; i < xCount; i++)
     {
@@ -45,15 +51,26 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
     {
         for (UInteger j = 0; j < yCount - 1; j++)
         {
-            addElement(i * yCount + j, (i + 1) * yCount + j, i * yCount + j + 1);
-            addElement((i + 1) * yCount + j, (i + 1) * yCount + j + 1, i * yCount + j + 1);
+            // Для симметричности сетки необходимо смена направления диагоналей в зависимости от четверти области
+            Point2D p0 = node_[i * yCount + j].point;
+            Point2D p1 = node_[(i + 1) * yCount + j].point;
+            Point2D p2 = node_[(i + 1) * yCount + j + 1].point;
+            Point2D p3 = node_[i * yCount + j + 1].point;
+            if ((xCenter <= p0.x() && yCenter <= p0.y() && xCenter <= p1.x() && yCenter <= p1.y() && xCenter <= p2.x() && yCenter <= p2.y() && xCenter <= p3.x() && yCenter <= p3.y())
+                    ||
+                    (xCenter >= p0.x() && yCenter >= p0.y() && xCenter >= p1.x() && yCenter >= p1.y() && xCenter >= p2.x() && yCenter >= p2.y() && xCenter >= p3.x() && yCenter >= p3.y()))
+            {
+                addElement(i * yCount + j, (i + 1) * yCount + j, i * yCount + j + 1);
+                addElement((i + 1) * yCount + j, (i + 1) * yCount + j + 1, i * yCount + j + 1);
+            } // if
+            else
+            {
+                addElement(i * yCount + j, (i + 1) * yCount + j, (i + 1) * yCount + j + 1);
+                addElement(i * yCount + j, (i + 1) * yCount + j + 1, i * yCount + j + 1);
+            } // else
         }
     }
-    xMin_ = xMin;
-    xMax_ = xMin + width;
-    yMin_ = yMin;
-    yMax_ = yMin + height;
-//    minimizeFunctional();
+
     std::cout << "Создана равномерная сетка треугольных элементов: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 

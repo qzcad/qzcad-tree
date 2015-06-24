@@ -753,7 +753,7 @@ int main()
         double E = 203200.0;
         double nu = 0.0;
         double gamma = 10.0;
-        msh::QuadrilateralMesh2D beam(101, 11, -c, -l, 2.0 * c, 2.0 * l);
+        msh::QuadrilateralMesh2D beam(11, 101, -c, -l, 2.0 * c, 2.0 * l);
         ElasticMatrix D(E, nu, false);
         // функция закрепления (C++0x)
         auto fixedPoints = [&](double x, double y)
