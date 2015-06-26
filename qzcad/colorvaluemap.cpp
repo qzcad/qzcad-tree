@@ -44,7 +44,11 @@ QColor ColorValueMap::color(const double &value)
 
 double ColorValueMap::scaleOn(const double &value, const double &a, const double &b)
 {
-    return a + (b - a) * (max_ - value) / (max_ - min_);
+    int n = 15;
+    double h = (b - a) / (double)(n - 1);
+    int j = (int)round(((b - a) * (max_ - value) / (max_ - min_)) / h);
+    return a + (double)j * h;
+//    return a + (b - a) * (max_ - value) / (max_ - min_);
 }
 
 double ColorValueMap::max() const
