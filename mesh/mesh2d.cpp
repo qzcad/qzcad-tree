@@ -152,4 +152,9 @@ void Mesh2D::updateDomain()
         if (yMax_ < y) yMax_ = y;
     }
 }
+
+UInteger Mesh2D::adjacentCount(const UInteger &nodeNumber) const
+{
+    return node_[nodeNumber].adjacent.size();
+}
 }
