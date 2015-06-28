@@ -41,6 +41,7 @@ public:
      * @return Количество степеней свободы
      */
     UInteger freedom() const;
+    UInteger nodesVectorsCount() const;
     /**
      * @brief Метод возвращает узловые значения вектора с указанным номером
      * @param num Номер вектора узловых значений
@@ -52,32 +53,11 @@ public:
      * @param num Номер вектора узловых значений
      * @return Название вектора узловых значений
      */
-    virtual std::string nodeVectorName(UInteger num) const = 0;
-    /**
-     * @brief Метод возвращает количество векторов значений, определенных на элементе
-     * @return Количество векторов значений, определенных на элементе
-     */
-    UInteger elementVectorsCount() const;
-    /**
-     * @brief Метод возвращает значения, определенные на элементе, для вектора с указанным номером
-     * @param num Номер вектора значений, определенных на элементе
-     * @return Вектор значений
-     */
-    std::vector<double> elementVector(UInteger num) const;
-    /**
-     * @brief Метод возвращает название вектора значений, определенных на элементе
-     * @param num Номер вектора значений, определеных на элементе
-     * @return Название вектора значений, определенных на элеменете
-     */
-    virtual std::string elementVectorName(UInteger num) const = 0;
+    std::string nodeVectorName(UInteger num) const;
     /**
      * @brief Метод печатает в стандартный вывод экстремальные значения векторов узловых значений
      */
     void printNodeValuesExtremums() const;
-    /**
-     * @brief Метод печатает в стандартный вывод экстремальные значения векторов значений, определенных на элементе
-     */
-    void printElementValuesExtremums() const;
 protected:
     /**
      * @brief Метод для генерации квадратур для интегрирования на отрезке [-1; 1]
@@ -107,13 +87,23 @@ protected:
      * @param global Ссылка на глобальную матрицу жесткости
      * @param force Ссылка на вектор-столбец
      */
-    void solve(MappedDoubleMatrix &global, DoubleVector &force);
+    DoubleVector solve(MappedDoubleMatrix &global, DoubleVector &force);
 protected:
     Mesh *mesh_; //!< Указатель на сетку конечных элементов
-    UInteger freedom_; //!< Количество степеней свободы (= количество векторов узловых значений)
-    DoubleVector nodeValues_; //!< Вектор узловых значений (размер freedom * nodesCount)
-    UInteger elementVectorsCount_; //!< Количество векторов значений, определенных на элементе
-    DoubleVector elementValues_; //!< Вектор значений, определенных на элементе (размер elementVectorsCount_ * elementsCount)
+    UInteger freedom_; //!< Количество степеней свободы
+    class NamedVector
+    {
+    public:
+        NamedVector(const std::string &n, const std::vector<double> &v)
+        {
+            name = n;
+            values = v;
+        }
+
+        std::string name;
+        std::vector<double> values;
+    };
+    std::vector<NamedVector> nodeValues_;
 };
 
 #endif // FEM_H

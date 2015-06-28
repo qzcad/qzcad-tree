@@ -18,22 +18,10 @@ using namespace mtx;
 class MindlinPlateBending : public Fem2D
 {
 public:
-    MindlinPlateBending(QuadrilateralMesh2D *mesh,
+    MindlinPlateBending(Mesh2D *mesh,
                         double thickness,
                         const ElasticMatrix &elasticMatrix,
                         std::list<FemCondition *> conditions);
-    /**
-     * @brief Метод возвращает название вектора узловых значений
-     * @param num Номер вектора узловых значений
-     * @return Название вектора узловых значений
-     */
-    virtual std::string nodeVectorName(UInteger num) const;
-    /**
-     * @brief Метод возвращает название вектора значений, определенных на элементе
-     * @param num Номер вектора значений, определеных на элементе
-     * @return Название вектора значений, определенных на элеменете
-     */
-    virtual std::string elementVectorName(UInteger num) const;
 };
 
 #endif // MINDLINPLATEBENDING_H

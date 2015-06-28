@@ -673,35 +673,7 @@ int main()
         double P = 100.0;
         msh::QuadrilateralMesh2D beam(41, 17, 0.0, -c, l, 2.0 * c);
         ElasticMatrix D(E, nu, false);
-        // функция закрепления (C++0x)
-        auto fixedPoints = [&](double x, double y)
-        {
-            if (isEquil(x, l))
-                return 0;
-            return -1;
-        };
-        // значения на границе
-        auto fixedValues = [&](double x, double y)
-        {
-            return msh::Point2D(0.0, 0.0);
-        };
-        // узловые нагрузки
-        auto nodalForce = [&](double x, double y)
-        {
-            if (isEquil(x, 0))
-                return msh::Point2D(0.0, P / 17.0);
-            return msh::Point2D(0.0, 0.0);
-        };
-        auto surfaceForce = [&](double x, double y)
-        {
-            return msh::Point2D(0.0, 0.0);
-        };
-        auto volumeForce = [&](double x, double y)
-        {
-            return msh::Point2D(0.0, 0.0);
-        };
-        PlaneStressStrain fem(&beam, 1.0, D, fixedPoints, fixedValues, nodalForce, surfaceForce, volumeForce);
-        fem.printNodeValuesExtremums();
+        // TODO FEM
         return 0;
     }
     if (task == 7)
@@ -713,37 +685,7 @@ int main()
         double q = 200.0;
         msh::QuadrilateralMesh2D beam(51, 11, -l, -c, 2.0 * l, 2.0 * c);
         ElasticMatrix D(E, nu, false);
-        // функция закрепления (C++0x)
-        auto fixedPoints = [&](double x, double y)
-        {
-            if (isEquil(x, -l) && isEquil(y, -c))
-                return 2;
-            if (isEquil(x, l) && isEquil(y, -c))
-                return 2;
-            return -1;
-        };
-        // значения на границе
-        auto fixedValues = [&](double x, double y)
-        {
-            return msh::Point2D(0.0, 0.0);
-        };
-        // узловые нагрузки
-        auto nodalForce = [&](double x, double y)
-        {
-            return msh::Point2D(0.0, 0.0);
-        };
-        auto surfaceForce = [&](double x, double y)
-        {
-            if (isEquil(y, c))
-                return msh::Point2D(0.0, -q);
-            return msh::Point2D(0.0, 0.0);
-        };
-        auto volumeForce = [&](double x, double y)
-        {
-            return msh::Point2D(0.0, 0.0);
-        };
-        PlaneStressStrain fem(&beam, 1.0, D, fixedPoints, fixedValues, nodalForce, surfaceForce, volumeForce);
-        fem.printNodeValuesExtremums();
+        // TODO FEM
         return 0;
     }
     if (task == 8)
@@ -755,33 +697,7 @@ int main()
         double gamma = 10.0;
         msh::QuadrilateralMesh2D beam(11, 101, -c, -l, 2.0 * c, 2.0 * l);
         ElasticMatrix D(E, nu, false);
-        // функция закрепления (C++0x)
-        auto fixedPoints = [&](double x, double y)
-        {
-            if (isEquil(y, l))
-                return 0;
-            return -1;
-        };
-        // значения на границе
-        auto fixedValues = [&](double x, double y)
-        {
-            return msh::Point2D(0.0, 0.0);
-        };
-        // узловые нагрузки
-        auto nodalForce = [&](double x, double y)
-        {
-            return msh::Point2D(0.0, 0.0);
-        };
-        auto surfaceForce = [&](double x, double y)
-        {
-            return msh::Point2D(0.0, 0.0);
-        };
-        auto volumeForce = [&](double x, double y)
-        {
-            return msh::Point2D(0.0, -gamma);
-        };
-        PlaneStressStrain fem(&beam, 1.0, D, fixedPoints, fixedValues, nodalForce, surfaceForce, volumeForce);
-        fem.printNodeValuesExtremums();
+        // TODO FEM
         cout << "Сопромат: dL = " << 2.0 * l * gamma * l / E << endl;
         return 0;
     }

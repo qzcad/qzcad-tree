@@ -8,7 +8,6 @@ Fem::Fem(Mesh *mesh)
 {
     mesh_ = mesh;
     freedom_ = 0;
-    elementVectorsCount_ = 0;
 }
 
 Mesh *Fem::mesh()
@@ -21,68 +20,36 @@ UInteger Fem::freedom() const
     return freedom_;
 }
 
+UInteger Fem::nodesVectorsCount() const
+{
+    return nodeValues_.size();
+}
+
 std::vector<double> Fem::nodeVector(UInteger num) const
 {
-    UInteger nodesCount = mesh_->nodesCount();
-    std::vector<double> v(nodesCount);
-    UInteger d = nodesCount * num;
-    for (UInteger i = 0; i < nodesCount; i++)
-    {
-        v[i] = nodeValues_[i + d];
-    }
-    return v;
+    return nodeValues_[num].values;
 }
 
-UInteger Fem::elementVectorsCount() const
+std::string Fem::nodeVectorName(UInteger num) const
 {
-    return elementVectorsCount_;
-}
-
-std::vector<double> Fem::elementVector(UInteger num) const
-{
-    UInteger elementsCount = mesh_->elementsCount();
-    std::vector<double> v(elementsCount);
-    UInteger d = elementsCount * num;
-    for (UInteger i = 0; i < elementsCount; i++)
-    {
-        v[i] = elementValues_[i + d];
-    }
-    return v;
+    return nodeValues_[num].name;
 }
 
 void Fem::printNodeValuesExtremums() const
 {
     UInteger nodesCount = mesh_->nodesCount();
-    for (UInteger f = 0; f < freedom_; f++)
+    for (UInteger f = 0; f < nodeValues_.size(); f++)
     {
-        UInteger d = nodesCount * f;
-        double max = nodeValues_[0 + d];
-        double min = nodeValues_[0 + d];
+        std::vector<double> values = nodeValues_[f].values;
+        double max = values[0];
+        double min = values[0];
         for (UInteger i = 1; i < nodesCount; i++)
         {
-            double v = nodeValues_[i + d];
+            double v = values[i];
             if (max < v) max = v;
             if (min > v) min = v;
         }
-        std::cout << f+1 << ":\t" << min << " <= " << nodeVectorName(f) << " <= " << max << std::endl;
-    }
-}
-
-void Fem::printElementValuesExtremums() const
-{
-    UInteger elementsCount = mesh_->elementsCount();
-    for (UInteger f = 0; f < elementVectorsCount_; f++)
-    {
-        UInteger d = elementsCount * f;
-        double max = elementValues_[0 + d];
-        double min = elementValues_[0 + d];
-        for (UInteger i = 1; i < elementsCount; i++)
-        {
-            double v = elementValues_[i + d];
-            if (max < v) max = v;
-            if (min > v) min = v;
-        }
-        std::cout << f+1 << ":\t" << min << " <= " << elementVectorName(f) << " <= " << max << std::endl;
+        std::cout << min << " <= " << nodeValues_[f].name << " <= " << max << std::endl;
     }
 }
 
@@ -179,10 +146,10 @@ void Fem::setInitialNodalValue(MappedDoubleMatrix &global, DoubleVector &force, 
     global(rowNumber, rowNumber) = 1.0;
 }
 
-void Fem::solve(MappedDoubleMatrix &global, DoubleVector &force)
+DoubleVector Fem::solve(MappedDoubleMatrix &global, DoubleVector &force)
 {
     // решение СЛАУ
     std::cout << "Linear Equations (СЛАУ)..." << std::endl;
     RowDoubleMatrix rdm(global);
-    nodeValues_ = rdm.conjugateGradient(force);
+    return rdm.conjugateGradient(force);
 }

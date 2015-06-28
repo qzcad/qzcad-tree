@@ -317,6 +317,22 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
 #endif
                 } // else
             }
+            else if (iter1 != nodesMap.end() && iter2 != nodesMap.end() && iter3 != nodesMap.end())
+            {
+                addElement(iter1->second, iter2->second, iter3->second);
+            }
+            else if (iter0 != nodesMap.end() && iter2 != nodesMap.end() && iter3 != nodesMap.end())
+            {
+                addElement(iter0->second, iter2->second, iter3->second);
+            }
+            else if (iter0 != nodesMap.end() && iter1 != nodesMap.end() && iter3 != nodesMap.end())
+            {
+                addElement(iter0->second, iter1->second, iter3->second);
+            }
+            else if (iter0 != nodesMap.end() && iter1 != nodesMap.end() && iter2 != nodesMap.end())
+            {
+                addElement(iter0->second, iter1->second, iter2->second);
+            }
         }
     }
 
