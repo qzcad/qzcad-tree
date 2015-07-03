@@ -315,6 +315,13 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
     std::vector<double> SigmaY(nodesCount);
     std::vector<double> TauXY(nodesCount);
 
+    for (UInteger i = 0; i < nodesCount; i++)
+    {
+        SigmaX[i] = 0.0;
+        SigmaY[i] = 0.0;
+        TauXY[i] = 0.0;
+    }
+
     double xi[elementNodes];
     double eta[elementNodes];
     if (dynamic_cast<TriangleMesh2D*>(mesh) != NULL)

@@ -3,6 +3,8 @@
 #include "consoleprogress.h"
 #include "rowdoublematrix.h"
 
+#include <math.h>
+
 MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
                                          double thickness,
                                          const ElasticMatrix &elasticMatrix,
@@ -14,7 +16,7 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
     DoubleVector gxi; // координаты квадратур Гаусса
     DoubleVector geta;
     DoubleVector gweight; // весовые коэффициенты квадратур
-    int gaussPoints; // количество точек квадратур
+    int gaussPoints = 0; // количество точек квадратур
     int line_count = 3; // количество точек квадратур при интегрировании вдоль линии
     DoubleVector line_points;
     DoubleVector line_weights;
@@ -333,6 +335,17 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
     std::vector<double> TauXY(nodesCount);
     std::vector<double> TauXZ(nodesCount);
     std::vector<double> TauYZ(nodesCount);
+    std::vector<double> mises(nodesCount);
+
+    for (UInteger i = 0; i < nodesCount; i++)
+    {
+        SigmaX[i] = 0.0;
+        SigmaY[i] = 0.0;
+        TauXY[i] = 0.0;
+        TauXZ[i] = 0.0;
+        TauYZ[i] = 0.0;
+        mises[i] = 0.0;
+    }
 
     double xi[elementNodes];
     double eta[elementNodes];
@@ -407,14 +420,20 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
                 dis(3 * i + 2, 0) = displacement[element->vertexNode(i) + nodesCount + nodesCount];
             }
 
-            sigma = (D * Bf) * dis;
-            tau = (Dc * Bc) * dis;
+            sigma = thickness*thickness*thickness / 12.0 * ((D * Bf) * dis);
+            tau = kappa* thickness * ((Dc * Bc) * dis);
+            double von = (1.0/sqrt(2.0)) *
+                    sqrt( (sigma(0,0) - sigma(1,0))*(sigma(0,0) - sigma(1,0)) +
+                          sigma(1,0)*sigma(1,0) +
+                          sigma(0,0)*sigma(0,0) +
+                          6.0 * (sigma(2, 0)*sigma(2, 0) + tau(0, 0)*tau(0, 0) + tau(1, 0)*tau(1, 0)) );
 
-            SigmaX[element->vertexNode(inode)] = sigma(0, 0);
-            SigmaY[element->vertexNode(inode)] = sigma(1, 0);
-            TauXY[element->vertexNode(inode)] = sigma(2, 0);
-            TauXZ[element->vertexNode(inode)] = tau(0, 0);
-            TauYZ[element->vertexNode(inode)] = tau(1, 0);
+            SigmaX[element->vertexNode(inode)] += sigma(0, 0);
+            SigmaY[element->vertexNode(inode)] += sigma(1, 0);
+            TauXY[element->vertexNode(inode)] += sigma(2, 0);
+            TauXZ[element->vertexNode(inode)] += tau(0, 0);
+            TauYZ[element->vertexNode(inode)] += tau(1, 0);
+            mises[element->vertexNode(inode)] += von;
         }
     } //for elNum
     for (UInteger i = 0; i < nodesCount; i++)
@@ -424,10 +443,12 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
         TauXY[i] /= (double)mesh->adjacentCount(i);
         TauXZ[i] /= (double)mesh->adjacentCount(i);
         TauYZ[i] /= (double)mesh->adjacentCount(i);
+        mises[i] /= (double)mesh->adjacentCount(i);
     }
     nodeValues_.push_back(NamedVector("Sigma X", SigmaX));
     nodeValues_.push_back(NamedVector("Sigma Y", SigmaY));
     nodeValues_.push_back(NamedVector("Tau XY", TauXY));
     nodeValues_.push_back(NamedVector("Tau XZ", TauXZ));
     nodeValues_.push_back(NamedVector("Tau YZ", TauYZ));
+    nodeValues_.push_back(NamedVector("von Mises", mises));
 }
