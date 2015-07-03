@@ -127,7 +127,7 @@ DoubleMatrix &DoubleMatrix::operator +=(const DoubleMatrix &dm)
     {
         for (size_type j = 0; j < colCount(); j++)
         {
-            data_[j][i] += dm.data_[i][j];
+            data_[i][j] += dm.data_[i][j];
         }
     }
     return *this;
@@ -140,7 +140,7 @@ DoubleMatrix operator *(const double &d, const DoubleMatrix &dm)
     {
         for (size_type j = 0; j < m.colCount(); j++)
         {
-            m.data_[j][i] *= d;
+            m.data_[i][j] *= d;
         }
     }
     return m;
