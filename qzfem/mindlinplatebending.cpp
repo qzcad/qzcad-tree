@@ -420,13 +420,13 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
                 dis(3 * i + 2, 0) = displacement[element->vertexNode(i) + nodesCount + nodesCount];
             }
 
-            sigma = thickness*thickness*thickness / 12.0 * ((D * Bf) * dis);
-            tau = kappa* thickness * ((Dc * Bc) * dis);
-            double von = (1.0/sqrt(2.0)) *
-                    sqrt( (sigma(0,0) - sigma(1,0))*(sigma(0,0) - sigma(1,0)) +
-                          sigma(1,0)*sigma(1,0) +
-                          sigma(0,0)*sigma(0,0) +
-                          6.0 * (sigma(2, 0)*sigma(2, 0) + tau(0, 0)*tau(0, 0) + tau(1, 0)*tau(1, 0)) );
+            sigma = thickness / 2.0 * ((D * Bf) * dis);
+            tau = ((Dc * Bc) * dis);
+//            double von = sqrt( 0.5 * ((sigma(0,0) - sigma(1,0))*(sigma(0,0) - sigma(1,0)) +
+//                          sigma(1,0)*sigma(1,0) +
+//                          sigma(0,0)*sigma(0,0) +
+//                          6.0 * (sigma(2, 0)*sigma(2, 0) + tau(0, 0)*tau(0, 0) + tau(1, 0)*tau(1, 0))) );
+            double von = sqrt(sigma(0,0)*sigma(0,0) - sigma(0,0)*sigma(1,0) + sigma(1,0)*sigma(1,0) + 3.0 * sigma(2,0)*sigma(2,0));
 
             SigmaX[element->vertexNode(inode)] += sigma(0, 0);
             SigmaY[element->vertexNode(inode)] += sigma(1, 0);
