@@ -1,6 +1,11 @@
 #include "quadrilateralmesh2d.h"
 #include <iostream>
 #include <math.h>
+#include <map>
+#include <climits>
+#ifdef WITH_OPENMP
+#include <omp.h>
+#endif
 
 namespace msh
 {
@@ -333,6 +338,234 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const QuadrilateralMesh2D *mesh)
     xMax_ = mesh->xMax_;
     yMin_ = mesh->yMin_;
     yMax_ = mesh->yMax_;
+}
+
+QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint)
+{
+    xMin_ = xMin;
+    xMax_ = xMin + width;
+    yMin_ = yMin;
+    yMax_ = yMin + height;
+    const double hx = width / (double)(xCount - 1);
+    const double hy = height / (double)(yCount - 1);
+    const double iso_dist = sqrt(hx*hx + hy*hy);
+    std::map<UInteger, UInteger> nodesMap;
+#ifdef WITH_OPENMP
+#pragma omp parallel for
+#endif
+    for (UInteger i = 0; i < xCount; i++)
+    {
+        double x = xMin + (double) i * hx;
+        for (UInteger j = 0; j < yCount; j++)
+        {
+            double y = yMin + (double) j * hy;
+            Point2D point(x, y);
+
+            if (func(x, y) > 0.0)
+            {
+#ifdef WITH_OPENMP
+#pragma omp critical
+#endif
+                nodesMap[i * yCount + j] = pushNode(point, INNER);
+            }
+        }
+    }
+    // формирование начальной сетки
+#ifdef WITH_OPENMP
+#pragma omp parallel for
+#endif
+    for (UInteger i = 0; i < xCount - 1; i++)
+    {
+        for (UInteger j = 0; j < yCount - 1; j++)
+        {
+            std::map<UInteger, UInteger>::iterator iter0 = nodesMap.find(i * yCount + j);
+            std::map<UInteger, UInteger>::iterator iter1 = nodesMap.find((i + 1) * yCount + j);
+            std::map<UInteger, UInteger>::iterator iter2 = nodesMap.find((i + 1) * yCount + j + 1);
+            std::map<UInteger, UInteger>::iterator iter3 = nodesMap.find(i * yCount + j + 1);
+            if (iter0 != nodesMap.end() && iter1 != nodesMap.end() && iter2 != nodesMap.end() && iter3 != nodesMap.end())
+            {
+#ifdef WITH_OPENMP
+#pragma omp critical
+#endif
+                        addElement(iter0->second, iter1->second, iter2->second, iter3->second);
+            } // if
+        } // for j
+    } // for i
+
+    UInteger baseElementCount = elementsCount();
+    std::vector<Point2D> normal(nodesCount()); // нормали к узлам
+    // построение нормалей для всех узлов начальной сетки
+#ifdef WITH_OPENMP
+#pragma omp parallel for
+#endif
+    for (UInteger i = 0; i < normal.size(); i++)
+    {
+        Point2D currentPoint = node_[i].point;
+        AdjacentSet quads = node_[i].adjacent;
+        // обработка смежных элементов
+        for (AdjacentSet::iterator it = quads.begin(); it != quads.end(); ++it)
+        {
+            Quadrilateral quad = element_[*it];
+            Point2D prevPoint;
+            Point2D nextPoint;
+            Point2D prevNormal;
+            Point2D nextNormal;
+            if (quad[0] == i)
+            {
+                prevPoint = node_[quad[3]].point;
+                nextPoint = node_[quad[1]].point;
+            }
+            else if (quad[1] == i)
+            {
+                prevPoint = node_[quad[0]].point;
+                nextPoint = node_[quad[2]].point;
+            }
+            else if (quad[2] == i)
+            {
+                prevPoint = node_[quad[1]].point;
+                nextPoint = node_[quad[3]].point;
+            }
+            else // if (quad[3] == i)
+            {
+                prevPoint = node_[quad[2]].point;
+                nextPoint = node_[quad[0]].point;
+            }
+            prevNormal.set((currentPoint.y() - prevPoint.y()), -(currentPoint.x() - prevPoint.x()));
+            nextNormal.set((nextPoint.y() - currentPoint.y()), -(nextPoint.x() - currentPoint.x()));
+            normal[i] = normal[i] + prevNormal.normalized() + nextNormal.normalized();
+        }
+    }
+//    for (UInteger i = 0; i < normal.size(); i++)
+//    {
+//        if (normal[i].length() > epsilon_)
+//        {
+//            Point2D nn = normal[i].normalized();
+//            AdjacentSet adjacent = node_[i].adjacent;
+//            int acount = 1;
+//            for (AdjacentSet::iterator it = adjacent.begin(); it != adjacent.end(); ++it)
+//            {
+//                Quadrilateral aquad = element_[*it];
+//                for (int nnode = 0; nnode < 4; nnode++)
+//                {
+//                    if (normal[aquad[nnode]].length() > epsilon_)
+//                    {
+//                        nn = nn + normal[aquad[nnode]].normalized();
+//                        ++acount;
+//                    }
+//                }
+//            }
+//            normal[i] = (1.0 / (double)acount) * nn;
+//        }
+//    } // for i
+    // поиск изо-точек на границе
+    std::vector<UInteger> iso(nodesCount()); // изо-точки (номера)
+#ifdef WITH_OPENMP
+#pragma omp parallel for schedule(static, 1)
+#endif
+    for (UInteger i = 0; i < normal.size(); i++)
+    {
+        iso[i] = ULONG_MAX;
+        if (normal[i].length() > epsilon_)
+        {
+            Point2D n = normal[i].normalized();
+            Point2D current = node_[i].point;
+            // двоичный поиск граничной точки
+            Point2D inner = current;
+            Point2D outer = current + iso_dist * n;
+            Point2D mid;
+            double val = 0.0;
+            if (func(outer.x(), outer.y()) > 0.0)
+            {
+                // внешняя точка перескачила через границу и попала внутрь
+                // ищем внешнюю точку пошагово сканированием
+                outer = current;
+                while (func(outer.x(), outer.y()) >= 0.0)
+                    outer = outer + (0.0001 * iso_dist) * n;
+            }
+            do
+            {
+                mid = 0.5 * (inner + outer);
+                val = func(mid.x(), mid.y());
+                if (val <= 0.0)
+                    outer = mid;
+                else //if (val > 0.0)
+                    inner = mid;
+            } while(inner.distanceTo(outer) > epsilon_);
+#ifdef WITH_OPENMP
+#pragma omp critical
+#endif
+            iso[i] = pushNode(mid, BORDER);
+        } // if
+    } // for i
+    // для характерных точек, которым не нашлась пара на этапе формирования нормалей, используем метод близжайшего узла
+    for (std::list<Point2D>::iterator cPoint = charPoint.begin(); cPoint != charPoint.end(); ++cPoint)
+    {
+        std::vector<Node2D>::iterator min_n;
+        double min_d = 10.0 * iso_dist;
+        for (std::vector<Node2D>::iterator n = node_.begin(); n != node_.end(); ++n)
+        {
+            if (n->type == BORDER)
+            {
+                double d = (n->point).distanceTo(*cPoint);
+                if (d < min_d)
+                {
+                    min_d = d;
+                    min_n = n;
+                }
+            }
+        }
+        if (min_n != node_.end())
+        {
+            min_n->point = *cPoint;
+            min_n->type = BORDER;
+        }
+    }
+    // Форимрование приграничного слоя элементов
+    for (UInteger i = 0; i < baseElementCount; i++)
+    {
+        Quadrilateral quad = element_[i];
+        for (int j = 0; j < 4; j++)
+        {
+            if (iso[quad[j]] < ULONG_MAX && iso[quad[j + 1]] < ULONG_MAX)
+            {
+                AdjacentSet adjacent = node_[quad[j]].adjacent;
+                int adjacnetCount = 0;
+                // обработка смежных элементов
+                for (AdjacentSet::iterator it = adjacent.begin(); it != adjacent.end(); ++it)
+                {
+                    Quadrilateral aquad = element_[*it];
+                    if (aquad.in(quad[j]) && aquad.in(quad[j + 1]))
+                        ++adjacnetCount;
+                }
+                if (adjacnetCount == 1)
+                {
+                    addElement(quad[j + 1], quad[j], iso[quad[j]], iso[quad[j + 1]]);
+                }
+            }
+        }
+    }
+//    for (int iter = 0; iter < 5; iter++)
+//    for (UInteger i = 0; i < nodesCount(); i++)
+//    {
+//        if (node_[i].type == INNER)
+//        {
+//            Point2D nn(0.0, 0.0);
+//            AdjacentSet adjacent = node_[i].adjacent;
+//            int acount = 0;
+//            for (AdjacentSet::iterator it = adjacent.begin(); it != adjacent.end(); ++it)
+//            {
+//                Quadrilateral aquad = element_[*it];
+//                for (int nnode = 0; nnode < 4; nnode++)
+//                {
+//                        nn = nn + node_[aquad[nnode]].point;
+//                        ++acount;
+//                }
+//            }
+//            node_[i].point = (1.0 / (double)acount) * nn;
+//        }
+//    } // for i
+    // the end.
+    std::cout << "Создана сетка четырехугольных элементов для функционального объекта: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
 UInteger QuadrilateralMesh2D::elementsCount() const

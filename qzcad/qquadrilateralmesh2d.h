@@ -70,6 +70,7 @@ public:
      * @param mesh Экземпляр объекта для копирования
      */
     explicit QQuadrilateralMesh2D(const QQuadrilateralMesh2D &mesh);
+    explicit QQuadrilateralMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, QObject *parent = 0);
     /**
      * @brief Метод формирует строку с информацией о сетке
      * @return Строка с информацией о сетке

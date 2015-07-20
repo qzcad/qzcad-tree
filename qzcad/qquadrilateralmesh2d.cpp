@@ -31,6 +31,12 @@ QQuadrilateralMesh2D::QQuadrilateralMesh2D(const QQuadrilateralMesh2D &mesh) :
 {
 }
 
+QQuadrilateralMesh2D::QQuadrilateralMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint, QObject *parent) :
+    QObject(parent), QuadrilateralMesh2D(xCount, yCount, xMin, yMin, width, height, func, charPoint)
+{
+
+}
+
 QString QQuadrilateralMesh2D::toString() const
 {
     return tr("Сетка четырехугольных элементов. Узлов: %1; элементов: %2.").arg(nodesCount()).arg(elementsCount());

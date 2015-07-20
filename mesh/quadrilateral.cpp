@@ -99,4 +99,9 @@ UIntegerVector Quadrilateral::face(const int &i) const
     UIntegerVector face(vertex_, vertex_ + 4);
     return face;
 }
+
+bool Quadrilateral::in(const UInteger &node)
+{
+    return vertex_[0] == node || vertex_[1] == node || vertex_[2] == node || vertex_[3] == node;
+}
 }

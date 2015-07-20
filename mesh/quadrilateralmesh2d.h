@@ -8,6 +8,9 @@
 #ifndef QUADRILATERALMESH2D_H
 #define QUADRILATERALMESH2D_H
 
+#include <functional>
+#include <list>
+
 #include "mesh2d.h"
 #include "quadrilateral.h"
 
@@ -69,6 +72,18 @@ public:
      * @param mesh Ссылка на объект для копирования
      */
     QuadrilateralMesh2D(const QuadrilateralMesh2D *mesh);
+    /**
+     * @brief Конструктор создает равномерную секту области, определенной функционально
+     * @param xCount Количество узлов вдоль оси абсцисс
+     * @param yCount Количество узлов вдоль оси ординат
+     * @param xMin Абсцисса нижнего левого угла прямоугольной области
+     * @param yMin Ордината нижнего левого угла прямоугольной области
+     * @param width Ширина прямоугольной области
+     * @param height Высота прямоугольной области
+     * @param func Функция области
+     * @param charPoint Список характерных точек
+     */
+    QuadrilateralMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint);
     /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
