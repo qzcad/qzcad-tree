@@ -23,36 +23,18 @@ Quadrilateral::Quadrilateral(const Quadrilateral &quad)
 
 UInteger &Quadrilateral::operator [](int i)
 {
-    switch (i)
-    {
-    case -1:
-        return vertex_[3];
-    case 0:
-    case 1:
-    case 2:
-    case 3:
-        return vertex_[i];
-    case 4:
-        return vertex_[0];
-    }
-    return vertex_[0];
+    if (i < 0)
+        return vertex_[(i % 4) + 4];
+
+    return vertex_[i % 4];
 }
 
 const UInteger &Quadrilateral::operator [](int i) const
 {
-    switch (i)
-    {
-    case -1:
-        return vertex_[3];
-    case 0:
-    case 1:
-    case 2:
-    case 3:
-        return vertex_[i];
-    case 4:
-        return vertex_[0];
-    }
-    return vertex_[0];
+    if (i < 0)
+        return vertex_[(i % 4) + 4];
+
+    return vertex_[i % 4];
 }
 
 Quadrilateral &Quadrilateral::operator =(const Quadrilateral &quad)
@@ -74,19 +56,10 @@ int Quadrilateral::verticesCount() const
 
 UInteger Quadrilateral::vertexNode(int i) const
 {
-    switch (i)
-    {
-    case -1:
-        return vertex_[3];
-    case 0:
-    case 1:
-    case 2:
-    case 3:
-        return vertex_[i];
-    case 4:
-        return vertex_[0];
-    }
-    return vertex_[0];
+    if (i < 0)
+        return vertex_[(i % 4) + 4];
+
+    return vertex_[i % 4];
 }
 
 int Quadrilateral::facesCount() const
