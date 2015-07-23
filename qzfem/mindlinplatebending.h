@@ -22,6 +22,10 @@ public:
                         double thickness,
                         const ElasticMatrix &elasticMatrix,
                         std::list<FemCondition *> conditions);
+    MindlinPlateBending(Mesh2D *mesh,
+                        const std::vector<double> &thickness,
+                        const std::vector<ElasticMatrix> &elasticMatrix,
+                        std::list<FemCondition *> conditions);
 };
 
 #endif // MINDLINPLATEBENDING_H
