@@ -22,34 +22,18 @@ Triangle::Triangle(const Triangle &triangle)
 
 UInteger &Triangle::operator [](int i)
 {
-    switch (i)
-    {
-    case -1:
-        return vertex_[2];
-    case 0:
-    case 1:
-    case 2:
-        return vertex_[i];
-    case 3:
-        return vertex_[0];
-    }
-    return vertex_[0];
+    if (i < 0)
+        return vertex_[(i % 3) + 3];
+
+    return vertex_[i % 3];
 }
 
 const UInteger &Triangle::operator [](int i) const
 {
-    switch (i)
-    {
-    case -1:
-        return vertex_[2];
-    case 0:
-    case 1:
-    case 2:
-        return vertex_[i];
-    case 3:
-        return vertex_[0];
-    }
-    return vertex_[0];
+    if (i < 0)
+        return vertex_[(i % 3) + 3];
+
+    return vertex_[i % 3];
 }
 
 Triangle &Triangle::operator =(const Triangle &triangle)
@@ -70,18 +54,10 @@ int Triangle::verticesCount() const
 
 UInteger Triangle::vertexNode(int i) const
 {
-    switch (i)
-    {
-    case -1:
-        return vertex_[2];
-    case 0:
-    case 1:
-    case 2:
-        return vertex_[i];
-    case 3:
-        return vertex_[0];
-    }
-    return vertex_[0];
+    if (i < 0)
+        return vertex_[(i % 3) + 3];
+
+    return vertex_[i % 3];
 }
 
 int Triangle::facesCount() const
