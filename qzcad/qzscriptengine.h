@@ -113,6 +113,13 @@ private:
      */
     static QScriptValue createTriangleMesh2D(QScriptContext *context, QScriptEngine *engine);
     /**
+     * @brief "Конструктор" сеток четырехугольных элементов в пространстве
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Объект для использования в скриптах
+     */
+    static QScriptValue createQuadrilateralMesh3D(QScriptContext *context, QScriptEngine *engine);
+    /**
      * @brief Qt Script реализация операции печати на консоль через std::cout
      * @param context Контекст скрипта
      * @param engine Двигатель скрипта
