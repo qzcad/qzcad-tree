@@ -6,6 +6,7 @@
 #include "qquadrilateralmesh2d.h"
 #include "qtrianglemesh2d.h"
 #include "qquadrilateralmesh3d.h"
+#include "qtrianglemesh3d.h"
 
 #include "qfemcondition.h"
 
@@ -57,7 +58,10 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     globalObject().setProperty("Triangles2D", qsCreateTriangleMesh2D);
     // Поверхностная сетка четырехугольников
     QScriptValue qsCreateQuadrilateralMesh3D = newFunction(createQuadrilateralMesh3D);
-    globalObject().setProperty("SurfaceQuads", qsCreateQuadrilateralMesh3D);;
+    globalObject().setProperty("ShellQuads", qsCreateQuadrilateralMesh3D);
+    // Поверхностная сетка треугольников
+    QScriptValue qsCreateTriangleMesh3D = newFunction(createTriangleMesh3D);
+    globalObject().setProperty("ShellTriangles", qsCreateTriangleMesh3D);
     // setMesh
     QScriptValue qsSetMesh = newFunction(setMesh);
     globalObject().setProperty("setMesh", qsSetMesh);
@@ -353,7 +357,7 @@ QScriptValue QZScriptEngine::createQuadrilateralMesh3D(QScriptContext *context, 
 {
     if (context->argumentCount() == 4)
     {
-        QString typeError = QObject::tr("SurfaceQuads(rCount: Integer, lCount: Integer, radius: Floating, length: Floating): argument type error (%1).");
+        QString typeError = QObject::tr("ShellQuads(rCount: Integer, lCount: Integer, radius: Floating, length: Floating): argument type error (%1).");
         if (!context->argument(0).isNumber())
             return context->throwError(typeError.arg("rCount"));
         if (!context->argument(1).isNumber())
@@ -368,7 +372,29 @@ QScriptValue QZScriptEngine::createQuadrilateralMesh3D(QScriptContext *context, 
         double length = context->argument(3).toNumber();
         return engine->newQObject(new QQuadrilateralMesh3D(rCount, lCount, radius, length), QScriptEngine::ScriptOwnership);
     }
-    return context->throwError(QObject::tr("SurfaceQuads(): arguments count error."));
+    return context->throwError(QObject::tr("ShellQuads(): arguments count error."));
+}
+
+QScriptValue QZScriptEngine::createTriangleMesh3D(QScriptContext *context, QScriptEngine *engine)
+{
+    if (context->argumentCount() == 4)
+    {
+        QString typeError = QObject::tr("ShellTriangles(rCount: Integer, lCount: Integer, radius: Floating, length: Floating): argument type error (%1).");
+        if (!context->argument(0).isNumber())
+            return context->throwError(typeError.arg("rCount"));
+        if (!context->argument(1).isNumber())
+            return context->throwError(typeError.arg("lCount"));
+        if (!context->argument(2).isNumber())
+            return context->throwError(typeError.arg("radius"));
+        if (!context->argument(3).isNumber())
+            return context->throwError(typeError.arg("length"));
+        UInteger rCount = context->argument(0).toUInt32();
+        UInteger lCount = context->argument(1).toUInt32();
+        double radius = context->argument(2).toNumber();
+        double length = context->argument(3).toNumber();
+        return engine->newQObject(new QTriangleMesh3D(rCount, lCount, radius, length), QScriptEngine::ScriptOwnership);
+    }
+    return context->throwError(QObject::tr("ShellTriangles(): arguments count error."));
 }
 
 QScriptValue QZScriptEngine::printStd(QScriptContext *context, QScriptEngine *engine)
@@ -408,6 +434,10 @@ QScriptValue QZScriptEngine::setMesh(QScriptContext *context, QScriptEngine *eng
     else if (qscriptvalue_cast<QQuadrilateralMesh3D *>(context->argument(0)) != NULL)
     {
         mesh_ = new QuadrilateralMesh3D(qscriptvalue_cast<QQuadrilateralMesh3D *>(context->argument(0)));
+    }
+    else if (qscriptvalue_cast<QTriangleMesh3D *>(context->argument(0)) != NULL)
+    {
+        mesh_ = new TriangleMesh3D(qscriptvalue_cast<QTriangleMesh3D *>(context->argument(0)));
     }
     else
     {

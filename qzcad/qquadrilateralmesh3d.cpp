@@ -17,5 +17,5 @@ QQuadrilateralMesh3D::QQuadrilateralMesh3D(const UInteger &rCount, const UIntege
 
 QString QQuadrilateralMesh3D::toString() const
 {
-    return tr("Сетка четырехугольных элементов. Узлов: %1; элементов: %2.").arg(nodesCount()).arg(elementsCount());
+    return tr("Сетка четырехугольных элементов (оболочка). Узлов: %1; элементов: %2.").arg(nodesCount()).arg(elementsCount());
 }

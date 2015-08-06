@@ -49,7 +49,8 @@ SOURCES += main.cpp\
     qpoint3d.cpp \
     qtrianglemesh2d.cpp \
     qfemcondition.cpp \
-    qquadrilateralmesh3d.cpp
+    qquadrilateralmesh3d.cpp \
+    qtrianglemesh3d.cpp
 
 HEADERS  += mainwindow.h \
     globalconsts.h \
@@ -80,7 +81,8 @@ HEADERS  += mainwindow.h \
     qpoint3d.h \
     qtrianglemesh2d.h \
     qfemcondition.h \
-    qquadrilateralmesh3d.h
+    qquadrilateralmesh3d.h \
+    qtrianglemesh3d.h
 
 FORMS    += mainwindow.ui \
     glcontrolwidget.ui \
