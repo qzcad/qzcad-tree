@@ -217,6 +217,13 @@ private:
      * @return Если аргументы корректны, то будет найдено решение задачи, иначе engine->undefinedValue()
      */
     static QScriptValue mindlinPlate(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief МКЭ: Деформация оболочки (теория Миндлина)
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны, то будет найдено решение задачи, иначе engine->undefinedValue()
+     */
+    static QScriptValue mindlinShell(QScriptContext *context, QScriptEngine *engine);
 private:
     static double epsilon_; //!< Точность численных операций
     static msh::Mesh *mesh_; //!< Сетка, построенная в результате интерпретации скрипта

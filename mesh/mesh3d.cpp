@@ -101,6 +101,11 @@ void Mesh3D::updateDomain()
         if (zMax_ < z) zMax_ = z;
     }
 }
+
+UInteger Mesh3D::adjacentCount(const UInteger &nodeNumber) const
+{
+    return node_[nodeNumber].adjacent.size();
+}
 }
 
 

@@ -1,5 +1,6 @@
 #include "point3d.h"
 #include <math.h>
+#include <iostream>
 
 namespace msh
 {
@@ -76,6 +77,11 @@ void Point3D::set(const double &x, const double &y, const double &z)
 void Point3D::setZ(const double &z)
 {
     z_ = z;
+}
+
+void Point3D::print()
+{
+    std::cout << '(' << x() << "; " << y() << "; " << z() << ')';
 }
 
 Point2D &Point3D::operator =(const Point3D &point)

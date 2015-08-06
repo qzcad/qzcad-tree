@@ -2,6 +2,7 @@
 #define MINDLINSHELLBENDING_H
 
 #include <functional>
+#include <list>
 
 #include "fem2d.h"
 #include "elasticmatrix.h"
@@ -18,7 +19,12 @@ using namespace mtx;
 class MindlinShellBending : public Fem2D
 {
 public:
-    MindlinShellBending(Mesh3D * mesh);
+    MindlinShellBending(Mesh3D * mesh,
+                        double thickness,
+                        const ElasticMatrix &elasticMatrix,
+                        std::list<FemCondition *> conditions);
+private:
+    DoubleMatrix cosinuses(const Point3D &A, const Point3D &B, const Point3D &C);
 };
 
 #endif // MINDLINSHELLBENDING_H

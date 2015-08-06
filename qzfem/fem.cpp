@@ -151,5 +151,5 @@ DoubleVector Fem::solve(MappedDoubleMatrix &global, DoubleVector &force)
     // решение СЛАУ
     std::cout << "Linear Equations (СЛАУ)..." << std::endl;
     RowDoubleMatrix rdm(global);
-    return rdm.conjugateGradient(force);
+    return rdm.conjugateGradient(force, 1.0E-9);
 }

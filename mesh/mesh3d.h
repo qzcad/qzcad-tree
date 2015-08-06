@@ -100,6 +100,12 @@ public:
      * @brief Обновить параметры области определения сетки (xMin, xMax, yMin, yMax, zMin, zMax)
      */
     virtual void updateDomain();
+    /**
+     * @brief Количество элементов, смежных в узле с заданным номером
+     * @param nodeNumber Номер узла
+     * @return Количество элементов, смежных в узле
+     */
+    UInteger adjacentCount(const UInteger &nodeNumber) const;
 protected:
     std::vector<Node3D> node_; //!< массив узлов
     double xMin_; //!< минимальное значение ординаты

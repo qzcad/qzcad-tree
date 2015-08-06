@@ -12,6 +12,7 @@
 
 #include "planestressstrain.h"
 #include "mindlinplatebending.h"
+#include "mindlinshellbending.h"
 
 #include "qzscriptengine.h"
 
@@ -97,6 +98,9 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
 
     QScriptValue qsMindlinPlate = newFunction(mindlinPlate);
     globalObject().setProperty("MindlinPlate", qsMindlinPlate);
+
+    QScriptValue qsMindlinShell = newFunction(mindlinShell);
+    globalObject().setProperty("MindlinShell", qsMindlinShell);
 
 }
 
@@ -840,7 +844,100 @@ QScriptValue QZScriptEngine::mindlinPlate(QScriptContext *context, QScriptEngine
 
         return engine->undefinedValue();
     }
-    return context->throwError(QObject::tr("PlaneStress(mesh: Mesh, h: Floating, E: Floating, nu: Floating, boundaryConditionType: Function, boundaryValue: Function, nodalForce: Function, surfaceForce: Function, volumeForce: Function): arguments count error."));
+    return context->throwError(QObject::tr("MindlinPlate(mesh: Mesh, h: Floating, E: Floating, nu: Floating, boundaryConditionType: Function, boundaryValue: Function, nodalForce: Function, surfaceForce: Function, volumeForce: Function): arguments count error."));
+}
+
+QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine *engine)
+{
+    if (context->argumentCount() > 4)
+    {
+        QString typeError = QObject::tr("MindlinShell(mesh: Mesh, h: Floating, E: Floating, nu: Floating, ...): argument type error (%1).");
+        if (!context->argument(0).isQObject())
+            return context->throwError(typeError.arg("mesh"));
+        if (qscriptvalue_cast<QQuadrilateralMesh3D *>(context->argument(0)) != NULL)
+        {
+            mesh_ = new QuadrilateralMesh3D(qscriptvalue_cast<QQuadrilateralMesh3D *>(context->argument(0)));
+        }
+        else if (qscriptvalue_cast<QTriangleMesh3D *>(context->argument(0)) != NULL)
+        {
+            mesh_ = new TriangleMesh3D(qscriptvalue_cast<QTriangleMesh3D *>(context->argument(0)));
+        }
+        else
+        {
+            return context->throwError(typeError.arg("mesh"));
+        }
+
+        if (!context->argument(1).isNumber() && !context->argument(1).isArray())
+            return context->throwError(typeError.arg("h"));
+
+        if (!context->argument(2).isNumber() && !context->argument(2).isArray())
+            return context->throwError(typeError.arg("E"));
+
+        if (!context->argument(3).isNumber() && !context->argument(3).isArray())
+            return context->throwError(typeError.arg("nu"));
+
+        std::list<FemCondition*> conditions;
+
+        for (int i = 4; i < context->argumentCount(); i++)
+        {
+            if (!context->argument(i).isQObject())
+                return context->throwError(typeError.arg("boundary condition"));
+            QFemCondition *cond = qscriptvalue_cast<QFemCondition *>(context->argument(i));
+            if (cond == NULL)
+                return context->throwError(typeError.arg("boundary condition"));
+            conditions.push_back(cond);
+        }
+        if (context->argument(1).isNumber() && context->argument(2).isNumber() && context->argument(3).isNumber())
+        {
+            double h = context->argument(1).toNumber();
+            double E = context->argument(2).toNumber();
+            double nu = context->argument(3).toNumber();
+
+            ElasticMatrix D(E, nu, true); //!
+
+            if (fem_ != NULL) delete fem_;
+
+            fem_ = new MindlinShellBending (dynamic_cast<Mesh3D*>(mesh_), //!
+                                            h,
+                                            D,
+                                            conditions);
+        }
+//        else if (context->argument(1).isArray() && context->argument(2).isArray() && context->argument(3).isArray())
+//        {
+//            QScriptValue h_array = context->argument(1);
+//            QScriptValue e_array = context->argument(2);
+//            QScriptValue nu_array = context->argument(1);
+//            std::vector<double> h;
+//            std::vector<ElasticMatrix> elasticMatrix;
+
+//            if (h_array.property("length").toInteger() != e_array.property("length").toInteger() || h_array.property("length").toInteger() != nu_array.property("length").toInteger())
+//            {
+//                return context->throwError(typeError.arg("h, E, nu: all the input arrays must have same length"));
+//            }
+
+//            for (int i = 0; i < h_array.property("length").toInteger(); i++)
+//            {
+//                h.push_back(h_array.property(i).toNumber());
+//                elasticMatrix.push_back(ElasticMatrix(e_array.property(i).toNumber(), nu_array.property(i).toNumber(), true));
+//            }
+
+//            if (fem_ != NULL) delete fem_;
+
+//            fem_ = new MindlinPlateBending (dynamic_cast<Mesh2D*>(mesh_), //!
+//                                            h,
+//                                            elasticMatrix,
+//                                            conditions);
+//        }
+        else
+        {
+            return context->throwError(typeError.arg("h, E, nu: all the input must be scalars or arrays of same length"));
+        }
+
+        fem_->printNodeValuesExtremums();
+
+        return engine->undefinedValue();
+    }
+    return context->throwError(QObject::tr("MindlinShell(mesh: Mesh, h: Floating, E: Floating, nu: Floating, boundaryConditionType: Function, boundaryValue: Function, nodalForce: Function, surfaceForce: Function, volumeForce: Function): arguments count error."));
 }
 
 
