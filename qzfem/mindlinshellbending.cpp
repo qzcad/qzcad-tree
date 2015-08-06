@@ -325,14 +325,12 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
                 for (UInteger i = 0 ; i < elementNodes; i++)
                 {
                     force(element->vertexNode(i)) += membrane_force[i].x();
-                    force(element->vertexNode(i) + nodesCount) = 0;
+                    force(element->vertexNode(i) + nodesCount) += membrane_force[i].y();
                     force(element->vertexNode(i) + 2UL * nodesCount) += membrane_force[i].z();
 
-                    force(element->vertexNode(i) + 3UL * nodesCount) = 0;
-                    force(element->vertexNode(i) + 4UL * nodesCount) = 0;
-                    force(element->vertexNode(i) + 5UL * nodesCount) = 0;
-
-
+                    force(element->vertexNode(i) + 3UL * nodesCount) += moment_force[i].x();
+                    force(element->vertexNode(i) + 4UL * nodesCount) += moment_force[i].y();
+                    force(element->vertexNode(i) + 5UL * nodesCount) += moment_force[i].z();
                 }
             } //for elNum
         }
