@@ -91,6 +91,7 @@ public:
      * @param z Новое значение аппликаты
      */
     void setZ(const double &z);
+    void print();
     /// @name Операторы
     /// @{
     /// Присваивание
