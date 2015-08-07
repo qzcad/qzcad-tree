@@ -15,7 +15,7 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
     DoubleVector geta;
     DoubleVector gweight; // весовые коэффициенты квадратур
     int gaussPoints = 0; // количество точек квадратур
-    int line_count = 3; // количество точек квадратур при интегрировании вдоль линии
+    int line_count = 5; // количество точек квадратур при интегрировании вдоль линии
     DoubleVector line_points;
     DoubleVector line_weights;
     quadrature(line_count, line_points, line_weights);
@@ -72,7 +72,7 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
         Point3D C = *(dynamic_cast<const Point3D *>(mesh->node(element->vertexNode(2))));
         DoubleMatrix lambda = cosinuses(A, B, C);
         DoubleMatrix T(freedom_ * elementNodes, freedom_ * elementNodes, 0.0);
-        for (UInteger i = 0; i < freedom_ * elementNodes - 3; i += 3)
+        for (UInteger i = 0; i <= (freedom_ * elementNodes - 3); i += 3)
         {
             for (UInteger ii = 0; ii < 3; ii++)
                 for (UInteger jj = 0; jj < 3; jj++)
@@ -119,11 +119,11 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
             for (UInteger i = 0; i < elementNodes; i++)
             {
                 Bm(0, i * freedom_) = dNdX(i);
-                Bm(1, i * freedom_ + 1) = dNdY(i);
+                                                    Bm(1, i * freedom_ + 1) = dNdY(i);
                 Bm(2, i * freedom_) = dNdY(i);      Bm(2, i * freedom_ + 1) = dNdX(i);
 
                 Bf(0, i * freedom_ + 3) = dNdX(i);
-                Bf(1, i * freedom_ + 4) = dNdY(i);
+                                                    Bf(1, i * freedom_ + 4) = dNdY(i);
                 Bf(2, i * freedom_ + 3) = dNdY(i);  Bf(2, i * freedom_ + 4) = dNdX(i);
 
                 Bc(0, i * freedom_ + 2) = dNdX(i);  Bc(0, i * freedom_ + 3) = N(i);
@@ -206,8 +206,8 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
                             FemCondition::FemDirection dir = (*condition)->direction();
                             if ((*condition)->isApplied(point0) && (*condition)->isApplied(point1))
                             {
-                                Point2D p0(point0->x(), point0->y());
-                                Point2D p1(point1->x(), point1->y());
+                                Point3D p0(point0->x(), point0->y(), point0->z());
+                                Point3D p1(point1->x(), point1->y(), point1->z());
                                 double l = p0.distanceTo(p1);
                                 double jacobian = l / 2.0;
                                 double f0 = 0.0;
@@ -219,8 +219,9 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
                                     double w = line_weights(ixi);
                                     double N0 = (1.0 - xi) / 2.0;
                                     double N1 = (1.0 + xi) / 2.0;
-                                    Point2D p = Point2D(p0.x() * N0 + p1.x() * N1,
-                                                             p0.y() * N0 + p1.y() * N1);
+                                    Point3D p = Point3D(p0.x() * N0 + p1.x() * N1,
+                                                        p0.y() * N0 + p1.y() * N1,
+                                                        p1.z() * N0 + p1.z() * N1);
                                     f0 += N0 * jacobian * w * (*condition)->value(&p);
                                     f1 += N1 * jacobian * w * (*condition)->value(&p);
                                 } // for ixi
@@ -236,8 +237,23 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
                                 }
                                 if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
                                 {
-                                    force(element->vertexNode(i) + nodesCount + nodesCount) += f0;
-                                    force(element->vertexNode(i + 1) + nodesCount + nodesCount) += f1;
+                                    force(element->vertexNode(i) + 2UL * nodesCount) += f0;
+                                    force(element->vertexNode(i + 1) + 2UL * nodesCount) += f1;
+                                }
+                                if (dir == FemCondition::ALL || dir == FemCondition::FOURTH)
+                                {
+                                    force(element->vertexNode(i) + 3UL * nodesCount) += f0;
+                                    force(element->vertexNode(i + 1) + 3UL * nodesCount) += f1;
+                                }
+                                if (dir == FemCondition::ALL || dir == FemCondition::FIFTH)
+                                {
+                                    force(element->vertexNode(i) + 4UL * nodesCount) += f0;
+                                    force(element->vertexNode(i + 1) + 4UL * nodesCount) += f1;
+                                }
+                                if (dir == FemCondition::ALL || dir == FemCondition::SIXTH)
+                                {
+                                    force(element->vertexNode(i) + 5UL * nodesCount) += f0;
+                                    force(element->vertexNode(i + 1) + 5UL * nodesCount) += f1;
                                 }
                             }
                         } // if
@@ -308,6 +324,12 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
                     Point3D pLocal = pl + A;
                     double fLocal = (*condition)->value(&pLocal);
 
+//                    DoubleVector force_vec(3, 0.0);
+//                    force_vec[0] = (dir == FemCondition::ALL || dir == FemCondition::FIRST) ? fLocal : 0.0;
+//                    force_vec[1] = (dir == FemCondition::ALL || dir == FemCondition::SECOND) ? fLocal : 0.0;
+//                    force_vec[2] = (dir == FemCondition::ALL || dir == FemCondition::THIRD) ? fLocal : 0.0;
+//                    DoubleVector force_local = lambda * force_vec;
+//                    Point3D membrane (force_local[0], force_local[1], force_local[2]);
                     Point3D membrane((dir == FemCondition::ALL || dir == FemCondition::FIRST) ? fLocal : 0.0,
                                      (dir == FemCondition::ALL || dir == FemCondition::SECOND) ? fLocal : 0.0,
                                      (dir == FemCondition::ALL || dir == FemCondition::THIRD) ? fLocal : 0.0);
@@ -324,6 +346,15 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
                 // ансамбль объемных сил
                 for (UInteger i = 0 ; i < elementNodes; i++)
                 {
+//                    DoubleVector force_vec(3, 0.0);
+//                    force_vec[0] = membrane_force[i].x();
+//                    force_vec[1] = membrane_force[i].y();
+//                    force_vec[2] = membrane_force[i].z();
+//                    DoubleVector force_global = lambdaT * force_vec;
+//                    force(element->vertexNode(i)) += force_global[0];
+//                    force(element->vertexNode(i) + nodesCount) += force_global[1];
+//                    force(element->vertexNode(i) + 2UL * nodesCount) += force_global[2];
+
                     force(element->vertexNode(i)) += membrane_force[i].x();
                     force(element->vertexNode(i) + nodesCount) += membrane_force[i].y();
                     force(element->vertexNode(i) + 2UL * nodesCount) += membrane_force[i].z();
@@ -355,20 +386,22 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
                     if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
                         setInitialNodalValue(global, force, i + nodesCount, (*condition)->value(point));
                     if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
-                        setInitialNodalValue(global, force, i + nodesCount + nodesCount, (*condition)->value(point));
+                        setInitialNodalValue(global, force, i + 2UL * nodesCount, (*condition)->value(point));
                     if (dir == FemCondition::ALL || dir == FemCondition::FOURTH)
-                        setInitialNodalValue(global, force, i + nodesCount + nodesCount + nodesCount, (*condition)->value(point));
+                        setInitialNodalValue(global, force, i + 3UL * nodesCount, (*condition)->value(point));
                     if (dir == FemCondition::ALL || dir == FemCondition::FIFTH)
-                        setInitialNodalValue(global, force, i + nodesCount + nodesCount + nodesCount + nodesCount, (*condition)->value(point));
+                        setInitialNodalValue(global, force, i + 4UL * nodesCount, (*condition)->value(point));
                     if (dir == FemCondition::ALL || dir == FemCondition::SIXTH)
-                        setInitialNodalValue(global, force, i + nodesCount + nodesCount + nodesCount + nodesCount + nodesCount, (*condition)->value(point));
+                        setInitialNodalValue(global, force, i + 5UL * nodesCount, (*condition)->value(point));
                 }
                 ++progressBar;
             } // for i
         }
     } // iterator
+//    force.print(' ');
 
     DoubleVector displacement = solve(global, force);
+
     std::vector<double> xxx(nodesCount);
     std::vector<double> yyy(nodesCount);
     std::vector<double> zzz(nodesCount);
@@ -379,10 +412,10 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
     {
         xxx[i] = displacement[i];
         yyy[i] = displacement[i + nodesCount];
-        zzz[i] = displacement[i + nodesCount + nodesCount];
-        theta_x[i] = displacement[i + nodesCount + nodesCount + nodesCount];
-        theta_y[i] = displacement[i + nodesCount + nodesCount + nodesCount + nodesCount];
-        theta_z[i] = displacement[i + nodesCount + nodesCount + nodesCount + nodesCount + nodesCount];
+        zzz[i] = displacement[i + 2UL * nodesCount];
+        theta_x[i] = displacement[i + 3UL * nodesCount];
+        theta_y[i] = displacement[i + 4UL * nodesCount];
+        theta_z[i] = displacement[i + 5UL * nodesCount];
     }
     nodeValues_.push_back(NamedVector("U", xxx));
     nodeValues_.push_back(NamedVector("V", yyy));
@@ -440,12 +473,15 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
         Point3D C = *(dynamic_cast<const Point3D *>(mesh->node(element->vertexNode(2))));
         DoubleMatrix lambda = cosinuses(A, B, C);
         DoubleMatrix T(freedom_ * elementNodes, freedom_ * elementNodes, 0.0);
-        for (UInteger i = 0; i < freedom_ * elementNodes - 3; i += 3)
+
+        for (UInteger i = 0; i <= (freedom_ * elementNodes - 3); i += 3)
         {
             for (UInteger ii = 0; ii < 3; ii++)
                 for (UInteger jj = 0; jj < 3; jj++)
                     T(ii + i, jj + i) = lambda(ii, jj);
         }
+
+        DoubleMatrix lambdaT = lambda.transpose();
 
         double x[elementNodes];
         double y[elementNodes];
@@ -463,9 +499,11 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
             DoubleVector N(elementNodes);
             DoubleVector dNdX(elementNodes);
             DoubleVector dNdY(elementNodes);
-            DoubleMatrix dis((size_type)(freedom_ * elementNodes), (size_type)1);
-            DoubleMatrix sigma((size_type)3, (size_type)1);
-            DoubleMatrix tau((size_type)2, (size_type)1);
+            DoubleVector dis((size_type)(freedom_ * elementNodes), 0.0);
+            DoubleVector sigma_membrane((size_type)3, 0.0);
+            DoubleVector sigma_plate((size_type)3, 0.0);
+            DoubleVector sigma((size_type)3, 0.0);
+            DoubleVector tau((size_type)2, 0.0);
 
             // якобиан
             if (dynamic_cast<TriangleMesh3D*>(mesh) != NULL)
@@ -483,11 +521,11 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
             for (UInteger i = 0; i < elementNodes; i++)
             {
                 Bm(0, i * freedom_) = dNdX(i);
-                Bm(1, i * freedom_ + 1) = dNdY(i);
+                                                    Bm(1, i * freedom_ + 1) = dNdY(i);
                 Bm(2, i * freedom_) = dNdY(i);      Bm(2, i * freedom_ + 1) = dNdX(i);
 
                 Bf(0, i * freedom_ + 3) = dNdX(i);
-                Bf(1, i * freedom_ + 4) = dNdY(i);
+                                                    Bf(1, i * freedom_ + 4) = dNdY(i);
                 Bf(2, i * freedom_ + 3) = dNdY(i);  Bf(2, i * freedom_ + 4) = dNdX(i);
 
                 Bc(0, i * freedom_ + 2) = dNdX(i);  Bc(0, i * freedom_ + 3) = N(i);
@@ -496,31 +534,34 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
 
             for (UInteger i = 0; i < elementNodes; i++)
             {
-                dis(freedom_ * i, 0) = displacement[element->vertexNode(i)];
-                dis(freedom_ * i + 1, 0) = displacement[element->vertexNode(i) + nodesCount];
-                dis(freedom_ * i + 2, 0) = displacement[element->vertexNode(i) + nodesCount + nodesCount];
-                dis(freedom_ * i + 3, 0) = displacement[element->vertexNode(i) + nodesCount + nodesCount + nodesCount];
-                dis(freedom_ * i + 4, 0) = displacement[element->vertexNode(i) + nodesCount + nodesCount + nodesCount + nodesCount];
-                dis(freedom_ * i + 5, 0) = displacement[element->vertexNode(i) + nodesCount + nodesCount + nodesCount + nodesCount + nodesCount];
+                dis(freedom_ * i) = displacement[element->vertexNode(i)];
+                dis(freedom_ * i + 1) = displacement[element->vertexNode(i) + nodesCount];
+                dis(freedom_ * i + 2) = displacement[element->vertexNode(i) + 2UL * nodesCount];
+                dis(freedom_ * i + 3) = displacement[element->vertexNode(i) + 3UL * nodesCount];
+                dis(freedom_ * i + 4) = displacement[element->vertexNode(i) + 4UL * nodesCount];
+                dis(freedom_ * i + 5) = displacement[element->vertexNode(i) + 5UL * nodesCount];
             }
 
-            DoubleMatrix dLocal = T.transpose() * dis;
+            DoubleVector dLocal = T * dis;
 
-            sigma = ((D * Bm) * dLocal);
-            sigma += (thickness / 2.0 * ((D * Bf) * dLocal));
-            tau = ((Dc * Bc) * dLocal);
+            sigma_membrane = (D * Bm) * dLocal;
+            sigma_plate = thickness / 2.0 * ((D * Bf) * dLocal);
+            sigma[0] = sigma_membrane[0] + sigma_plate[0];
+            sigma[1] = sigma_membrane[1] + sigma_plate[1];
+            sigma[2] = sigma_membrane[2] + sigma_plate[2];
+            tau = (Dc * Bc) * dLocal;
 
             DoubleMatrix localSigma(3, 3, 0.0);
-            localSigma(0, 0) = sigma(0, 0); localSigma(0, 1) = sigma(2, 0); localSigma(0, 2) = tau(0, 0);
-            localSigma(1, 0) = sigma(2, 0); localSigma(1, 1) = sigma(1, 0); localSigma(1, 2) = tau(1, 0);
-            localSigma(2, 0) = tau(0, 0);   localSigma(2, 1) = tau(1, 0);
+            localSigma(0, 0) = sigma(0); localSigma(0, 1) = sigma(2); localSigma(0, 2) = tau(0);
+            localSigma(1, 0) = sigma(2); localSigma(1, 1) = sigma(1); localSigma(1, 2) = tau(1);
+            localSigma(2, 0) = tau(0);   localSigma(2, 1) = tau(1);   localSigma(2, 2) = 0.0;
 
-            DoubleMatrix SG = lambda.transpose() * localSigma * lambda;
+            DoubleMatrix SG = lambdaT * localSigma * lambda;
 
-            double von = (1.0 / sqrt(2.0)) * sqrt((SG(0, 0) - SG(1, 1)) * (SG(0, 0) - SG(1, 1)) +
-                                                  (SG(1, 1) - SG(2, 2)) * (SG(1, 1) - SG(2, 2)) +
-                                                  (SG(2, 2) - SG(0, 0)) * (SG(2, 2) - SG(0, 0)) +
-                                                  6.0 * (SG(0, 1) * SG(0, 1) + SG(1, 2) * SG(1, 2) + SG(2, 0) * SG(2, 0)));
+            double von = sqrt(0.5) * sqrt((SG(0, 0) - SG(1, 1)) * (SG(0, 0) - SG(1, 1)) +
+                                          (SG(1, 1) - SG(2, 2)) * (SG(1, 1) - SG(2, 2)) +
+                                          (SG(2, 2) - SG(0, 0)) * (SG(2, 2) - SG(0, 0)) +
+                                          6.0 * (SG(0, 1) * SG(0, 1) + SG(1, 2) * SG(1, 2) + SG(0, 2) * SG(0, 2)));
             SigmaX[element->vertexNode(inode)] += SG(0, 0);
             SigmaY[element->vertexNode(inode)] += SG(1, 1);
             SigmaZ[element->vertexNode(inode)] += SG(2, 2);
