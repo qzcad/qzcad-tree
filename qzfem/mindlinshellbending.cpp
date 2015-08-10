@@ -286,8 +286,12 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
                     x[i] = lambda(0, 0) * pp.x() + lambda(0, 1) * pp.y() + lambda(0, 2) * pp.z();
                     y[i] = lambda(1, 0) * pp.x() + lambda(1, 1) * pp.y() + lambda(1, 2) * pp.z();
                 }
-                Point3D membrane_force[elementNodes]; // значения объемных сил в узлах
-                Point3D moment_force[elementNodes];
+//                Point3D membrane_force[elementNodes]; // значения объемных сил в узлах
+//                Point3D moment_force[elementNodes];
+                double element_force[elementNodes];
+                for (UInteger i = 0; i < elementNodes; i++)
+                    element_force[i] = 0.0;
+
                 FemCondition::FemDirection dir = (*condition)->direction();
 
                 for (int ig = 0; ig < gaussPoints; ig++)
@@ -330,17 +334,18 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
 //                    force_vec[2] = (dir == FemCondition::ALL || dir == FemCondition::THIRD) ? fLocal : 0.0;
 //                    DoubleVector force_local = lambda * force_vec;
 //                    Point3D membrane (force_local[0], force_local[1], force_local[2]);
-                    Point3D membrane((dir == FemCondition::ALL || dir == FemCondition::FIRST) ? fLocal : 0.0,
-                                     (dir == FemCondition::ALL || dir == FemCondition::SECOND) ? fLocal : 0.0,
-                                     (dir == FemCondition::ALL || dir == FemCondition::THIRD) ? fLocal : 0.0);
-                    Point3D moment((dir == FemCondition::ALL || dir == FemCondition::FOURTH) ? fLocal : 0.0,
-                                     (dir == FemCondition::ALL || dir == FemCondition::FIFTH) ? fLocal : 0.0,
-                                     (dir == FemCondition::ALL || dir == FemCondition::SIXTH) ? fLocal : 0.0);
+//                    Point3D membrane((dir == FemCondition::ALL || dir == FemCondition::FIRST) ? fLocal : 0.0,
+//                                     (dir == FemCondition::ALL || dir == FemCondition::SECOND) ? fLocal : 0.0,
+//                                     (dir == FemCondition::ALL || dir == FemCondition::THIRD) ? fLocal : 0.0);
+//                    Point3D moment((dir == FemCondition::ALL || dir == FemCondition::FOURTH) ? fLocal : 0.0,
+//                                     (dir == FemCondition::ALL || dir == FemCondition::FIFTH) ? fLocal : 0.0,
+//                                     (dir == FemCondition::ALL || dir == FemCondition::SIXTH) ? fLocal : 0.0);
 
                     for (unsigned int i = 0; i < elementNodes; i++)
                     {
-                        membrane_force[i] = membrane_force[i] + (N[i] * jacobian * w) * membrane;
-                        moment_force[i] = moment_force[i] + (N[i] * jacobian * w) * moment;
+//                        membrane_force[i] = membrane_force[i] + (N[i] * jacobian * w) * membrane;
+//                        moment_force[i] = moment_force[i] + (N[i] * jacobian * w) * moment;
+                        element_force[i] += N[i] * jacobian * w * fLocal;
                     }
                 } // ig
                 // ансамбль объемных сил
@@ -355,13 +360,37 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
 //                    force(element->vertexNode(i) + nodesCount) += force_global[1];
 //                    force(element->vertexNode(i) + 2UL * nodesCount) += force_global[2];
 
-                    force(element->vertexNode(i)) += membrane_force[i].x();
-                    force(element->vertexNode(i) + nodesCount) += membrane_force[i].y();
-                    force(element->vertexNode(i) + 2UL * nodesCount) += membrane_force[i].z();
+//                    force(element->vertexNode(i)) += membrane_force[i].x();
+//                    force(element->vertexNode(i) + nodesCount) += membrane_force[i].y();
+//                    force(element->vertexNode(i) + 2UL * nodesCount) += membrane_force[i].z();
 
-                    force(element->vertexNode(i) + 3UL * nodesCount) += moment_force[i].x();
-                    force(element->vertexNode(i) + 4UL * nodesCount) += moment_force[i].y();
-                    force(element->vertexNode(i) + 5UL * nodesCount) += moment_force[i].z();
+//                    force(element->vertexNode(i) + 3UL * nodesCount) += moment_force[i].x();
+//                    force(element->vertexNode(i) + 4UL * nodesCount) += moment_force[i].y();
+//                    force(element->vertexNode(i) + 5UL * nodesCount) += moment_force[i].z();
+                    if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
+                    {
+                        force(element->vertexNode(i)) += element_force[i];
+                    }
+                    if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
+                    {
+                        force(element->vertexNode(i) + nodesCount) += element_force[i];
+                    }
+                    if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
+                    {
+                        force(element->vertexNode(i) + 2UL * nodesCount) += element_force[i];
+                    }
+                    if (dir == FemCondition::ALL || dir == FemCondition::FOURTH)
+                    {
+                        force(element->vertexNode(i) + 3UL * nodesCount) += element_force[i];
+                    }
+                    if (dir == FemCondition::ALL || dir == FemCondition::FIFTH)
+                    {
+                        force(element->vertexNode(i) + 4UL * nodesCount) += element_force[i];
+                    }
+                    if (dir == FemCondition::ALL || dir == FemCondition::SIXTH)
+                    {
+                        force(element->vertexNode(i) + 5UL * nodesCount) += element_force[i];
+                    }
                 }
             } //for elNum
         }
