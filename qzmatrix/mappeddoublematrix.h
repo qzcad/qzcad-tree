@@ -158,6 +158,7 @@ public:
      * @return Константный итератор
      */
     MappedDoubleVector::const_iterator end(size_type i) const;
+    DoubleVector cholesky(DoubleVector &B);
 protected:
     /**
      * @brief Метод для выделения памяти под строки матрицы

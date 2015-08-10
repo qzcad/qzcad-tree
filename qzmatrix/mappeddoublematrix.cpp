@@ -242,6 +242,45 @@ MappedDoubleVector::const_iterator MappedDoubleMatrix::end(size_type i) const
     return data_[i].end();
 }
 
+DoubleVector MappedDoubleMatrix::cholesky(DoubleVector &B)
+{
+    DoubleVector L(size_ + size_ * (size_ - 1) / 2, 0.0);
+    DoubleVector y(size_, 0.0);
+    DoubleVector x(size_, 0.0);
+    for (size_type i = 0; i < size_; i++)
+    {
+        double sii = data(i, i);
+        for (size_type k = 0; k < i; k++)
+            sii -= L[k + i * (i + 1) / 2] * L[k + i * (i + 1) / 2];
+        L[i + i * (i + 1) / 2] = sqrt(sii);
+        for (size_type j = 0; j < i; j++)
+        {
+            double sij = data(i, j);
+            for (size_type k = 0; k < j; k++)
+                sij -= L[k + i * (i + 1) / 2] * L[k + j * (j + 1) / 2];
+            L[j + i * (i + 1) / 2] = sij / L[j + j * (j + 1) / 2];
+        }
+    }
+    y[0] = B[0] / L[0];
+    for (size_type i = 1; i < size_; i++)
+    {
+        double s = 0.0;
+        for (size_type j = 0; j < i; j++)
+            s += L[j + i * (i + 1) / 2] * y[j];
+        y[i] = (B[i] - s) / L[i + i * (i + 1) / 2];
+    }
+    x[size_ - 1] = y[size_ - 1] / L[size_ - 1 + (size_ - 1) * size_ / 2];
+    for (size_type ii = 1; ii < size_; ii++)
+    {
+        size_type i = size_ - 1 - ii;
+        double s = 0.0;
+        for (size_type j = i + 1; j < size_; j++)
+            s += L[i + j * (j + 1) / 2] * x[j];
+        x[i] = (y[i] - s) / L[i + i * (i + 1) / 2];
+    }
+    return x;
+}
+
 void MappedDoubleMatrix::alloc(size_type size)
 {
     size_ = size;
