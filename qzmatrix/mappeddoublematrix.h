@@ -158,6 +158,11 @@ public:
      * @return Константный итератор
      */
     MappedDoubleVector::const_iterator end(size_type i) const;
+    /**
+     * @brief Решение СЛАУ методом Холецкого (трбует для работы n * (n - 1) / 2 паямти)
+     * @param B Вектор столбец
+     * @return Вектор корней СЛАУ
+     */
     DoubleVector cholesky(DoubleVector &B);
 protected:
     /**

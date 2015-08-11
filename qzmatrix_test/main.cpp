@@ -91,6 +91,15 @@ int main()
 //    tsv.print();
 //    DoubleVector X = tst.conjugateGradient(tsv);
 //    X.print();
+    MappedDoubleMatrix chol(3);
+    chol(0, 0) = 4.0; chol(0, 1) = 12.0; chol(0, 2) = -16.0;
+    chol(1, 0)= 12.0; chol(1, 1) = 37.0; chol(1, 2) = -43.0;
+    chol(2,0) = -16.0; chol(2, 1) = -43.0; chol(2, 2) = 98.0;
+    chol.print();
+    DoubleVector bc(3, 0.0);
+    bc[0] = 0.0; bc[1] = 1.0; bc[2] = 2.0;
+    DoubleVector cxx = chol.cholesky(bc);
+    cxx.print();
     return 0;
 }
 

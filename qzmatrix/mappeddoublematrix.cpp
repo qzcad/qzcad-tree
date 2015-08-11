@@ -247,34 +247,75 @@ DoubleVector MappedDoubleMatrix::cholesky(DoubleVector &B)
     DoubleVector L(size_ + size_ * (size_ - 1) / 2, 0.0);
     DoubleVector y(size_, 0.0);
     DoubleVector x(size_, 0.0);
+//#ifdef WITH_OPENMP
+//    omp_set_num_threads(omp_get_max_threads()); // использовать максимальное количество потоков
+//#endif
+    std::cout << size_ << "x" << size_ << " LL Init...";
     for (size_type i = 0; i < size_; i++)
     {
-        double sii = data(i, i);
-        for (size_type k = 0; k < i; k++)
-            sii -= L[k + i * (i + 1) / 2] * L[k + i * (i + 1) / 2];
-        L[i + i * (i + 1) / 2] = sqrt(sii);
-        for (size_type j = 0; j < i; j++)
+        L[i + i * (i + 1) / 2] = data_[i][i];
+        for (MappedDoubleVector::const_iterator it = data_[i].begin(); it != data_[i].end(); it++)
         {
-            double sij = data(i, j);
-            for (size_type k = 0; k < j; k++)
-                sij -= L[k + i * (i + 1) / 2] * L[k + j * (j + 1) / 2];
-            L[j + i * (i + 1) / 2] = sij / L[j + j * (j + 1) / 2];
+            size_type j = it->first;
+            if (j < i)
+            {
+                L[j + i * (i + 1) / 2] = it->second;
+            }
+            else break;
         }
     }
-    y[0] = B[0] / L[0];
-    for (size_type i = 1; i < size_; i++)
+    std::cout << "done" << std::endl;
+    std::cout << "L...";
+    size_type zeros = 0;
+    for (register size_type i = 0; i < size_; i++)
     {
-        double s = 0.0;
-        for (size_type j = 0; j < i; j++)
+        for (register size_type j = 0; j < i; j++)
+        {
+            register double sij = L[j + i * (i + 1) / 2];
+//#ifdef WITH_OPENMP
+//#pragma omp parallel for reduction(+:sij)
+//#endif
+            for (register size_type k = 0; k < j; k++)
+                sij -= L[k + i * (i + 1) / 2] * L[k + j * (j + 1) / 2];
+            L[j + i * (i + 1) / 2] = sij / L[j + j * (j + 1) / 2];
+            if (sij == 0.0) zeros++;
+        }
+        double sii = L[i + i * (i + 1) / 2];
+//#ifdef WITH_OPENMP
+//#pragma omp parallel for reduction(+:sii)
+//#endif
+        for (register size_type k = 0; k < i; k++)
+            sii -= L[k + i * (i + 1) / 2] * L[k + i * (i + 1) / 2];
+        L[i + i * (i + 1) / 2] = sqrt(sii);
+//        std::cout << "sii = " << sii << std::endl;
+        if (i % 500 == 0) std::cout << i << " ";
+    }
+    std::cout << "done: zeros = " << zeros << std::endl;
+//    for (size_type i = 0; i < size_; i++)
+//    {
+//        for (size_type j = 0; j < size_; j++)
+//        {
+//            if (j <= i)
+//                std::cout << L[j + i * (i + 1) / 2] << "\t";
+//            else
+//                std::cout << L[i + j * (j + 1) / 2] << "\t";
+//        }
+//        std::cout << std::endl;
+//    }
+    y[0] = B[0] / L[0];
+    for (register size_type i = 1; i < size_; i++)
+    {
+        register double s = 0.0;
+        for (register size_type j = 0; j < i; j++)
             s += L[j + i * (i + 1) / 2] * y[j];
         y[i] = (B[i] - s) / L[i + i * (i + 1) / 2];
     }
     x[size_ - 1] = y[size_ - 1] / L[size_ - 1 + (size_ - 1) * size_ / 2];
-    for (size_type ii = 1; ii < size_; ii++)
+    for (register size_type ii = 1; ii < size_; ii++)
     {
         size_type i = size_ - 1 - ii;
-        double s = 0.0;
-        for (size_type j = i + 1; j < size_; j++)
+        register double s = 0.0;
+        for (register size_type j = i + 1; j < size_; j++)
             s += L[i + j * (j + 1) / 2] * x[j];
         x[i] = (y[i] - s) / L[i + i * (i + 1) / 2];
     }
