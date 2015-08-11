@@ -58,6 +58,8 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
     DoubleVector force(dimension, 0.0); // вектор сил
 
     // построение глобальной матрицы жесткости
+    std::cout << "Mesh: " << mesh->nodesCount() << " nodes, " << mesh->elementsCount() << " elements." << std::endl;
+    std::cout << "Dimension: " << dimension << std::endl;
     std::cout << "Stiffness Matrix (матрица жесткости)...";
     ConsoleProgress progressBar(elementsCount);
 
@@ -427,9 +429,11 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
             } // for i
         }
     } // iterator
+//    std::cout << "force: " << force.size() << std::endl;
 //    force.print(' ');
 
     DoubleVector displacement = solve(global, force);
+//    DoubleVector displacement = global.cholesky(force);
 
     std::vector<double> xxx(nodesCount);
     std::vector<double> yyy(nodesCount);
@@ -625,7 +629,7 @@ DoubleMatrix MindlinShellBending::cosinuses(const Point3D &A, const Point3D &B, 
     DoubleMatrix lambda(3, 3, 0.0);
     Point3D AB = B - A;
     Point3D AC = C - A;
-    Point3D N = AB.product(AC);
+    Point3D N = AC.product(AB); // со scilab отличается порядок обхода узлов, значит меняется порядок произвденеия для нахождения нормали
     Point3D Vx = AB.normalized();
     Point3D Vz = N.normalized();
     Point3D Vy = Vz.product(Vx);
