@@ -81,8 +81,11 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     globalObject().setProperty("NodalForce", qsNodalForce);
     QScriptValue qsSurfaceForce = newFunction(createSurfaceForce);
     globalObject().setProperty("SurfaceForce", qsSurfaceForce);
+    globalObject().setProperty("EdgeForce", qsSurfaceForce); // создание синонима
     QScriptValue qsVolumeForce = newFunction(createVolumeForce);
     globalObject().setProperty("VolumeForce", qsVolumeForce);
+    globalObject().setProperty("PlateDistributedForce", qsVolumeForce); // создание синонима
+    globalObject().setProperty("ShellDistributedForce", qsVolumeForce); // создание синонима
     // направления действия нагрузки
     globalObject().setProperty("ALL", FemCondition::ALL);
     globalObject().setProperty("FIRST", FemCondition::FIRST);
@@ -693,6 +696,18 @@ QScriptValue QZScriptEngine::createBoundaryCondition(QScriptContext *context, QS
 
 QScriptValue QZScriptEngine::createNodalForce(QScriptContext *context, QScriptEngine *engine)
 {
+    if (context->argumentCount() == 2)
+    {   // Если аргумента 2, то сила действует на все точки
+        QString typeError = QObject::tr("NodalForce(direction: Integer, value: {Floating or Function}): argument type error (%1)");
+        if (!context->argument(0).isNumber())
+            return context->throwError(typeError.arg("direction"));
+
+        QScriptValue value = context->argument(1);
+
+        int direction = context->argument(0).toInteger();
+
+        return engine->newQObject(new QFemCondition(FemCondition::NODAL_FORCE, static_cast<FemCondition::FemDirection>(direction), QScriptValue(true), value), QScriptEngine::ScriptOwnership);
+    }
     if (context->argumentCount() == 3)
     {
         QString typeError = QObject::tr("NodalForce(direction: Integer, condition: Function, value: {Floating or Function}): argument type error (%1)");
@@ -714,6 +729,18 @@ QScriptValue QZScriptEngine::createNodalForce(QScriptContext *context, QScriptEn
 
 QScriptValue QZScriptEngine::createSurfaceForce(QScriptContext *context, QScriptEngine *engine)
 {
+    if (context->argumentCount() == 2)
+    {   // Если аргумента 2, то сила действует на все точки
+        QString typeError = QObject::tr("SurfaceForce(direction: Integer, value: {Floating or Function}): argument type error (%1)");
+        if (!context->argument(0).isNumber())
+            return context->throwError(typeError.arg("direction"));
+
+        QScriptValue value = context->argument(1);
+
+        int direction = context->argument(0).toInteger();
+
+        return engine->newQObject(new QFemCondition(FemCondition::SURFACE_FORCE, static_cast<FemCondition::FemDirection>(direction), QScriptValue(true), value), QScriptEngine::ScriptOwnership);
+    }
     if (context->argumentCount() == 3)
     {
         QString typeError = QObject::tr("SurfaceForce(direction: Integer, condition: Function, value: {Floating or Function}): argument type error (%1)");
@@ -735,6 +762,18 @@ QScriptValue QZScriptEngine::createSurfaceForce(QScriptContext *context, QScript
 
 QScriptValue QZScriptEngine::createVolumeForce(QScriptContext *context, QScriptEngine *engine)
 {
+    if (context->argumentCount() == 2)
+    {   // Если аргумента 2, то сила действует на все точки
+        QString typeError = QObject::tr("VolumeForce(direction: Integer, value: {Floating or Function}): argument type error (%1)");
+        if (!context->argument(0).isNumber())
+            return context->throwError(typeError.arg("direction"));
+
+        QScriptValue value = context->argument(1);
+
+        int direction = context->argument(0).toInteger();
+
+        return engine->newQObject(new QFemCondition(FemCondition::VOLUME_FORCE, static_cast<FemCondition::FemDirection>(direction), QScriptValue(true), value), QScriptEngine::ScriptOwnership);
+    }
     if (context->argumentCount() == 3)
     {
         QString typeError = QObject::tr("VolumeForce(direction: Integer, condition: Function, value: {Floating or Function}): argument type error (%1)");

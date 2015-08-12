@@ -4,10 +4,15 @@
 #include <math.h>
 #include "rowdoublematrix.h"
 
-Fem::Fem(Mesh *mesh)
+Fem::Fem(Mesh *mesh, UInteger freedom_value)
 {
     mesh_ = mesh;
-    freedom_ = 0;
+    freedom_ = freedom_value;
+    dimension_ = mesh->nodesCount() * freedom_;
+    std::cout << "<== The Finite Element Analysis Engine ==>" << std::endl;
+    std::cout << "Mesh: " << mesh->nodesCount() << " nodes, " << mesh->elementsCount() << " elements." << std::endl;
+    std::cout << "Freedom: " << freedom_ << std::endl;
+    std::cout << "Dimension: " << dimension_ << std::endl;
 }
 
 Mesh *Fem::mesh()

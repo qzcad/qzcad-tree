@@ -6,9 +6,8 @@
 #include <math.h>
 
 MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const ElasticMatrix &elasticMatrix, std::list<FemCondition *> conditions) :
-    Fem2D(mesh)
+    Fem2D(mesh, 6)
 {
-    freedom_ = 6; // количество степеней свободы
     const double kappa = 5.0 / 6.0;
 
     DoubleVector gxi; // координаты квадратур Гаусса
@@ -52,15 +51,11 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
     UInteger nodesCount = mesh->nodesCount(); // количество узлов сетки
     UInteger elementsCount = mesh->elementsCount(); // количество элементов
 
-    UInteger dimension = freedom_ * nodesCount; // размер системы
-
-    MappedDoubleMatrix global (dimension); // глобальная матрица жесткости
-    DoubleVector force(dimension, 0.0); // вектор сил
+    MappedDoubleMatrix global (dimension_); // глобальная матрица жесткости
+    DoubleVector force(dimension_, 0.0); // вектор сил
 
     // построение глобальной матрицы жесткости
-    std::cout << "Mesh: " << mesh->nodesCount() << " nodes, " << mesh->elementsCount() << " elements." << std::endl;
-    std::cout << "Dimension: " << dimension << std::endl;
-    std::cout << "Stiffness Matrix (матрица жесткости)...";
+    std::cout << "Stiffness Matrix...";
     ConsoleProgress progressBar(elementsCount);
 
     for (UInteger elNum = 0; elNum < elementsCount; elNum++)
@@ -160,7 +155,7 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
         if ((*condition)->type() == FemCondition::NODAL_FORCE)
         {
             // узловые нагрузки
-            std::cout << "Nodal Forces (узловые нагрузки)...";
+            std::cout << "Nodal Forces...";
             progressBar.restart(nodesCount);
             for (UInteger i = 0; i < nodesCount; i++)
             {
@@ -189,7 +184,7 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
         else if ((*condition)->type() == FemCondition::SURFACE_FORCE)
         {
             // поверхностные нагрузки
-            std::cout << "Surface Forces (поверхностные нагрузки)...";
+            std::cout << "Edge Distributed Forces...";
             progressBar.restart(elementsCount);
             for (UInteger elNum = 0; elNum < elementsCount; elNum++)
             {
@@ -266,7 +261,7 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
         else if ((*condition)->type() == FemCondition::VOLUME_FORCE)
         {
             // объемные силы
-            std::cout << "Volume Forces (объемные силы)...";
+            std::cout << "Surface Distributed Forces...";
             progressBar.restart(elementsCount);
             for (UInteger elNum = 0; elNum < elementsCount; elNum++)
             {
@@ -288,8 +283,7 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
                     x[i] = lambda(0, 0) * pp.x() + lambda(0, 1) * pp.y() + lambda(0, 2) * pp.z();
                     y[i] = lambda(1, 0) * pp.x() + lambda(1, 1) * pp.y() + lambda(1, 2) * pp.z();
                 }
-//                Point3D membrane_force[elementNodes]; // значения объемных сил в узлах
-//                Point3D moment_force[elementNodes];
+
                 double element_force[elementNodes];
                 for (UInteger i = 0; i < elementNodes; i++)
                     element_force[i] = 0.0;
@@ -330,45 +324,14 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
                     Point3D pLocal = pl + A;
                     double fLocal = (*condition)->value(&pLocal);
 
-//                    DoubleVector force_vec(3, 0.0);
-//                    force_vec[0] = (dir == FemCondition::ALL || dir == FemCondition::FIRST) ? fLocal : 0.0;
-//                    force_vec[1] = (dir == FemCondition::ALL || dir == FemCondition::SECOND) ? fLocal : 0.0;
-//                    force_vec[2] = (dir == FemCondition::ALL || dir == FemCondition::THIRD) ? fLocal : 0.0;
-//                    DoubleVector force_local = lambda * force_vec;
-//                    Point3D membrane (force_local[0], force_local[1], force_local[2]);
-//                    Point3D membrane((dir == FemCondition::ALL || dir == FemCondition::FIRST) ? fLocal : 0.0,
-//                                     (dir == FemCondition::ALL || dir == FemCondition::SECOND) ? fLocal : 0.0,
-//                                     (dir == FemCondition::ALL || dir == FemCondition::THIRD) ? fLocal : 0.0);
-//                    Point3D moment((dir == FemCondition::ALL || dir == FemCondition::FOURTH) ? fLocal : 0.0,
-//                                     (dir == FemCondition::ALL || dir == FemCondition::FIFTH) ? fLocal : 0.0,
-//                                     (dir == FemCondition::ALL || dir == FemCondition::SIXTH) ? fLocal : 0.0);
-
                     for (unsigned int i = 0; i < elementNodes; i++)
                     {
-//                        membrane_force[i] = membrane_force[i] + (N[i] * jacobian * w) * membrane;
-//                        moment_force[i] = moment_force[i] + (N[i] * jacobian * w) * moment;
                         element_force[i] += N[i] * jacobian * w * fLocal;
                     }
                 } // ig
                 // ансамбль объемных сил
                 for (UInteger i = 0 ; i < elementNodes; i++)
                 {
-//                    DoubleVector force_vec(3, 0.0);
-//                    force_vec[0] = membrane_force[i].x();
-//                    force_vec[1] = membrane_force[i].y();
-//                    force_vec[2] = membrane_force[i].z();
-//                    DoubleVector force_global = lambdaT * force_vec;
-//                    force(element->vertexNode(i)) += force_global[0];
-//                    force(element->vertexNode(i) + nodesCount) += force_global[1];
-//                    force(element->vertexNode(i) + 2UL * nodesCount) += force_global[2];
-
-//                    force(element->vertexNode(i)) += membrane_force[i].x();
-//                    force(element->vertexNode(i) + nodesCount) += membrane_force[i].y();
-//                    force(element->vertexNode(i) + 2UL * nodesCount) += membrane_force[i].z();
-
-//                    force(element->vertexNode(i) + 3UL * nodesCount) += moment_force[i].x();
-//                    force(element->vertexNode(i) + 4UL * nodesCount) += moment_force[i].y();
-//                    force(element->vertexNode(i) + 5UL * nodesCount) += moment_force[i].z();
                     if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
                     {
                         force(element->vertexNode(i)) += element_force[i];
@@ -404,7 +367,7 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
         if ((*condition)->type() == FemCondition::INITIAL_VALUE)
         {
             // учет граничных условий
-            std::cout << "Boundary Conditions (граничные условия)...";
+            std::cout << "Boundary Conditions...";
             progressBar.restart(nodesCount);
             for (UInteger i = 0; i < nodesCount; i++)
             {
@@ -493,7 +456,7 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
         xi[3] = -1.0; eta[3] =  1.0;
     }
 
-    std::cout << "Stresses (напряжения)...";
+    std::cout << "Stresses Recovery...";
     progressBar.restart(elementsCount);
     for (UInteger elNum = 0; elNum < elementsCount; elNum++)
     {

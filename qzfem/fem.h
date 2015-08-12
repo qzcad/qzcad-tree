@@ -28,7 +28,10 @@ public:
      * @brief Конструктор
      * @param mesh Указатель на сетку конечных элементов
      */
-    Fem(Mesh *mesh);
+    Fem(Mesh *mesh, UInteger freedom_value);
+    /**
+     * @brief Деструктор
+     */
     virtual ~Fem(){}
     /**
      * @brief Метод возвращает указатель на сетку конечных элементов
@@ -41,6 +44,10 @@ public:
      * @return Количество степеней свободы
      */
     UInteger freedom() const;
+    /**
+     * @brief Метод возвращает количество векторов значений, определенных в узлах
+     * @return
+     */
     UInteger nodesVectorsCount() const;
     /**
      * @brief Метод возвращает узловые значения вектора с указанным номером
@@ -91,6 +98,7 @@ protected:
 protected:
     Mesh *mesh_; //!< Указатель на сетку конечных элементов
     UInteger freedom_; //!< Количество степеней свободы
+    UInteger dimension_; //!< Размерность задачи
     class NamedVector
     {
     public:

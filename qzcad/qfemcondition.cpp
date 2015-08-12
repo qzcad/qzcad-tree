@@ -52,9 +52,13 @@ FemCondition::FemDirection QFemCondition::direction() const
 
 bool QFemCondition::isApplied(msh::PointPointer point)
 {
-    QScriptValueList args;
-    args << point->x() << point->y() << point->z();
-    return conditionFunction_.call(QScriptValue(), args).toBool();
+    if (conditionFunction_.isFunction())
+    {
+        QScriptValueList args;
+        args << point->x() << point->y() << point->z();
+        return conditionFunction_.call(QScriptValue(), args).toBool();
+    }
+    return conditionFunction_.toBool();
 }
 
 double QFemCondition::value(msh::PointPointer point)

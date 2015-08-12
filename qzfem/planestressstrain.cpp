@@ -11,14 +11,12 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
                                      double thickness,
                                      const ElasticMatrix &elasticMatrix,
                                      std::list<FemCondition *> conditions) :
-    Fem2D(mesh)
+    Fem2D(mesh, 2)
 {
-    freedom_ = 2; // количество степеней свободы
-
     DoubleVector gxi; // координаты квадратур Гаусса
     DoubleVector geta;
     DoubleVector gweight; // весовые коэффициенты квадратур
-    int gaussPoints; // количество точек квадратур
+    int gaussPoints = 0; // количество точек квадратур
     int line_count = 2; // количество точек квадратур при интегрировании вдоль линии
     DoubleVector line_points;
     DoubleVector line_weights;
@@ -54,13 +52,11 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
     UInteger nodesCount = mesh->nodesCount(); // количество узлов сетки
     UInteger elementsCount = mesh->elementsCount(); // количество элементов
 
-    UInteger dimension = freedom_ * nodesCount; // размер системы
-
-    MappedDoubleMatrix global (dimension); // глобальная матрица жесткости
-    DoubleVector force(dimension, 0.0); // вектор сил
+    MappedDoubleMatrix global (dimension_); // глобальная матрица жесткости
+    DoubleVector force(dimension_, 0.0); // вектор сил
 
     // построение глобальной матрицы жесткости
-    std::cout << "Stiffness Matrix & Volume Forces (матрица жесткости и объемные силы)...";
+    std::cout << "Stiffness Matrix...";
     ConsoleProgress progressBar(elementsCount);
 
     for (UInteger elNum = 0; elNum < elementsCount; elNum++)
@@ -131,7 +127,7 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
         if ((*condition)->type() == FemCondition::NODAL_FORCE)
         {
             // узловые нагрузки
-            std::cout << "Nodal Forces (узловые нагрузки)...";
+            std::cout << "Nodal Forces...";
             progressBar.restart(nodesCount);
             for (UInteger i = 0; i < nodesCount; i++)
             {
@@ -152,7 +148,7 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
         else if ((*condition)->type() == FemCondition::SURFACE_FORCE)
         {
             // поверхностные нагрузки
-            std::cout << "Surface Forces (поверхностные нагрузки)...";
+            std::cout << "Surface Forces...";
             progressBar.restart(elementsCount);
             for (UInteger elNum = 0; elNum < elementsCount; elNum++)
             {
@@ -208,7 +204,7 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
         else if ((*condition)->type() == FemCondition::VOLUME_FORCE)
         {
             // объемные силы
-            std::cout << "Volume Forces (объемные силы)...";
+            std::cout << "Volume Forces...";
             progressBar.restart(elementsCount);
             for (UInteger elNum = 0; elNum < elementsCount; elNum++)
             {
@@ -280,7 +276,7 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
         if ((*condition)->type() == FemCondition::INITIAL_VALUE)
         {
             // учет граничных условий
-            std::cout << "Boundary Conditions (граничные условия)...";
+            std::cout << "Boundary Conditions...";
             progressBar.restart(nodesCount);
             for (UInteger i = 0; i < nodesCount; i++)
             {
@@ -338,7 +334,7 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
         xi[3] = -1.0; eta[3] =  1.0;
     }
 
-    std::cout << "Stresses (напряжения)...";
+    std::cout << "Stresses Recovery...";
     progressBar.restart(elementsCount);
     for (UInteger elNum = 0; elNum < elementsCount; elNum++)
     {

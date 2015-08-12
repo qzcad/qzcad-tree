@@ -8,9 +8,8 @@
 MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
                                          double thickness,
                                          const ElasticMatrix &elasticMatrix,
-                                         std::list<FemCondition *> conditions) : Fem2D(mesh)
+                                         std::list<FemCondition *> conditions) : Fem2D(mesh, 3)
 {
-    freedom_ = 3; // количество степеней свободы
     const double kappa = 5.0 / 6.0;
 
     DoubleVector gxi; // координаты квадратур Гаусса
@@ -54,13 +53,11 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
     UInteger nodesCount = mesh->nodesCount(); // количество узлов сетки
     UInteger elementsCount = mesh->elementsCount(); // количество элементов
 
-    UInteger dimension = freedom_ * nodesCount; // размер системы
-
-    MappedDoubleMatrix global (dimension); // глобальная матрица жесткости
-    DoubleVector force(dimension, 0.0); // вектор сил
+    MappedDoubleMatrix global (dimension_); // глобальная матрица жесткости
+    DoubleVector force(dimension_, 0.0); // вектор сил
 
     // построение глобальной матрицы жесткости
-    std::cout << "Stiffness Matrix (матрица жесткости)...";
+    std::cout << "Stiffness Matrix...";
     ConsoleProgress progressBar(elementsCount);
 
     for (UInteger elNum = 0; elNum < elementsCount; elNum++)
@@ -137,7 +134,7 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
         if ((*condition)->type() == FemCondition::NODAL_FORCE)
         {
             // узловые нагрузки
-            std::cout << "Nodal Forces (узловые нагрузки)...";
+            std::cout << "Nodal Forces...";
             progressBar.restart(nodesCount);
             for (UInteger i = 0; i < nodesCount; i++)
             {
@@ -160,7 +157,7 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
         else if ((*condition)->type() == FemCondition::SURFACE_FORCE)
         {
             // поверхностные нагрузки
-            std::cout << "Surface Forces (поверхностные нагрузки)...";
+            std::cout << "Edge Distributed Forces...";
             progressBar.restart(elementsCount);
             for (UInteger elNum = 0; elNum < elementsCount; elNum++)
             {
@@ -221,7 +218,7 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
         else if ((*condition)->type() == FemCondition::VOLUME_FORCE)
         {
             // объемные силы
-            std::cout << "Volume Forces (объемные силы)...";
+            std::cout << "Surface Distributed Forces...";
             progressBar.restart(elementsCount);
             for (UInteger elNum = 0; elNum < elementsCount; elNum++)
             {
@@ -295,7 +292,7 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
         if ((*condition)->type() == FemCondition::INITIAL_VALUE)
         {
             // учет граничных условий
-            std::cout << "Boundary Conditions (граничные условия)...";
+            std::cout << "Boundary Conditions...";
             progressBar.restart(nodesCount);
             for (UInteger i = 0; i < nodesCount; i++)
             {
@@ -363,7 +360,7 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
         xi[3] = -1.0; eta[3] =  1.0;
     }
 
-    std::cout << "Stresses (напряжения)...";
+    std::cout << "Stresses Recovery...";
     progressBar.restart(elementsCount);
     for (UInteger elNum = 0; elNum < elementsCount; elNum++)
     {
@@ -454,9 +451,8 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
 }
 
 MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh, const std::vector<double> &thickness, const std::vector<ElasticMatrix> &elasticMatrix, std::list<FemCondition *> conditions) :
-    Fem2D(mesh)
+    Fem2D(mesh, 3)
 {
-    freedom_ = 3; // количество степеней свободы
     const double kappa = 5.0 / 6.0;
 
     DoubleVector gxi; // координаты квадратур Гаусса
@@ -511,13 +507,11 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh, const std::vector<double>
     UInteger nodesCount = mesh->nodesCount(); // количество узлов сетки
     UInteger elementsCount = mesh->elementsCount(); // количество элементов
 
-    UInteger dimension = freedom_ * nodesCount; // размер системы
-
-    MappedDoubleMatrix global (dimension); // глобальная матрица жесткости
-    DoubleVector force(dimension, 0.0); // вектор сил
+    MappedDoubleMatrix global (dimension_); // глобальная матрица жесткости
+    DoubleVector force(dimension_, 0.0); // вектор сил
 
     // построение глобальной матрицы жесткости
-    std::cout << "Stiffness Matrix (матрица жесткости)...";
+    std::cout << "Stiffness Matrix...";
     ConsoleProgress progressBar(elementsCount);
 
     for (UInteger elNum = 0; elNum < elementsCount; elNum++)
@@ -600,7 +594,7 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh, const std::vector<double>
         if ((*condition)->type() == FemCondition::NODAL_FORCE)
         {
             // узловые нагрузки
-            std::cout << "Nodal Forces (узловые нагрузки)...";
+            std::cout << "Nodal Forces...";
             progressBar.restart(nodesCount);
             for (UInteger i = 0; i < nodesCount; i++)
             {
@@ -623,7 +617,7 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh, const std::vector<double>
         else if ((*condition)->type() == FemCondition::SURFACE_FORCE)
         {
             // поверхностные нагрузки
-            std::cout << "Surface Forces (поверхностные нагрузки)...";
+            std::cout << "Edge Distributed Forces...";
             progressBar.restart(elementsCount);
             for (UInteger elNum = 0; elNum < elementsCount; elNum++)
             {
@@ -684,7 +678,7 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh, const std::vector<double>
         else if ((*condition)->type() == FemCondition::VOLUME_FORCE)
         {
             // объемные силы
-            std::cout << "Volume Forces (объемные силы)...";
+            std::cout << "Surface Distributed Forces...";
             progressBar.restart(elementsCount);
             for (UInteger elNum = 0; elNum < elementsCount; elNum++)
             {
@@ -758,7 +752,7 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh, const std::vector<double>
         if ((*condition)->type() == FemCondition::INITIAL_VALUE)
         {
             // учет граничных условий
-            std::cout << "Boundary Conditions (граничные условия)...";
+            std::cout << "Boundary Conditions...";
             progressBar.restart(nodesCount);
             for (UInteger i = 0; i < nodesCount; i++)
             {
@@ -826,7 +820,7 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh, const std::vector<double>
         xi[3] = -1.0; eta[3] =  1.0;
     }
 
-    std::cout << "Stresses (напряжения)...";
+    std::cout << "Stresses Recovery...";
     progressBar.restart(elementsCount);
     for (UInteger elNum = 0; elNum < elementsCount; elNum++)
     {

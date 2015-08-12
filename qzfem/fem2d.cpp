@@ -2,9 +2,8 @@
 
 #include "doublematrix.h"
 
-Fem2D::Fem2D(Mesh *mesh) : Fem(mesh)
+Fem2D::Fem2D(Mesh *mesh, UInteger freedom_value) : Fem(mesh, freedom_value)
 {
-    freedom_ = 2;
 }
 
 double Fem2D::isoQuad4(const double &xi, const double &eta, double x[], double y[], DoubleVector &N, DoubleVector &dNdX, DoubleVector &dNdY)
