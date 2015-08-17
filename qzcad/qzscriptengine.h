@@ -120,12 +120,40 @@ private:
      */
     static QScriptValue createQuadrilateralMesh3D(QScriptContext *context, QScriptEngine *engine);
     /**
+     * @brief "Конструктор" сеток четырехугольных элементов в цилиндрических координатах
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Объект для использования в скриптах
+     */
+    static QScriptValue createCylinderQuads(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief "Конструктор" сеток четырехугольных элементов в конических координатах (усеченный конус)
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Объект для использования в скриптах
+     */
+    static QScriptValue createConeQuads(QScriptContext *context, QScriptEngine *engine);
+    /**
      * @brief "Конструктор" сеток треугольных элементов в пространстве (оболочка)
      * @param context Контекст скрипта
      * @param engine Двигатель скрипта
      * @return Объект для использования в скриптах
      */
     static QScriptValue createTriangleMesh3D(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief "Конструктор" сеток треугольных элементов в цилиндрических координатах
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Объект для использования в скриптах
+     */
+    static QScriptValue createCylinderTriangles(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief "Конструктор" сеток треугольных элементов в конических координатах
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Объект для использования в скриптах
+     */
+    static QScriptValue createConeTriangles(QScriptContext *context, QScriptEngine *engine);
     /**
      * @brief Qt Script реализация операции печати на консоль через std::cout
      * @param context Контекст скрипта

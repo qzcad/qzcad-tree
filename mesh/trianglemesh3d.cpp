@@ -82,6 +82,52 @@ TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, c
     yMax_ = length;
 }
 
+TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length)
+{
+    double hphi = 2.0 * M_PI / (double)rCount;
+    double hl = length / (double)lCount;
+    double phi = 0.0;
+    // формирование массива узлов
+    for (UInteger i = 0; i < rCount; i++)
+    {
+        double l = 0.0;
+
+        for (UInteger j = 0; j <= lCount; j++)
+        {
+            double radius = bottom_radius + l / length * (top_radius - bottom_radius);
+            Point3D point(radius * cos(phi), l, radius * sin(phi));
+            if (j == 0 || j == lCount)
+                pushNode(point, CHARACTER);
+            else
+                pushNode(point, BORDER);
+            l += hl;
+        }
+        phi += hphi;
+    }
+    // формирование массива элементов
+    for (UInteger i = 0; i < rCount; i++)
+    {
+        for (UInteger j = 0; j < lCount; j++)
+        {
+            if (i < rCount - 1)
+            {
+                addElement(i * (lCount + 1) + j, (i + 1) * (lCount + 1) + j, (i + 1) * (lCount + 1) + j + 1);
+                addElement(i * (lCount + 1) + j, (i + 1) * (lCount + 1) + j + 1, i * (lCount + 1) + j + 1);
+            }
+            else
+            {
+                addElement(i * (lCount + 1) + j, j, j + 1);
+                addElement(i * (lCount + 1) + j, j + 1, i * (lCount + 1) + j + 1);
+            }
+        }
+    }
+    // размеры области
+    xMin_ = zMin_ = -(bottom_radius > top_radius ? bottom_radius : top_radius);
+    xMax_ = zMax_ = (bottom_radius > top_radius ? bottom_radius : top_radius);
+    yMin_ = 0.0;
+    yMax_ = length;
+}
+
 UInteger TriangleMesh3D::elementsCount() const
 {
     return element_.size();

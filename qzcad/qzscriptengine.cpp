@@ -60,9 +60,21 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     // Поверхностная сетка четырехугольников
     QScriptValue qsCreateQuadrilateralMesh3D = newFunction(createQuadrilateralMesh3D);
     globalObject().setProperty("ShellQuads", qsCreateQuadrilateralMesh3D);
+    // Поверхностная сетка четырехугольников в цилиндрических координатах
+    QScriptValue qsCreateCylinderQuadsD = newFunction(createCylinderQuads);
+    globalObject().setProperty("CylinderQuads", qsCreateCylinderQuadsD);
+    // Поверхностная сетка четырехугольников в конических координатах
+    QScriptValue qsCreateConeQuadsD = newFunction(createConeQuads);
+    globalObject().setProperty("ConeQuads", qsCreateConeQuadsD);
     // Поверхностная сетка треугольников
     QScriptValue qsCreateTriangleMesh3D = newFunction(createTriangleMesh3D);
     globalObject().setProperty("ShellTriangles", qsCreateTriangleMesh3D);
+    // Поверхностная сетка треугольников
+    QScriptValue qsCreateCylinderTriangles = newFunction(createCylinderTriangles);
+    globalObject().setProperty("CylinderTriangles", qsCreateCylinderTriangles);
+    // Поверхностная сетка треугольников в конических координатах
+    QScriptValue qsCreateConeTriangles = newFunction(createConeTriangles);
+    globalObject().setProperty("ConeTriangles", qsCreateConeTriangles);
     // setMesh
     QScriptValue qsSetMesh = newFunction(setMesh);
     globalObject().setProperty("setMesh", qsSetMesh);
@@ -382,6 +394,53 @@ QScriptValue QZScriptEngine::createQuadrilateralMesh3D(QScriptContext *context, 
     return context->throwError(QObject::tr("ShellQuads(): arguments count error."));
 }
 
+QScriptValue QZScriptEngine::createCylinderQuads(QScriptContext *context, QScriptEngine *engine)
+{
+    if (context->argumentCount() == 4)
+    {
+        QString typeError = QObject::tr("CylinderQuads(rCount: Integer, lCount: Integer, radius: Floating, length: Floating): argument type error (%1).");
+        if (!context->argument(0).isNumber())
+            return context->throwError(typeError.arg("rCount"));
+        if (!context->argument(1).isNumber())
+            return context->throwError(typeError.arg("lCount"));
+        if (!context->argument(2).isNumber())
+            return context->throwError(typeError.arg("radius"));
+        if (!context->argument(3).isNumber())
+            return context->throwError(typeError.arg("length"));
+        UInteger rCount = context->argument(0).toUInt32();
+        UInteger lCount = context->argument(1).toUInt32();
+        double radius = context->argument(2).toNumber();
+        double length = context->argument(3).toNumber();
+        return engine->newQObject(new QQuadrilateralMesh3D(rCount, lCount, radius, length), QScriptEngine::ScriptOwnership);
+    }
+    return context->throwError(QObject::tr("CylinderQuads(): arguments count error."));
+}
+
+QScriptValue QZScriptEngine::createConeQuads(QScriptContext *context, QScriptEngine *engine)
+{
+    if (context->argumentCount() == 5)
+    {
+        QString typeError = QObject::tr("ConeQuads(rCount: Integer, lCount: Integer, radiusBottom: Floating, radiusTop: Floating, length: Floating): argument type error (%1).");
+        if (!context->argument(0).isNumber())
+            return context->throwError(typeError.arg("rCount"));
+        if (!context->argument(1).isNumber())
+            return context->throwError(typeError.arg("lCount"));
+        if (!context->argument(2).isNumber())
+            return context->throwError(typeError.arg("radiusBottom"));
+        if (!context->argument(3).isNumber())
+            return context->throwError(typeError.arg("radiusTop"));
+        if (!context->argument(4).isNumber())
+            return context->throwError(typeError.arg("length"));
+        UInteger rCount = context->argument(0).toUInt32();
+        UInteger lCount = context->argument(1).toUInt32();
+        double radiusBottom = context->argument(2).toNumber();
+        double radiusTop = context->argument(3).toNumber();
+        double length = context->argument(4).toNumber();
+        return engine->newQObject(new QQuadrilateralMesh3D(rCount, lCount, radiusBottom, radiusTop, length), QScriptEngine::ScriptOwnership);
+    }
+    return context->throwError(QObject::tr("ConeQuads(): arguments count error."));
+}
+
 QScriptValue QZScriptEngine::createTriangleMesh3D(QScriptContext *context, QScriptEngine *engine)
 {
     if (context->argumentCount() == 4)
@@ -402,6 +461,53 @@ QScriptValue QZScriptEngine::createTriangleMesh3D(QScriptContext *context, QScri
         return engine->newQObject(new QTriangleMesh3D(rCount, lCount, radius, length), QScriptEngine::ScriptOwnership);
     }
     return context->throwError(QObject::tr("ShellTriangles(): arguments count error."));
+}
+
+QScriptValue QZScriptEngine::createCylinderTriangles(QScriptContext *context, QScriptEngine *engine)
+{
+    if (context->argumentCount() == 4)
+    {
+        QString typeError = QObject::tr("CylinderTriangles(rCount: Integer, lCount: Integer, radius: Floating, length: Floating): argument type error (%1).");
+        if (!context->argument(0).isNumber())
+            return context->throwError(typeError.arg("rCount"));
+        if (!context->argument(1).isNumber())
+            return context->throwError(typeError.arg("lCount"));
+        if (!context->argument(2).isNumber())
+            return context->throwError(typeError.arg("radius"));
+        if (!context->argument(3).isNumber())
+            return context->throwError(typeError.arg("length"));
+        UInteger rCount = context->argument(0).toUInt32();
+        UInteger lCount = context->argument(1).toUInt32();
+        double radius = context->argument(2).toNumber();
+        double length = context->argument(3).toNumber();
+        return engine->newQObject(new QTriangleMesh3D(rCount, lCount, radius, length), QScriptEngine::ScriptOwnership);
+    }
+    return context->throwError(QObject::tr("CylinderTriangles(): arguments count error."));
+}
+
+QScriptValue QZScriptEngine::createConeTriangles(QScriptContext *context, QScriptEngine *engine)
+{
+    if (context->argumentCount() == 5)
+    {
+        QString typeError = QObject::tr("ConeTriangles(rCount: Integer, lCount: Integer, radiusBottom: Floating, radiusTop: Floating, length: Floating): argument type error (%1).");
+        if (!context->argument(0).isNumber())
+            return context->throwError(typeError.arg("rCount"));
+        if (!context->argument(1).isNumber())
+            return context->throwError(typeError.arg("lCount"));
+        if (!context->argument(2).isNumber())
+            return context->throwError(typeError.arg("radiusBottom"));
+        if (!context->argument(3).isNumber())
+            return context->throwError(typeError.arg("radiusTop"));
+        if (!context->argument(4).isNumber())
+            return context->throwError(typeError.arg("length"));
+        UInteger rCount = context->argument(0).toUInt32();
+        UInteger lCount = context->argument(1).toUInt32();
+        double radiusBottom = context->argument(2).toNumber();
+        double radiusTop = context->argument(3).toNumber();
+        double length = context->argument(4).toNumber();
+        return engine->newQObject(new QTriangleMesh3D(rCount, lCount, radiusBottom, radiusTop, length), QScriptEngine::ScriptOwnership);
+    }
+    return context->throwError(QObject::tr("ConeTriangles(): arguments count error."));
 }
 
 QScriptValue QZScriptEngine::printStd(QScriptContext *context, QScriptEngine *engine)

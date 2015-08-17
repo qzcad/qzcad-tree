@@ -41,6 +41,16 @@ public:
      */
     explicit QTriangleMesh3D(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length, QObject *parent = 0);
     /**
+     * @brief Конструктор для создания равномерной сетки в конических координатах
+     * @param rCount Количество элементов вдоль радиуса
+     * @param lCount Количество элементов вдоль образующей
+     * @param bottom_radius Нижний радиус
+     * @param top_radius Верхний радиус
+     * @param length Длина образующей
+     * @param parent Указатель на родительский объект
+     */
+    explicit QTriangleMesh3D(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length, QObject *parent = 0);
+    /**
      * @brief Метод формирует строку с информацией о сетке
      * @return Строка с информацией о сетке
      * Метод доступен в скриптах

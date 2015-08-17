@@ -41,6 +41,15 @@ public:
      */
     QuadrilateralMesh3D(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length);
     /**
+     * @brief Конструктор для создания равномерной сетки в конических координатах
+     * @param rCount Количество элементов вдоль радиуса
+     * @param lCount Количество элементов вдоль образующей
+     * @param bottom_radius Нижний радиус
+     * @param top_radius Верхний радиус
+     * @param length Длина образующей
+     */
+    QuadrilateralMesh3D(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length);
+    /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
      */
