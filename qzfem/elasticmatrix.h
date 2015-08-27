@@ -25,6 +25,14 @@ public:
      */
     ElasticMatrix(double E, double nu, bool isPlaneStress);
     /**
+     * @brief Конструктор для построения плоской матрицы упругости для общего случая ортотропии
+     * @param E Модуль Юнга
+     * @param nu Модуль сдвига
+     * @param G Коэффициент Пуассона
+     * @param isPlaneStress если true, то матрица строится для плоского напряженного состояния, если false - для плоского деформированного состояния
+     */
+    ElasticMatrix(double E, double nu, double G, bool isPlaneStress);
+    /**
      * @brief Конструктор копирования
      * @param ematrix Экземпляр объекта для копирования
      */
