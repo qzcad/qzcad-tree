@@ -24,3 +24,13 @@ QString QQuadrilateralMesh3D::toString() const
 {
     return tr("Сетка четырехугольных элементов (оболочка). Узлов: %1; элементов: %2.").arg(nodesCount()).arg(elementsCount());
 }
+
+void QQuadrilateralMesh3D::add(const QQuadrilateralMesh3D *mesh)
+{
+    QuadrilateralMesh3D::add(mesh);
+}
+
+void QQuadrilateralMesh3D::translate(const double &x, const double &y, const double &z)
+{
+    QuadrilateralMesh3D::translate(x, y, z);
+}

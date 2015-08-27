@@ -97,6 +97,12 @@ public:
      */
     UInteger addNode(const Point3D &point, const NodeType &type);
     /**
+     * @brief Добавить узел с проверкой на наличие в массиве узлов
+     * @param node Коордианты и тип узла
+     * @return Номер узла в массиве узлов
+     */
+    UInteger addNode(const Node3D &node);
+    /**
      * @brief Обновить параметры области определения сетки (xMin, xMax, yMin, yMax, zMin, zMax)
      */
     virtual void updateDomain();

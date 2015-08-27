@@ -180,4 +180,28 @@ double QuadrilateralMesh3D::area(const UInteger &number) const
     auto sqr = [](double value) { return value * value; };
     return sqrt(4.0 * sqr(d1) * sqr(d2) - sqr(sqr(b) + sqr(d) - sqr(a) - sqr(c))) / 4.0;
 }
+
+void QuadrilateralMesh3D::add(const QuadrilateralMesh3D *mesh)
+{
+    std::vector<UInteger> nodesPointers(mesh->nodesCount());
+    for (UInteger i = 0; i < mesh->nodesCount(); i++)
+    {
+        nodesPointers[i] = addNode(mesh->node_[i]);
+    }
+    for (UInteger i = 0; i < mesh->elementsCount(); i++)
+    {
+        Quadrilateral q = mesh->element_[i];
+        addElement(nodesPointers[q[0]], nodesPointers[q[1]], nodesPointers[q[2]], nodesPointers[q[3]]);
+    }
+    updateDomain();
+}
+
+void QuadrilateralMesh3D::translate(const double &x, const double &y, const double &z)
+{
+    for (UInteger i = 0; i < nodesCount(); i++)
+    {
+        Point3D p = node_[i].point;
+        node_[i].point.set(p.x() + x, p.y() + y, p.z() + z);
+    }
+}
 }

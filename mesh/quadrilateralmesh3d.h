@@ -92,6 +92,18 @@ public:
      * @return Площадь элемента
      */
     virtual double area(const UInteger &number) const;
+    /**
+     * @brief Операция добавления сетки к существующей на основе элементарного объединения
+     * @param mesh Указатель на сетку для добавления
+     */
+    void add(const QuadrilateralMesh3D *mesh);
+    /**
+     * @brief Операция перемещения сетки на заданный радиус вектор
+     * @param x Абсцисса радиус вектора перемещения
+     * @param y Ордината радиус вектора перемещения
+     * @param y Аппликата радиус вектора перемещения
+     */
+    void translate(const double &x, const double &y, const double &z);
 protected:
     std::vector<Quadrilateral> element_; //!< Массив элементов
 };

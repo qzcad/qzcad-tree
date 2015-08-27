@@ -56,6 +56,18 @@ public:
      * Метод доступен в скриптах
      */
     Q_INVOKABLE QString toString() const;
+    /**
+     * @brief Операция добавления сетки к существующей на основе элементарного объединения
+     * @param mesh Указатель на сетку для добавления
+     */
+    Q_INVOKABLE void add(const QQuadrilateralMesh3D *mesh);
+    /**
+     * @brief Операция перемещения сетки на заданный радиус вектор
+     * @param x Абсцисса радиус вектора перемещения
+     * @param y Ордината радиус вектора перемещения
+     * @param y Аппликата радиус вектора перемещения
+     */
+    Q_INVOKABLE void translate(const double &x, const double &y, const double &z);
 signals:
 
 public slots:
