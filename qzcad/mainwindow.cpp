@@ -58,7 +58,7 @@ MainWindow::MainWindow(QWidget *parent) :
     stdRedirector = new QStdRedirector<>(std::cout, this);
     connect(stdRedirector, SIGNAL(messageChanged(QString)), this, SLOT(onConsoleMessage(QString)));
 
-    std::cout << std::setprecision(10);
+    std::cout << std::scientific << std::setprecision(9);
 
     std::cout << QTime::currentTime().toString("HH:mm:ss").toStdString() << ": система успешно запущена и готова к использованию..." << std::endl;
 }
