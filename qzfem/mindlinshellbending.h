@@ -23,6 +23,10 @@ public:
                         double thickness,
                         const ElasticMatrix &elasticMatrix,
                         std::list<FemCondition *> conditions);
+    MindlinShellBending(Mesh3D * mesh,
+                        const std::vector<double> &thickness,
+                        const std::vector<ElasticMatrix> &elasticMatrix,
+                        std::list<FemCondition *> conditions);
 private:
     DoubleMatrix cosinuses(const Point3D &A, const Point3D &B, const Point3D &C);
 };

@@ -49,6 +49,10 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
     DoubleMatrix D = elasticMatrix.D(); // матрица упругости
     DoubleMatrix Dc(2, 0.0);
     Dc(0, 0) = D(2, 2); Dc(1, 1) = D(2, 2);
+    std::cout << "D" << std::endl;
+    D.print();
+    std::cout << "Dc:" << std::endl;
+    Dc.print();
 
     UInteger nodesCount = mesh->nodesCount(); // количество узлов сетки
     UInteger elementsCount = mesh->elementsCount(); // количество элементов
@@ -499,7 +503,10 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh, const std::vector<double>
         Dc[i].resize(2, 2);
         Dc[i] (0, 1) = Dc[i] (1, 0) = 0.0;
         Dc[i] (0, 0) = D[i] (2, 2);     Dc[i] (1, 1) = D[i] (2, 2);
-
+        std::cout << "D[" << i << "]:" << std::endl;
+        D[i].print();
+        std::cout << "Dc["<< i << "]:" << std::endl;
+        Dc[i].print();
         H += thickness[i];
     }
     std::cout << "Thickness: " << H << std::endl;

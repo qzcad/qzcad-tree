@@ -958,7 +958,7 @@ QScriptValue QZScriptEngine::mindlinPlate(QScriptContext *context, QScriptEngine
         {
             QScriptValue h_array = context->argument(1);
             QScriptValue e_array = context->argument(2);
-            QScriptValue nu_array = context->argument(1);
+            QScriptValue nu_array = context->argument(3);
             std::vector<double> h;
             std::vector<ElasticMatrix> elasticMatrix;
 
@@ -996,7 +996,7 @@ QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine
 {
     if (context->argumentCount() > 4)
     {
-        QString typeError = QObject::tr("MindlinShell(mesh: Mesh, h: Floating, E: Floating, nu: Floating, ...): argument type error (%1).");
+        QString typeError = QObject::tr("MindlinShell(mesh: Mesh, h: Floating, E: Floating, nu: Floating, [, G: Floating, {boundary conditions, forces}]...): argument type error (%1).");
         if (!context->argument(0).isQObject())
             return context->throwError(typeError.arg("mesh"));
         if (qscriptvalue_cast<QQuadrilateralMesh3D *>(context->argument(0)) != NULL)
@@ -1021,15 +1021,21 @@ QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine
         if (!context->argument(3).isNumber() && !context->argument(3).isArray())
             return context->throwError(typeError.arg("nu"));
 
+        int start_pos = 4;
+        if (!context->argument(4).isNumber() && !context->argument(4).isArray())
+            start_pos = 4;
+        else
+            start_pos = 5;
+
         std::list<FemCondition*> conditions;
 
-        for (int i = 4; i < context->argumentCount(); i++)
+        for (int i = start_pos; i < context->argumentCount(); i++)
         {
             if (!context->argument(i).isQObject())
-                return context->throwError(typeError.arg("boundary condition"));
+                return context->throwError(typeError.arg("boundary condition or force"));
             QFemCondition *cond = qscriptvalue_cast<QFemCondition *>(context->argument(i));
             if (cond == NULL)
-                return context->throwError(typeError.arg("boundary condition"));
+                return context->throwError(typeError.arg("boundary condition or force"));
             conditions.push_back(cond);
         }
         if (context->argument(1).isNumber() && context->argument(2).isNumber() && context->argument(3).isNumber())
@@ -1038,41 +1044,48 @@ QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine
             double E = context->argument(2).toNumber();
             double nu = context->argument(3).toNumber();
 
-            ElasticMatrix D(E, nu, true); //!
+            ElasticMatrix *D;
+
+            if (context->argument(4).isNumber())
+                D = new ElasticMatrix(E, nu, context->argument(4).toNumber(), true);
+            else
+                D = new ElasticMatrix(E, nu, true);
 
             if (fem_ != NULL) delete fem_;
 
             fem_ = new MindlinShellBending (dynamic_cast<Mesh3D*>(mesh_), //!
                                             h,
-                                            D,
+                                            *D,
+                                            conditions);
+            delete D;
+        }
+        else if (context->argument(1).isArray() && context->argument(2).isArray() && context->argument(3).isArray())
+        {
+            QScriptValue h_array = context->argument(1);
+            QScriptValue e_array = context->argument(2);
+            QScriptValue nu_array = context->argument(3);
+            std::vector<double> h;
+            std::vector<ElasticMatrix> elasticMatrix;
+
+            if (h_array.property("length").toInteger() != e_array.property("length").toInteger() || h_array.property("length").toInteger() != nu_array.property("length").toInteger())
+            {
+                return context->throwError(typeError.arg("h, E, nu: all the input arrays must have same length"));
+            }
+
+            for (int i = 0; i < h_array.property("length").toInteger(); i++)
+            {
+                ElasticMatrix D(e_array.property(i).toNumber(), nu_array.property(i).toNumber(), true);
+                h.push_back(h_array.property(i).toNumber());
+                elasticMatrix.push_back(D);
+            }
+
+            if (fem_ != NULL) delete fem_;
+
+            fem_ = new MindlinShellBending (dynamic_cast<Mesh3D*>(mesh_), //!
+                                            h,
+                                            elasticMatrix,
                                             conditions);
         }
-//        else if (context->argument(1).isArray() && context->argument(2).isArray() && context->argument(3).isArray())
-//        {
-//            QScriptValue h_array = context->argument(1);
-//            QScriptValue e_array = context->argument(2);
-//            QScriptValue nu_array = context->argument(1);
-//            std::vector<double> h;
-//            std::vector<ElasticMatrix> elasticMatrix;
-
-//            if (h_array.property("length").toInteger() != e_array.property("length").toInteger() || h_array.property("length").toInteger() != nu_array.property("length").toInteger())
-//            {
-//                return context->throwError(typeError.arg("h, E, nu: all the input arrays must have same length"));
-//            }
-
-//            for (int i = 0; i < h_array.property("length").toInteger(); i++)
-//            {
-//                h.push_back(h_array.property(i).toNumber());
-//                elasticMatrix.push_back(ElasticMatrix(e_array.property(i).toNumber(), nu_array.property(i).toNumber(), true));
-//            }
-
-//            if (fem_ != NULL) delete fem_;
-
-//            fem_ = new MindlinPlateBending (dynamic_cast<Mesh2D*>(mesh_), //!
-//                                            h,
-//                                            elasticMatrix,
-//                                            conditions);
-//        }
         else
         {
             return context->throwError(typeError.arg("h, E, nu: all the input must be scalars or arrays of same length"));
