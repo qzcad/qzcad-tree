@@ -62,7 +62,7 @@
          <widget class="QTextEdit" name="terminalText">
           <property name="font">
            <font>
-            <family>Monospace</family>
+            <family>DejaVu Sans Mono</family>
            </font>
           </property>
           <property name="documentTitle">
@@ -85,7 +85,7 @@
      <x>0</x>
      <y>0</y>
      <width>943</width>
-     <height>20</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

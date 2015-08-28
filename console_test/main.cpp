@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
+#undef __STRICT_ANSI__
 #include <math.h>
 #include "hexahedralfem.h"
 #include "plasticfem.h"

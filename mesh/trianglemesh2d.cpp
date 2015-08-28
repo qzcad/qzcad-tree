@@ -1,5 +1,6 @@
 #include "trianglemesh2d.h"
 #include <iostream>
+#undef __STRICT_ANSI__
 #include <math.h>
 #include <map>
 #include <climits>

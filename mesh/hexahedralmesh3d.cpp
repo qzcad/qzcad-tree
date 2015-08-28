@@ -1,4 +1,5 @@
 #include "hexahedralmesh3d.h"
+#undef __STRICT_ANSI__
 #include <math.h>
 #include <iostream>
 #include <float.h>

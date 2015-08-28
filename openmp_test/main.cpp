@@ -1,5 +1,6 @@
 #include <iostream>
 #include <list>
+#undef __STRICT_ANSI__
 #include <math.h>
 #include <stdarg.h>
 
