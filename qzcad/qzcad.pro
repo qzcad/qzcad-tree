@@ -115,7 +115,7 @@ win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../mesh/re
 else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../mesh/debug/libmesh.a
 else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../mesh/release/mesh.lib
 else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../mesh/debug/mesh.lib
-else:unix: PRE_TARGETDEPS += $$OUT_PWD/../mesh/mesh.a
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../mesh/libmesh.a
 
 OTHER_FILES += \
     license.txt
