@@ -10,6 +10,7 @@
 
 #include <string>
 #include <vector>
+#include <functional>
 
 #include "mesh.h"
 using namespace msh;
@@ -65,6 +66,15 @@ public:
      * @brief Метод печатает в стандартный вывод экстремальные значения векторов узловых значений
      */
     void printNodeValuesExtremums() const;
+    /**
+     * @brief Сигнатура функции для фильтрации узлов при формировании отчета
+     */
+    typedef std::function<bool(PointPointer)> PointFilterFunc;
+    /**
+     * @brief метод печатает в стандартный вывод результат отбора точек по значений в точках по указанному критерию
+     * @param func Функция для отбора узлов
+     */
+    void reportNodeValues(PointFilterFunc func);
 protected:
     /**
      * @brief Метод для генерации квадратур для интегрирования на отрезке [-1; 1]

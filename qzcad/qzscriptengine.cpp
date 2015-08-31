@@ -117,6 +117,8 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     QScriptValue qsMindlinShell = newFunction(mindlinShell);
     globalObject().setProperty("MindlinShell", qsMindlinShell);
 
+    QScriptValue qsValues = newFunction(reportValues);
+    globalObject().setProperty("values", qsValues);
 }
 
 double QZScriptEngine::epsilon() const
@@ -1096,6 +1098,26 @@ QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine
         return engine->undefinedValue();
     }
     return context->throwError(QObject::tr("MindlinShell(mesh: Mesh, h: Floating, E: Floating, nu: Floating, boundaryConditionType: Function, boundaryValue: Function, nodalForce: Function, surfaceForce: Function, volumeForce: Function): arguments count error."));
+}
+
+QScriptValue QZScriptEngine::reportValues(QScriptContext *context, QScriptEngine *engine)
+{
+     if (context->argumentCount() == 1 && fem_ != NULL)
+     {
+         QString typeError = QObject::tr("values(func: Function): argument type error (%1).");
+         QScriptValue function = context->argument(0);
+         if (!function.isFunction())
+             return context->throwError(typeError.arg("func"));
+         auto func = [&](msh::PointPointer point)
+         {
+             QScriptValueList args;
+             args << point->x() << point->y() << point->z();
+             return function.call(QScriptValue(), args).toBool();
+         };
+         fem_->reportNodeValues(func);
+         return engine->undefinedValue();
+     }
+     return context->throwError(QObject::tr("values(func: Function): arguments count error."));
 }
 
 

@@ -58,6 +58,34 @@ void Fem::printNodeValuesExtremums() const
     }
 }
 
+void Fem::reportNodeValues(Fem::PointFilterFunc func)
+{
+    UInteger nodesCount = mesh_->nodesCount();
+    std::vector<UInteger> idx;
+    for (UInteger i = 0; i < nodesCount; i++)
+        if (func(mesh_->node(i)) == true) idx.push_back(i);
+
+    std::cout << "x:\t";
+    for (UInteger i = 0; i < idx.size(); i++)
+        std::cout << mesh_->node(idx[i])->x() << "\t";
+
+    std::cout << std::endl << "y:\t";
+    for (UInteger i = 0; i < idx.size(); i++)
+        std::cout << mesh_->node(idx[i])->y() << "\t";
+
+    std::cout << std::endl << "z:\t";
+    for (UInteger i = 0; i < idx.size(); i++)
+        std::cout << mesh_->node(idx[i])->z() << "\t";
+
+    for (UInteger f = 0; f < nodeValues_.size(); f++)
+    {
+        std::cout << std::endl << nodeValues_[f].name << "\t";
+        std::vector<double> values = nodeValues_[f].values;
+        for (UInteger i = 0; i < idx.size(); i++)
+            std::cout << values[idx[i]] << "\t";
+    }
+}
+
 void Fem::quadrature(int count, DoubleVector &point, DoubleVector &weight)
 {
     point.resize(count);
