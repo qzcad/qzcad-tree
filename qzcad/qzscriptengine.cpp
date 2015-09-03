@@ -1073,12 +1073,28 @@ QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine
             {
                 return context->throwError(typeError.arg("h, E, nu: all the input arrays must have same length"));
             }
-
-            for (int i = 0; i < h_array.property("length").toInteger(); i++)
+            if (context->argument(4).isArray())
             {
-                ElasticMatrix D(e_array.property(i).toNumber(), nu_array.property(i).toNumber(), true);
-                h.push_back(h_array.property(i).toNumber());
-                elasticMatrix.push_back(D);
+                QScriptValue g_array = context->argument(4);
+                if (h_array.property("length").toInteger() != g_array.property("length").toInteger())
+                {
+                    return context->throwError(typeError.arg("h, E, nu, G: all the input arrays must have same length"));
+                }
+                for (int i = 0; i < h_array.property("length").toInteger(); i++)
+                {
+                    ElasticMatrix D(e_array.property(i).toNumber(), nu_array.property(i).toNumber(), g_array.property(i).toNumber(), true);
+                    h.push_back(h_array.property(i).toNumber());
+                    elasticMatrix.push_back(D);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < h_array.property("length").toInteger(); i++)
+                {
+                    ElasticMatrix D(e_array.property(i).toNumber(), nu_array.property(i).toNumber(), true);
+                    h.push_back(h_array.property(i).toNumber());
+                    elasticMatrix.push_back(D);
+                }
             }
 
             if (fem_ != NULL) delete fem_;

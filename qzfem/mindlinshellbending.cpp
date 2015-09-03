@@ -52,6 +52,7 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
     D.print();
     std::cout << "Dc:" << std::endl;
     Dc.print();
+    std::cout << "Thickness: " << thickness << std::endl;
 
     UInteger nodesCount = mesh->nodesCount(); // количество узлов сетки
     UInteger elementsCount = mesh->elementsCount(); // количество элементов
@@ -735,6 +736,8 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, const std::vector<double>
             {
                 z1 = z0 + thickness[i];
                 local += jacobian * w * (z1 - z0) * (Bm.transpose() * D[i] * Bm);
+                local += jacobian * w * (z1*z1 - z0*z0) / 2.0 * (Bm.transpose() * D[i] * Bf);
+                local += jacobian * w * (z1*z1 - z0*z0) / 2.0 * (Bf.transpose() * D[i] * Bm);
                 local += jacobian * w * (z1*z1*z1 - z0*z0*z0) / 3.0 * (Bf.transpose() * D[i] * Bf);
                 local += jacobian * w * kappa * (z1 - z0) * (Bc.transpose() * Dc[i] * Bc);
                 z0 = z1;
