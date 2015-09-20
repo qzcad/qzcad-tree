@@ -484,6 +484,33 @@ QScriptValue QZScriptEngine::createCylinderTriangles(QScriptContext *context, QS
         double length = context->argument(3).toNumber();
         return engine->newQObject(new QTriangleMesh3D(rCount, lCount, radius, length), QScriptEngine::ScriptOwnership);
     }
+    else if (context->argumentCount() <= 6)
+    {
+        QString typeError = QObject::tr("CylinderTriangles(rCount: Integer, lCount: Integer, radius: Floating, length: Floating, func: Function [, charPoints: Array]): argument type error (%1).");
+        std::list<msh::Point3D> charPoints;
+        if (!context->argument(0).isNumber())
+            return context->throwError(typeError.arg("rCount"));
+        if (!context->argument(1).isNumber())
+            return context->throwError(typeError.arg("lCount"));
+        if (!context->argument(2).isNumber())
+            return context->throwError(typeError.arg("radius"));
+        if (!context->argument(3).isNumber())
+            return context->throwError(typeError.arg("length"));
+        QScriptValue function = context->argument(4);
+        if (!function.isFunction())
+            return context->throwError(typeError.arg("func"));
+        UInteger rCount = context->argument(0).toUInt32();
+        UInteger lCount = context->argument(1).toUInt32();
+        double radius = context->argument(2).toNumber();
+        double length = context->argument(3).toNumber();
+        auto func = [&](double x, double y, double z)
+        {
+            QScriptValueList args;
+            args << x << y << z;
+            return function.call(QScriptValue(), args).toNumber();
+        };
+        return engine->newQObject(new QTriangleMesh3D(rCount, lCount, radius, length, func, charPoints), QScriptEngine::ScriptOwnership);
+    }
     return context->throwError(QObject::tr("CylinderTriangles(): arguments count error."));
 }
 

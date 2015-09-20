@@ -1,6 +1,7 @@
 #include "trianglemesh3d.h"
 #undef __STRICT_ANSI__
 #include <math.h>
+#include <map>
 
 namespace msh {
 
@@ -72,6 +73,67 @@ TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, c
             {
                 addElement(i * (lCount + 1) + j, j, j + 1);
                 addElement(i * (lCount + 1) + j, j + 1, i * (lCount + 1) + j + 1);
+            }
+        }
+    }
+    // размеры области
+    xMin_ = zMin_ = -radius;
+    xMax_ = zMax_ = radius;
+    yMin_ = 0.0;
+    yMax_ = length;
+}
+
+TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length, std::function<double (double, double, double)> func, std::list<Point3D> charPoints)
+{
+    double hphi = 2.0 * M_PI / (double)rCount;
+    double hl = length / (double)lCount;
+    double phi = 0.0;
+    std::map<UInteger, UInteger> nodesMap;
+    std::vector<Point2D> localCoordinates;
+    // формирование массива узлов
+    for (UInteger i = 0; i < rCount; i++)
+    {
+        double l = 0.0;
+        for (UInteger j = 0; j <= lCount; j++)
+        {
+            Point3D point(radius * cos(phi), l, radius * sin(phi));
+            if (func(point.x(), point.y(), point.z()) >= 0.0)
+            {
+                nodesMap[i * (lCount + 1) + j] = pushNode(point, BORDER);
+                localCoordinates.push_back(Point2D(l, phi));
+            }
+            l += hl;
+        }
+        phi += hphi;
+    }
+    // формирование массива элементов
+    for (UInteger i = 0; i < rCount; i++)
+    {
+        for (UInteger j = 0; j < lCount; j++)
+        {
+            if (i < rCount - 1)
+            {
+                std::map<UInteger, UInteger>::iterator iter0 = nodesMap.find(i * (lCount + 1) + j);
+                std::map<UInteger, UInteger>::iterator iter1 = nodesMap.find((i + 1) * (lCount + 1) + j);
+                std::map<UInteger, UInteger>::iterator iter2 = nodesMap.find((i + 1) * (lCount + 1) + j + 1);
+                std::map<UInteger, UInteger>::iterator iter3 = nodesMap.find(i * (lCount + 1) + j + 1);
+                if (iter0 != nodesMap.end() && iter1 != nodesMap.end() && iter2 != nodesMap.end() && iter3 != nodesMap.end())
+                {
+                    addElement(iter0->second, iter1->second, iter2->second);
+                    addElement(iter0->second, iter2->second, iter3->second);
+                }
+            }
+            else
+            {
+                std::map<UInteger, UInteger>::iterator iter0 = nodesMap.find(i * (lCount + 1) + j);
+                std::map<UInteger, UInteger>::iterator iter1 = nodesMap.find(j);
+                std::map<UInteger, UInteger>::iterator iter2 = nodesMap.find(j + 1);
+                std::map<UInteger, UInteger>::iterator iter3 = nodesMap.find(i * (lCount + 1) + j + 1);
+                if (iter0 != nodesMap.end() && iter1 != nodesMap.end() && iter2 != nodesMap.end() && iter3 != nodesMap.end())
+                {
+                    addElement(iter0->second, iter1->second, iter2->second);
+                    addElement(iter0->second, iter2->second, iter3->second);
+                }
             }
         }
     }

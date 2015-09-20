@@ -15,6 +15,11 @@ QTriangleMesh3D::QTriangleMesh3D(const UInteger &rCount, const UInteger &lCount,
 {
 }
 
+QTriangleMesh3D::QTriangleMesh3D(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length, std::function<double (double, double, double)> func, std::list<Point3D> charPoints, QObject *parent) :
+    QObject(parent), TriangleMesh3D(rCount, lCount, radius, length, func, charPoints)
+{
+}
+
 QTriangleMesh3D::QTriangleMesh3D(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length, QObject *parent):
     QObject(parent), TriangleMesh3D(rCount, lCount, bottom_radius, top_radius, length)
 {

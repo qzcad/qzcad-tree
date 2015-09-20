@@ -41,6 +41,16 @@ public:
      */
     explicit QTriangleMesh3D(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length, QObject *parent = 0);
     /**
+     * @brief Конструктор для создания равномерной сетки в цилиндрических координатах с адаптацией под область, ограниченную функцией
+     * @param rCount Количество элементов вдоль радиуса
+     * @param lCount Количество элементов вдоль образующей
+     * @param radius Радиус
+     * @param length Высота
+     * @param func Функция, положительная во внутренних точка и отрицательная во внешних
+     * @param parent Указатель на родительский объект
+     */
+    explicit QTriangleMesh3D(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length, std::function<double(double, double, double)> func, std::list<Point3D> charPoints, QObject *parent = 0);
+    /**
      * @brief Конструктор для создания равномерной сетки в конических координатах
      * @param rCount Количество элементов вдоль радиуса
      * @param lCount Количество элементов вдоль образующей
