@@ -51,6 +51,18 @@ public:
      * @return Грань элемента, номер которойс равен i
      */
     virtual UIntegerVector face(const int &i) const;
+    /**
+     * @brief Оператор для доступа к номеру (коду) вершины по ее индексу в треугольнике
+     * @param i Индекс вершины треугольника
+     * @return Номер (код) узла, на который ссылается вершина
+     */
+    UInteger &operator [] (int i);
+    /**
+     * @brief Оператор (коснтантный) для доступа к номеру (коду) вершины по ее индексу в треугольнике
+     * @param i Индекс вершины треугольника
+     * @return Номер (код) узла, на который ссылается вершина
+     */
+    const UInteger &operator [] (int i) const;
 private:
     UInteger leftVertex_; //!< левая вершина
     UInteger rightVertex_; //!< правая вершина

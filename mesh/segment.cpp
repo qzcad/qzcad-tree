@@ -21,11 +21,9 @@ int Segment::verticesCount() const
 
 UInteger Segment::vertexNode(int i) const
 {
-    if (i == 0)
+    if ((i % 2) == 0)
         return leftVertex_;
-    if (i == 1)
-        return rightVertex_;
-    return leftVertex_;
+    return rightVertex_;
 }
 
 int Segment::facesCount() const
@@ -39,5 +37,19 @@ UIntegerVector Segment::face(const int &i) const
     f[0] = leftVertex_;
     f[1] = rightVertex_;
     return f;
+}
+
+UInteger &Segment::operator [](int i)
+{
+    if ((i % 2) == 0)
+        return leftVertex_;
+    return rightVertex_;
+}
+
+const UInteger &Segment::operator [](int i) const
+{
+    if ((i % 2) == 0)
+        return leftVertex_;
+    return rightVertex_;
 }
 }

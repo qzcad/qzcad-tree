@@ -621,6 +621,10 @@ QScriptValue QZScriptEngine::setMesh(QScriptContext *context, QScriptEngine *eng
     {
         mesh_ = new QuadrilateralMesh2D(qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)));
     }
+    else if (qscriptvalue_cast<QSegmentMesh2D *>(context->argument(0)) != NULL)
+    {
+        mesh_ = new SegmentMesh2D(qscriptvalue_cast<QSegmentMesh2D *>(context->argument(0)));
+    }
     else if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != NULL)
     {
         mesh_ = new TriangleMesh2D(qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)));

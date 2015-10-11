@@ -113,7 +113,7 @@ double Mesh2D::area() const
     return sum;
 }
 
-UInteger Mesh2D:: pushNode(const Point2D &point, const NodeType &type)
+UInteger Mesh2D::pushNode(const Point2D &point, const NodeType &type)
 {
     Node2D node;
     node.point = point;

@@ -40,7 +40,7 @@ SegmentMesh2D::SegmentMesh2D(const UInteger &xCount, const UInteger &yCount, con
     yMax_ = yMin + height;
     const double hx = width / (double)(xCount - 1);
     const double hy = height / (double)(yCount - 1);
-    const double minDistance = 0.25 * sqrt(hx*hx + hy*hy);
+    const double minDistance = 0.4 * sqrt(hx*hx + hy*hy);
     Point2D border[4]; // массив координат пересечения с границей области
     int edge_table[16][5] = {
         { -1, -1, -1, -1, -1 }, // 0
@@ -93,31 +93,63 @@ SegmentMesh2D::SegmentMesh2D(const UInteger &xCount, const UInteger &yCount, con
             Point2D p1 (x0 + hx, y0);
             Point2D p2 (x0 + hx, y0 + hy);
             Point2D p3 (x0, y0 + hy);
-            std::cout << p0.x() << " " << p0.y() << std::endl;
 
-            if (func(p0.x(), p0.y()) < 0.0) index |= 1;
-            if (func(p1.x(), p1.y()) < 0.0) index |= 2;
-            if (func(p2.x(), p2.y()) < 0.0) index |= 4;
-            if (func(p3.x(), p3.y()) < 0.0) index |= 8;
+            if (func(p0.x(), p0.y()) <= 0.0) index |= 1;
+            if (func(p1.x(), p1.y()) <= 0.0) index |= 2;
+            if (func(p2.x(), p2.y()) <= 0.0) index |= 4;
+            if (func(p3.x(), p3.y()) <= 0.0) index |= 8;
 
             if (search_table[index] & 1) border[0] = binary(p0, p1, func);
             if (search_table[index] & 2) border[1] = binary(p1, p2, func);
             if (search_table[index] & 4) border[2] = binary(p2, p3, func);
             if (search_table[index] & 8) border[3] = binary(p3, p0, func);
-            std::cout << index << std::endl;
+
             for (int ii = 0; edge_table[index][ii] != -1; ii += 2)
             {
                 Point2D prev = border[edge_table[index][ii]];
                 Point2D next = border[edge_table[index][ii + 1]];
-                if (!prev.isEqualTo(next, minDistance))
+                UInteger ii0 = addNode(prev, BORDER, minDistance);
+                UInteger ii1 = addNode(next, BORDER, minDistance);
+                if (ii0 != ii1)
                 {
-                    addElement(addNode(prev, BORDER, minDistance), addNode(next, BORDER, minDistance));
+                    addElement(ii0, ii1);
                 }
             }
 
             y0 += hy;
         }
         x0 += hx;
+    }
+    // учет характерных точек, для которых не нашлось пары
+    for (UInteger i = 0; i < charPoint.size(); i++)
+    {
+        Node2D node = node_[i];
+        if (node.adjacent.size() == 0)
+        {
+            Point2D point = node.point;
+            UInteger min_el = 0;
+            Point2D p0 = node_[element_[0][0]].point;
+            Point2D p1 = node_[element_[0][1]].point;
+            double min_d = point.distanceTo(p0) * point.distanceTo(p0) +
+                    point.distanceTo(p1) * point.distanceTo(p1);
+            for (UInteger j = 1; j < elementsCount(); j++)
+            {
+                p0 = node_[element_[j][0]].point;
+                p1 = node_[element_[j][1]].point;
+                double d = point.distanceTo(p0) * point.distanceTo(p0) +
+                        point.distanceTo(p1) * point.distanceTo(p1);
+                if (d < min_d)
+                {
+                    min_d = d;
+                    min_el = j;
+                }
+            }
+            addElement(i, element_[min_el][1]);
+            AdjacentSet a1 = node_[element_[min_el][1]].adjacent;
+            a1.erase(min_el);
+            element_[min_el][1] = i;
+            node_[i].adjacent.insert(min_el);
+        }
     }
 }
 

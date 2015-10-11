@@ -1,4 +1,5 @@
 #include "glmeshpicture.h"
+#include "segmentmesh2d.h"
 
 GLMeshPicture::GLMeshPicture(QWidget *parent) :
     QGLWidget(QGLFormat(QGL::DoubleBuffer | QGL::DepthBuffer), parent)
@@ -732,21 +733,66 @@ void GLMeshPicture::paintGL()
     {
         for (msh::UInteger i = 0; i < mesh_->elementsCount(); i++)
         {
-            if (mesh_->dimesion() == 2 || mesh_->isBorderElement(i))
+            msh::ElementPointer element = mesh_->element(i);
+            if (dynamic_cast<const msh::Segment *>(element) != NULL)
             {
-                msh::ElementPointer element = mesh_->element(i);
-                // учет ограничений на выборку элементов
-//                bool inPlane = true;
-//                for (int j = 0; j < element->verticesCount(); j++)
-//                {
-//                    msh::PointPointer point = mesh_->node(element->vertexNode(j));
-//                    if (point->x() < 0.26 || point->x() > (4.014-0.2))
-//                    {
-//                        inPlane = false;
-//                        break;
-//                    }
-//                }
-//                if (inPlane)
+                glNormal3d(0.0, 0.0, -1.0);
+                glLineWidth(2.0);
+                msh::UIntegerVector face = element->face(0);
+                if (visualizationMode_ == ELEMENT_VALUE  && valueIndex_ < elementValues_.size())
+                    qglColor(map_.color(elementValues_[valueIndex_][i]));
+                else
+                    qglColor(elementColor_);
+                glBegin(GL_LINES);
+                for (msh::UInteger j = 0; j < face.size(); j++)
+                {
+                    if (visualizationMode_ == NODE_VALUE && valueIndex_ < nodeValues_.size())
+                        qglColor( map_.color( nodeValues_[valueIndex_][face[j]] ) );
+                    else if (visualizationMode_ == NODE_VALUE)
+                        qglColor(elementColor_); // если индекс вне диапазона, то цветом пользователя
+                    if (isUseVector_ && nodeValues_.size() == 2)
+                        pointToGLVertex(mesh_->node(face[j]),
+                                        vectorScale_ * nodeValues_[0][face[j]],
+                                        vectorScale_ * nodeValues_[1][face[j]]);
+                    else if (isUseVector_ && nodeValues_.size() >= 3)
+                        pointToGLVertex(mesh_->node(face[j]),
+                                        vectorScale_ * nodeValues_[0][face[j]],
+                                        vectorScale_ * nodeValues_[1][face[j]],
+                                        vectorScale_ * nodeValues_[2][face[j]]);
+                    else
+                        pointToGLVertex(mesh_->node(face[j]));
+                }
+                glEnd();
+                glLineWidth(1.0);
+                glPointSize(6.0);
+                if (visualizationMode_ == ELEMENT_VALUE  && valueIndex_ < elementValues_.size())
+                    qglColor(map_.color(elementValues_[valueIndex_][i]));
+                else
+                    qglColor(elementColor_);
+                glBegin(GL_POINTS);
+                for (msh::UInteger j = 0; j < face.size(); j++)
+                {
+                    if (visualizationMode_ == NODE_VALUE && valueIndex_ < nodeValues_.size())
+                        qglColor( map_.color( nodeValues_[valueIndex_][face[j]] ) );
+                    else if (visualizationMode_ == NODE_VALUE)
+                        qglColor(elementColor_); // если индекс вне диапазона, то цветом пользователя
+                    if (isUseVector_ && nodeValues_.size() == 2)
+                        pointToGLVertex(mesh_->node(face[j]),
+                                        vectorScale_ * nodeValues_[0][face[j]],
+                                        vectorScale_ * nodeValues_[1][face[j]]);
+                    else if (isUseVector_ && nodeValues_.size() >= 3)
+                        pointToGLVertex(mesh_->node(face[j]),
+                                        vectorScale_ * nodeValues_[0][face[j]],
+                                        vectorScale_ * nodeValues_[1][face[j]],
+                                        vectorScale_ * nodeValues_[2][face[j]]);
+                    else
+                        pointToGLVertex(mesh_->node(face[j]));
+                }
+                glEnd();
+                glPointSize(1.0);
+            }
+            else if (mesh_->dimesion() == 2 || mesh_->isBorderElement(i))
+            {
                 for (int p = 0; p < element->facesCount(); p++)
                 {
                     msh::UIntegerVector face = element->face(p);
