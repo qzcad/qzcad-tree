@@ -95,6 +95,110 @@ TriangleMesh2D::TriangleMesh2D(const TriangleMesh2D *mesh)
     yMax_ = mesh->yMax_;
 }
 
+TriangleMesh2D::TriangleMesh2D(const SegmentMesh2D *mesh)
+{
+    double super_width = mesh->xMax() - mesh->xMin();
+    double super_height = mesh->yMax() - mesh->yMin();
+    Point2D super0(mesh->xMin() - 0.5 * super_width, mesh->yMin() - 0.5 * super_height);
+    Point2D super1(mesh->xMax() + 0.5 * super_width, mesh->yMin() - 0.5 * super_height);
+    Point2D super2(mesh->xMax() + 0.5 * super_width, mesh->yMax() + 0.5 * super_height);
+    Point2D super3(mesh->xMin() - 0.5 * super_width, mesh->yMax() + 0.5 * super_height);
+    std::vector<Point2D> nodes;
+    std::list<Triangle> triangles;
+    nodes.push_back(super0);
+    nodes.push_back(super1);
+    nodes.push_back(super2);
+    nodes.push_back(super3);
+    nodes.push_back(mesh->point2d(0));
+    triangles.push_back(Triangle(0, 1, 4));
+    triangles.push_back(Triangle(1, 2, 4));
+    triangles.push_back(Triangle(2, 3, 4));
+    triangles.push_back(Triangle(3, 0, 4));
+    for (UInteger i = 1; i < mesh->nodesCount(); i++)
+    {
+        Point2D point = mesh->point2d(i);
+        UInteger number = nodes.size();
+        std::vector<int> power;
+        std::vector<Segment> edges;
+        nodes.push_back(point);
+        for (std::list<Triangle>::iterator triangle = triangles.begin(); triangle != triangles.end(); )
+        {
+            Point2D A = nodes[triangle->vertexNode(0)];
+            Point2D B = nodes[triangle->vertexNode(1)];
+            Point2D C = nodes[triangle->vertexNode(2)];
+            Segment e0(triangle->vertexNode(0), triangle->vertexNode(1));
+            Segment e1(triangle->vertexNode(1), triangle->vertexNode(2));
+            Segment e2(triangle->vertexNode(2), triangle->vertexNode(0));
+            bool flags[] = {false, false, false};
+            if (inCircumcircle(A, B, C, point))
+            {
+                for (UInteger j = 0; j < edges.size(); j++)
+                {
+                    if (e0.isSame(edges[j]))
+                    {
+                        power[j]++;
+                        flags[0] = true;
+                    }
+                    else if (e1.isSame(edges[j]))
+                    {
+                        power[j]++;
+                        flags[1] = true;
+                    }
+                    else if (e2.isSame(edges[j]))
+                    {
+                        power[j]++;
+                        flags[2] = true;
+                    }
+                }
+                if (!flags[0])
+                {
+                    edges.push_back(e0);
+                    power.push_back(1);
+                }
+                if (!flags[1])
+                {
+                    edges.push_back(e1);
+                    power.push_back(1);
+                }
+                if (!flags[2])
+                {
+                    edges.push_back(e2);
+                    power.push_back(1);
+                }
+                triangle = triangles.erase(triangle);
+            }
+            else
+            {
+                ++triangle;
+            }
+        }
+
+        for (UInteger j = 0; j < edges.size(); j++)
+        {
+            if (power[j] == 1)
+            {
+                triangles.push_back(Triangle(edges[j].vertexNode(1), edges[j].vertexNode(0), number));
+            }
+        }
+    }
+    for (UInteger i = 4; i < nodes.size(); i++) pushNode(nodes[i], BORDER);
+    for (std::list<Triangle>::iterator triangle = triangles.begin(); triangle != triangles.end(); ++triangle)
+    {
+        if (triangle->vertexNode(0) > 3 && triangle->vertexNode(1) > 3 && triangle->vertexNode(2) > 3)
+        {
+            addElement(triangle->vertexNode(0) - 4L, triangle->vertexNode(1) - 4L, triangle->vertexNode(2) - 4L);
+            if (jacobian(elementsCount() - 1) < 0)
+            {
+                UInteger t = element_[elementsCount() - 1][0];
+                element_[elementsCount() - 1][0] = element_[elementsCount() - 1][1];
+                element_[elementsCount() - 1][1] = t;
+            }
+        }
+    }
+    xMin_ = mesh->xMin(); xMax_ = mesh->xMax();
+    yMin_ = mesh->yMin(); yMax_ = mesh->yMax();
+}
+
 UInteger TriangleMesh2D::elementsCount() const
 {
     return element_.size();
@@ -236,6 +340,43 @@ bool TriangleMesh2D::angles(const Point2D &A, const Point2D &B, const Point2D &C
     // Теорема о сумме углов треугольника
     gamma = M_PI - (alpha + beta); // Угол в вершине C
     return true;
+}
+
+bool TriangleMesh2D::inCircumcircle(const Point2D &A, const Point2D &B, const Point2D &C, const Point2D &p)
+{
+    auto det3 = [](double m[3][3])
+    {
+        return m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) -
+                m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) +
+                m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+    };
+    double ma[3][3] = {
+        { A.x(), A.y(), 1.0 },
+        { B.x(), B.y(), 1.0 },
+        { C.x(), C.y(), 1.0 }
+    };
+    double a = det3(ma);
+    double mb[3][3] = {
+        { A.x()*A.x() + A.y()*A.y(), A.y(), 1.0 },
+        { B.x()*B.x() + B.y()*B.y(), B.y(), 1.0 },
+        { C.x()*C.x() + C.y()*C.y(), C.y(), 1.0 }
+    };
+    double b = det3(mb);
+    double mc[3][3] = {
+        { A.x()*A.x() + A.y()*A.y(), A.x(), 1.0 },
+        { B.x()*B.x() + B.y()*B.y(), B.x(), 1.0 },
+        { C.x()*C.x() + C.y()*C.y(), C.x(), 1.0 }
+    };
+    double c = det3(mc);
+    double md[3][3] = {
+        { A.x()*A.x() + A.y()*A.y(), A.x(), A.y() },
+        { B.x()*B.x() + B.y()*B.y(), B.x(), B.y() },
+        { C.x()*C.x() + C.y()*C.y(), C.x(), C.y() }
+    };
+    double d = det3(md);
+    double v = a * (p.x()*p.x() + p.y()*p.y()) - b * p.x() + c * p.y() - d;
+
+    return (v * a <= 0.0);
 }
 
 TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint)

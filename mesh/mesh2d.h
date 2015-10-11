@@ -133,6 +133,7 @@ public:
      * @return Количество элементов, смежных в узле
      */
     UInteger adjacentCount(const UInteger &nodeNumber) const;
+    Point2D point2d(const UInteger &number) const;
 protected:
     std::vector<Node2D> node_; //!< массив узлов
     double xMin_; //!< минимальное значение ординаты

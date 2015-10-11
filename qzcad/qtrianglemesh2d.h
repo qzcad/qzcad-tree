@@ -57,6 +57,11 @@ public:
      */
     explicit QTriangleMesh2D(const QTriangleMesh2D &qmesh);
     /**
+     * @brief Конструктор для построения триангуляции Делоне заданного двумерного конутра
+     * @param mesh Указатель на контур
+     */
+    explicit QTriangleMesh2D(const SegmentMesh2D *mesh, QObject *parent = 0);
+    /**
      * @brief Метод формирует строку с информацией о сетке
      * @return Строка с информацией о сетке
      * Метод доступен в скриптах

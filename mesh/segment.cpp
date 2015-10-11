@@ -52,4 +52,10 @@ const UInteger &Segment::operator [](int i) const
         return leftVertex_;
     return rightVertex_;
 }
+
+bool Segment::isSame(const Segment &s)
+{
+    return (leftVertex_ == s.leftVertex_ && rightVertex_ == s.rightVertex_) ||
+            (leftVertex_ == s.rightVertex_ && rightVertex_ == s.leftVertex_);
+}
 }

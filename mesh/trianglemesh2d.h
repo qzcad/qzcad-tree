@@ -13,6 +13,7 @@
 
 #include "mesh2d.h"
 #include "triangle.h"
+#include "segmentmesh2d.h"
 
 namespace msh
 {
@@ -59,6 +60,11 @@ public:
      * @param mesh Ссылка на объект для копирования
      */
     TriangleMesh2D(const TriangleMesh2D *mesh);
+    /**
+     * @brief Конструктор для построения триангуляции Делоне заданного двумерного конутра
+     * @param mesh Указатель на контур
+     */
+    TriangleMesh2D(const SegmentMesh2D *mesh);
     /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
@@ -149,6 +155,15 @@ protected:
      *       c
      */
     bool angles(const Point2D &A, const Point2D &B, const Point2D &C, double &alpha, double &beta, double &gamma);
+    /**
+     * @brief Функция для проверки попадания в описанную вокруг треугольника окружность
+     * @param A Первая вершина треугольника
+     * @param B Вторая вершина треугольника
+     * @param C Третья врешина треугольника
+     * @param p Проверямая точка
+     * @return true, если есть попадание
+     */
+    bool inCircumcircle(const Point2D &A, const Point2D &B, const Point2D &C, const Point2D &p);
 protected:
     std::vector<Triangle> element_; //!< Массив элементов
 };

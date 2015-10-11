@@ -29,6 +29,7 @@ public:
      * @param segment Сегмент-объект для копирования
      */
     Segment(const Segment &segment);
+    virtual ~Segment() {}
     /**
      * @brief verticesCount Количество вершин в сегменте
      * @return 2
@@ -63,6 +64,12 @@ public:
      * @return Номер (код) узла, на который ссылается вершина
      */
     const UInteger &operator [] (int i) const;
+    /**
+     * @brief Проверка на совпадение пары соединенных узлов (без учета направления)
+     * @param s Отрезок, с которым необходимо сравниться
+     * @return ,если пара соединенных узлов совпадает
+     */
+    bool isSame(const Segment &s);
 private:
     UInteger leftVertex_; //!< левая вершина
     UInteger rightVertex_; //!< правая вершина

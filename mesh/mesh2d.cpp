@@ -157,4 +157,9 @@ UInteger Mesh2D::adjacentCount(const UInteger &nodeNumber) const
 {
     return node_[nodeNumber].adjacent.size();
 }
+
+Point2D Mesh2D::point2d(const UInteger &number) const
+{
+    return node_[number].point;
+}
 }

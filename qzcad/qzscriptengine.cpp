@@ -360,7 +360,18 @@ QScriptValue QZScriptEngine::createSegmentMesh2D(QScriptContext *context, QScrip
 
 QScriptValue QZScriptEngine::createTriangleMesh2D(QScriptContext *context, QScriptEngine *engine)
 {
-    if (context->argumentCount() == 5)
+    if (context->argumentCount() == 1)
+    {
+        QString typeError = QObject::tr("Triangles2D(mesh: Mesh2D): argument type error.");
+        if (!context->argument(0).isQObject())
+            return context->throwError(typeError);
+        if (qscriptvalue_cast<QSegmentMesh2D *>(context->argument(0)) != NULL)
+        {
+            SegmentMesh2D sm(qscriptvalue_cast<QSegmentMesh2D *>(context->argument(0)));
+            return engine->newQObject(new QTriangleMesh2D(&sm), QScriptEngine::ScriptOwnership);
+        }
+    }
+    else if (context->argumentCount() == 5)
     {
         QString typeError = QObject::tr("Triangles2D(xCount: Integer, yCount: Integer, origin: Point2D, width: Floating, height: Floating): argument type error (%1).");
         if (!context->argument(0).isNumber())
