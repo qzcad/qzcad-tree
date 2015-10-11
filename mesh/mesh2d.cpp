@@ -122,11 +122,11 @@ UInteger Mesh2D:: pushNode(const Point2D &point, const NodeType &type)
     return node_.size() - 1;
 }
 
-UInteger Mesh2D::addNode(const Point2D &point, const NodeType &type)
+UInteger Mesh2D::addNode(const Point2D &point, const NodeType &type, double epsilon)
 {
     for (UInteger i = 0; i < node_.size(); i++)
     {
-        if ( point.isEqualTo(node_[i].point, epsilon_) )
+        if ( point.isEqualTo(node_[i].point, epsilon) )
         {
             if (node_[i].type != type) // обновление типа узла
                 node_[i].type = type;

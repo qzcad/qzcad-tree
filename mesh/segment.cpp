@@ -27,4 +27,17 @@ UInteger Segment::vertexNode(int i) const
         return rightVertex_;
     return leftVertex_;
 }
+
+int Segment::facesCount() const
+{
+    return 1;
+}
+
+UIntegerVector Segment::face(const int &i) const
+{
+    UIntegerVector f(2);
+    f[0] = leftVertex_;
+    f[1] = rightVertex_;
+    return f;
+}
 }

@@ -106,6 +106,13 @@ private:
      */
     static QScriptValue createQuadrilateralMesh2D(QScriptContext *context, QScriptEngine *engine);
     /**
+     * @brief "Конструктор" сеток двумерных балок
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Объект для использования в скриптах
+     */
+    static QScriptValue createSegmentMesh2D(QScriptContext *context, QScriptEngine *engine);
+    /**
      * @brief "Конструктор" сеток треугольных элементов на плоскости
      * @param context Контекст скрипта
      * @param engine Двигатель скрипта

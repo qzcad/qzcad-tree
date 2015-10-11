@@ -23,7 +23,6 @@ SOURCES += mesh.cpp \
     point1d.cpp \
     point2d.cpp \
     quadrilateral.cpp \
-    path2d.cpp \
     segment.cpp \
     mesh2d.cpp \
     quadrilateralmesh2d.cpp \
@@ -35,7 +34,8 @@ SOURCES += mesh.cpp \
     triangle.cpp \
     trianglemesh2d.cpp \
     quadrilateralmesh3d.cpp \
-    trianglemesh3d.cpp
+    trianglemesh3d.cpp \
+    segmentmesh2d.cpp
 
 HEADERS += mesh.h \
     point.h \
@@ -46,7 +46,6 @@ HEADERS += mesh.h \
     pointpointer.h \
     elementpointer.h \
     meshpointer.h \
-    path2d.h \
     segment.h \
     integer.h \
     mesh2d.h \
@@ -64,7 +63,8 @@ HEADERS += mesh.h \
     triangle.h \
     trianglemesh2d.h \
     quadrilateralmesh3d.h \
-    trianglemesh3d.h
+    trianglemesh3d.h \
+    segmentmesh2d.h
 unix:!symbian {
     maemo5 {
         target.path = /opt/usr/lib

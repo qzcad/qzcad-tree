@@ -40,7 +40,17 @@ public:
      * @return Номер узла, соответствующего вершине с номером i
      */
     UInteger vertexNode (int i) const;
-
+    /**
+     * @brief Количество граней, соответвующих элементу (необходимо для визуализации)
+     * @return Количество граней (1)
+     */
+    virtual int facesCount() const;
+    /**
+     * @brief face Грань элемента
+     * @param i Номер грани
+     * @return Грань элемента, номер которойс равен i
+     */
+    virtual UIntegerVector face(const int &i) const;
 private:
     UInteger leftVertex_; //!< левая вершина
     UInteger rightVertex_; //!< правая вершина

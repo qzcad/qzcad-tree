@@ -122,7 +122,7 @@ public:
      * @param type Тип узла
      * @return Номер узла в массиве узлов
      */
-    UInteger addNode(const Point2D &point, const NodeType &type);
+    UInteger addNode(const Point2D &point, const NodeType &type, double epsilon = epsilon_);
     /**
      * @brief Обновить параметры области определения сетки (xMin, xMax, yMin, yMax)
      */
