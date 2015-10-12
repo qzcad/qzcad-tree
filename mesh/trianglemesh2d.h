@@ -125,6 +125,7 @@ public:
      * @return Соотношение углов элемента (радианы)
      */
     double angleAspect(const UInteger &elNum);
+    void delaunay(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint);
 protected:
     /**
      * @brief Метод находит значение минимального угла в треугольнике, определенном координатами вершин
@@ -164,6 +165,17 @@ protected:
      * @return true, если есть попадание
      */
     bool inCircumcircle(const Point2D &A, const Point2D &B, const Point2D &C, const Point2D &p);
+    struct Triangulation
+    {
+        std::vector<Point2D> nodes;
+        std::list<Triangle> triangles;
+    };
+    /**
+     * @brief Метод для построения триангуляции Делоне для заданного контура, используя суперобласть.
+     * @param mesh Указатель на сетку-контур
+     * @return Триаунгуляцию, как выпуклого множества
+     */
+    Triangulation SuperDelaunay(const SegmentMesh2D *mesh);
 protected:
     std::vector<Triangle> element_; //!< Массив элементов
 };

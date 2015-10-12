@@ -61,6 +61,9 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     // Двумерная сетка треугольников
     QScriptValue qsCreateTriangleMesh2D = newFunction(createTriangleMesh2D);
     globalObject().setProperty("Triangles2D", qsCreateTriangleMesh2D);
+    // Триангуляция Делоне
+    QScriptValue qsCreateDelaunay = newFunction(createDelaunay);
+    globalObject().setProperty("delaunay", qsCreateDelaunay);
     // Поверхностная сетка четырехугольников
     QScriptValue qsCreateQuadrilateralMesh3D = newFunction(createQuadrilateralMesh3D);
     globalObject().setProperty("ShellQuads", qsCreateQuadrilateralMesh3D);
@@ -435,6 +438,56 @@ QScriptValue QZScriptEngine::createTriangleMesh2D(QScriptContext *context, QScri
         return engine->newQObject(new QTriangleMesh2D(xCount, yCount, origin->x(), origin->y(), width, height, func, pointList), QScriptEngine::ScriptOwnership);
     }
     return context->throwError(QObject::tr("Triangles2D(xCount: Integer, yCount: Integer, origin: Point2D, width: Floating, height: Floating): arguments count error."));
+}
+
+QScriptValue QZScriptEngine::createDelaunay(QScriptContext *context, QScriptEngine *engine)
+{
+    if (context->argumentCount() == 6 || context->argumentCount() == 7)
+        {
+            QString typeError = QObject::tr("delaunay(xCount: Integer, yCount: Integer, origin: Point2D, width: Floating, height: Floating, function: Function[, points: Array]): argument type error (%1).");
+            std::list<msh::Point2D> pointList;
+            if (!context->argument(0).isNumber())
+                return context->throwError(typeError.arg("xCount"));
+            if (!context->argument(1).isNumber())
+                return context->throwError(typeError.arg("yCount"));
+            if (!context->argument(2).isQObject() || qscriptvalue_cast<QPoint2D *>(context->argument(2)) == NULL)
+                return context->throwError(typeError.arg("origin"));
+            if (!context->argument(3).isNumber())
+                return context->throwError(typeError.arg("width"));
+            if (!context->argument(4).isNumber())
+                return context->throwError(typeError.arg("height"));
+            QScriptValue function = context->argument(5);
+            if (!function.isFunction())
+                return context->throwError(typeError.arg("function"));
+
+            UInteger xCount = context->argument(0).toUInt32();
+            UInteger yCount = context->argument(1).toUInt32();
+            QPoint2D *origin = qscriptvalue_cast<QPoint2D *>(context->argument(2));
+            double width = context->argument(3).toNumber();
+            double height = context->argument(4).toNumber();
+            // функция для вычисления квадрата числа (C++0x)
+            auto func = [&](double x, double y)
+            {
+                QScriptValueList args;
+                args << x << y;
+                return function.call(QScriptValue(), args).toNumber();
+            };
+            if (context->argumentCount() == 7)
+            {
+                if (!context->argument(6).isArray())
+                    return context->throwError(typeError.arg("points"));
+                QScriptValue array = context->argument(6);
+                for (int i = 0; i < array.property("length").toInteger(); i++)
+                {
+                    QPoint2D *point = qscriptvalue_cast<QPoint2D *>(array.property(i));
+                    pointList.push_back(Point2D(point->x(), point->y()));
+                }
+            }
+            QTriangleMesh2D  *qtm = new QTriangleMesh2D();
+            qtm->delaunay(xCount, yCount, origin->x(), origin->y(), width, height, func, pointList);
+            return engine->newQObject(qtm, QScriptEngine::ScriptOwnership);
+        }
+        return context->throwError(QObject::tr("delaunay(xCount: Integer, yCount: Integer, origin: Point2D, width: Floating, height: Floating): arguments count error."));
 }
 
 QScriptValue QZScriptEngine::createQuadrilateralMesh3D(QScriptContext *context, QScriptEngine *engine)

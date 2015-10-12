@@ -67,6 +67,7 @@ public:
      * Метод доступен в скриптах
      */
     Q_INVOKABLE QString toString() const;
+    void delaunay(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint);
 signals:
 
 public slots:

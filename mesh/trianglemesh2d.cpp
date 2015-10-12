@@ -75,310 +75,6 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
     std::cout << "Создана равномерная сетка треугольных элементов: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
-TriangleMesh2D::TriangleMesh2D(const TriangleMesh2D &mesh)
-{
-    element_ = mesh.element_;
-    node_ = mesh.node_;
-    xMin_ = mesh.xMin_;
-    xMax_ = mesh.xMax_;
-    yMin_ = mesh.yMin_;
-    yMax_ = mesh.yMax_;
-}
-
-TriangleMesh2D::TriangleMesh2D(const TriangleMesh2D *mesh)
-{
-    element_ = mesh->element_;
-    node_ = mesh->node_;
-    xMin_ = mesh->xMin_;
-    xMax_ = mesh->xMax_;
-    yMin_ = mesh->yMin_;
-    yMax_ = mesh->yMax_;
-}
-
-TriangleMesh2D::TriangleMesh2D(const SegmentMesh2D *mesh)
-{
-    double super_width = mesh->xMax() - mesh->xMin();
-    double super_height = mesh->yMax() - mesh->yMin();
-    Point2D super0(mesh->xMin() - 0.5 * super_width, mesh->yMin() - 0.5 * super_height);
-    Point2D super1(mesh->xMax() + 0.5 * super_width, mesh->yMin() - 0.5 * super_height);
-    Point2D super2(mesh->xMax() + 0.5 * super_width, mesh->yMax() + 0.5 * super_height);
-    Point2D super3(mesh->xMin() - 0.5 * super_width, mesh->yMax() + 0.5 * super_height);
-    std::vector<Point2D> nodes;
-    std::list<Triangle> triangles;
-    nodes.push_back(super0);
-    nodes.push_back(super1);
-    nodes.push_back(super2);
-    nodes.push_back(super3);
-    nodes.push_back(mesh->point2d(0));
-    triangles.push_back(Triangle(0, 1, 4));
-    triangles.push_back(Triangle(1, 2, 4));
-    triangles.push_back(Triangle(2, 3, 4));
-    triangles.push_back(Triangle(3, 0, 4));
-    for (UInteger i = 1; i < mesh->nodesCount(); i++)
-    {
-        Point2D point = mesh->point2d(i);
-        UInteger number = nodes.size();
-        std::vector<int> power;
-        std::vector<Segment> edges;
-        nodes.push_back(point);
-        for (std::list<Triangle>::iterator triangle = triangles.begin(); triangle != triangles.end(); )
-        {
-            Point2D A = nodes[triangle->vertexNode(0)];
-            Point2D B = nodes[triangle->vertexNode(1)];
-            Point2D C = nodes[triangle->vertexNode(2)];
-            Segment e0(triangle->vertexNode(0), triangle->vertexNode(1));
-            Segment e1(triangle->vertexNode(1), triangle->vertexNode(2));
-            Segment e2(triangle->vertexNode(2), triangle->vertexNode(0));
-            bool flags[] = {false, false, false};
-            if (inCircumcircle(A, B, C, point))
-            {
-                for (UInteger j = 0; j < edges.size(); j++)
-                {
-                    if (e0.isSame(edges[j]))
-                    {
-                        power[j]++;
-                        flags[0] = true;
-                    }
-                    else if (e1.isSame(edges[j]))
-                    {
-                        power[j]++;
-                        flags[1] = true;
-                    }
-                    else if (e2.isSame(edges[j]))
-                    {
-                        power[j]++;
-                        flags[2] = true;
-                    }
-                }
-                if (!flags[0])
-                {
-                    edges.push_back(e0);
-                    power.push_back(1);
-                }
-                if (!flags[1])
-                {
-                    edges.push_back(e1);
-                    power.push_back(1);
-                }
-                if (!flags[2])
-                {
-                    edges.push_back(e2);
-                    power.push_back(1);
-                }
-                triangle = triangles.erase(triangle);
-            }
-            else
-            {
-                ++triangle;
-            }
-        }
-
-        for (UInteger j = 0; j < edges.size(); j++)
-        {
-            if (power[j] == 1)
-            {
-                triangles.push_back(Triangle(edges[j].vertexNode(1), edges[j].vertexNode(0), number));
-            }
-        }
-    }
-    for (UInteger i = 4; i < nodes.size(); i++) pushNode(nodes[i], BORDER);
-    for (std::list<Triangle>::iterator triangle = triangles.begin(); triangle != triangles.end(); ++triangle)
-    {
-        if (triangle->vertexNode(0) > 3 && triangle->vertexNode(1) > 3 && triangle->vertexNode(2) > 3)
-        {
-            addElement(triangle->vertexNode(0) - 4L, triangle->vertexNode(1) - 4L, triangle->vertexNode(2) - 4L);
-            if (jacobian(elementsCount() - 1) < 0)
-            {
-                UInteger t = element_[elementsCount() - 1][0];
-                element_[elementsCount() - 1][0] = element_[elementsCount() - 1][1];
-                element_[elementsCount() - 1][1] = t;
-            }
-        }
-    }
-    xMin_ = mesh->xMin(); xMax_ = mesh->xMax();
-    yMin_ = mesh->yMin(); yMax_ = mesh->yMax();
-}
-
-UInteger TriangleMesh2D::elementsCount() const
-{
-    return element_.size();
-}
-
-ElementPointer TriangleMesh2D::element(const UInteger &number) const
-{
-    ElementPointer elementPtr = &element_[number];
-    return elementPtr;
-}
-
-bool TriangleMesh2D::isBorderElement(const UInteger &number) const
-{
-    for (int i = 0; i < 3; i++)
-    {
-        if (node_[element_[number].vertexNode(i)].type == BORDER || node_[element_[number].vertexNode(i)].type == CHARACTER)
-            return true;
-    }
-    return false;
-}
-
-void TriangleMesh2D::directionChange()
-{
-    for (UInteger i = 0; i < elementsCount(); i++)
-    {
-        std::swap(element_[i][1], element_[i][2]); // изменение порядка обхода: 0-1-2 <= 0-2-1
-    }
-}
-
-double TriangleMesh2D::area(const UInteger &number) const
-{
-    Triangle triangle = element_[number];
-    Point2D a = node_[triangle[0]].point;
-    Point2D b = node_[triangle[1]].point;
-    Point2D c = node_[triangle[2]].point;
-    //           | xa ya 1 |
-    // S = 0.5 * | xb yb 1 |
-    //           | xc yc 1 |
-    return 0.5 * fabs( (b.x() - a.x()) * (c.y() - a.y()) - (c.x() - a.x()) * (b.y() - a.y()) );
-}
-
-void TriangleMesh2D::addElement(const UInteger &node0, const UInteger &node1, const UInteger &node2)
-{
-    Triangle triangle(node0, node1, node2);
-    element_.push_back(triangle);
-    // обновление списка смежных узлов
-    node_[node0].adjacent.insert(element_.size() - 1);
-    node_[node1].adjacent.insert(element_.size() - 1);
-    node_[node2].adjacent.insert(element_.size() - 1);
-}
-
-double TriangleMesh2D::jacobian(const UInteger &elementNum)
-{
-    const Triangle tri = element_[elementNum];
-    const Point2D p0 = node_[tri[0]].point;
-    const Point2D p1 = node_[tri[1]].point;
-    const Point2D p2 = node_[tri[2]].point;
-    double dNdXi[3] = {
-        -1.0,
-        1.0,
-        0.0
-    };
-    double dNdEta[3] = {
-        -1.0,
-        0.0,
-        1.0
-    };
-    double j[2][2];
-    j[0][0] = p0.x() * dNdXi[0] + p1.x() * dNdXi[1] + p2.x() * dNdXi[2];    j[0][1] = p0.y() * dNdXi[0] + p1.y() * dNdXi[1] + p2.y() * dNdXi[2];
-    j[1][0] = p0.x() * dNdEta[0] + p1.x() * dNdEta[1] + p2.x() * dNdEta[2]; j[1][1] = p0.y() * dNdEta[0] + p1.y() * dNdEta[1] + p2.y() * dNdEta[2];
-    return j[0][0] * j[1][1] - j[0][1] * j[1][0];
-}
-
-double TriangleMesh2D::lengthAspect(const UInteger &elNum)
-{
-    const Triangle tri = element_[elNum];
-    const Point2D p0 = node_[tri[0]].point;
-    const Point2D p1 = node_[tri[1]].point;
-    const Point2D p2 = node_[tri[2]].point;
-    const double d01 = p0.distanceTo(p1);
-    const double d12 = p1.distanceTo(p2);
-    const double d20 = p2.distanceTo(p0);
-    double min = std::min(d01, std::min(d12, d20));
-    double max = std::max(d01, std::max(d12, d20));
-    return min / max;
-}
-
-double TriangleMesh2D::minAngle(const UInteger &elNum)
-{
-    const Triangle tri = element_[elNum];
-    const Point2D p0 = node_[tri[0]].point;
-    const Point2D p1 = node_[tri[1]].point;
-    const Point2D p2 = node_[tri[2]].point;
-    return minAngle(p0, p1, p2);
-}
-
-double TriangleMesh2D::angleAspect(const UInteger &elNum)
-{
-    const Triangle tri = element_[elNum];
-    const Point2D p0 = node_[tri[0]].point;
-    const Point2D p1 = node_[tri[1]].point;
-    const Point2D p2 = node_[tri[2]].point;
-    double alpha = 0.0, beta = 0.0, gamma = 0.0;
-    double min, max;
-    if (angles(p0, p1, p2, alpha, beta, gamma))
-    {
-        // Треугольник невырожденный
-        min = std::min(alpha, std::min(beta, gamma));
-        max = std::max(alpha, std::max(beta, gamma));
-        return min / max;
-    }
-    return 0.0;
-}
-
-
-double TriangleMesh2D::minAngle(const Point2D &A, const Point2D &B, const Point2D &C)
-{
-    double alpha, beta, gamma;
-    angles(A, B, C, alpha, beta, gamma);
-    return std::min(alpha, std::min(beta, gamma));
-}
-
-bool TriangleMesh2D::angles(const Point2D &A, const Point2D &B, const Point2D &C, double &alpha, double &beta, double &gamma)
-{
-    const double a = B.distanceTo(C); // сторона, противолежащяя вершине A (BC)
-    const double b = A.distanceTo(C); // сторона, противолежащяя вершине B (AC)
-    const double c = A.distanceTo(B); // сторона, противолежащяя вершине C (AB)
-    if (a < epsilon_ || b < epsilon_ || c < epsilon_)
-    {
-        alpha = beta = gamma = 0.0;
-        return false;
-    }
-    // Теорема косинусов
-    alpha = acos((b*b + c*c - a*a) / (2.0 * b * c)); // Угол в вершине A
-    // Теорема синусов
-    // обеспечение вычислительной устойчисвости: значение может на бесконечно малую отклоняться от единицы для угла 90 градусов
-    double sinBeta = sin(alpha) * b / a;
-    beta = (sinBeta > 1.0) ? M_PI_2 : asin(sinBeta); // Угол в вершине B
-    // Теорема о сумме углов треугольника
-    gamma = M_PI - (alpha + beta); // Угол в вершине C
-    return true;
-}
-
-bool TriangleMesh2D::inCircumcircle(const Point2D &A, const Point2D &B, const Point2D &C, const Point2D &p)
-{
-    auto det3 = [](double m[3][3])
-    {
-        return m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) -
-                m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) +
-                m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
-    };
-    double ma[3][3] = {
-        { A.x(), A.y(), 1.0 },
-        { B.x(), B.y(), 1.0 },
-        { C.x(), C.y(), 1.0 }
-    };
-    double a = det3(ma);
-    double mb[3][3] = {
-        { A.x()*A.x() + A.y()*A.y(), A.y(), 1.0 },
-        { B.x()*B.x() + B.y()*B.y(), B.y(), 1.0 },
-        { C.x()*C.x() + C.y()*C.y(), C.y(), 1.0 }
-    };
-    double b = det3(mb);
-    double mc[3][3] = {
-        { A.x()*A.x() + A.y()*A.y(), A.x(), 1.0 },
-        { B.x()*B.x() + B.y()*B.y(), B.x(), 1.0 },
-        { C.x()*C.x() + C.y()*C.y(), C.x(), 1.0 }
-    };
-    double c = det3(mc);
-    double md[3][3] = {
-        { A.x()*A.x() + A.y()*A.y(), A.x(), A.y() },
-        { B.x()*B.x() + B.y()*B.y(), B.x(), B.y() },
-        { C.x()*C.x() + C.y()*C.y(), C.x(), C.y() }
-    };
-    double d = det3(md);
-    double v = a * (p.x()*p.x() + p.y()*p.y()) - b * p.x() + c * p.y() - d;
-
-    return (v * a <= 0.0);
-}
-
 TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint)
 {
     xMin_ = xMin;
@@ -667,6 +363,354 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
 
     // the end.
     std::cout << "Создана сетка треугольных элементов для функционального объекта: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
+}
+
+TriangleMesh2D::TriangleMesh2D(const TriangleMesh2D &mesh)
+{
+    element_ = mesh.element_;
+    node_ = mesh.node_;
+    xMin_ = mesh.xMin_;
+    xMax_ = mesh.xMax_;
+    yMin_ = mesh.yMin_;
+    yMax_ = mesh.yMax_;
+}
+
+TriangleMesh2D::TriangleMesh2D(const TriangleMesh2D *mesh)
+{
+    element_ = mesh->element_;
+    node_ = mesh->node_;
+    xMin_ = mesh->xMin_;
+    xMax_ = mesh->xMax_;
+    yMin_ = mesh->yMin_;
+    yMax_ = mesh->yMax_;
+}
+
+TriangleMesh2D::TriangleMesh2D(const SegmentMesh2D *mesh)
+{
+    Triangulation triangulation = SuperDelaunay(mesh);
+    for (UInteger i = 0; i < triangulation.nodes.size(); i++) pushNode(triangulation.nodes[i], BORDER);
+    for (std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
+         triangle != triangulation.triangles.end(); ++triangle)
+    {
+        addElement(triangle->vertexNode(0), triangle->vertexNode(1), triangle->vertexNode(2));
+        if (jacobian(elementsCount() - 1) < 0)
+        {
+            UInteger t = element_[elementsCount() - 1][0];
+            element_[elementsCount() - 1][0] = element_[elementsCount() - 1][1];
+            element_[elementsCount() - 1][1] = t;
+        }
+    }
+    xMin_ = mesh->xMin(); xMax_ = mesh->xMax();
+    yMin_ = mesh->yMin(); yMax_ = mesh->yMax();
+}
+
+UInteger TriangleMesh2D::elementsCount() const
+{
+    return element_.size();
+}
+
+ElementPointer TriangleMesh2D::element(const UInteger &number) const
+{
+    ElementPointer elementPtr = &element_[number];
+    return elementPtr;
+}
+
+bool TriangleMesh2D::isBorderElement(const UInteger &number) const
+{
+    for (int i = 0; i < 3; i++)
+    {
+        if (node_[element_[number].vertexNode(i)].type == BORDER || node_[element_[number].vertexNode(i)].type == CHARACTER)
+            return true;
+    }
+    return false;
+}
+
+void TriangleMesh2D::directionChange()
+{
+    for (UInteger i = 0; i < elementsCount(); i++)
+    {
+        std::swap(element_[i][1], element_[i][2]); // изменение порядка обхода: 0-1-2 <= 0-2-1
+    }
+}
+
+double TriangleMesh2D::area(const UInteger &number) const
+{
+    Triangle triangle = element_[number];
+    Point2D a = node_[triangle[0]].point;
+    Point2D b = node_[triangle[1]].point;
+    Point2D c = node_[triangle[2]].point;
+    //           | xa ya 1 |
+    // S = 0.5 * | xb yb 1 |
+    //           | xc yc 1 |
+    return 0.5 * fabs( (b.x() - a.x()) * (c.y() - a.y()) - (c.x() - a.x()) * (b.y() - a.y()) );
+}
+
+void TriangleMesh2D::addElement(const UInteger &node0, const UInteger &node1, const UInteger &node2)
+{
+    Triangle triangle(node0, node1, node2);
+    element_.push_back(triangle);
+    // обновление списка смежных узлов
+    node_[node0].adjacent.insert(element_.size() - 1);
+    node_[node1].adjacent.insert(element_.size() - 1);
+    node_[node2].adjacent.insert(element_.size() - 1);
+}
+
+double TriangleMesh2D::jacobian(const UInteger &elementNum)
+{
+    const Triangle tri = element_[elementNum];
+    const Point2D p0 = node_[tri[0]].point;
+    const Point2D p1 = node_[tri[1]].point;
+    const Point2D p2 = node_[tri[2]].point;
+    double dNdXi[3] = {
+        -1.0,
+        1.0,
+        0.0
+    };
+    double dNdEta[3] = {
+        -1.0,
+        0.0,
+        1.0
+    };
+    double j[2][2];
+    j[0][0] = p0.x() * dNdXi[0] + p1.x() * dNdXi[1] + p2.x() * dNdXi[2];    j[0][1] = p0.y() * dNdXi[0] + p1.y() * dNdXi[1] + p2.y() * dNdXi[2];
+    j[1][0] = p0.x() * dNdEta[0] + p1.x() * dNdEta[1] + p2.x() * dNdEta[2]; j[1][1] = p0.y() * dNdEta[0] + p1.y() * dNdEta[1] + p2.y() * dNdEta[2];
+    return j[0][0] * j[1][1] - j[0][1] * j[1][0];
+}
+
+double TriangleMesh2D::lengthAspect(const UInteger &elNum)
+{
+    const Triangle tri = element_[elNum];
+    const Point2D p0 = node_[tri[0]].point;
+    const Point2D p1 = node_[tri[1]].point;
+    const Point2D p2 = node_[tri[2]].point;
+    const double d01 = p0.distanceTo(p1);
+    const double d12 = p1.distanceTo(p2);
+    const double d20 = p2.distanceTo(p0);
+    double min = std::min(d01, std::min(d12, d20));
+    double max = std::max(d01, std::max(d12, d20));
+    return min / max;
+}
+
+double TriangleMesh2D::minAngle(const UInteger &elNum)
+{
+    const Triangle tri = element_[elNum];
+    const Point2D p0 = node_[tri[0]].point;
+    const Point2D p1 = node_[tri[1]].point;
+    const Point2D p2 = node_[tri[2]].point;
+    return minAngle(p0, p1, p2);
+}
+
+double TriangleMesh2D::angleAspect(const UInteger &elNum)
+{
+    const Triangle tri = element_[elNum];
+    const Point2D p0 = node_[tri[0]].point;
+    const Point2D p1 = node_[tri[1]].point;
+    const Point2D p2 = node_[tri[2]].point;
+    double alpha = 0.0, beta = 0.0, gamma = 0.0;
+    double min, max;
+    if (angles(p0, p1, p2, alpha, beta, gamma))
+    {
+        // Треугольник невырожденный
+        min = std::min(alpha, std::min(beta, gamma));
+        max = std::max(alpha, std::max(beta, gamma));
+        return min / max;
+    }
+    return 0.0;
+}
+
+void TriangleMesh2D::delaunay(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint)
+{
+    SegmentMesh2D mesh(xCount, yCount, xMin, yMin, width, height, func, charPoint);
+    Triangulation triangulation = SuperDelaunay(&mesh);
+    node_.clear();
+    element_.clear();
+    for (UInteger i = 0; i < triangulation.nodes.size(); i++) pushNode(triangulation.nodes[i], BORDER);
+    for (std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
+         triangle != triangulation.triangles.end(); ++triangle)
+    {
+        Point2D p0 = triangulation.nodes[triangle->vertexNode(0)];
+        Point2D p1 = triangulation.nodes[triangle->vertexNode(1)];
+        Point2D p2 = triangulation.nodes[triangle->vertexNode(2)];
+        Point2D c = (1.0 / 3.0) * (p0 + p1 + p2);
+        if (func(c.x(), c.y()) > 0.0)
+        {
+            addElement(triangle->vertexNode(0), triangle->vertexNode(1), triangle->vertexNode(2));
+            if (jacobian(elementsCount() - 1) < 0)
+            {
+                UInteger t = element_[elementsCount() - 1][0];
+                element_[elementsCount() - 1][0] = element_[elementsCount() - 1][1];
+                element_[elementsCount() - 1][1] = t;
+            }
+        }
+    }
+    xMin_ = mesh.xMin(); xMax_ = mesh.xMax();
+    yMin_ = mesh.yMin(); yMax_ = mesh.yMax();
+}
+
+
+double TriangleMesh2D::minAngle(const Point2D &A, const Point2D &B, const Point2D &C)
+{
+    double alpha, beta, gamma;
+    angles(A, B, C, alpha, beta, gamma);
+    return std::min(alpha, std::min(beta, gamma));
+}
+
+bool TriangleMesh2D::angles(const Point2D &A, const Point2D &B, const Point2D &C, double &alpha, double &beta, double &gamma)
+{
+    const double a = B.distanceTo(C); // сторона, противолежащяя вершине A (BC)
+    const double b = A.distanceTo(C); // сторона, противолежащяя вершине B (AC)
+    const double c = A.distanceTo(B); // сторона, противолежащяя вершине C (AB)
+    if (a < epsilon_ || b < epsilon_ || c < epsilon_)
+    {
+        alpha = beta = gamma = 0.0;
+        return false;
+    }
+    // Теорема косинусов
+    alpha = acos((b*b + c*c - a*a) / (2.0 * b * c)); // Угол в вершине A
+    // Теорема синусов
+    // обеспечение вычислительной устойчисвости: значение может на бесконечно малую отклоняться от единицы для угла 90 градусов
+    double sinBeta = sin(alpha) * b / a;
+    beta = (sinBeta > 1.0) ? M_PI_2 : asin(sinBeta); // Угол в вершине B
+    // Теорема о сумме углов треугольника
+    gamma = M_PI - (alpha + beta); // Угол в вершине C
+    return true;
+}
+
+bool TriangleMesh2D::inCircumcircle(const Point2D &A, const Point2D &B, const Point2D &C, const Point2D &p)
+{
+    auto det3 = [](double m[3][3])
+    {
+        return m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) -
+                m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) +
+                m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+    };
+    double ma[3][3] = {
+        { A.x(), A.y(), 1.0 },
+        { B.x(), B.y(), 1.0 },
+        { C.x(), C.y(), 1.0 }
+    };
+    double a = det3(ma);
+    double mb[3][3] = {
+        { A.x()*A.x() + A.y()*A.y(), A.y(), 1.0 },
+        { B.x()*B.x() + B.y()*B.y(), B.y(), 1.0 },
+        { C.x()*C.x() + C.y()*C.y(), C.y(), 1.0 }
+    };
+    double b = det3(mb);
+    double mc[3][3] = {
+        { A.x()*A.x() + A.y()*A.y(), A.x(), 1.0 },
+        { B.x()*B.x() + B.y()*B.y(), B.x(), 1.0 },
+        { C.x()*C.x() + C.y()*C.y(), C.x(), 1.0 }
+    };
+    double c = det3(mc);
+    double md[3][3] = {
+        { A.x()*A.x() + A.y()*A.y(), A.x(), A.y() },
+        { B.x()*B.x() + B.y()*B.y(), B.x(), B.y() },
+        { C.x()*C.x() + C.y()*C.y(), C.x(), C.y() }
+    };
+    double d = det3(md);
+    double v = a * (p.x()*p.x() + p.y()*p.y()) - b * p.x() + c * p.y() - d;
+
+    return (v * a <= 0.0);
+}
+
+TriangleMesh2D::Triangulation TriangleMesh2D::SuperDelaunay(const SegmentMesh2D *mesh)
+{
+    double super_width = mesh->xMax() - mesh->xMin();
+    double super_height = mesh->yMax() - mesh->yMin();
+    Point2D super0(mesh->xMin() - 0.5 * super_width, mesh->yMin() - 0.5 * super_height);
+    Point2D super1(mesh->xMax() + 0.5 * super_width, mesh->yMin() - 0.5 * super_height);
+    Point2D super2(mesh->xMax() + 0.5 * super_width, mesh->yMax() + 0.5 * super_height);
+    Point2D super3(mesh->xMin() - 0.5 * super_width, mesh->yMax() + 0.5 * super_height);
+    Triangulation triangulation;
+    std::vector<Point2D> nodes;
+    std::list<Triangle> triangles;
+    nodes.push_back(super0);
+    nodes.push_back(super1);
+    nodes.push_back(super2);
+    nodes.push_back(super3);
+    nodes.push_back(mesh->point2d(0));
+    triangles.push_back(Triangle(0, 1, 4));
+    triangles.push_back(Triangle(1, 2, 4));
+    triangles.push_back(Triangle(2, 3, 4));
+    triangles.push_back(Triangle(3, 0, 4));
+    for (UInteger i = 1; i < mesh->nodesCount(); i++)
+    {
+        Point2D point = mesh->point2d(i);
+        UInteger number = nodes.size();
+        std::vector<int> power;
+        std::vector<Segment> edges;
+        nodes.push_back(point);
+        for (std::list<Triangle>::iterator triangle = triangles.begin(); triangle != triangles.end(); )
+        {
+            Point2D A = nodes[triangle->vertexNode(0)];
+            Point2D B = nodes[triangle->vertexNode(1)];
+            Point2D C = nodes[triangle->vertexNode(2)];
+            Segment e0(triangle->vertexNode(0), triangle->vertexNode(1));
+            Segment e1(triangle->vertexNode(1), triangle->vertexNode(2));
+            Segment e2(triangle->vertexNode(2), triangle->vertexNode(0));
+            bool flags[] = {false, false, false};
+            if (inCircumcircle(A, B, C, point))
+            {
+                for (UInteger j = 0; j < edges.size(); j++)
+                {
+                    if (e0.isSame(edges[j]))
+                    {
+                        power[j]++;
+                        flags[0] = true;
+                    }
+                    else if (e1.isSame(edges[j]))
+                    {
+                        power[j]++;
+                        flags[1] = true;
+                    }
+                    else if (e2.isSame(edges[j]))
+                    {
+                        power[j]++;
+                        flags[2] = true;
+                    }
+                }
+                if (!flags[0])
+                {
+                    edges.push_back(e0);
+                    power.push_back(1);
+                }
+                if (!flags[1])
+                {
+                    edges.push_back(e1);
+                    power.push_back(1);
+                }
+                if (!flags[2])
+                {
+                    edges.push_back(e2);
+                    power.push_back(1);
+                }
+                triangle = triangles.erase(triangle);
+            }
+            else
+            {
+                ++triangle;
+            }
+        }
+
+        for (UInteger j = 0; j < edges.size(); j++)
+        {
+            if (power[j] == 1)
+            {
+                triangles.push_back(Triangle(edges[j].vertexNode(1), edges[j].vertexNode(0), number));
+            }
+        }
+    }
+    for (UInteger i = 4; i < nodes.size(); i++) triangulation.nodes.push_back(nodes[i]);
+    for (std::list<Triangle>::iterator triangle = triangles.begin(); triangle != triangles.end(); ++triangle)
+    {
+        if (triangle->vertexNode(0) > 3 && triangle->vertexNode(1) > 3 && triangle->vertexNode(2) > 3)
+        {
+            triangulation.triangles.push_back(Triangle(triangle->vertexNode(0) - 4UL,
+                                                       triangle->vertexNode(1) - 4UL,
+                                                       triangle->vertexNode(2) - 4UL));
+        }
+    }
+    return triangulation;
 }
 
 }
