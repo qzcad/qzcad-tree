@@ -125,7 +125,30 @@ public:
      * @return Соотношение углов элемента (радианы)
      */
     double angleAspect(const UInteger &elNum);
+    /**
+     * @brief Триангуляция Делоне объекта, представленного функционально
+     * @param xCount Количество узлов вдоль оси абсцисс
+     * @param yCount Количество узлов вдоль оси ординат
+     * @param xMin Абсцисса нижнего левого угла прямоугольной области
+     * @param yMin Ордината нижнего левого угла прямоугольной области
+     * @param width Ширина прямоугольной области
+     * @param height Высота прямоугольной области
+     * @param func Функция области
+     * @param charPoint Список характерных точек
+     */
     void delaunay(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint);
+    /**
+     * @brief Триангуляция Делоне с использование метода Рапперта для объекта, представленного функционально
+     * @param xCount Количество узлов вдоль оси абсцисс
+     * @param yCount Количество узлов вдоль оси ординат
+     * @param xMin Абсцисса нижнего левого угла прямоугольной области
+     * @param yMin Ордината нижнего левого угла прямоугольной области
+     * @param width Ширина прямоугольной области
+     * @param height Высота прямоугольной области
+     * @param func Функция области
+     * @param charPoint Список характерных точек
+     */
+    void ruppert(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint);
 protected:
     /**
      * @brief Метод находит значение минимального угла в треугольнике, определенном координатами вершин
@@ -165,6 +188,7 @@ protected:
      * @return true, если есть попадание
      */
     bool inCircumcircle(const Point2D &A, const Point2D &B, const Point2D &C, const Point2D &p);
+    Point2D circumcenter(const Point2D &A, const Point2D &B, const Point2D &C);
     struct Triangulation
     {
         std::vector<Point2D> nodes;
@@ -176,6 +200,13 @@ protected:
      * @return Триаунгуляцию, как выпуклого множества
      */
     Triangulation SuperDelaunay(const SegmentMesh2D *mesh);
+    /**
+     * @brief Операция вставки узла в триангуляцию Делоне
+     * @param point Координаты узла для вставки (входной парметр)
+     * @param nodes Ссылка на массив узлов для вставки (выходной параметр)
+     * @paran triangles Ссылка на массив элементов для вставки (выходной параметр)
+     */
+    bool insertDelaunayNode(const Point2D &point, std::vector<Point2D> &nodes, std::list<Triangle> &triangles);
 protected:
     std::vector<Triangle> element_; //!< Массив элементов
 };

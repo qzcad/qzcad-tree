@@ -547,6 +547,124 @@ void TriangleMesh2D::delaunay(const UInteger &xCount, const UInteger &yCount, co
     yMin_ = mesh.yMin(); yMax_ = mesh.yMax();
 }
 
+void TriangleMesh2D::ruppert(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint)
+{
+    SegmentMesh2D mesh(xCount, yCount, xMin, yMin, width, height, func, charPoint);
+    Triangulation triangulation = SuperDelaunay(&mesh);
+    node_.clear();
+    element_.clear();
+    // удаление треугольников, не попавших в область
+    for (std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
+         triangle != triangulation.triangles.end(); )
+    {
+        Point2D p0 = triangulation.nodes[triangle->vertexNode(0)];
+        Point2D p1 = triangulation.nodes[triangle->vertexNode(1)];
+        Point2D p2 = triangulation.nodes[triangle->vertexNode(2)];
+        Point2D c = (1.0 / 3.0) * (p0 + p1 + p2);
+        if (func(c.x(), c.y()) < 0.0)
+            triangle = triangulation.triangles.erase(triangle);
+        else
+            ++triangle;
+    }
+    // обработка ребер
+//    for (std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
+//         triangle != triangulation.triangles.end(); ++triangle) std::cout << (*triangle)[0] << " " << (*triangle)[1] << " " << (*triangle)[2] << "\n";
+    int iii = 0;
+//    std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
+//    while (triangle != triangulation.triangles.end() && iii < 1000)
+//    {
+//        Segment e0(triangle->vertexNode(0), triangle->vertexNode(1));
+//        Segment e1(triangle->vertexNode(1), triangle->vertexNode(2));
+//        Segment e2(triangle->vertexNode(2), triangle->vertexNode(0));
+//        Segment segments[3] = {e0, e1, e2};
+//        bool isRefined = false;
+//        std::cout << iii << ":    ";
+//        for (int i = 0; i < 3; i++)
+//        {
+//            bool isEdge = false;
+//            for (UInteger j = 0; j < mesh.elementsCount(); j++)
+//            {
+//                Segment edge = mesh.segment(j);
+//                if (edge.isSame(segments[i]))
+//                {
+//                    isEdge = true;
+//                    break;
+//                }
+//            }
+//            if (!isEdge)
+//            {
+//                Point2D A = triangulation.nodes[segments[i][0]];
+//                Point2D B = triangulation.nodes[segments[i][1]];
+//                double r = 0.5 * A.distanceTo(B);
+//                Point2D center = 0.5 * (A + B);
+//                bool shellRefine = false;
+//                for (UInteger j = 0; j < triangulation.nodes.size(); j++)
+//                {
+//                    if (j != segments[i][0] && j != segments[i][1])
+//                    {
+//                        Point2D p = triangulation.nodes[j];
+//                        if ((r*r - (p.x() - center.x())*(p.x() - center.x()) - (p.y() - center.y())*(p.y() - center.y())) > 0.0)
+//                        {
+//                            shellRefine = true;
+//                            std::cout << A.x() << " " << A.y() << " -- " << B.x() << " " << B.y() << " -- " << center.x() << " " << center.y() << "\n";
+//                            break;
+//                        }
+//                    }
+//                }
+//                if (shellRefine)
+//                {
+//                    insertDelaunayNode(center, triangulation.nodes, triangulation.triangles);
+//                    isRefined = true;
+//                    triangle = triangulation.triangles.begin();
+////                    continue;
+//                }
+//            }
+//        }
+
+//        ++iii;
+//        if (!isRefined) ++triangle;
+//    }
+
+    iii = 0;
+    std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
+    while (triangle != triangulation.triangles.end() && iii < 1000)
+    {
+        Point2D A = triangulation.nodes[triangle->vertexNode(0)];
+        Point2D B = triangulation.nodes[triangle->vertexNode(1)];
+        Point2D C = triangulation.nodes[triangle->vertexNode(2)];
+        if (minAngle(A, B, C) > 0.1 * M_PI)
+        {
+            Point2D center = circumcenter(A, B, C);
+            std::cout << center.x() << " " << center.y() << "\n";
+//            if (func(center.x(), center.y()) > 0)
+//            {
+                if (insertDelaunayNode(center, triangulation.nodes, triangulation.triangles))
+                    triangle = triangulation.triangles.begin();
+//            }
+            else
+                ++triangle;
+        }
+        else
+            ++triangle;
+        iii++;
+    }
+
+    for (UInteger i = 0; i < triangulation.nodes.size(); i++) pushNode(triangulation.nodes[i], BORDER);
+    for (std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
+         triangle != triangulation.triangles.end(); ++triangle)
+    {
+       addElement(triangle->vertexNode(0), triangle->vertexNode(1), triangle->vertexNode(2));
+       if (jacobian(elementsCount() - 1) < 0)
+       {
+           UInteger t = element_[elementsCount() - 1][0];
+           element_[elementsCount() - 1][0] = element_[elementsCount() - 1][1];
+           element_[elementsCount() - 1][1] = t;
+       }
+    }
+    xMin_ = mesh.xMin(); xMax_ = mesh.xMax();
+    yMin_ = mesh.yMin(); yMax_ = mesh.yMax();
+}
+
 
 double TriangleMesh2D::minAngle(const Point2D &A, const Point2D &B, const Point2D &C)
 {
@@ -610,7 +728,37 @@ bool TriangleMesh2D::inCircumcircle(const Point2D &A, const Point2D &B, const Po
     double d = det3(md);
     double v = a * (p.x()*p.x() + p.y()*p.y()) - b * p.x() + c * p.y() - d;
 
-    return (v * a <= 0.0);
+    return (v * (a > 0.0 ? 1.0 : -1.0) <= 0.0);
+}
+
+Point2D TriangleMesh2D::circumcenter(const Point2D &A, const Point2D &B, const Point2D &C)
+{
+    auto det3 = [](double m[3][3])
+    {
+        return m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) -
+                m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) +
+                m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+    };
+    double ma[3][3] = {
+        { A.x(), A.y(), 1.0 },
+        { B.x(), B.y(), 1.0 },
+        { C.x(), C.y(), 1.0 }
+    };
+    double a = det3(ma);
+    double mb[3][3] = {
+        { A.x()*A.x() + A.y()*A.y(), A.y(), 1.0 },
+        { B.x()*B.x() + B.y()*B.y(), B.y(), 1.0 },
+        { C.x()*C.x() + C.y()*C.y(), C.y(), 1.0 }
+    };
+    double b = det3(mb);
+    double mc[3][3] = {
+        { A.x()*A.x() + A.y()*A.y(), A.x(), 1.0 },
+        { B.x()*B.x() + B.y()*B.y(), B.x(), 1.0 },
+        { C.x()*C.x() + C.y()*C.y(), C.x(), 1.0 }
+    };
+    double c = det3(mc);
+
+    return Point2D(0.5 * b / a, -0.5 * c / a);
 }
 
 TriangleMesh2D::Triangulation TriangleMesh2D::SuperDelaunay(const SegmentMesh2D *mesh)
@@ -636,70 +784,9 @@ TriangleMesh2D::Triangulation TriangleMesh2D::SuperDelaunay(const SegmentMesh2D 
     for (UInteger i = 1; i < mesh->nodesCount(); i++)
     {
         Point2D point = mesh->point2d(i);
-        UInteger number = nodes.size();
-        std::vector<int> power;
-        std::vector<Segment> edges;
-        nodes.push_back(point);
-        for (std::list<Triangle>::iterator triangle = triangles.begin(); triangle != triangles.end(); )
-        {
-            Point2D A = nodes[triangle->vertexNode(0)];
-            Point2D B = nodes[triangle->vertexNode(1)];
-            Point2D C = nodes[triangle->vertexNode(2)];
-            Segment e0(triangle->vertexNode(0), triangle->vertexNode(1));
-            Segment e1(triangle->vertexNode(1), triangle->vertexNode(2));
-            Segment e2(triangle->vertexNode(2), triangle->vertexNode(0));
-            bool flags[] = {false, false, false};
-            if (inCircumcircle(A, B, C, point))
-            {
-                for (UInteger j = 0; j < edges.size(); j++)
-                {
-                    if (e0.isSame(edges[j]))
-                    {
-                        power[j]++;
-                        flags[0] = true;
-                    }
-                    else if (e1.isSame(edges[j]))
-                    {
-                        power[j]++;
-                        flags[1] = true;
-                    }
-                    else if (e2.isSame(edges[j]))
-                    {
-                        power[j]++;
-                        flags[2] = true;
-                    }
-                }
-                if (!flags[0])
-                {
-                    edges.push_back(e0);
-                    power.push_back(1);
-                }
-                if (!flags[1])
-                {
-                    edges.push_back(e1);
-                    power.push_back(1);
-                }
-                if (!flags[2])
-                {
-                    edges.push_back(e2);
-                    power.push_back(1);
-                }
-                triangle = triangles.erase(triangle);
-            }
-            else
-            {
-                ++triangle;
-            }
-        }
-
-        for (UInteger j = 0; j < edges.size(); j++)
-        {
-            if (power[j] == 1)
-            {
-                triangles.push_back(Triangle(edges[j].vertexNode(1), edges[j].vertexNode(0), number));
-            }
-        }
+        insertDelaunayNode(point, nodes, triangles);
     }
+//    triangulation.nodes = nodes; triangulation.triangles = triangles;
     for (UInteger i = 4; i < nodes.size(); i++) triangulation.nodes.push_back(nodes[i]);
     for (std::list<Triangle>::iterator triangle = triangles.begin(); triangle != triangles.end(); ++triangle)
     {
@@ -711,6 +798,77 @@ TriangleMesh2D::Triangulation TriangleMesh2D::SuperDelaunay(const SegmentMesh2D 
         }
     }
     return triangulation;
+}
+
+bool TriangleMesh2D::insertDelaunayNode(const Point2D &point, std::vector<Point2D> &nodes, std::list<Triangle> &triangles)
+{
+    UInteger number = nodes.size();
+    std::vector<int> power;
+    std::vector<Segment> edges;
+    for (std::vector<Point2D>::iterator p = nodes.begin(); p != nodes.end(); ++p)
+        if (p->isEqualTo(point, epsilon_)) return false;
+    nodes.push_back(point);
+    for (std::list<Triangle>::iterator triangle = triangles.begin(); triangle != triangles.end(); )
+    {
+        Point2D A = nodes[triangle->vertexNode(0)];
+        Point2D B = nodes[triangle->vertexNode(1)];
+        Point2D C = nodes[triangle->vertexNode(2)];
+        Segment e0(triangle->vertexNode(0), triangle->vertexNode(1));
+        Segment e1(triangle->vertexNode(1), triangle->vertexNode(2));
+        Segment e2(triangle->vertexNode(2), triangle->vertexNode(0));
+        bool flags[] = {false, false, false};
+        if (inCircumcircle(A, B, C, point))
+        {
+            for (UInteger j = 0; j < edges.size(); j++)
+            {
+                if (e0.isSame(edges[j]))
+                {
+                    power[j]++;
+                    flags[0] = true;
+                }
+                else if (e1.isSame(edges[j]))
+                {
+                    power[j]++;
+                    flags[1] = true;
+                }
+                else if (e2.isSame(edges[j]))
+                {
+                    power[j]++;
+                    flags[2] = true;
+                }
+            }
+
+            if (!flags[0])
+            {
+                edges.push_back(e0);
+                power.push_back(1);
+            }
+            if (!flags[1])
+            {
+                edges.push_back(e1);
+                power.push_back(1);
+            }
+            if (!flags[2])
+            {
+                edges.push_back(e2);
+                power.push_back(1);
+            }
+            triangle = triangles.erase(triangle);
+        }
+        else
+        {
+            ++triangle;
+        }
+    }
+
+    for (UInteger j = 0; j < edges.size(); j++)
+    {
+        if (power[j] == 1)
+        {
+            triangles.push_back(Triangle(edges[j].vertexNode(0), edges[j].vertexNode(1), number));
+        }
+    }
+    return true;
 }
 
 }

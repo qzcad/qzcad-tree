@@ -83,6 +83,12 @@ public:
      * @return true - граничный элемент; false - внутренний
      */
     virtual bool isBorderElement(const UInteger &number) const;
+    /**
+     * @brief Отрезок с заданным номером
+     * @param number Номер элемента (отрезка)
+     * @return Отрезок с заданным номером
+     */
+    Segment segment(const UInteger &number) const;
 protected:
     /**
      * @brief Двоичный поиск границы функции, пересекаемой отрезком

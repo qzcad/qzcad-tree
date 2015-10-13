@@ -188,6 +188,11 @@ bool SegmentMesh2D::isBorderElement(const UInteger &number) const
     return true;
 }
 
+Segment SegmentMesh2D::segment(const UInteger &number) const
+{
+    return element_[number];
+}
+
 Point2D SegmentMesh2D::binary(Point2D p0, Point2D p1, std::function<double (double, double)> func)
 {
     double val0 = func(p0.x(), p0.y());
