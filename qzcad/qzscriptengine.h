@@ -127,6 +127,13 @@ private:
      */
     static QScriptValue createDelaunay(QScriptContext *context, QScriptEngine *engine);
     /**
+     * @brief "Конструктор" сеток треугольных при помощи триангуляции Делоне с использование сглаживани Рапперта
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Объект для использования в скриптах
+     */
+    static QScriptValue createRuppert(QScriptContext *context, QScriptEngine *engine);
+    /**
      * @brief "Конструктор" сеток четырехугольных элементов в пространстве (оболочка)
      * @param context Контекст скрипта
      * @param engine Двигатель скрипта

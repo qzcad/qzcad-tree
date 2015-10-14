@@ -30,6 +30,11 @@ void QTriangleMesh2D::delaunay(const UInteger &xCount, const UInteger &yCount, c
     TriangleMesh2D::delaunay(xCount, yCount, xMin, yMin, width, height, func, charPoint);
 }
 
+void QTriangleMesh2D::ruppert(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint)
+{
+    TriangleMesh2D::ruppert(xCount, yCount, xMin, yMin, width, height, func, charPoint);
+}
+
 QTriangleMesh2D::QTriangleMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, QObject *parent) :
     QObject(parent), TriangleMesh2D(xCount, yCount, xMin, yMin, width, height, func, charPoint)
 {

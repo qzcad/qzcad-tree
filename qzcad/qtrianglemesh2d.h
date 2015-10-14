@@ -67,7 +67,30 @@ public:
      * Метод доступен в скриптах
      */
     Q_INVOKABLE QString toString() const;
+    /**
+     * @brief Триангуляция Делоне объекта, представленного функционально
+     * @param xCount Количество узлов вдоль оси абсцисс
+     * @param yCount Количество узлов вдоль оси ординат
+     * @param xMin Абсцисса нижнего левого угла прямоугольной области
+     * @param yMin Ордината нижнего левого угла прямоугольной области
+     * @param width Ширина прямоугольной области
+     * @param height Высота прямоугольной области
+     * @param func Функция области
+     * @param charPoint Список характерных точек
+     */
     void delaunay(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint);
+    /**
+     * @brief Триангуляция Делоне с использование метода Рапперта для объекта, представленного функционально
+     * @param xCount Количество узлов вдоль оси абсцисс
+     * @param yCount Количество узлов вдоль оси ординат
+     * @param xMin Абсцисса нижнего левого угла прямоугольной области
+     * @param yMin Ордината нижнего левого угла прямоугольной области
+     * @param width Ширина прямоугольной области
+     * @param height Высота прямоугольной области
+     * @param func Функция области
+     * @param charPoint Список характерных точек
+     */
+    void ruppert(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint);
 signals:
 
 public slots:

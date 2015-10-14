@@ -180,26 +180,19 @@ protected:
      */
     bool angles(const Point2D &A, const Point2D &B, const Point2D &C, double &alpha, double &beta, double &gamma);
     /**
-     * @brief Функция для проверки попадания в описанную вокруг треугольника окружность
-     * @param A Первая вершина треугольника
-     * @param B Вторая вершина треугольника
-     * @param C Третья врешина треугольника
-     * @param p Проверямая точка
-     * @return true, если есть попадание
+     * @brief Структура для временного хранения триангуляции
      */
-    bool inCircumcircle(const Point2D &A, const Point2D &B, const Point2D &C, const Point2D &p);
-    Point2D circumcenter(const Point2D &A, const Point2D &B, const Point2D &C);
     struct Triangulation
     {
         std::vector<Point2D> nodes;
         std::list<Triangle> triangles;
     };
     /**
-     * @brief Метод для построения триангуляции Делоне для заданного контура, используя суперобласть.
+     * @brief Метод для построения триангуляции Делоне для заданного контура, используя суперобласть
      * @param mesh Указатель на сетку-контур
      * @return Триаунгуляцию, как выпуклого множества
      */
-    Triangulation SuperDelaunay(const SegmentMesh2D *mesh);
+    Triangulation superDelaunay(const SegmentMesh2D *mesh);
     /**
      * @brief Операция вставки узла в триангуляцию Делоне
      * @param point Координаты узла для вставки (входной парметр)
@@ -207,6 +200,30 @@ protected:
      * @paran triangles Ссылка на массив элементов для вставки (выходной параметр)
      */
     bool insertDelaunayNode(const Point2D &point, std::vector<Point2D> &nodes, std::list<Triangle> &triangles);
+    /**
+     * @brief Метод вычисления площади треугольника с учетом знака (площадь отрицательная при обходе узлов треугольника против часовой стрелки)
+     * @param A Координаты первого узла треугольника
+     * @param B Координаты второго узла треугольника
+     * @param C Координаты третьего узла треугольника
+     * @return Площадь треугольника со знаком
+     */
+    double signedArea(const Point2D &A, const Point2D &B, const Point2D &C) const;
+    /**
+     * @brief Метод проверки вхождения точки в описанную вокруг треугольника окргужность
+     * @param xp Абсцисса точки
+     * @param yp Ордината точки
+     * @param x1 Абсцисса первого узла треугольника
+     * @param y1 Ордината первого узла треугольника
+     * @param x2 Абсцисса второго узла треугольника
+     * @param y2 Ордината второго узла треугольника
+     * @param x3 Абсцисса третьего узла треугольника
+     * @param y3 Ордината третьего узла треугольника
+     * @param xc Абсцисса центра описанной окружности
+     * @param yc Ордината центра описанной окружности
+     * @param r Радиус описанной окружности
+     * @return true, если заданная точка попала в описанную окружность
+     */
+    bool circumCircle(double xp, double yp, double x1, double y1, double x2, double y2, double x3, double y3, double &xc, double &yc, double &r);
 protected:
     std::vector<Triangle> element_; //!< Массив элементов
 };
