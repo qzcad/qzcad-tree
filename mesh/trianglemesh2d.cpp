@@ -538,65 +538,19 @@ void TriangleMesh2D::delaunay(const UInteger &xCount, const UInteger &yCount, co
     yMin_ = mesh.yMin(); yMax_ = mesh.yMax();
 }
 
-void TriangleMesh2D::ruppert(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint)
+void TriangleMesh2D::ruppert(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint, bool refineArea)
 {
     SegmentMesh2D mesh(xCount, yCount, xMin, yMin, width, height, func, charPoint);
     Triangulation triangulation = superDelaunay(&mesh);
     node_.clear();
     element_.clear();
-    UInteger nitr = 0;
-    std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
-    while (triangle != triangulation.triangles.end() && nitr < 5000000UL)
+
+    superRuppert(triangulation);
+    if (refineArea)
     {
-        if (triangle->vertexNode(0) > 3 && triangle->vertexNode(1) > 3 && triangle->vertexNode(2) > 3)
-        {
-        Point2D A = triangulation.nodes[triangle->vertexNode(0)];
-        Point2D B = triangulation.nodes[triangle->vertexNode(1)];
-        Point2D C = triangulation.nodes[triangle->vertexNode(2)];
-        if (minAngle(A, B, C) < 0.35)
-        {
-            Point2D center;
-            double xc = 0.0, yc = 0.0, r = 0.0;
-            circumCircle(0.0, 0.0, A.x(), A.y(), B.x(), B.y(), C.x(), C.y(), xc, yc, r);
-            center.set(xc, yc);
-            if (insertDelaunayNode(center, triangulation.nodes, triangulation.triangles))
-                triangle = triangulation.triangles.begin();
-            else
-                ++triangle;
-        }
-        else
-            ++triangle;
-        }
-        else
-            ++triangle;
-        nitr++;
+        areaRefinement(3.0 * (width / (double)(xCount - 1) * height / (double)(yCount - 1)), func, triangulation);
+        superRuppert(triangulation);
     }
-    std::cout << "Ruppert's' niter: " << nitr << std::endl;
-    nitr = 0;
-    triangle = triangulation.triangles.begin();
-    while (triangle != triangulation.triangles.end() && nitr < 5000000UL)
-    {
-        if (triangle->vertexNode(0) > 3 && triangle->vertexNode(1) > 3 && triangle->vertexNode(2) > 3)
-        {
-        Point2D A = triangulation.nodes[triangle->vertexNode(0)];
-        Point2D B = triangulation.nodes[triangle->vertexNode(1)];
-        Point2D C = triangulation.nodes[triangle->vertexNode(2)];
-        Point2D center = (1.0 / 3.0) * (A + B + C);
-        if (func(center.x(), center.y()) > 0 && fabs(signedArea(A, B, C)) > 2.0 * (width / (double)(xCount - 1) * height / (double)(yCount - 1)))
-        {
-            if (insertDelaunayNode(center, triangulation.nodes, triangulation.triangles))
-                triangle = triangulation.triangles.begin();
-            else
-                ++triangle;
-        }
-        else
-            ++triangle;
-        }
-        else
-            ++triangle;
-        nitr++;
-    }
-    std::cout << "Area niter: " << nitr << std::endl;
 
 
     for (std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
@@ -698,6 +652,67 @@ TriangleMesh2D::Triangulation TriangleMesh2D::superDelaunay(const SegmentMesh2D 
         insertDelaunayNode(point, triangulation.nodes, triangulation.triangles);
     }
     return triangulation;
+}
+
+void TriangleMesh2D::superRuppert(TriangleMesh2D::Triangulation &triangulation)
+{
+    UInteger niter = 0;
+    std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
+    while (triangle != triangulation.triangles.end() && niter < 5000000UL)
+    {
+        if (triangle->vertexNode(0) > 3 && triangle->vertexNode(1) > 3 && triangle->vertexNode(2) > 3)
+        {
+        Point2D A = triangulation.nodes[triangle->vertexNode(0)];
+        Point2D B = triangulation.nodes[triangle->vertexNode(1)];
+        Point2D C = triangulation.nodes[triangle->vertexNode(2)];
+        if (minAngle(A, B, C) < 0.35)
+        {
+            Point2D center;
+            double xc = 0.0, yc = 0.0, r = 0.0;
+            circumCircle(0.0, 0.0, A.x(), A.y(), B.x(), B.y(), C.x(), C.y(), xc, yc, r);
+            center.set(xc, yc);
+            if (insertDelaunayNode(center, triangulation.nodes, triangulation.triangles))
+                triangle = triangulation.triangles.begin();
+            else
+                ++triangle;
+        }
+        else
+            ++triangle;
+        }
+        else
+            ++triangle;
+        niter++;
+    }
+    std::cout << "Ruppert's niter: " << niter << std::endl;
+}
+
+void TriangleMesh2D::areaRefinement(double max_area, std::function<double (double, double)> func, TriangleMesh2D::Triangulation &triangulation)
+{
+    UInteger niter = 0;
+    std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
+    while (triangle != triangulation.triangles.end() && niter < 5000000UL)
+    {
+        if (triangle->vertexNode(0) > 3 && triangle->vertexNode(1) > 3 && triangle->vertexNode(2) > 3)
+        {
+        Point2D A = triangulation.nodes[triangle->vertexNode(0)];
+        Point2D B = triangulation.nodes[triangle->vertexNode(1)];
+        Point2D C = triangulation.nodes[triangle->vertexNode(2)];
+        Point2D center = (1.0 / 3.0) * (A + B + C);
+        if (func(center.x(), center.y()) > 0 && fabs(signedArea(A, B, C)) > max_area)
+        {
+            if (insertDelaunayNode(center, triangulation.nodes, triangulation.triangles))
+                triangle = triangulation.triangles.begin();
+            else
+                ++triangle;
+        }
+        else
+            ++triangle;
+        }
+        else
+            ++triangle;
+        niter++;
+    }
+    std::cout << "Area niter: " << niter << std::endl;
 }
 
 bool TriangleMesh2D::insertDelaunayNode(const Point2D &point, std::vector<Point2D> &nodes, std::list<Triangle> &triangles)

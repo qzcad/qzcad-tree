@@ -138,7 +138,7 @@ public:
      */
     void delaunay(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint);
     /**
-     * @brief Триангуляция Делоне с использование метода Рапперта для объекта, представленного функционально
+     * @brief Триангуляция Делоне с использованием метода Рапперта для объекта, представленного функционально
      * @param xCount Количество узлов вдоль оси абсцисс
      * @param yCount Количество узлов вдоль оси ординат
      * @param xMin Абсцисса нижнего левого угла прямоугольной области
@@ -148,7 +148,7 @@ public:
      * @param func Функция области
      * @param charPoint Список характерных точек
      */
-    void ruppert(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint);
+    void ruppert(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, bool refineArea = false);
 protected:
     /**
      * @brief Метод находит значение минимального угла в треугольнике, определенном координатами вершин
@@ -193,6 +193,17 @@ protected:
      * @return Триаунгуляцию, как выпуклого множества
      */
     Triangulation superDelaunay(const SegmentMesh2D *mesh);
+    /**
+     * @brief Оптимизация триангуляции Делоне методом Рапперта (супер область)
+     * @param Triangulation Ссылка на триангуляцию Делоне супер области
+     */
+    void superRuppert(Triangulation &triangulation);
+    /**
+     * @brief Метод контроля за максимальной площадью элемента на основе вставки нового узла в центр масс
+     * @param func Функция области (обрабатываются только внутренние элементы)
+     * @param triangulation Ссылка на триангуляцию Делоне супер области
+     */
+    void areaRefinement(double max_area, std::function<double(double, double)> func, Triangulation &triangulation);
     /**
      * @brief Операция вставки узла в триангуляцию Делоне
      * @param point Координаты узла для вставки (входной парметр)
