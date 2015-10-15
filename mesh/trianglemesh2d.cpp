@@ -572,6 +572,32 @@ void TriangleMesh2D::ruppert(const UInteger &xCount, const UInteger &yCount, con
         nitr++;
     }
     std::cout << "Ruppert's' niter: " << nitr << std::endl;
+    nitr = 0;
+    triangle = triangulation.triangles.begin();
+    while (triangle != triangulation.triangles.end() && nitr < 5000000UL)
+    {
+        if (triangle->vertexNode(0) > 3 && triangle->vertexNode(1) > 3 && triangle->vertexNode(2) > 3)
+        {
+        Point2D A = triangulation.nodes[triangle->vertexNode(0)];
+        Point2D B = triangulation.nodes[triangle->vertexNode(1)];
+        Point2D C = triangulation.nodes[triangle->vertexNode(2)];
+        Point2D center = (1.0 / 3.0) * (A + B + C);
+        if (func(center.x(), center.y()) > 0 && fabs(signedArea(A, B, C)) > 2.0 * (width / (double)(xCount - 1) * height / (double)(yCount - 1)))
+        {
+            if (insertDelaunayNode(center, triangulation.nodes, triangulation.triangles))
+                triangle = triangulation.triangles.begin();
+            else
+                ++triangle;
+        }
+        else
+            ++triangle;
+        }
+        else
+            ++triangle;
+        nitr++;
+    }
+    std::cout << "Area niter: " << nitr << std::endl;
+
 
     for (std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
              triangle != triangulation.triangles.end(); ++triangle)
