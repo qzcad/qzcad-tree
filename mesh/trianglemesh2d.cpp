@@ -572,6 +572,11 @@ void TriangleMesh2D::ruppert(const UInteger &xCount, const UInteger &yCount, con
     yMin_ = mesh.yMin(); yMax_ = mesh.yMax();
 }
 
+Triangle TriangleMesh2D::triangle(const UInteger &number) const
+{
+    return element_[number];
+}
+
 
 double TriangleMesh2D::minAngle(const Point2D &A, const Point2D &B, const Point2D &C)
 {

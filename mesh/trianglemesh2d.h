@@ -149,6 +149,12 @@ public:
      * @param charPoint Список характерных точек
      */
     void ruppert(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, bool refineArea = false);
+    /**
+     * @brief Элемент сетки (треугольник)
+     * @param number Номер треугольника
+     * @return Треугольник с указанным номером
+     */
+    Triangle triangle(const UInteger &number) const;
 protected:
     /**
      * @brief Метод находит значение минимального угла в треугольнике, определенном координатами вершин

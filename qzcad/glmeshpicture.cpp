@@ -848,11 +848,11 @@ void GLMeshPicture::paintGL()
                                 qglColor( map_.color( nodeValues_[valueIndex_][face[j]] ) );
                             else if (visualizationMode_ == NODE_VALUE)
                                 qglColor(elementColor_); // если индекс вне диапазона, то цветом пользователя
-                            if (isUseVector_ && nodeValues_.size() == 2)
+                            if (isUseVector_ && nodeValues_.size() >= 2)
                                 pointToGLVertex(mesh_->node(face[j]),
                                                 vectorScale_ * nodeValues_[0][face[j]],
                                                 vectorScale_ * nodeValues_[1][face[j]]);
-                            else if (isUseVector_ && nodeValues_.size() >= 3)
+                            else if (isUseVector_ && nodeValues_.size() >= 3 && mesh_->dimesion() == 3)
                                 pointToGLVertex(mesh_->node(face[j]),
                                                 vectorScale_ * nodeValues_[0][face[j]],
                                                 vectorScale_ * nodeValues_[1][face[j]],
@@ -868,11 +868,11 @@ void GLMeshPicture::paintGL()
                             glBegin(GL_LINE_LOOP);
                             for (msh::UInteger j = 0; j < face.size(); j++)
                             {
-                                if (isUseVector_ && nodeValues_.size() == 2)
+                                if (isUseVector_ && nodeValues_.size() >= 2)
                                     pointToGLVertex(mesh_->node(face[j]),
                                                     vectorScale_ * nodeValues_[0][face[j]],
                                             vectorScale_ * nodeValues_[1][face[j]]);
-                                else if (isUseVector_ && nodeValues_.size() >= 3)
+                                else if (isUseVector_ && nodeValues_.size() >= 3 && mesh_->dimesion() == 3)
                                     pointToGLVertex(mesh_->node(face[j]),
                                                     vectorScale_ * nodeValues_[0][face[j]],
                                             vectorScale_ * nodeValues_[1][face[j]],
