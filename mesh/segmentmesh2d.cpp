@@ -82,22 +82,22 @@ SegmentMesh2D::SegmentMesh2D(const UInteger &xCount, const UInteger &yCount, con
     {
         pushNode(*cPoint, CHARACTER);
     }
-    double x0 = xMin;
+    double x0 = xMin_;
     for (UInteger i = 0; i < xCount - 1; i++)
     {
-        double y0 = yMin;
+        double y0 = yMin_;
         for (UInteger j = 0; j < yCount - 1; j++)
         {
             int index = 0;
             Point2D p0 (x0, y0);
-            Point2D p1 (x0 + hx, y0);
-            Point2D p2 (x0 + hx, y0 + hy);
-            Point2D p3 (x0, y0 + hy);
+            Point2D p1 ((i < xCount - 2) ? (x0 + hx) : xMax_, y0);
+            Point2D p2 ((i < xCount - 2) ? (x0 + hx) : xMax_, (j < yCount - 2) ? (y0 + hy) : yMax_);
+            Point2D p3 (x0, (j < yCount - 2) ? (y0 + hy) : yMax_);
 
-            if (func(p0.x(), p0.y()) <= 0.0) index |= 1;
-            if (func(p1.x(), p1.y()) <= 0.0) index |= 2;
-            if (func(p2.x(), p2.y()) <= 0.0) index |= 4;
-            if (func(p3.x(), p3.y()) <= 0.0) index |= 8;
+            if (func(p0.x(), p0.y()) <= epsilon_) index |= 1;
+            if (func(p1.x(), p1.y()) <= epsilon_) index |= 2;
+            if (func(p2.x(), p2.y()) <= epsilon_) index |= 4;
+            if (func(p3.x(), p3.y()) <= epsilon_) index |= 8;
 
             if (search_table[index] & 1) border[0] = binary(p0, p1, func);
             if (search_table[index] & 2) border[1] = binary(p1, p2, func);

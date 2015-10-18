@@ -89,29 +89,50 @@ TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, c
 
 TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length, std::function<double (double, double, double)> func, std::list<Point3D> charPoints)
 {
+    double length_2 = length / 2.0;
+    auto con = [](const double &x, const double &y)
+    {
+        return x + y - sqrt(x*x + y*y);
+    };
+
     auto func2d = [&](double xi, double eta)
     {
         double x = radius * cos(eta);
         double y = xi;
         double z = radius * sin(eta);
-        if (0 <= eta && eta <= 2.0 * M_PI)
-            return func(x, y, z);
-        return 0.0;
+        double f = func(x, y, z);
+        double r = con(length_2 * length_2 - (xi - length_2) * (xi - length_2), M_PI * M_PI - (eta - M_PI) * (eta - M_PI));
+        return con(f, r);
     };
+
     std::list<Point2D> charPoints2d;
     TriangleMesh2D mesh2d;
+    std::map<UInteger, UInteger> nodes_map;
 
-    mesh2d.ruppert(lCount, rCount, 0.0, 0.0, length, 2.0 * M_PI, func2d, charPoints2d);
+    if (func2d(0.0, 0.0) < epsilon_ )
+    {
+        charPoints2d.push_back(Point2D(0.0, 0.0));
+        charPoints2d.push_back(Point2D(0.0, 2.0 * M_PI));
+    }
+    if (func2d(length, 0.0) < epsilon_ )
+    {
+        charPoints2d.push_back(Point2D(length, 0.0));
+        charPoints2d.push_back(Point2D(length, 2.0 * M_PI));
+    }
+    mesh2d.ruppert(lCount, rCount, 0.0, 0.0, length, 2.0 * M_PI, func2d, charPoints2d, true);
 
     for (UInteger i = 0; i < mesh2d.nodesCount(); i++)
     {
         Point2D p = mesh2d.point2d(i);
-        pushNode( Point3D(radius * cos(p.y()), p.x(), radius * sin(p.y())), BORDER);
+        if (fabs(p.y() - 2.0 * M_PI) < epsilon_)
+            nodes_map[i] = addNode(Point3D(radius * cos(p.y()), p.x(), radius * sin(p.y())), BORDER);
+        else
+            nodes_map[i] = pushNode( Point3D(radius * cos(p.y()), p.x(), radius * sin(p.y())), BORDER);
     }
     for (UInteger i = 0; i < mesh2d.elementsCount(); i++)
     {
         Triangle t = mesh2d.triangle(i);
-        addElement(t[1], t[0], t[2]);
+        addElement(nodes_map[t[1]], nodes_map[t[0]], nodes_map[t[2]]);
     }
 
     // размеры области
