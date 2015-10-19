@@ -104,6 +104,37 @@ public:
      * @return Площадь элемента
      */
     virtual double area(const UInteger &number) const;
+    /**
+     * @brief Вычислить значение минимального угла в элементе
+     * @param elNum Номер элемента
+     * @return Минимальный угол элемента (радианы)
+     */
+    double minAngle(const UInteger &elNum);
+protected:
+    /**
+     * @brief Функция для подсчета значений углов треугольника
+     * @param A Координаты первой вершины
+     * @param B Координаты второй вершины
+     * @param C Координаты третей вершины
+     * @param alpha Угол в вершине A (радианы)
+     * @param beta Угол в вершине B (радианы)
+     * @param gamma Угол в вершине C (радианы)
+     * @return true, если трейгольник невырожденный, иначе - false
+     *       C
+     *       ^
+     *     b/ \a
+     *    A --- B
+     *       c
+     */
+    bool angles(const Point3D &A, const Point3D &B, const Point3D &C, double &alpha, double &beta, double &gamma);
+    /**
+     * @brief Метод находит значение минимального угла в треугольнике, определенном координатами вершин
+     * @param A Координаты вершины
+     * @param B Координаты вершины
+     * @param C Координаты вершины
+     * @return Значение минимального угла в треугольнике (радианы)
+     */
+    double minAngle(const Point3D &A, const Point3D &B, const Point3D &C);
 protected:
     std::vector<Triangle> element_; //!< Массив элементов
 };

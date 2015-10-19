@@ -26,6 +26,7 @@
 #include "trianglemesh2d.h"
 #include "quadrilateralmesh2d.h"
 #include "quadrilateralunion2d.h"
+#include "trianglemesh3d.h"
 #include "hexahedralmesh3d.h"
 #include "exportmeshdialog.h"
 #include "qstdredirector.h"
@@ -996,6 +997,30 @@ void MainWindow::on_actionMinAngleMetric_triggered()
         if (dynamic_cast<msh::TriangleMesh2D*>(mesh))
         {
             msh::TriangleMesh2D *triangles = dynamic_cast<msh::TriangleMesh2D*>(mesh);
+            if (triangles->elementsCount() > 0)
+            {
+                std::vector<double> j(triangles->elementsCount());
+                for (msh::UInteger i = 0; i < triangles->elementsCount(); i++)
+                {
+                    j[i] = triangles->minAngle(i) * 180.0 / M_PI;
+                    if (i == 0)
+                    {
+                        min = max = j[i];
+                    }
+                    else
+                    {
+                        if (min > j[i])
+                            min = j[i];
+                        if (max < j[i])
+                            max = j[i];
+                    }
+                }
+                ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector(tr("Минимальный угол, °"), j));
+            }
+        }
+        if (dynamic_cast<msh::TriangleMesh3D*>(mesh))
+        {
+            msh::TriangleMesh3D *triangles = dynamic_cast<msh::TriangleMesh3D*>(mesh);
             if (triangles->elementsCount() > 0)
             {
                 std::vector<double> j(triangles->elementsCount());

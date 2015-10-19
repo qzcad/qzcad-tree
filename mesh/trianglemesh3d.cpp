@@ -119,7 +119,7 @@ TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, c
         charPoints2d.push_back(Point2D(length, 0.0));
         charPoints2d.push_back(Point2D(length, 2.0 * M_PI));
     }
-    mesh2d.ruppert(lCount, rCount, 0.0, 0.0, length, 2.0 * M_PI, func2d, charPoints2d, true);
+    mesh2d.ruppert(lCount, rCount, -0.001, -0.001, length + 0.002, 2.0 * M_PI + 0.002, func2d, charPoints2d, true);
 
     for (UInteger i = 0; i < mesh2d.nodesCount(); i++)
     {
@@ -133,6 +133,7 @@ TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, c
     {
         Triangle t = mesh2d.triangle(i);
         addElement(nodes_map[t[1]], nodes_map[t[0]], nodes_map[t[2]]);
+//        addElement(t[1], t[0], t[2]);
     }
 
     // размеры области
@@ -243,6 +244,69 @@ double TriangleMesh3D::area(const UInteger &number) const
     double c = p2.distanceTo(p0);
     double p = (a + b + c) / 2.0;
     return sqrt(p * (p - a) * (p - b) * (p - c)); // формула Герона
+}
+
+double TriangleMesh3D::minAngle(const UInteger &elNum)
+{
+    const Triangle tri = element_[elNum];
+    const Point3D p0 = node_[tri[0]].point;
+    const Point3D p1 = node_[tri[1]].point;
+    const Point3D p2 = node_[tri[2]].point;
+    return minAngle(p0, p1, p2);
+}
+
+bool TriangleMesh3D::angles(const Point3D &A, const Point3D &B, const Point3D &C, double &alpha, double &beta, double &gamma)
+{
+    const double a = B.distanceTo(C); // сторона, противолежащяя вершине A (BC)
+    const double b = A.distanceTo(C); // сторона, противолежащяя вершине B (AC)
+    const double c = A.distanceTo(B); // сторона, противолежащяя вершине C (AB)
+    if (a < epsilon_ || b < epsilon_ || c < epsilon_)
+    {
+        alpha = beta = gamma = 0.0;
+        return false;
+    }
+    if (a > b && a > c)
+    {
+        // Теорема косинусов
+        alpha = acos((b*b + c*c - a*a) / (2.0 * b * c)); // Угол в вершине A
+        // Теорема синусов
+        // обеспечение вычислительной устойчисвости: значение может на бесконечно малую отклоняться от единицы для угла 90 градусов
+        double sinBeta = sin(alpha) * b / a;
+        beta = (sinBeta > 1.0) ? M_PI_2 : asin(sinBeta); // Угол в вершине B
+        // Теорема о сумме углов треугольника
+        gamma = M_PI - (alpha + beta); // Угол в вершине C
+    }
+    else if (b > a && b > c)
+    {
+        // Теорема косинусов
+        beta = acos((a*a + c*c - b*b) / (2.0 * a * c)); // Угол в вершине B
+        // Теорема синусов
+        // обеспечение вычислительной устойчисвости: значение может на бесконечно малую отклоняться от единицы для угла 90 градусов
+        double sinAlpha = sin(beta) * a / b; // Угол в вершине A
+        alpha = (sinAlpha > 1.0) ? M_PI_2 : asin(sinAlpha);
+        // Теорема о сумме углов треугольника
+        gamma = M_PI - (alpha + beta); // Угол в вершине C
+    }
+    else
+    {
+        // Теорема косинусов
+        gamma = acos((b*b + a*a - c*c) / (2.0 * b * a)); // Угол в вершине C
+        // Теорема синусов
+        // обеспечение вычислительной устойчисвости: значение может на бесконечно малую отклоняться от единицы для угла 90 градусов
+        double sinGamma = sin(gamma) * b / c;
+        beta = (sinGamma > 1.0) ? M_PI_2 : asin(sinGamma); // Угол в вершине B
+        // Теорема о сумме углов треугольника
+        alpha = M_PI - (gamma + beta); // Угол в вершине A
+    }
+
+    return true;
+}
+
+double TriangleMesh3D::minAngle(const Point3D &A, const Point3D &B, const Point3D &C)
+{
+    double alpha = 0.0, beta = 0.0, gamma = 0.0;
+    angles(A, B, C, alpha, beta, gamma);
+    return std::min(alpha, std::min(beta, gamma));
 }
 
 }

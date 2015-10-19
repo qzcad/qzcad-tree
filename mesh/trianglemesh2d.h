@@ -147,6 +147,7 @@ public:
      * @param height Высота прямоугольной области
      * @param func Функция области
      * @param charPoint Список характерных точек
+     * @param refineArea Флаг, указывающий на необходимость оптимизации по площади
      */
     void ruppert(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, bool refineArea = false);
     /**
