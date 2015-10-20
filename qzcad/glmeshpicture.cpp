@@ -881,6 +881,27 @@ void GLMeshPicture::paintGL()
                                     pointToGLVertex(mesh_->node(face[j]));
                             }
                             glEnd();
+                            glPointSize(6.0);
+                            glBegin(GL_POINTS);
+                            for (msh::UInteger j = 0; j < face.size(); j++)
+                            {
+                                if (mesh_->nodeType(face[j]) == msh::CHARACTER)
+                                {
+                                    if (isUseVector_ && nodeValues_.size() >= 2)
+                                        pointToGLVertex(mesh_->node(face[j]),
+                                                        vectorScale_ * nodeValues_[0][face[j]],
+                                                vectorScale_ * nodeValues_[1][face[j]]);
+                                    else if (isUseVector_ && nodeValues_.size() >= 3 && mesh_->dimesion() == 3)
+                                        pointToGLVertex(mesh_->node(face[j]),
+                                                        vectorScale_ * nodeValues_[0][face[j]],
+                                                vectorScale_ * nodeValues_[1][face[j]],
+                                                vectorScale_ * nodeValues_[2][face[j]]);
+                                    else
+                                        pointToGLVertex(mesh_->node(face[j]));
+                                }
+                            }
+                            glEnd();
+                            glPointSize(1.0);
                         }
                         if (isUseVector_ && isShowInitialFrames)
                         {

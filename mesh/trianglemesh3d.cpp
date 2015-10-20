@@ -124,10 +124,11 @@ TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, c
     for (UInteger i = 0; i < mesh2d.nodesCount(); i++)
     {
         Point2D p = mesh2d.point2d(i);
+        NodeType nodeType = (fabs(p.x()) < epsilon_ || fabs(p.x() - length) < epsilon()) ? CHARACTER : BORDER;
         if (fabs(p.y() - 2.0 * M_PI) < epsilon_)
-            nodes_map[i] = addNode(Point3D(radius * cos(p.y()), p.x(), radius * sin(p.y())), BORDER);
+            nodes_map[i] = addNode(Point3D(radius * cos(p.y()), p.x(), radius * sin(p.y())), CHARACTER);
         else
-            nodes_map[i] = pushNode( Point3D(radius * cos(p.y()), p.x(), radius * sin(p.y())), BORDER);
+            nodes_map[i] = pushNode( Point3D(radius * cos(p.y()), p.x(), radius * sin(p.y())), nodeType);
     }
     for (UInteger i = 0; i < mesh2d.elementsCount(); i++)
     {

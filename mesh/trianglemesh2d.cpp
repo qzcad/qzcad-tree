@@ -228,6 +228,7 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
             Point2D inner = current;
             Point2D outer = current + sqrt(hx*hx + hy*hy) * n;
             Point2D mid;
+            NodeType nodeType = BORDER;
             double val = 0.0;
             if (func(outer.x(), outer.y()) > 0.0)
             {
@@ -247,16 +248,17 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
                     inner = mid;
             } while(fabs(val) > epsilon_);
 
-            // поиск соответствующей характерной точки
-            for (std::list<Point2D>::iterator cPoint = charPoint.begin(); cPoint != charPoint.end(); ++cPoint)
-            {
-                if (mid.distanceTo(*cPoint) < minDistance)
-                {
-                    mid = *cPoint;
-                    //charPoint.erase(cPoint);
-                    break;
-                }
-            }
+//            // поиск соответствующей характерной точки
+//            for (std::list<Point2D>::iterator cPoint = charPoint.begin(); cPoint != charPoint.end(); ++cPoint)
+//            {
+//                if (mid.distanceTo(*cPoint) < minDistance)
+//                {
+//                    mid = *cPoint;
+//                    nodeType = CHARACTER;
+//                    //charPoint.erase(cPoint);
+//                    break;
+//                }
+//            }
 
             // сравнение с существующими изо-точками перед всатвкой
             bool isExist = false;
@@ -278,7 +280,7 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
                 if (current.distanceTo(mid) < minDistance)
                 {
                     node_[i].point = mid;
-                    node_[i].type = BORDER;
+                    node_[i].type = nodeType;
                     iso[i] = i;
                 }
                 else
@@ -286,7 +288,7 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
 #ifdef WITH_OPENMP
 #pragma omp critical
 #endif
-                    iso[i] = pushNode(mid, BORDER);
+                    iso[i] = pushNode(mid, nodeType);
                 }
             }
         }
@@ -311,7 +313,7 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
         if (min_n != node_.end())
         {
             min_n->point = *cPoint;
-            min_n->type = BORDER;
+            min_n->type = CHARACTER;
         }
     }
     // Форимрование приграничного слоя элементов
