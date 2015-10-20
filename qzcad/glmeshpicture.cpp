@@ -405,6 +405,37 @@ void GLMeshPicture::drawAxesDirection()
     resetProjectionMatrix();
 }
 
+void GLMeshPicture::drawFace(const msh::UIntegerVector &face, GLenum mode, GLfloat width, GLfloat size, msh::NodeType filter)
+{
+    glLineWidth(width);
+    glPointSize(size);
+    glBegin(mode);
+    for (msh::UInteger j = 0; j < face.size(); j++)
+    {
+        if (filter == msh::UNDEFINED || filter == mesh_->nodeType(face[j]))
+        {
+            if (visualizationMode_ == NODE_VALUE && valueIndex_ < nodeValues_.size())
+                qglColor( map_.color( nodeValues_[valueIndex_][face[j]] ) );
+            else if (visualizationMode_ == NODE_VALUE)
+                qglColor(elementColor_); // если индекс вне диапазона, то цветом пользователя
+            if (isUseVector_ && nodeValues_.size() >= 2 && mesh_->dimesion() == 2)
+                pointToGLVertex(mesh_->node(face[j]),
+                                vectorScale_ * nodeValues_[0][face[j]],
+                        vectorScale_ * nodeValues_[1][face[j]]);
+            else if (isUseVector_ && nodeValues_.size() >= 3 && mesh_->dimesion() == 3)
+                pointToGLVertex(mesh_->node(face[j]),
+                                vectorScale_ * nodeValues_[0][face[j]],
+                        vectorScale_ * nodeValues_[1][face[j]],
+                        vectorScale_ * nodeValues_[2][face[j]]);
+            else
+                pointToGLVertex(mesh_->node(face[j]));
+        }
+    }
+    glEnd();
+    glLineWidth(1.0);
+    glPointSize(1.0);
+}
+
 void GLMeshPicture::setXRotation(int angle)
 {
     int normalized = normalizedViewAngle(angle);
@@ -737,59 +768,13 @@ void GLMeshPicture::paintGL()
             if (dynamic_cast<const msh::Segment *>(element) != NULL)
             {
                 glNormal3d(0.0, 0.0, -1.0);
-                glLineWidth(2.0);
                 msh::UIntegerVector face = element->face(0);
                 if (visualizationMode_ == ELEMENT_VALUE  && valueIndex_ < elementValues_.size())
                     qglColor(map_.color(elementValues_[valueIndex_][i]));
                 else
                     qglColor(elementColor_);
-                glBegin(GL_LINES);
-                for (msh::UInteger j = 0; j < face.size(); j++)
-                {
-                    if (visualizationMode_ == NODE_VALUE && valueIndex_ < nodeValues_.size())
-                        qglColor( map_.color( nodeValues_[valueIndex_][face[j]] ) );
-                    else if (visualizationMode_ == NODE_VALUE)
-                        qglColor(elementColor_); // если индекс вне диапазона, то цветом пользователя
-                    if (isUseVector_ && nodeValues_.size() == 2)
-                        pointToGLVertex(mesh_->node(face[j]),
-                                        vectorScale_ * nodeValues_[0][face[j]],
-                                        vectorScale_ * nodeValues_[1][face[j]]);
-                    else if (isUseVector_ && nodeValues_.size() >= 3)
-                        pointToGLVertex(mesh_->node(face[j]),
-                                        vectorScale_ * nodeValues_[0][face[j]],
-                                        vectorScale_ * nodeValues_[1][face[j]],
-                                        vectorScale_ * nodeValues_[2][face[j]]);
-                    else
-                        pointToGLVertex(mesh_->node(face[j]));
-                }
-                glEnd();
-                glLineWidth(1.0);
-                glPointSize(6.0);
-                if (visualizationMode_ == ELEMENT_VALUE  && valueIndex_ < elementValues_.size())
-                    qglColor(map_.color(elementValues_[valueIndex_][i]));
-                else
-                    qglColor(elementColor_);
-                glBegin(GL_POINTS);
-                for (msh::UInteger j = 0; j < face.size(); j++)
-                {
-                    if (visualizationMode_ == NODE_VALUE && valueIndex_ < nodeValues_.size())
-                        qglColor( map_.color( nodeValues_[valueIndex_][face[j]] ) );
-                    else if (visualizationMode_ == NODE_VALUE)
-                        qglColor(elementColor_); // если индекс вне диапазона, то цветом пользователя
-                    if (isUseVector_ && nodeValues_.size() == 2)
-                        pointToGLVertex(mesh_->node(face[j]),
-                                        vectorScale_ * nodeValues_[0][face[j]],
-                                        vectorScale_ * nodeValues_[1][face[j]]);
-                    else if (isUseVector_ && nodeValues_.size() >= 3)
-                        pointToGLVertex(mesh_->node(face[j]),
-                                        vectorScale_ * nodeValues_[0][face[j]],
-                                        vectorScale_ * nodeValues_[1][face[j]],
-                                        vectorScale_ * nodeValues_[2][face[j]]);
-                    else
-                        pointToGLVertex(mesh_->node(face[j]));
-                }
-                glEnd();
-                glPointSize(1.0);
+                drawFace(face, GL_LINES, 2.0, 1.0);
+                drawFace(face, GL_POINTS, 1.0, 6.0);
             }
             else if (mesh_->dimesion() == 2 || mesh_->isBorderElement(i))
             {
@@ -813,8 +798,6 @@ void GLMeshPicture::paintGL()
                     msh::PointPointer a = mesh_->node(face[1]);
                     msh::PointPointer b = mesh_->node(face[0]);
                     msh::PointPointer c = mesh_->node(face[2]);
-
-
                     if (!isMousePressed_)
                     {
                         if (showMesh_)
@@ -840,74 +823,19 @@ void GLMeshPicture::paintGL()
                             glNormal3d(nx, ny, nz);
                         else
                             glNormal3d(-nx, -ny, -nz);
-
-                        glBegin(GL_POLYGON);
-                        for (msh::UInteger j = 0; j < face.size(); j++)
-                        {
-                            if (visualizationMode_ == NODE_VALUE && valueIndex_ < nodeValues_.size())
-                                qglColor( map_.color( nodeValues_[valueIndex_][face[j]] ) );
-                            else if (visualizationMode_ == NODE_VALUE)
-                                qglColor(elementColor_); // если индекс вне диапазона, то цветом пользователя
-                            if (isUseVector_ && nodeValues_.size() >= 2)
-                                pointToGLVertex(mesh_->node(face[j]),
-                                                vectorScale_ * nodeValues_[0][face[j]],
-                                                vectorScale_ * nodeValues_[1][face[j]]);
-                            else if (isUseVector_ && nodeValues_.size() >= 3 && mesh_->dimesion() == 3)
-                                pointToGLVertex(mesh_->node(face[j]),
-                                                vectorScale_ * nodeValues_[0][face[j]],
-                                                vectorScale_ * nodeValues_[1][face[j]],
-                                                vectorScale_ * nodeValues_[2][face[j]]);
-                            else
-                                pointToGLVertex(mesh_->node(face[j]));
-                        }
-                        glEnd();
+                        drawFace(face, GL_POLYGON);
                         if(showMesh_)
                         {
                             glDisable(GL_POLYGON_OFFSET_FILL);
                             qglColor(meshColor_);
-                            glBegin(GL_LINE_LOOP);
-                            for (msh::UInteger j = 0; j < face.size(); j++)
-                            {
-                                if (isUseVector_ && nodeValues_.size() >= 2)
-                                    pointToGLVertex(mesh_->node(face[j]),
-                                                    vectorScale_ * nodeValues_[0][face[j]],
-                                            vectorScale_ * nodeValues_[1][face[j]]);
-                                else if (isUseVector_ && nodeValues_.size() >= 3 && mesh_->dimesion() == 3)
-                                    pointToGLVertex(mesh_->node(face[j]),
-                                                    vectorScale_ * nodeValues_[0][face[j]],
-                                            vectorScale_ * nodeValues_[1][face[j]],
-                                            vectorScale_ * nodeValues_[2][face[j]]);
-                                else
-                                    pointToGLVertex(mesh_->node(face[j]));
-                            }
-                            glEnd();
-                            glPointSize(6.0);
-                            glBegin(GL_POINTS);
-                            for (msh::UInteger j = 0; j < face.size(); j++)
-                            {
-                                if (mesh_->nodeType(face[j]) == msh::CHARACTER)
-                                {
-                                    if (isUseVector_ && nodeValues_.size() >= 2)
-                                        pointToGLVertex(mesh_->node(face[j]),
-                                                        vectorScale_ * nodeValues_[0][face[j]],
-                                                vectorScale_ * nodeValues_[1][face[j]]);
-                                    else if (isUseVector_ && nodeValues_.size() >= 3 && mesh_->dimesion() == 3)
-                                        pointToGLVertex(mesh_->node(face[j]),
-                                                        vectorScale_ * nodeValues_[0][face[j]],
-                                                vectorScale_ * nodeValues_[1][face[j]],
-                                                vectorScale_ * nodeValues_[2][face[j]]);
-                                    else
-                                        pointToGLVertex(mesh_->node(face[j]));
-                                }
-                            }
-                            glEnd();
-                            glPointSize(1.0);
+                            drawFace(face, GL_LINE_LOOP);
+                            drawFace(face, GL_POINTS, 1.0, 6.0, msh::CHARACTER);
                         }
                         if (isUseVector_ && isShowInitialFrames)
                         {
                             // отрисовка исходного каркаса
-                            glBegin(GL_LINE_LOOP);
                             glColor3f(0.5, 0.5, 0.5);
+                            glBegin(GL_LINE_LOOP);
                             for (msh::UInteger j = 0; j < face.size(); j++)
                             {
                                 pointToGLVertex(mesh_->node(face[j]));

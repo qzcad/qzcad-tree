@@ -363,6 +363,15 @@ private:
      * @brief Нарисовать направления осей координат
      */
     void drawAxesDirection();
+    /**
+     * @brief Нарисовать грань
+     * @param face Ссылка на грань
+     * @param mode Режим OpenGL для отрисовки
+     * @param width Толщина линии (по умолчанию 1.0)
+     * @param size Толщина точки (по умолчанию 1.0)
+     * @param filter Фильтер типа узлов (если UNDEFINED, то используются все узлы, иначе только указанного типа)
+     */
+    void drawFace(const msh::UIntegerVector &face, GLenum mode, GLfloat width = 1.0, GLfloat size = 1.0, msh::NodeType filter = msh::UNDEFINED);
 };
 
 #endif // GLMESHPICTURE_H

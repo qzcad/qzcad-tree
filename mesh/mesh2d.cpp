@@ -128,7 +128,7 @@ UInteger Mesh2D::addNode(const Point2D &point, const NodeType &type, double epsi
     {
         if ( point.isEqualTo(node_[i].point, epsilon) )
         {
-            if (node_[i].type != type) // обновление типа узла
+            if ((node_[i].type == INNER || node_[i].type == BORDER) && (type == BORDER || type == CHARACTER)) // обновление типа узла
                 node_[i].type = type;
             return i;
         }

@@ -11,8 +11,8 @@
 namespace msh
 {
 /**
-  * @brief Тип узла: внутренний, граничный или внешний (не обходим для теоретической полноты)
+  * @brief Тип узла: внутренний, граничный, внешний или неопределенный (два последних необходимы для теоретической полноты)
   */
-typedef enum { INNER = 1, BORDER = 0, OUTER = -1, CHARACTER = 2 } NodeType;
+typedef enum { INNER = 1, BORDER = 0, OUTER = -1, CHARACTER = 2, UNDEFINED = -2 } NodeType;
 }
 #endif // NODETYPE_H

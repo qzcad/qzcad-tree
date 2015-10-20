@@ -544,7 +544,7 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &xCount, const UInteger 
         if (min_n != node_.end())
         {
             min_n->point = *cPoint;
-            min_n->type = BORDER;
+            min_n->type = CHARACTER;
         }
     }
     // Форимрование приграничного слоя элементов
