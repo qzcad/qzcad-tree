@@ -522,7 +522,7 @@ void TriangleMesh2D::delaunay(const UInteger &xCount, const UInteger &yCount, co
     Triangulation triangulation = superDelaunay(&mesh);
     node_.clear();
     element_.clear();
-    for (UInteger i = 4; i < triangulation.nodes.size(); i++) pushNode(triangulation.nodes[i], BORDER);
+    for (UInteger i = 4; i < triangulation.nodes.size(); i++) pushNode(triangulation.nodes[i], triangulation.types[i]);
     for (std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
          triangle != triangulation.triangles.end(); ++triangle)
     {
@@ -566,7 +566,9 @@ void TriangleMesh2D::ruppert(const UInteger &xCount, const UInteger &yCount, con
             Point2D center = (1.0 / 3.0) * (A + B + C);
             if (func(center.x(), center.y()) > 0)
             {
-                addElement(addNode(A, BORDER), addNode(B, BORDER), addNode(C, BORDER));
+                addElement(addNode(A, triangulation.types[triangle->vertexNode(0)]),
+                        addNode(B, triangulation.types[triangle->vertexNode(1)]),
+                        addNode(C, triangulation.types[triangle->vertexNode(2)]));
             }
         }
     }
@@ -644,11 +646,11 @@ TriangleMesh2D::Triangulation TriangleMesh2D::superDelaunay(const SegmentMesh2D 
     Point2D super2(mesh->xMax() + h, mesh->yMax() + h);
     Point2D super3(mesh->xMin() - h, mesh->yMax() + h);
     Triangulation triangulation;
-    triangulation.nodes.push_back(super0);
-    triangulation.nodes.push_back(super1);
-    triangulation.nodes.push_back(super2);
-    triangulation.nodes.push_back(super3);
-    triangulation.nodes.push_back(mesh->point2d(0));
+    triangulation.nodes.push_back(super0); triangulation.types.push_back(OUTER);
+    triangulation.nodes.push_back(super1); triangulation.types.push_back(OUTER);
+    triangulation.nodes.push_back(super2); triangulation.types.push_back(OUTER);
+    triangulation.nodes.push_back(super3); triangulation.types.push_back(OUTER);
+    triangulation.nodes.push_back(mesh->point2d(0)); triangulation.types.push_back(mesh->nodeType(0));
     triangulation.triangles.push_back(Triangle(0, 1, 4));
     triangulation.triangles.push_back(Triangle(1, 2, 4));
     triangulation.triangles.push_back(Triangle(2, 3, 4));
@@ -656,7 +658,8 @@ TriangleMesh2D::Triangulation TriangleMesh2D::superDelaunay(const SegmentMesh2D 
     for (UInteger i = 1; i < mesh->nodesCount(); i++)
     {
         Point2D point = mesh->point2d(i);
-        insertDelaunayNode(point, triangulation.nodes, triangulation.triangles);
+        NodeType type = mesh->nodeType(i);
+        insertDelaunayNode(point, type, triangulation.nodes, triangulation.types, triangulation.triangles);
     }
     return triangulation;
 }
@@ -678,7 +681,7 @@ void TriangleMesh2D::superRuppert(TriangleMesh2D::Triangulation &triangulation)
             double xc = 0.0, yc = 0.0, r = 0.0;
             circumCircle(0.0, 0.0, A.x(), A.y(), B.x(), B.y(), C.x(), C.y(), xc, yc, r);
             center.set(xc, yc);
-            if (insertDelaunayNode(center, triangulation.nodes, triangulation.triangles))
+            if (insertDelaunayNode(center, INNER, triangulation.nodes, triangulation.types, triangulation.triangles))
                 triangle = triangulation.triangles.begin();
             else
                 ++triangle;
@@ -707,7 +710,7 @@ void TriangleMesh2D::areaRefinement(double max_area, std::function<double (doubl
         Point2D center = (1.0 / 3.0) * (A + B + C);
         if (func(center.x(), center.y()) > 0 && fabs(signedArea(A, B, C)) > max_area)
         {
-            if (insertDelaunayNode(center, triangulation.nodes, triangulation.triangles))
+            if (insertDelaunayNode(center, INNER, triangulation.nodes, triangulation.types, triangulation.triangles))
                 triangle = triangulation.triangles.begin();
             else
                 ++triangle;
@@ -722,7 +725,7 @@ void TriangleMesh2D::areaRefinement(double max_area, std::function<double (doubl
     std::cout << "Area niter: " << niter << std::endl;
 }
 
-bool TriangleMesh2D::insertDelaunayNode(const Point2D &point, std::vector<Point2D> &nodes, std::list<Triangle> &triangles)
+bool TriangleMesh2D::insertDelaunayNode(const Point2D &point, const NodeType &type, std::vector<Point2D> &nodes, std::vector<NodeType> &types, std::list<Triangle> &triangles)
 {
     UInteger number = nodes.size();
     std::vector<int> power;
@@ -732,6 +735,7 @@ bool TriangleMesh2D::insertDelaunayNode(const Point2D &point, std::vector<Point2
         if (p->isEqualTo(point, epsilon_)) return false;
 
     nodes.push_back(point);
+    types.push_back(type);
 
     for (std::list<Triangle>::iterator triangle = triangles.begin(); triangle != triangles.end(); )
     {
@@ -789,7 +793,6 @@ bool TriangleMesh2D::insertDelaunayNode(const Point2D &point, std::vector<Point2
 
     for (UInteger j = 0; j < edges.size(); j++)
     {
-//        if (power[j] > 2) std::cout << power[j] << " ";
         if ((power[j] % 2) == 1)
         {
             if (signedArea(nodes[edges[j][1]], nodes[edges[j][0]], nodes[number]) > 0.0)

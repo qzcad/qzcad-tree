@@ -192,6 +192,7 @@ protected:
     struct Triangulation
     {
         std::vector<Point2D> nodes;
+        std::vector<NodeType> types;
         std::list<Triangle> triangles;
     };
     /**
@@ -217,7 +218,7 @@ protected:
      * @param nodes Ссылка на массив узлов для вставки (выходной параметр)
      * @paran triangles Ссылка на массив элементов для вставки (выходной параметр)
      */
-    bool insertDelaunayNode(const Point2D &point, std::vector<Point2D> &nodes, std::list<Triangle> &triangles);
+    bool insertDelaunayNode(const Point2D &point, const NodeType &type, std::vector<Point2D> &nodes, std::vector<NodeType> &types, std::list<Triangle> &triangles);
     /**
      * @brief Метод вычисления площади треугольника с учетом знака (площадь отрицательная при обходе узлов треугольника против часовой стрелки)
      * @param A Координаты первого узла треугольника
