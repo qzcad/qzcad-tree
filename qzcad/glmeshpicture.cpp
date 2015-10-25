@@ -405,7 +405,7 @@ void GLMeshPicture::drawAxesDirection()
     resetProjectionMatrix();
 }
 
-void GLMeshPicture::drawFace(const msh::UIntegerVector &face, GLenum mode, GLfloat width, GLfloat size, msh::NodeType filter)
+void GLMeshPicture::drawFace(const msh::UIntegerVector &face, GLenum mode, GLfloat width, GLfloat size, bool useNodeColors, msh::NodeType filter)
 {
     glLineWidth(width);
     glPointSize(size);
@@ -414,10 +414,13 @@ void GLMeshPicture::drawFace(const msh::UIntegerVector &face, GLenum mode, GLflo
     {
         if (filter == msh::UNDEFINED || filter == mesh_->nodeType(face[j]))
         {
-            if (visualizationMode_ == NODE_VALUE && valueIndex_ < nodeValues_.size())
-                qglColor( map_.color( nodeValues_[valueIndex_][face[j]] ) );
-            else if (visualizationMode_ == NODE_VALUE)
-                qglColor(elementColor_); // если индекс вне диапазона, то цветом пользователя
+            if (useNodeColors)
+            {
+                if (visualizationMode_ == NODE_VALUE && valueIndex_ < nodeValues_.size())
+                    qglColor( map_.color( nodeValues_[valueIndex_][face[j]] ) );
+                else if (visualizationMode_ == NODE_VALUE)
+                    qglColor(elementColor_); // если индекс вне диапазона, то цветом пользователя
+            }
             if (isUseVector_ && nodeValues_.size() >= 2 && mesh_->dimesion() == 2)
                 pointToGLVertex(mesh_->node(face[j]),
                                 vectorScale_ * nodeValues_[0][face[j]],
@@ -828,8 +831,8 @@ void GLMeshPicture::paintGL()
                         {
                             glDisable(GL_POLYGON_OFFSET_FILL);
                             qglColor(meshColor_);
-                            drawFace(face, GL_LINE_LOOP);
-                            drawFace(face, GL_POINTS, 1.0, 6.0, msh::CHARACTER);
+                            drawFace(face, GL_LINE_LOOP, 1.0, 1.0, false);
+                            drawFace(face, GL_POINTS, 1.0, 6.0, false, msh::CHARACTER);
                         }
                         if (isUseVector_ && isShowInitialFrames)
                         {
