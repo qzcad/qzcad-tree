@@ -8,6 +8,8 @@
 #include <omp.h>
 #endif
 
+#include "funcopt.h"
+
 namespace msh
 {
 QuadrilateralMesh2D::QuadrilateralMesh2D()
@@ -53,7 +55,7 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &xCount, const UInteger 
     xMax_ = xMin + width;
     yMin_ = yMin;
     yMax_ = yMin + height;
-//    minimizeFunctional();
+    minimizeFunctional();
     std::cout << "Создана равномерная сетка четырехугольных элементов: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
@@ -633,33 +635,22 @@ ElementPointer QuadrilateralMesh2D::element(const UInteger &number) const
 
 void QuadrilateralMesh2D::minimizeFunctional()
 {
-//    UInteger currNumber = 0; // количество внутренних узлов сетки
-//    UInteger variablesCount; // количество переменных в функционале
     std::vector<double> x0; // первое приближение
-    std::vector<double> x; // минимизация
-    std::vector<UInteger> nodeVariable; // номер переменной, соответвствующей узлу
     for (UInteger i = 0; i < node_.size(); i++)
     {
-        if (node_[i].type == INNER)
-        {
-            nodeVariable.push_back(x0.size());
             x0.push_back(node_[i].point.x());
             x0.push_back(node_[i].point.y());
-        }
-        else
-        {
-            nodeVariable.push_back(2 * node_.size() + 1);
-        }
     }
-    x.resize(x0.size());
-    std::cout << functional(x0.data(), nodeVariable) << std::endl;
-    conjugateGradient(x0.size(), x0.data(), x.data(), nodeVariable);
-    std::cout << functional(x.data(), nodeVariable) << std::endl;
+    std::cout << functional(x0) << std::endl;
+    double h = 1.0E-5 * (xMax_ - xMin_);
+    CoordinateFunction func = std::bind(&QuadrilateralMesh2D::functional, this, std::placeholders::_1);
+    std::vector<double> x = descentGradient(func, x0, h, epsilon_);
+    std::cout << functional(x) << std::endl;
     for (UInteger i = 0; i < node_.size(); i++)
     {
         if (node_[i].type == INNER)
         {
-            node_[i].point.set(x[nodeVariable[i]], x[nodeVariable[i] + 1]);
+            node_[i].point.set(x[2UL * i], x[2UL * i + 1]);
         }
     }
 }
@@ -744,9 +735,11 @@ double QuadrilateralMesh2D::isoFunc(const UInteger &i, const double &xi, const d
     return (1.0 - xi) * (1.0 - eta) / 4.0;
 }
 
-double QuadrilateralMesh2D::functional(double *vars, const std::vector<UInteger> &nodeVariable)
+double QuadrilateralMesh2D::functional(const std::vector<double> &vars)
 {
     double f = 0.0;
+    const double alpha = 0.7;
+    const double beta = 1.0 - alpha;
     for (UInteger i = 0; i < element_.size(); i++)
     {
         double x[4];
@@ -755,8 +748,8 @@ double QuadrilateralMesh2D::functional(double *vars, const std::vector<UInteger>
         {
             if(node_[element_[i][j]].type == INNER)
             {
-                x[j] = vars[nodeVariable[element_[i][j]]];
-                y[j] = vars[nodeVariable[element_[i][j]] + 1];
+                x[j] = vars[ 2UL * element_[i][j] ];
+                y[j] = vars[ 2UL * element_[i][j] + 1 ];
             }
             else
             {
@@ -769,331 +762,29 @@ double QuadrilateralMesh2D::functional(double *vars, const std::vector<UInteger>
         double xc = (x[0] + x[1] + x[2] + x[3]) / 4.0;
         double yc = (y[0] + y[1] + y[2] + y[3]) / 4.0;
         double a [][4] = {{x[0],    x[1],   x[2],   x[3]},
-                            {y[0],    y[1],   y[2],   y[3]}};
+                          {y[0],    y[1],   y[2],   y[3]}};
         double b [][4] = {{x[1],    x[2],   x[3],   x[0]},
-                            {y[1],    y[2],   y[3],   y[0]}};
+                          {y[1],    y[2],   y[3],   y[0]}};
         double c [][4] = {{xc,    xc,   xc,   xc},
-                            {yc,    yc,   yc,   yc}};
+                          {yc,    yc,   yc,   yc}};
         double localValue = 0.0;
         // функция для вычисления квадрата числа (C++0x)
         auto sqr = [](double value) { return value * value; };
+        auto con = [](double x, double y) { return x + y - sqrt(x*x + y*y); };
         for (int q = 0; q < 4; q++)
         {
             double l = sqr(c[0][q] - a[0][q]) + sqr(c[1][q] - a[1][q]) + sqr(b[0][q] - a[0][q]) + sqr(b[1][q] - a[1][q]);
             double o = (c[0][q] - a[0][q]) *  (b[0][q] - a[0][q]) + (c[1][q] - a[1][q]) * (b[1][q] - a[1][q]);
             double alpha = (b[0][q] - a[0][q]) * (c[1][q] - a[1][q]) - (b[1][q] - a[1][q]) * (c[0][q] - a[0][q]);
-            //            f += sqr(alpha / 2.0); // площадь
-                        f += 0.5 * sqr(alpha / 2.0);
-//            localValue += l;
+//            f += sqr(0.5 * alpha); // площадь
+//                        f += 0.5 * sqr(alpha / 2.0);
+            localValue += l;
 
         }
-//        f += 0.95 * localValue + 0.05 * (sqr(0.49 - sqr(xc) - sqr(yc)));
+        double r = con(0.81 - sqr(xc) - sqr(yc), sqr(xc) + sqr(yc) - 0.36);
+        f +=  alpha * localValue + beta *  (1.0 - 1.0 / cosh(r));
     }
     return f;
-}
-
-double QuadrilateralMesh2D::functional(double *vars, const UInteger &nodeNumber)
-{
-    AdjacentSet adjacent = node_[nodeNumber].adjacent;
-    double f = 0.0;
-    for (AdjacentSet::iterator it = adjacent.begin(); it != adjacent.end(); ++it)
-    {
-        Quadrilateral quad = element_[*it];
-        Point2D p0 = (quad[0] == nodeNumber) ? Point2D(vars[0], vars[1]) : node_[quad[0]].point;
-        Point2D p1 = (quad[1] == nodeNumber) ? Point2D(vars[0], vars[1]) : node_[quad[1]].point;
-        Point2D p2 = (quad[2] == nodeNumber) ? Point2D(vars[0], vars[1]) : node_[quad[2]].point;
-        Point2D p3 = (quad[3] == nodeNumber) ? Point2D(vars[0], vars[1]) : node_[quad[3]].point;
-        double s0 = (p3 - p0) * (p1 - p0);
-        double s1 = (p0 - p1) * (p2 - p1);
-        double s2 = (p1 - p2) * (p3 - p2);
-        double s3 = (p2 - p3) * (p0 - p3);
-        double angle = s0*s0 + s1*s1 + s2*s2 + s3*s3;
-        // стороны
-        double a = p0.distanceTo(p1);
-        double b = p1.distanceTo(p2);
-        double c = p2.distanceTo(p3);
-        double d = p3.distanceTo(p0);
-        // диагонали
-        double d1 = p0.distanceTo(p2);
-        double d2 = p1.distanceTo(p3);
-        // функция для вычисления квадрата числа (C++0x)
-        auto sqr = [](double value) { return value * value; };
-        double area_c = sqrt(4.0 * sqr(d1) * sqr(d2) - sqr(sqr(b) + sqr(d) - sqr(a) - sqr(c))) / 4.0;
-        f += area_c*area_c;
-    }
-    return f;
-}
-
-void QuadrilateralMesh2D::nabla(const UInteger &size, double *x, const std::vector<UInteger> &nodeVariable, double *gradient, double h)
-{
-    double x_plus_h; // x + h
-    double x_minus_h; // x - h
-    double x_plus_h_h; // x + 2 * h
-    double x_minus_h_h; // x - 2 * h
-    double f_x_plus_h; // f(x + h)
-    double f_x_minus_h; // f(x - h)
-    double f_x_plus_h_h; // f(x + 2 * h)
-    double f_x_minus_h_h; // f(x - 2 * h)
-    double x_i;
-    for (UInteger i = 0; i < size; i++)
-    {
-        x_i = x[i];
-        x_plus_h = x_i + h;
-        x_minus_h = x_i - h;
-        x_plus_h_h = x_plus_h + h;
-        x_minus_h_h = x_minus_h - h;
-        x[i] = x_plus_h; f_x_plus_h = functional(x, nodeVariable);
-        x[i] = x_minus_h; f_x_minus_h = functional(x, nodeVariable);
-        x[i] = x_plus_h_h; f_x_plus_h_h = functional(x, nodeVariable);
-        x[i] = x_minus_h_h; f_x_minus_h_h = functional(x, nodeVariable);
-        gradient[i] = (f_x_minus_h_h - 8.0 * f_x_minus_h + 8.0 * f_x_plus_h - f_x_plus_h_h) / (12.0 * h);
-        x[i] = x_i;
-    }
-}
-
-void QuadrilateralMesh2D::nabla(const UInteger &size, double *x, const UInteger &nodeNumber, double *gradient, double h)
-{
-    double x_plus_h; // x + h
-    double x_minus_h; // x - h
-    double x_plus_h_h; // x + 2 * h
-    double x_minus_h_h; // x - 2 * h
-    double f_x_plus_h; // f(x + h)
-    double f_x_minus_h; // f(x - h)
-    double f_x_plus_h_h; // f(x + 2 * h)
-    double f_x_minus_h_h; // f(x - 2 * h)
-    double x_i;
-    for (UInteger i = 0; i < size; i++)
-    {
-        x_i = x[i];
-        x_plus_h = x_i + h;
-        x_minus_h = x_i - h;
-        x_plus_h_h = x_plus_h + h;
-        x_minus_h_h = x_minus_h - h;
-        x[i] = x_plus_h; f_x_plus_h = functional(x, nodeNumber);
-        x[i] = x_minus_h; f_x_minus_h = functional(x, nodeNumber);
-        x[i] = x_plus_h_h; f_x_plus_h_h = functional(x, nodeNumber);
-        x[i] = x_minus_h_h; f_x_minus_h_h = functional(x, nodeNumber);
-        gradient[i] = (f_x_minus_h_h - 8.0 * f_x_minus_h + 8.0 * f_x_plus_h - f_x_plus_h_h) / (12.0 * h);
-        x[i] = x_i;
-    }
-}
-
-double QuadrilateralMesh2D::lambda(const UInteger &size, double *x, double *s, const double &lambda_val, const std::vector<UInteger> &nodeVariable)
-{
-    double x_lambda[size];
-    for (UInteger i = 0; i < size; i++)
-    {
-        x_lambda[i] = x[i] + lambda_val * s[i];
-    }
-    return functional(x_lambda, nodeVariable);
-}
-
-double QuadrilateralMesh2D::lambda(const UInteger &size, double *x, double *s, const double &lambda_val, const UInteger &nodeNumber)
-{
-    double x_lambda[size];
-    for (UInteger i = 0; i < size; i++)
-    {
-        x_lambda[i] = x[i] + lambda_val * s[i];
-    }
-    return functional(x_lambda, nodeNumber);
-}
-
-double QuadrilateralMesh2D::goldenRatio(const UInteger &size, const double &a, const double &b, double *x0, double *s, const std::vector<UInteger> &nodeVariable, double epsilon, UInteger maxIter)
-{
-    double left = a;
-    double right = b;
-    const double phi = (sqrt(5.0) + 1.0) / 2.0; // golden ratio
-    double x1 = b - (b - a) / phi;
-    double x2 = a + (b - a) / phi;
-    double y1 = lambda(size, x0, s, x1, nodeVariable);
-    double y2 = lambda(size, x0, s, x2, nodeVariable);
-
-    for(UInteger count = 0; count < maxIter; count++)
-    {
-        if(y1 <= y2)
-        {
-            right = x2;
-            x2 = x1;
-            x1 = right - (right - left) / phi;
-            y2 = y1;
-            y1 = lambda(size, x0, s, x1, nodeVariable);
-        }
-        else
-        {
-            left = x1;
-            x1 = x2;
-            x2 = left + (right - left) / phi;
-            y1 = y2;
-            y2 = lambda(size, x0, s, x2, nodeVariable);
-        }
-        if((right - left) < epsilon) break;
-    }
-    if(y1 <= y2) return x1;
-    return x2;
-}
-
-double QuadrilateralMesh2D::goldenRatio(const UInteger &size, const double &a, const double &b, double *x0, double *s, const UInteger &nodeNumber, UInteger maxIter)
-{
-    double left = a;
-    double right = b;
-    const double phi = (sqrt(5.0) + 1.0) / 2.0; // golden ratio
-    double x1 = b - (b - a) / phi;
-    double x2 = a + (b - a) / phi;
-    double y1 = lambda(size, x0, s, x1, nodeNumber);
-    double y2 = lambda(size, x0, s, x2, nodeNumber);
-
-    for(UInteger count = 0; count < maxIter; count++)
-    {
-        if(y1 <= y2)
-        {
-            right = x2;
-            x2 = x1;
-            x1 = right - (right - left) / phi;
-            y2 = y1;
-            y1 = lambda(size, x0, s, x1, nodeNumber);
-        }
-        else
-        {
-            left = x1;
-            x1 = x2;
-            x2 = left + (right - left) / phi;
-            y1 = y2;
-            y2 = lambda(size, x0, s, x2, nodeNumber);
-        }
-        if((right - left) < epsilon_) break;
-    }
-    if(y1 <= y2) return x1;
-    return x2;
-}
-
-double QuadrilateralMesh2D::norm2(const UInteger &size, double *x)
-{
-    double norm = 0.0;
-    for (UInteger i = 0; i < size; i++)
-    {
-        norm += x[i] * x[i];
-    }
-    return norm;
-}
-
-void QuadrilateralMesh2D::conjugateGradient(const UInteger &size, double *x0, double *xMin, const std::vector<UInteger> &nodeVariable, double epsilon, UInteger maxIter)
-{
-    double xk[size];
-    double xkj[size];
-    double xkj1[size];
-    double dxkj[size];
-    double nablaxkj[size];
-    double nablaxkj1[size];
-    double Skj[size];
-    double lambda;
-    double omega;
-    double nkj, nkj1;
-
-    for(UInteger i = 0; i < size; i++) xk[i] = x0[i];
-
-    //        if(dialog != NULL)
-    //        {
-    //            dialog->SetPosition(0);
-    //            dialog->SetMaxPosition(maxSearchIterations);
-    //            dialog->SetMessage("Оптимизация. Минимизация функционала методом сопряженных градиентов");
-    //        }
-
-    for(UInteger k = 0; k < maxIter; k++)
-    {
-        //        if(dialog != NULL)
-        //        {
-        //            dialog->IncPosition();
-        //        }
-
-        for(UInteger i = 0; i < size; i++)
-            xkj[i] = xk[i];
-        for(UInteger j = 0; j < maxIter; j++)
-        {
-            nabla(size, xkj, nodeVariable, Skj);
-            lambda = goldenRatio(size, -1.0, 1.0, xkj, Skj, nodeVariable, epsilon, maxIter);
-            for(UInteger i = 0; i < size; i++) xkj1[i] = xkj[i] + lambda * Skj[i];
-            nabla(size, xkj, nodeVariable, nablaxkj);
-            nabla(size, xkj1, nodeVariable, nablaxkj1);
-            nkj = norm2(size, xkj);
-            nkj1 = norm2(size, xkj1);
-            omega = (nkj1 * nkj1) / (nkj * nkj);
-
-            for(UInteger i = 0; i < size; i++)
-                Skj[i] = -nablaxkj[i] + omega * Skj[i];
-
-            for(UInteger i = 0; i < size; i++)
-                dxkj[i] = xkj1[i] - xkj[i];
-
-            if(norm2(size, dxkj) < epsilon)    // norm (varCount, Skj) < epsilon ||
-            {
-                for(UInteger i = 0; i < size; i++) xMin[i] = xkj1[i];
-                return;
-            }
-            for(UInteger i = 0; i < size; i++) xkj[i] = xkj1[i];
-        }
-        for(UInteger i = 0; i < size; i++) xk[i] = xkj1[i];
-    }
-    for(UInteger i = 0; i < size; i++) xMin[i] = xk[i];
-}
-
-void QuadrilateralMesh2D::conjugateGradient(const UInteger &size, double *x0, double *xMin, const UInteger &nodeNumber, const double &h, UInteger maxIter)
-{
-    double xk[size];
-    double xkj[size];
-    double xkj1[size];
-    double dxkj[size];
-    double nablaxkj[size];
-    double nablaxkj1[size];
-    double Skj[size];
-    double lambda;
-    double omega;
-    double nkj, nkj1;
-
-    for(UInteger i = 0; i < size; i++) xk[i] = x0[i];
-
-    //        if(dialog != NULL)
-    //        {
-    //            dialog->SetPosition(0);
-    //            dialog->SetMaxPosition(maxSearchIterations);
-    //            dialog->SetMessage("Оптимизация. Минимизация функционала методом сопряженных градиентов");
-    //        }
-
-    for(UInteger k = 0; k < maxIter; k++)
-    {
-        //        if(dialog != NULL)
-        //        {
-        //            dialog->IncPosition();
-        //        }
-
-        for(UInteger i = 0; i < size; i++)
-            xkj[i] = xk[i];
-        for(UInteger j = 0; j < maxIter; j++)
-        {
-            nabla(size, xkj, nodeNumber, Skj, h);
-            lambda = goldenRatio(size, -1.0, 1.0, xkj, Skj, nodeNumber, maxIter);
-            for(UInteger i = 0; i < size; i++) xkj1[i] = xkj[i] + lambda * Skj[i];
-            nabla(size, xkj, nodeNumber, nablaxkj, h);
-            nabla(size, xkj1, nodeNumber, nablaxkj1, h);
-            nkj = norm2(size, xkj);
-            nkj1 = norm2(size, xkj1);
-            omega = (nkj1 * nkj1) / (nkj * nkj);
-
-            for(UInteger i = 0; i < size; i++)
-                Skj[i] = -nablaxkj[i] + omega * Skj[i];
-
-            for(UInteger i = 0; i < size; i++)
-                dxkj[i] = xkj1[i] - xkj[i];
-
-            if(norm2(size, dxkj) < epsilon_)    // norm (varCount, Skj) < epsilon ||
-            {
-                for(UInteger i = 0; i < size; i++) xMin[i] = xkj1[i];
-                return;
-            }
-            for(UInteger i = 0; i < size; i++) xkj[i] = xkj1[i];
-        }
-        for(UInteger i = 0; i < size; i++) xk[i] = xkj1[i];
-    }
-    for(UInteger i = 0; i < size; i++) xMin[i] = xk[i];
 }
 
 template<typename TopFunc, typename BottomFunc, typename LeftFunc, typename RightFunc>

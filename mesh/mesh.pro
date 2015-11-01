@@ -35,7 +35,8 @@ SOURCES += mesh.cpp \
     trianglemesh2d.cpp \
     quadrilateralmesh3d.cpp \
     trianglemesh3d.cpp \
-    segmentmesh2d.cpp
+    segmentmesh2d.cpp \
+    funcopt.cpp
 
 HEADERS += mesh.h \
     point.h \
@@ -64,7 +65,8 @@ HEADERS += mesh.h \
     trianglemesh2d.h \
     quadrilateralmesh3d.h \
     trianglemesh3d.h \
-    segmentmesh2d.h
+    segmentmesh2d.h \
+    funcopt.h
 unix:!symbian {
     maemo5 {
         target.path = /opt/usr/lib

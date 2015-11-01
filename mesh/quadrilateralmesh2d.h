@@ -143,21 +143,7 @@ protected:
      */
     double isoFunc(const UInteger &i, const double &xi, const double &eta);
 
-    double functional(double *vars, const std::vector<UInteger> &nodeVariable);
-    double functional(double *vars, const UInteger &nodeNumber);
-    void nabla(const UInteger &size, double *x,
-               const std::vector<UInteger> &nodeVariable, double *gradient, double h = 0.0001);
-    void nabla(const UInteger &size, double *x, const UInteger &nodeNumber, double *gradient, double h);
-    double lambda(const UInteger &size, double *x, double *s, const double &lambda_val,
-                    const std::vector<UInteger> &nodeVariable);
-    double lambda(const UInteger &size, double *x, double *s, const double &lambda_val, const UInteger &nodeNumber);
-    double goldenRatio(const UInteger &size, const double &a, const double &b, double *x0, double *s, const std::vector<UInteger> &nodeVariable, double epsilon = 0.0001, UInteger maxIter = 300);
-    double goldenRatio(const UInteger &size, const double &a, const double &b, double *x0, double *s, const UInteger &nodeNumber, UInteger maxIter = 1000);
-    double norm2(const UInteger &size, double *x);
-    void conjugateGradient(const UInteger &size, double *x0, double *xMin,
-                           const std::vector<UInteger> &nodeVariable, double epsilon = 0.0001, UInteger maxIter = 300);
-    void conjugateGradient(const UInteger &size, double *x0, double *xMin, const UInteger &nodeNumber, const double &h, UInteger maxIter = 1000);
-    //    double sqr(const Floating &a) { return a * a; }
+    double functional(const std::vector<double> &vars);
     /**
      * @brief Метод для добавления сеток на основе трансфинитной интерполяции
      * Все узлы добавляются как внутренние (INNER, @see NodeType). Функции top, bottom, left, right - функторы (functors), указатели на функции (function pointers) или лямбды (lambda), которые возвращают координаты точки кривой в соответствии с заданным параметром.
