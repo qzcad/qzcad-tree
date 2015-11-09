@@ -9,6 +9,7 @@
 #endif
 
 #include "funcopt.h"
+#include "rfunctions.h"
 
 namespace msh
 {
@@ -55,7 +56,7 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &xCount, const UInteger 
     xMax_ = xMin + width;
     yMin_ = yMin;
     yMax_ = yMin + height;
-    minimizeFunctional();
+//    minimizeFunctional();
     std::cout << "Создана равномерная сетка четырехугольных элементов: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
@@ -596,7 +597,7 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &xCount, const UInteger 
                 Point2D nn = node_[i].point;
                 AdjacentSet adjacent = node_[i].adjacent;
                 int acount = 1;
-                double w_sum = 0.0;
+//                double w_sum = 0.0;
                 for (AdjacentSet::iterator it = adjacent.begin(); it != adjacent.end(); ++it)
                 {
                     Quadrilateral aquad = element_[*it];
@@ -738,7 +739,7 @@ double QuadrilateralMesh2D::isoFunc(const UInteger &i, const double &xi, const d
 double QuadrilateralMesh2D::functional(const std::vector<double> &vars)
 {
     double f = 0.0;
-    const double alpha = 0.7;
+    const double alpha = 0.999;
     const double beta = 1.0 - alpha;
     for (UInteger i = 0; i < element_.size(); i++)
     {
@@ -759,30 +760,25 @@ double QuadrilateralMesh2D::functional(const std::vector<double> &vars)
             }
         }
         // Рассмотрим 4х-угольник как 4 треугольника, определенных на его углах
-        double xc = (x[0] + x[1] + x[2] + x[3]) / 4.0;
-        double yc = (y[0] + y[1] + y[2] + y[3]) / 4.0;
         double a [][4] = {{x[0],    x[1],   x[2],   x[3]},
                           {y[0],    y[1],   y[2],   y[3]}};
         double b [][4] = {{x[1],    x[2],   x[3],   x[0]},
                           {y[1],    y[2],   y[3],   y[0]}};
-        double c [][4] = {{xc,    xc,   xc,   xc},
-                          {yc,    yc,   yc,   yc}};
-        double localValue = 0.0;
+        double c [][4] = {{x[3],    x[0],   x[1],   x[2]},
+                          {y[3],    y[0],   y[1],   y[2]}};
         // функция для вычисления квадрата числа (C++0x)
         auto sqr = [](double value) { return value * value; };
-        auto con = [](double x, double y) { return x + y - sqrt(x*x + y*y); };
         for (int q = 0; q < 4; q++)
         {
-            double l = sqr(c[0][q] - a[0][q]) + sqr(c[1][q] - a[1][q]) + sqr(b[0][q] - a[0][q]) + sqr(b[1][q] - a[1][q]);
-            double o = (c[0][q] - a[0][q]) *  (b[0][q] - a[0][q]) + (c[1][q] - a[1][q]) * (b[1][q] - a[1][q]);
-            double alpha = (b[0][q] - a[0][q]) * (c[1][q] - a[1][q]) - (b[1][q] - a[1][q]) * (c[0][q] - a[0][q]);
-//            f += sqr(0.5 * alpha); // площадь
-//                        f += 0.5 * sqr(alpha / 2.0);
-            localValue += l;
-
+//            double length = sqr(c[0][q] - a[0][q]) + sqr(c[1][q] - a[1][q]) + sqr(b[0][q] - a[0][q]) + sqr(b[1][q] - a[1][q]);
+//            double ortho = (c[0][q] - a[0][q]) *  (b[0][q] - a[0][q]) + (c[1][q] - a[1][q]) * (b[1][q] - a[1][q]);
+            double area = sqr((b[0][q] - a[0][q]) * (c[1][q] - a[1][q]) - (b[1][q] - a[1][q]) * (c[0][q] - a[0][q]));
+//            double r = regular(a[0][q], a[1][q], 0.8, 6);
+            double r = con(circle(a[0][q], a[1][q], 0.8), -circle(a[0][q], a[1][q], 0.6));
+            f += area / (1.0 + (r > 0.0 ? 10.0 * r : -r));
+//            f +=  alpha * length + beta *  (1.0 - 1.0 / cosh(r));
+//            localValue += sqr(0.5 * alpha);
         }
-        double r = con(0.81 - sqr(xc) - sqr(yc), sqr(xc) + sqr(yc) - 0.36);
-        f +=  alpha * localValue + beta *  (1.0 - 1.0 / cosh(r));
     }
     return f;
 }
