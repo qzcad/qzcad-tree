@@ -119,6 +119,91 @@ TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, c
         charPoints2d.push_back(Point2D(length, 0.0));
         charPoints2d.push_back(Point2D(length, 2.0 * M_PI));
     }
+    double dl = length / (double)lCount;
+    double dphi = 2.0 * M_PI / (double)rCount;
+    // двоичный поиск вдоль шва
+    for (UInteger i = 0; i < lCount; i++)
+    {
+        double xi0 = (double)i * dl;
+        double xi1 = (double)(i + 1) * dl;
+        double eta = 0.0;
+        double x = radius * cos(eta);
+        double y = radius * sin(eta);
+        double val0 = func(x, xi0, y);
+        double val1 = func(x, xi1, y);
+        if ((val0 > epsilon_ && val1 < epsilon_) || (val0 < epsilon_ && val1 > epsilon_))
+        {
+            double c, val;
+            do
+            {
+                c = 0.5 * (xi0 + xi1);
+                val = func(x, c, y);
+                if (val0 * val < 0.0)
+                {
+                    xi1 = c;
+                    val1 = val;
+                }
+                else
+                {
+                    xi0 = c;
+                    val0 = val;
+                }
+            } while (fabs(xi0 - xi1) > epsilon_ && fabs(val) > epsilon_);
+            charPoints2d.push_back(Point2D(c, 0.0));
+            charPoints2d.push_back(Point2D(c, 2.0 * M_PI));
+        }
+        if (fabs(val0) < epsilon_ && i > 0)
+        {
+            charPoints2d.push_back(Point2D(xi0, 0.0));
+            charPoints2d.push_back(Point2D(xi0, 2.0 * M_PI));
+        }
+        if (fabs(val1) < epsilon_ && i < lCount - 1)
+        {
+            charPoints2d.push_back(Point2D(xi1, 0.0));
+            charPoints2d.push_back(Point2D(xi1, 2.0 * M_PI));
+        }
+    }
+    // двоичный поиск вдоль граней
+    for (UInteger i = 0; i < rCount; i++)
+    {
+        double xi0 = 0.0;
+        double xi1 = length;
+        double eta0 = (double)i * dphi;
+        double eta1 = (double)(i + 1) * dphi;
+        double val0 = func(radius * cos(eta0), xi0, radius * sin(eta0));
+        double val1 = func(radius * cos(eta1), xi0, radius * sin(eta1));
+        if ((val0 > epsilon_ && val1 < epsilon_) || (val0 < epsilon_ && val1 > epsilon_))
+        {
+            double c, val;
+            do
+            {
+                c = 0.5 * (eta0 + eta1);
+                val = func(radius * cos(c), xi0, radius * cos(c));
+                if (val0 * val < 0.0)
+                {
+                    eta1 = c;
+                    val1 = val;
+                }
+                else
+                {
+                    eta0 = c;
+                    val0 = val;
+                }
+            } while (fabs(eta0 - eta1) > epsilon_ && fabs(val) > epsilon_);
+            charPoints2d.push_back(Point2D(xi0, c));
+            std::cout << "...b...";
+        }
+        if (fabs(val0) < epsilon_ && i > 0)
+        {
+            charPoints2d.push_back(Point2D(xi0, eta0));
+            std::cout << "...0...";
+        }
+        if (fabs(val1) < epsilon_ && i < rCount - 1)
+        {
+            charPoints2d.push_back(Point2D(xi0, eta1));
+            std::cout << "...1...";
+        }
+    }
     mesh2d.ruppert(lCount, rCount, -0.001, -0.001, length + 0.002, 2.0 * M_PI + 0.002, func2d, charPoints2d, true);
 
     for (UInteger i = 0; i < mesh2d.nodesCount(); i++)
