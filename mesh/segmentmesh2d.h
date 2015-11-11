@@ -90,14 +90,6 @@ public:
      */
     Segment segment(const UInteger &number) const;
 protected:
-    /**
-     * @brief Двоичный поиск границы функции, пересекаемой отрезком
-     * @param p0 Первая точка отрезка, пересекающего границу
-     * @param p1 Вторая точка отрезка, пересекающего границу
-     * @param func Функция области
-     * @return Координаты пересечения отрезка и границы области
-     */
-    Point2D binary(Point2D p0, Point2D p1, std::function<double(double, double)> func);
 
 private:
     std::vector<Segment> element_; //!< Массив элементов

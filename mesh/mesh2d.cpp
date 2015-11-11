@@ -162,4 +162,35 @@ Point2D Mesh2D::point2d(const UInteger &number) const
 {
     return node_[number].point;
 }
+
+Point2D Mesh2D::binary(Point2D p0, Point2D p1, std::function<double (double, double)> func)
+{
+    double val0 = func(p0.x(), p0.y());
+    double val1 = func(p1.x(), p1.y());
+    if (val0 * val1 > 0)
+    {
+        return Point2D(); // значения в узлах отрезка одного знака => нет решения
+    }
+    if (fabs(val0) < epsilon_) return p0;
+    if (fabs(val1) < epsilon_) return p1;
+    Point2D center;
+    double val;
+    do
+    {
+        center = 0.5 * (p0 + p1);
+        val = func(center.x(), center.y());
+        if (val0 * val < 0)
+        {
+            p1 = center;
+            val1 = val;
+        }
+        else
+        {
+            p0 = center;
+            val0 = val;
+        }
+    } while (!p0.isEqualTo(p1, epsilon_) && fabs(val) > epsilon_);
+    return center;
+}
+
 }

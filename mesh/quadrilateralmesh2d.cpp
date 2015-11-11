@@ -502,8 +502,7 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &xCount, const UInteger 
             // двоичный поиск граничной точки
             Point2D inner = current;
             Point2D outer = current + iso_dist * n;
-            Point2D mid;
-            double val = 0.0;
+            Point2D borderPoint;
             if (func(outer.x(), outer.y()) > 0.0)
             {
                 // внешняя точка перескачила через границу и попала внутрь
@@ -512,19 +511,11 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &xCount, const UInteger 
                 while (func(outer.x(), outer.y()) >= 0.0)
                     outer = outer + (0.0001 * iso_dist) * n;
             }
-            do
-            {
-                mid = 0.5 * (inner + outer);
-                val = func(mid.x(), mid.y());
-                if (val <= 0.0)
-                    outer = mid;
-                else //if (val > 0.0)
-                    inner = mid;
-            } while(inner.distanceTo(outer) > epsilon_);
+            borderPoint = binary(inner, outer, func);
 #ifdef WITH_OPENMP
 #pragma omp critical
 #endif
-            iso[i] = pushNode(mid, BORDER);
+            iso[i] = pushNode(borderPoint, BORDER);
         } // if
     } // for i
     // для характерных точек, которым не нашлась пара на этапе формирования нормалей, используем метод близжайшего узла

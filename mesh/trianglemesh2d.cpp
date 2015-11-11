@@ -227,9 +227,8 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
             // двоичный поиск граничной точки
             Point2D inner = current;
             Point2D outer = current + sqrt(hx*hx + hy*hy) * n;
-            Point2D mid;
+            Point2D borderPoint;
             NodeType nodeType = BORDER;
-            double val = 0.0;
             if (func(outer.x(), outer.y()) > 0.0)
             {
                 // внешняя точка перескачила через границу и попала внутрь
@@ -238,15 +237,7 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
                 while (func(outer.x(), outer.y()) >= 0.0)
                     outer = outer + (0.0001 * sqrt(hx*hx + hy*hy)) * n;
             }
-            do
-            {
-                mid = 0.5 * (inner + outer);
-                val = func(mid.x(), mid.y());
-                if (val <= 0.0)
-                    outer = mid;
-                else //if (val > 0.0)
-                    inner = mid;
-            } while(fabs(val) > epsilon_);
+            borderPoint = binary(inner, outer, func);
 
 //            // поиск соответствующей характерной точки
 //            for (std::list<Point2D>::iterator cPoint = charPoint.begin(); cPoint != charPoint.end(); ++cPoint)
@@ -267,7 +258,7 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
                 if (iso[j] < ULONG_MAX)
                 {
                     Point2D border = node_[iso[j]].point;
-                    if (border.distanceTo(mid) < minDistance)
+                    if (border.distanceTo(borderPoint) < minDistance)
                     {
                         iso[i] = iso[j];
                         isExist = true;
@@ -277,9 +268,9 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
             }
             if (!isExist)
             {
-                if (current.distanceTo(mid) < minDistance)
+                if (current.distanceTo(borderPoint) < minDistance)
                 {
-                    node_[i].point = mid;
+                    node_[i].point = borderPoint;
                     node_[i].type = nodeType;
                     iso[i] = i;
                 }
@@ -288,7 +279,7 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
 #ifdef WITH_OPENMP
 #pragma omp critical
 #endif
-                    iso[i] = pushNode(mid, nodeType);
+                    iso[i] = pushNode(borderPoint, nodeType);
                 }
             }
         }

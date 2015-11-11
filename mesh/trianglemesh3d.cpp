@@ -105,6 +105,14 @@ TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, c
         return con(f, r);
     };
 
+    auto borderFunc = [&](double xi, double eta)
+    {
+        double x = radius * cos(eta);
+        double y = xi;
+        double z = radius * sin(eta);
+        return func(x, y, z);
+    };
+
     std::list<Point2D> charPoints2d;
     TriangleMesh2D mesh2d;
     std::map<UInteger, UInteger> nodes_map;
@@ -133,24 +141,11 @@ TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, c
         double val1 = func(x, xi1, y);
         if ((val0 > epsilon_ && val1 < epsilon_) || (val0 < epsilon_ && val1 > epsilon_))
         {
-            double c, val;
-            do
-            {
-                c = 0.5 * (xi0 + xi1);
-                val = func(x, c, y);
-                if (val0 * val < 0.0)
-                {
-                    xi1 = c;
-                    val1 = val;
-                }
-                else
-                {
-                    xi0 = c;
-                    val0 = val;
-                }
-            } while (fabs(xi0 - xi1) > epsilon_ && fabs(val) > epsilon_);
-            charPoints2d.push_back(Point2D(c, 0.0));
-            charPoints2d.push_back(Point2D(c, 2.0 * M_PI));
+            Point2D p0(xi0, 0.0);
+            Point2D p1(xi1, 0.0);
+            Point2D b = Mesh2D::binary(p0, p1, borderFunc);
+            charPoints2d.push_back(Point2D(b.x(), 0.0));
+            charPoints2d.push_back(Point2D(b.y(), 2.0 * M_PI));
         }
         if (fabs(val0) < epsilon_ && i > 0)
         {
@@ -170,38 +165,25 @@ TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, c
         double xi1 = length;
         double eta0 = (double)i * dphi;
         double eta1 = (double)(i + 1) * dphi;
-        double val0 = func(radius * cos(eta0), xi0, radius * sin(eta0));
-        double val1 = func(radius * cos(eta1), xi0, radius * sin(eta1));
-        if ((val0 > epsilon_ && val1 < epsilon_) || (val0 < epsilon_ && val1 > epsilon_))
+        for (double xi = xi0; xi <= xi1; xi += xi1)
         {
-            double c, val;
-            do
+            double val0 = func(radius * cos(eta0), xi, radius * sin(eta0));
+            double val1 = func(radius * cos(eta1), xi, radius * sin(eta1));
+            if ((val0 > epsilon_ && val1 < epsilon_) || (val0 < epsilon_ && val1 > epsilon_))
             {
-                c = 0.5 * (eta0 + eta1);
-                val = func(radius * cos(c), xi0, radius * cos(c));
-                if (val0 * val < 0.0)
-                {
-                    eta1 = c;
-                    val1 = val;
-                }
-                else
-                {
-                    eta0 = c;
-                    val0 = val;
-                }
-            } while (fabs(eta0 - eta1) > epsilon_ && fabs(val) > epsilon_);
-            charPoints2d.push_back(Point2D(xi0, c));
-            std::cout << "...b...";
-        }
-        if (fabs(val0) < epsilon_ && i > 0)
-        {
-            charPoints2d.push_back(Point2D(xi0, eta0));
-            std::cout << "...0...";
-        }
-        if (fabs(val1) < epsilon_ && i < rCount - 1)
-        {
-            charPoints2d.push_back(Point2D(xi0, eta1));
-            std::cout << "...1...";
+                Point2D p0(xi, eta0);
+                Point2D p1(xi, eta1);
+                Point2D b = Mesh2D::binary(p0, p1, borderFunc);
+                charPoints2d.push_back(Point2D(xi, b.y()));
+            }
+            if (fabs(val0) < epsilon_ && i > 0)
+            {
+                charPoints2d.push_back(Point2D(xi, eta0));
+            }
+            if (fabs(val1) < epsilon_ && i < rCount - 1)
+            {
+                charPoints2d.push_back(Point2D(xi, eta1));
+            }
         }
     }
     mesh2d.ruppert(lCount, rCount, -0.001, -0.001, length + 0.002, 2.0 * M_PI + 0.002, func2d, charPoints2d, true);
@@ -209,7 +191,7 @@ TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, c
     for (UInteger i = 0; i < mesh2d.nodesCount(); i++)
     {
         Point2D p = mesh2d.point2d(i);
-        NodeType nodeType = (fabs(p.x()) < epsilon_ || fabs(p.x() - length) < epsilon()) ? CHARACTER : BORDER;
+        NodeType nodeType = (fabs(func2d(p.x(), p.y())) < epsilon_) ? CHARACTER : BORDER;
         if (fabs(p.y() - 2.0 * M_PI) < epsilon_)
             nodes_map[i] = addNode(Point3D(radius * cos(p.y()), p.x(), radius * sin(p.y())), CHARACTER);
         else

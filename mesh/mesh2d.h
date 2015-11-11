@@ -9,6 +9,7 @@
 #define MESH2D_H
 
 #include <vector>
+#include <functional>
 
 #include "mesh.h"
 #include "node2d.h"
@@ -134,6 +135,14 @@ public:
      */
     UInteger adjacentCount(const UInteger &nodeNumber) const;
     Point2D point2d(const UInteger &number) const;
+    /**
+     * @brief Двоичный поиск границы функции, пересекаемой отрезком
+     * @param p0 Первая точка отрезка, пересекающего границу
+     * @param p1 Вторая точка отрезка, пересекающего границу
+     * @param func Функция области
+     * @return Координаты пересечения отрезка и границы области
+     */
+    static Point2D binary(Point2D p0, Point2D p1, std::function<double(double, double)> func);
 protected:
     std::vector<Node2D> node_; //!< массив узлов
     double xMin_; //!< минимальное значение ординаты
