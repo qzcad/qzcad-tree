@@ -134,7 +134,24 @@ public:
      * @return Количество элементов, смежных в узле
      */
     UInteger adjacentCount(const UInteger &nodeNumber) const;
+    /**
+     * @brief Метод возвращает множество номеров смежных в узле элементов
+     * @param nodeNumber Номер узла
+     * @return Множество смежных элементов (их номера)
+     */
+    AdjacentSet adjacent(const UInteger &nodeNumber) const;
+    /**
+     * @brief Метод возвращает двумерные координаты узла
+     * @param number Номер узла
+     * @return Двумерные координаты узла
+     */
     Point2D point2d(const UInteger &number) const;
+    /**
+     * @brief Метод изменяет координаты узла на заданные
+     * @param number Номер узла
+     * @param p Координаты
+     */
+    void setPoint(const UInteger &number, const Point2D &p);
     /**
      * @brief Двоичный поиск границы функции, пересекаемой отрезком
      * @param p0 Первая точка отрезка, пересекающего границу

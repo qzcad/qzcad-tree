@@ -773,7 +773,7 @@ void GLMeshPicture::paintGL()
                 glNormal3d(0.0, 0.0, -1.0);
                 msh::UIntegerVector face = element->face(0);
                 if (visualizationMode_ == ELEMENT_VALUE  && valueIndex_ < elementValues_.size())
-                    qglColor(map_.color(elementValues_[valueIndex_][i]));
+                    qglColor(map_.color(elementValues_[valueIndex_][i], 256));
                 else
                     qglColor(elementColor_);
                 drawFace(face, GL_LINES, 2.0, 1.0);
@@ -818,7 +818,7 @@ void GLMeshPicture::paintGL()
                         ny = ny / nn;
                         nz = nz / nn;
                         if (visualizationMode_ == ELEMENT_VALUE  && valueIndex_ < elementValues_.size())
-                            qglColor(map_.color(elementValues_[valueIndex_][i]));
+                            qglColor(map_.color(elementValues_[valueIndex_][i], 1024));
                         else if (visualizationMode_ == USER_COLOR || visualizationMode_ == ELEMENT_VALUE)
                             qglColor(elementColor_);
                         // нормаль к многоугольнику

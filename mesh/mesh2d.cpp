@@ -158,9 +158,19 @@ UInteger Mesh2D::adjacentCount(const UInteger &nodeNumber) const
     return node_[nodeNumber].adjacent.size();
 }
 
+AdjacentSet Mesh2D::adjacent(const UInteger &nodeNumber) const
+{
+    return node_[nodeNumber].adjacent;
+}
+
 Point2D Mesh2D::point2d(const UInteger &number) const
 {
     return node_[number].point;
+}
+
+void Mesh2D::setPoint(const UInteger &number, const Point2D &p)
+{
+    node_[number].point = p;
 }
 
 Point2D Mesh2D::binary(Point2D p0, Point2D p1, std::function<double (double, double)> func)
@@ -189,7 +199,7 @@ Point2D Mesh2D::binary(Point2D p0, Point2D p1, std::function<double (double, dou
             p0 = center;
             val0 = val;
         }
-    } while (!p0.isEqualTo(p1, epsilon_) && fabs(val) > epsilon_);
+    } while (fabs(val) > epsilon_);
     return center;
 }
 

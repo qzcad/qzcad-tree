@@ -188,6 +188,38 @@ TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, c
     }
     mesh2d.ruppert(lCount, rCount, -0.001, -0.001, length + 0.002, 2.0 * M_PI + 0.002, func2d, charPoints2d, true);
 
+    // сглаживание Лапласа, взвешенное по растояниям до соседних узлов
+    for (int iter = 0; iter < 5; iter++)
+    {
+        for (UInteger i = 0; i < mesh2d.nodesCount(); i++)
+        {
+            if (mesh2d.nodeType(i) == INNER)
+            {
+                Point2D s(0.0, 0.0);
+                Point2D c = mesh2d.point2d(i);
+                Point3D c3 (radius * cos(c.y()), c.x(), radius * sin(c.y()));
+                AdjacentSet adjacent = mesh2d.adjacent(i);
+                double w_sum = 0.0;
+                for (AdjacentSet::iterator it = adjacent.begin(); it != adjacent.end(); ++it)
+                {
+                    Triangle t = mesh2d.triangle(*it);
+                    for (int nnode = 0; nnode < 3; nnode++)
+                    {
+                        if (t[nnode] != i)
+                        {
+                            Point2D p = mesh2d.point2d(t[nnode]);
+                            Point3D p3(radius * cos(p.y()), p.x(), radius * sin(p.y()));
+                            double w = c3.distanceTo(p3);
+                            w_sum += w;
+                            s = s + (w * p);
+                        }
+                    }
+                }
+                mesh2d.setPoint(i, (1.0 / w_sum) * s);
+            }
+        } // for i
+    }
+
     for (UInteger i = 0; i < mesh2d.nodesCount(); i++)
     {
         Point2D p = mesh2d.point2d(i);
