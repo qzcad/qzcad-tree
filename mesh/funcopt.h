@@ -16,7 +16,7 @@ std::vector<double> conjugateGradient(CoordinateFunction Functional,
 std::vector<double> descentGradient(CoordinateFunction Functional,
                                     const std::vector<double> &x0,
                                     const double &h,
-                                    const double &epsilon, int maxIter = 1000);
+                                    const double &epsilon, int maxIter = 1000, bool messages = true);
 
 std::vector<double> nabla(CoordinateFunction Functional, const std::vector<double> &x, double h);
 

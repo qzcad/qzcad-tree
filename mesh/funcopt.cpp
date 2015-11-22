@@ -141,11 +141,14 @@ double norm2(const std::vector<double> &x)
     return norm;
 }
 
-std::vector<double> descentGradient(CoordinateFunction Functional, const std::vector<double> &x0, const double &h, const double &epsilon, int maxIter)
+std::vector<double> descentGradient(CoordinateFunction Functional, const std::vector<double> &x0, const double &h, const double &epsilon, int maxIter, bool messages)
 {
     std::vector<double> xk = x0;
     double fxk = Functional(xk);
-    std::cout << "Gradient Descent Method analysis" << std::endl;
+
+    if (messages == true)
+        std::cout << "Gradient Descent Method analysis" << std::endl;
+
     for(int k = 0; k < maxIter; k++)
     {
         std::vector<double> sk = nabla(Functional, xk, h);
@@ -166,7 +169,7 @@ std::vector<double> descentGradient(CoordinateFunction Functional, const std::ve
 
         fxk = fxk1;
 
-        if (k%10 == 0) std::cout << "residual: " << residual << std::endl;
+        if (messages && (k%10 == 0)) std::cout << "residual: " << residual << std::endl;
     }
     return xk;
 }
