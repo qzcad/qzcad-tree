@@ -128,7 +128,7 @@ void Fem::quadrature(int count, DoubleVector &point, DoubleVector &weight)
         point(4) = -point(0);
         weight(0) = (322.0 - 13.0 * sqrt(70.0)) / 900.0;
         weight(1) = (322.0 + 13.0 * sqrt(70.0)) / 900.0;
-        weight(2) = 128.0 / 255.0;
+        weight(2) = 128.0 / 225.0;
         weight(3) = weight(1);
         weight(4) = weight(0);
     }
