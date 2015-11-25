@@ -163,6 +163,7 @@ void Fem::quadrature(int count, DoubleVector &xi, DoubleVector &eta, DoubleVecto
     default:
         xi(0) = 1.0 / 3.0;  eta(0) = 1.0 / 3.0; weight(0) = 1.0;
     }
+    weight.scale(0.5); // площадь единичного треугольника равна 0,5
 }
 
 void Fem::setInitialNodalValue(MappedDoubleMatrix &global, DoubleVector &force, const UInteger &rowNumber, const double value)

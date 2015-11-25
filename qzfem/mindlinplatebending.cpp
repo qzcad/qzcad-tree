@@ -93,7 +93,7 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
             double jacobian = 1.0;
             if (dynamic_cast<TriangleMesh2D*>(mesh) != NULL)
             {
-                jacobian = 0.5 * isoTriangle3(xi, eta, x, y, N, dNdX, dNdY);
+                jacobian = isoTriangle3(xi, eta, x, y, N, dNdX, dNdY);
             }
             else if (dynamic_cast<QuadrilateralMesh2D*>(mesh) != NULL)
             {
@@ -254,7 +254,7 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
                     double jacobian = 1.0;
                     if (dynamic_cast<TriangleMesh2D*>(mesh) != NULL)
                     {
-                        jacobian = 0.5 * isoTriangle3(xi, eta, x, y, N, dNdX, dNdY);
+                        jacobian = isoTriangle3(xi, eta, x, y, N, dNdX, dNdY);
                     }
                     else if (dynamic_cast<QuadrilateralMesh2D*>(mesh) != NULL)
                     {
@@ -550,7 +550,7 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh, const std::vector<double>
             double jacobian = 1.0;
             if (dynamic_cast<TriangleMesh2D*>(mesh) != NULL)
             {
-                jacobian = 0.5 * isoTriangle3(xi, eta, x, y, N, dNdX, dNdY);
+                jacobian = isoTriangle3(xi, eta, x, y, N, dNdX, dNdY);
             }
             else if (dynamic_cast<QuadrilateralMesh2D*>(mesh) != NULL)
             {
@@ -717,7 +717,7 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh, const std::vector<double>
                     double jacobian = 1.0;
                     if (dynamic_cast<TriangleMesh2D*>(mesh) != NULL)
                     {
-                        jacobian = 0.5 * isoTriangle3(xi, eta, x, y, N, dNdX, dNdY);
+                        jacobian = isoTriangle3(xi, eta, x, y, N, dNdX, dNdY);
                     }
                     else if (dynamic_cast<QuadrilateralMesh2D*>(mesh) != NULL)
                     {
