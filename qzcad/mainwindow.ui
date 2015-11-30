@@ -85,7 +85,7 @@
      <x>0</x>
      <y>0</y>
      <width>943</width>
-     <height>19</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -200,7 +200,15 @@
     <property name="title">
      <string>Скрипт</string>
     </property>
+    <widget class="QMenu" name="menu2dScripts">
+     <property name="title">
+      <string>Скрипты двумерных объектов...</string>
+     </property>
+     <addaction name="action_Segments"/>
+    </widget>
     <addaction name="actionRunScript"/>
+    <addaction name="separator"/>
+    <addaction name="menu2dScripts"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuScrit"/>
@@ -620,6 +628,11 @@
   <action name="actionAngleAspect">
    <property name="text">
     <string>Соотношение углов</string>
+   </property>
+  </action>
+  <action name="action_Segments">
+   <property name="text">
+    <string>Сегменты</string>
    </property>
   </action>
  </widget>

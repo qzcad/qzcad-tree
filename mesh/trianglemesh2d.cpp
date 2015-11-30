@@ -842,7 +842,7 @@ bool TriangleMesh2D::circumCircle(double xp, double yp, double x1, double y1, do
     dx = xp - xc;
     dy = yp - yc;
     drsqr = dx * dx + dy * dy;
-    return ((drsqr <= rsqr || fabs(drsqr - rsqr) < epsilon_) ? true : false);
+    return (drsqr <= rsqr + 100.0 * epsilon_);
 }
 
 }

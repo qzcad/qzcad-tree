@@ -1082,3 +1082,9 @@ void MainWindow::on_actionAngleAspect_triggered()
         std::cout << "Выполнено: " << min << "<= aspect(alpha) <= " << max << std::endl;
     }
 }
+
+void MainWindow::on_action_Segments_triggered()
+{
+    QString command = "var mesh = new Segments2D(xCount: Integer, yCount: Integer, origin: Point2D, width: Floating, height: Floating, function: Function[, points: Array])";
+    ui->codeEditor->insertPlainText(command);
+}

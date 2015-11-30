@@ -177,12 +177,15 @@ Point2D Mesh2D::binary(Point2D p0, Point2D p1, std::function<double (double, dou
 {
     double val0 = func(p0.x(), p0.y());
     double val1 = func(p1.x(), p1.y());
+
+    if (fabs(val0) < epsilon_) return p0;
+    if (fabs(val1) < epsilon_) return p1;
+
     if (val0 * val1 > 0)
     {
         return Point2D(); // значения в узлах отрезка одного знака => нет решения
     }
-    if (fabs(val0) < epsilon_) return p0;
-    if (fabs(val1) < epsilon_) return p1;
+
     Point2D center;
     double val;
     do
