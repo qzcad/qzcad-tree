@@ -200,15 +200,54 @@
     <property name="title">
      <string>Скрипт</string>
     </property>
-    <widget class="QMenu" name="menu2dScripts">
+    <widget class="QMenu" name="menuFunctionScripts">
      <property name="title">
-      <string>Скрипты двумерных объектов...</string>
+      <string>&amp;Функциональные объекты...</string>
      </property>
-     <addaction name="action_Segments"/>
+    </widget>
+    <widget class="QMenu" name="menuMeshScripts">
+     <property name="title">
+      <string>&amp;Дискретные модели...</string>
+     </property>
+     <widget class="QMenu" name="menuBackgroundMeshScripts">
+      <property name="title">
+       <string>Метод фоновой сетки...</string>
+      </property>
+      <addaction name="actionSegments"/>
+      <addaction name="separator"/>
+      <addaction name="actionTrianglesScript"/>
+      <addaction name="actionQuadsScript"/>
+      <addaction name="separator"/>
+      <addaction name="actionTetrahedraScript"/>
+      <addaction name="actionHexahedraScript"/>
+     </widget>
+     <widget class="QMenu" name="menuDelaunayScripts">
+      <property name="title">
+       <string>Методы Делоне...</string>
+      </property>
+      <addaction name="actionDelaunayTriScript"/>
+      <addaction name="actionRuppertTriScript"/>
+     </widget>
+     <widget class="QMenu" name="menuRectangularScripts">
+      <property name="title">
+       <string>Прямоугольная область...</string>
+      </property>
+      <addaction name="actionRectangularTriScript"/>
+      <addaction name="actionRectangularQuadsScript"/>
+      <addaction name="separator"/>
+      <addaction name="actionRecangularTetScript"/>
+      <addaction name="actionRectangularHexScript"/>
+     </widget>
+     <addaction name="menuBackgroundMeshScripts"/>
+     <addaction name="menuDelaunayScripts"/>
+     <addaction name="separator"/>
+     <addaction name="menuRectangularScripts"/>
     </widget>
     <addaction name="actionRunScript"/>
     <addaction name="separator"/>
-    <addaction name="menu2dScripts"/>
+    <addaction name="menuFunctionScripts"/>
+    <addaction name="separator"/>
+    <addaction name="menuMeshScripts"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuScrit"/>
@@ -630,9 +669,64 @@
     <string>Соотношение углов</string>
    </property>
   </action>
-  <action name="action_Segments">
+  <action name="actionSegments">
    <property name="text">
     <string>Сегменты</string>
+   </property>
+  </action>
+  <action name="action_2">
+   <property name="text">
+    <string>Метод</string>
+   </property>
+  </action>
+  <action name="actionTrianglesScript">
+   <property name="text">
+    <string>Треугольники</string>
+   </property>
+  </action>
+  <action name="actionQuadsScript">
+   <property name="text">
+    <string>Четырехугольники</string>
+   </property>
+  </action>
+  <action name="actionTetrahedraScript">
+   <property name="text">
+    <string>Тетраэдры</string>
+   </property>
+  </action>
+  <action name="actionHexahedraScript">
+   <property name="text">
+    <string>Шестигранники</string>
+   </property>
+  </action>
+  <action name="actionDelaunayTriScript">
+   <property name="text">
+    <string>Триангуляция Делоне</string>
+   </property>
+  </action>
+  <action name="actionRuppertTriScript">
+   <property name="text">
+    <string>Триангуляця Рапперта</string>
+   </property>
+  </action>
+  <action name="actionRectangularTriScript">
+   <property name="text">
+    <string>Треугольники</string>
+   </property>
+  </action>
+  <action name="actionRectangularQuadsScript">
+   <property name="text">
+    <string>Четырехугольники</string>
+   </property>
+  </action>
+  <action name="actionRecangularTetScript">
+   <property name="text">
+    <string>Тетраэдры</string>
+   </property>
+  </action>
+  <action name="actionRectangularHexScript">
+   <property name="text">
+    <string>Шестигранники</string>
    </property>
   </action>
  </widget>

@@ -84,9 +84,9 @@ void CodeEditor::keyReleaseEvent(QKeyEvent *e)
         int numberOfTabulations = lines[indexCurrentLine-1].count('\t');
 
         if(lines[indexCurrentLine-1].contains('{'))
-            numberOfTabulations ++;
-        else if(lines[indexCurrentLine-1].contains('}'))
-            numberOfTabulations--;
+            numberOfTabulations++;
+        if(lines[indexCurrentLine-1].contains('}'))
+            --numberOfTabulations;
 
         for (register int i = 0; i < numberOfTabulations; i++)
             insertPlainText(QString('\t'));

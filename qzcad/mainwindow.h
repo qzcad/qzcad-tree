@@ -104,7 +104,19 @@ private slots:
 
     void on_actionAngleAspect_triggered();
 
-    void on_action_Segments_triggered();
+    void on_actionSegments_triggered();
+
+    void on_actionTrianglesScript_triggered();
+
+    void on_actionQuadsScript_triggered();
+
+    void on_actionDelaunayTriScript_triggered();
+
+    void on_actionRuppertTriScript_triggered();
+
+    void on_actionRectangularTriScript_triggered();
+
+    void on_actionRectangularQuadsScript_triggered();
 
 private:
     Ui::MainWindow *ui; //!< Контейнер элементов графического интерфейса
