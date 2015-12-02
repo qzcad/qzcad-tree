@@ -118,6 +118,22 @@ private slots:
 
     void on_actionRectangularQuadsScript_triggered();
 
+    void on_actionSumScript_triggered();
+
+    void on_actionConjunctionScript_triggered();
+
+    void on_actionDisjunctionScript_triggered();
+
+    void on_actionDifferenceScript_triggered();
+
+    void on_actionCylinderTriScript_triggered();
+
+    void on_actionCylinderQuadsScript_triggered();
+
+    void on_actionConeTriScript_triggered();
+
+    void on_actionConeQuadsScript_triggered();
+
 private:
     Ui::MainWindow *ui; //!< Контейнер элементов графического интерфейса
     QStdRedirector<> *stdRedirector; //!< Перехватчик сообщений стандартного потока

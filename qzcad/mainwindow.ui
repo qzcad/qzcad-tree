@@ -204,6 +204,12 @@
      <property name="title">
       <string>&amp;Функциональные объекты...</string>
      </property>
+     <addaction name="actionSumScript"/>
+     <addaction name="separator"/>
+     <addaction name="actionConjunctionScript"/>
+     <addaction name="actionDisjunctionScript"/>
+     <addaction name="actionDifferenceScript"/>
+     <addaction name="separator"/>
     </widget>
     <widget class="QMenu" name="menuMeshScripts">
      <property name="title">
@@ -238,10 +244,27 @@
       <addaction name="actionRecangularTetScript"/>
       <addaction name="actionRectangularHexScript"/>
      </widget>
+     <widget class="QMenu" name="menuCylinderScript">
+      <property name="title">
+       <string>Цилиндричекая поверхность...</string>
+      </property>
+      <addaction name="actionCylinderTriScript"/>
+      <addaction name="actionCylinderQuadsScript"/>
+     </widget>
+     <widget class="QMenu" name="menuConeScript">
+      <property name="title">
+       <string>Коническая поверхность...</string>
+      </property>
+      <addaction name="actionConeTriScript"/>
+      <addaction name="actionConeQuadsScript"/>
+     </widget>
      <addaction name="menuBackgroundMeshScripts"/>
      <addaction name="menuDelaunayScripts"/>
      <addaction name="separator"/>
      <addaction name="menuRectangularScripts"/>
+     <addaction name="separator"/>
+     <addaction name="menuCylinderScript"/>
+     <addaction name="menuConeScript"/>
     </widget>
     <addaction name="actionRunScript"/>
     <addaction name="separator"/>
@@ -727,6 +750,46 @@
   <action name="actionRectangularHexScript">
    <property name="text">
     <string>Шестигранники</string>
+   </property>
+  </action>
+  <action name="actionConjunctionScript">
+   <property name="text">
+    <string>&amp;Конъюнкция</string>
+   </property>
+  </action>
+  <action name="actionDisjunctionScript">
+   <property name="text">
+    <string>&amp;Дизъюнкция</string>
+   </property>
+  </action>
+  <action name="actionDifferenceScript">
+   <property name="text">
+    <string>&amp;Разность</string>
+   </property>
+  </action>
+  <action name="actionSumScript">
+   <property name="text">
+    <string>Сумма</string>
+   </property>
+  </action>
+  <action name="actionCylinderTriScript">
+   <property name="text">
+    <string>Треугольники</string>
+   </property>
+  </action>
+  <action name="actionCylinderQuadsScript">
+   <property name="text">
+    <string>Четырехугольники</string>
+   </property>
+  </action>
+  <action name="actionConeTriScript">
+   <property name="text">
+    <string>Треугольники</string>
+   </property>
+  </action>
+  <action name="actionConeQuadsScript">
+   <property name="text">
+    <string>Четырехугольники</string>
    </property>
   </action>
  </widget>

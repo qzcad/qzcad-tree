@@ -1124,3 +1124,51 @@ void MainWindow::on_actionRectangularQuadsScript_triggered()
     QString command = "var mesh = new Quads2D(xCount: Integer, yCount: Integer, origin: new Point2D(x, y), width: Floating, height: Floating);";
     ui->codeEditor->insertPlainText(command);
 }
+
+void MainWindow::on_actionSumScript_triggered()
+{
+    QString command = "sum(a, b, c, ...)";
+    ui->codeEditor->insertPlainText(command);
+}
+
+void MainWindow::on_actionConjunctionScript_triggered()
+{
+    QString command = "con(a, b, c, ...)";
+    ui->codeEditor->insertPlainText(command);
+}
+
+void MainWindow::on_actionDisjunctionScript_triggered()
+{
+    QString command = "dis(a, b, c, ...)";
+    ui->codeEditor->insertPlainText(command);
+}
+
+void MainWindow::on_actionDifferenceScript_triggered()
+{
+    QString command = "diff(a, b, c, ...)";
+    ui->codeEditor->insertPlainText(command);
+}
+
+void MainWindow::on_actionCylinderTriScript_triggered()
+{
+    QString command = "var mesh = CylinderTriangles(rCount: Integer, lCount: Integer, radius: Floating, length: Floating[, function (x, y, z) { return value; });";
+    ui->codeEditor->insertPlainText(command);
+}
+
+void MainWindow::on_actionCylinderQuadsScript_triggered()
+{
+    QString command = "var mesh = CylinderQuads(rCount: Integer, lCount: Integer, radius: Floating, length: Floating[, function (x, y, z) { return value; });";
+    ui->codeEditor->insertPlainText(command);
+}
+
+void MainWindow::on_actionConeTriScript_triggered()
+{
+    QString command = "var mesh = ConeTriangles(rCount: Integer, lCount: Integer, radiusBottom: Floating, radiusTop: Floating, length: Floating[, function (x, y, z) { return value; });";
+    ui->codeEditor->insertPlainText(command);
+}
+
+void MainWindow::on_actionConeQuadsScript_triggered()
+{
+    QString command = "var mesh = ConeQuads(rCount: Integer, lCount: Integer, radiusBottom: Floating, radiusTop: Floating, length: Floating[, function (x, y, z) { return value; });";
+    ui->codeEditor->insertPlainText(command);
+}
