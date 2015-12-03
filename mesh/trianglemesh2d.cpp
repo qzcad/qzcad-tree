@@ -659,7 +659,7 @@ void TriangleMesh2D::superRuppert(TriangleMesh2D::Triangulation &triangulation)
 {
     UInteger niter = 0;
     std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
-    while (triangle != triangulation.triangles.end() && niter < 5000000UL)
+    while (triangle != triangulation.triangles.end() && niter < 10000000UL)
     {
         if (triangle->vertexNode(0) > 3 && triangle->vertexNode(1) > 3 && triangle->vertexNode(2) > 3)
         {
@@ -691,7 +691,7 @@ void TriangleMesh2D::areaRefinement(double max_area, std::function<double (doubl
 {
     UInteger niter = 0;
     std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
-    while (triangle != triangulation.triangles.end() && niter < 5000000UL)
+    while (triangle != triangulation.triangles.end() && niter < 4294967294UL)
     {
         if (triangle->vertexNode(0) > 3 && triangle->vertexNode(1) > 3 && triangle->vertexNode(2) > 3)
         {

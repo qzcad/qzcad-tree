@@ -202,7 +202,7 @@ Point2D Mesh2D::binary(Point2D p0, Point2D p1, std::function<double (double, dou
             p0 = center;
             val0 = val;
         }
-    } while (fabs(val) > epsilon_);
+    } while (fabs(val) >= epsilon_);
     return center;
 }
 

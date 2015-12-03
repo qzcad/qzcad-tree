@@ -50,9 +50,8 @@ public:
      * @param radius Радиус
      * @param length Высота
      * @param func Функция, положительная во внутренних точка и отрицательная во внешних
-     * @param charPoints Массив характерных точек
      */
-    TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length, std::function<double(double, double, double)> func, std::list<Point3D> charPoints);
+    TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length, std::function<double(double, double, double)> func);
     /**
      * @brief Конструктор для создания равномерной сетки в конических координатах
      * @param rCount Количество элементов вдоль радиуса
@@ -62,6 +61,16 @@ public:
      * @param length Высота
      */
     TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length);
+    /**
+     * @brief Конструктор для создания равномерной сетки в конических координатах с адаптацией под область, ограниченную функцией
+     * @param rCount Количество элементов вдоль радиуса
+     * @param lCount Количество элементов вдоль образующей
+     * @param bottom_radius Нижний радиус
+     * @param top_radius Верхний радиус
+     * @param length Высота
+     * @param func Функция, положительная во внутренних точка и отрицательная во внешних
+     */
+    TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length, std::function<double(double, double, double)> func);
     /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
