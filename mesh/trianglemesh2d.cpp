@@ -554,12 +554,74 @@ void TriangleMesh2D::ruppert(const UInteger &xCount, const UInteger &yCount, con
             Point2D A = triangulation.nodes[triangle->vertexNode(0)];
             Point2D B = triangulation.nodes[triangle->vertexNode(1)];
             Point2D C = triangulation.nodes[triangle->vertexNode(2)];
-            Point2D center = (1.0 / 3.0) * (A + B + C);
-            if (func(center.x(), center.y()) > 0)
+            Point2D center = 1.0 / 3.0 * (A + B + C);
+            double val_a = func(A.x(), A.y());
+            double val_b = func(B.x(), B.y());
+            double val_c = func(C.x(), C.y());
+            double val_center = func(center.x(), center.y());
+//            if (val_center > -epsilon_)
+            if (val_a > -epsilon_ && val_b > -epsilon_ && val_c > -epsilon_ && val_center > epsilon_)
             {
                 addElement(addNode(A, triangulation.types[triangle->vertexNode(0)]),
                         addNode(B, triangulation.types[triangle->vertexNode(1)]),
                         addNode(C, triangulation.types[triangle->vertexNode(2)]));
+            }
+            else
+            {
+                if (val_a * val_b < 0.0 && fabs(val_a) > epsilon_ && fabs(val_b) > epsilon_)
+                {
+                    Point2D P = binary(A, B, func);
+                    if (val_a > -epsilon_)
+                    {
+                        B = P;
+                        addElement(addNode(A, triangulation.types[triangle->vertexNode(0)]),
+                                addNode(B, BORDER),
+                                addNode(C, triangulation.types[triangle->vertexNode(2)]));
+                    }
+                    if (val_b > -epsilon_)
+                    {
+                        A = P;
+                        addElement(addNode(A, BORDER),
+                                addNode(B, triangulation.types[triangle->vertexNode(1)]),
+                                addNode(C, triangulation.types[triangle->vertexNode(2)]));
+                    }
+                }
+                if (val_a * val_c < 0.0 && fabs(val_a) > epsilon_ && fabs(val_c) > epsilon_)
+                {
+                    Point2D P = binary(A, C, func);
+                    if (val_a > -epsilon_)
+                    {
+                        C = P;
+                        addElement(addNode(A, triangulation.types[triangle->vertexNode(0)]),
+                                addNode(B, triangulation.types[triangle->vertexNode(1)]),
+                                addNode(C, BORDER));
+                    }
+                    if (val_c > -epsilon_)
+                    {
+                        A = P;
+                        addElement(addNode(A, BORDER),
+                                addNode(B, triangulation.types[triangle->vertexNode(1)]),
+                                addNode(C, triangulation.types[triangle->vertexNode(2)]));
+                    }
+                }
+                if (val_c * val_b < 0.0 && fabs(val_c) > epsilon_ && fabs(val_b) > epsilon_)
+                {
+                    Point2D P = binary(C, B, func);
+                    if (val_c > -epsilon_)
+                    {
+                        B = P;
+                        addElement(addNode(A, triangulation.types[triangle->vertexNode(0)]),
+                                addNode(B, BORDER),
+                                addNode(C, triangulation.types[triangle->vertexNode(2)]));
+                    }
+                    if (val_b > -epsilon_)
+                    {
+                        C = P;
+                        addElement(addNode(A, triangulation.types[triangle->vertexNode(0)]),
+                                addNode(B, triangulation.types[triangle->vertexNode(1)]),
+                                addNode(C, BORDER));
+                    }
+                }
             }
         }
     }

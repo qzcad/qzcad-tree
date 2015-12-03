@@ -90,28 +90,26 @@ TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, c
 
 TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length, std::function<double (double, double, double)> func)
 {
-    double length_2 = length / 2.0;
+    const double xi_max = 2.0 * M_PI * length / radius;
+    const double xi_max_2 = xi_max / 2.0;
     auto con = [](const double &x, const double &y)
     {
         return x + y - sqrt(x*x + y*y);
     };
 
-    auto func2d = [&](double xi, double eta)
+    auto local_func = [&](double xi, double eta)
     {
         double x = radius * cos(eta);
-        double y = xi;
-        double z = radius * sin(eta);
-        double f = func(x, y, z);
-        double r = con(length_2 * length_2 - (xi - length_2) * (xi - length_2), M_PI * M_PI - (eta - M_PI) * (eta - M_PI));
-        return con(f, r);
-    };
-
-    auto borderFunc = [&](double xi, double eta)
-    {
-        double x = radius * cos(eta);
-        double y = xi;
+        double y = length * xi / xi_max;
         double z = radius * sin(eta);
         return func(x, y, z);
+    };
+
+    auto func2d = [&](double xi, double eta)
+    {
+        double f = local_func(xi, eta);
+        double r = con(xi_max_2 * xi_max_2 - (xi - xi_max_2) * (xi - xi_max_2), M_PI * M_PI - (eta - M_PI) * (eta - M_PI));
+        return con(f, r);
     };
 
     std::list<Point2D> charPoints2d;
@@ -123,12 +121,12 @@ TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, c
         charPoints2d.push_back(Point2D(0.0, 0.0));
         charPoints2d.push_back(Point2D(0.0, 2.0 * M_PI));
     }
-    if (func2d(length, 0.0) < epsilon_ )
+    if (func2d(xi_max, 0.0) < epsilon_ )
     {
-        charPoints2d.push_back(Point2D(length, 0.0));
-        charPoints2d.push_back(Point2D(length, 2.0 * M_PI));
+        charPoints2d.push_back(Point2D(xi_max, 0.0));
+        charPoints2d.push_back(Point2D(xi_max, 2.0 * M_PI));
     }
-    double dl = length / (double)lCount;
+    double dl = xi_max / (double)lCount;
     double dphi = 2.0 * M_PI / (double)rCount;
     // двоичный поиск вдоль шва
     for (UInteger i = 0; i < lCount; i++)
@@ -136,15 +134,13 @@ TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, c
         double xi0 = (double)i * dl;
         double xi1 = (double)(i + 1) * dl;
         double eta = 0.0;
-        double x = radius * cos(eta);
-        double y = radius * sin(eta);
-        double val0 = func(x, xi0, y);
-        double val1 = func(x, xi1, y);
+        double val0 = local_func(xi0, eta);
+        double val1 = local_func(xi1, eta);
         if ((val0 > epsilon_ && val1 < epsilon_) || (val0 < epsilon_ && val1 > epsilon_))
         {
             Point2D p0(xi0, 0.0);
             Point2D p1(xi1, 0.0);
-            Point2D b = Mesh2D::binary(p0, p1, borderFunc);
+            Point2D b = Mesh2D::binary(p0, p1, local_func);
             charPoints2d.push_back(Point2D(b.x(), 0.0));
             charPoints2d.push_back(Point2D(b.y(), 2.0 * M_PI));
         }
@@ -163,18 +159,18 @@ TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, c
     for (UInteger i = 0; i < rCount; i++)
     {
         double xi0 = 0.0;
-        double xi1 = length;
+        double xi1 = xi_max;
         double eta0 = (double)i * dphi;
         double eta1 = (double)(i + 1) * dphi;
         for (double xi = xi0; xi <= xi1; xi += xi1)
         {
-            double val0 = func(radius * cos(eta0), xi, radius * sin(eta0));
-            double val1 = func(radius * cos(eta1), xi, radius * sin(eta1));
+            double val0 = local_func(xi, eta0);
+            double val1 = local_func(xi, eta1);
             if ((val0 > epsilon_ && val1 < epsilon_) || (val0 < epsilon_ && val1 > epsilon_))
             {
                 Point2D p0(xi, eta0);
                 Point2D p1(xi, eta1);
-                Point2D b = Mesh2D::binary(p0, p1, borderFunc);
+                Point2D b = Mesh2D::binary(p0, p1, local_func);
                 charPoints2d.push_back(Point2D(xi, b.y()));
             }
             if (fabs(val0) < epsilon_ && i > 0)
@@ -187,39 +183,39 @@ TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, c
             }
         }
     }
-    mesh2d.ruppert(lCount, rCount, -0.001, -0.001, length + 0.002, 2.0 * M_PI + 0.002, func2d, charPoints2d, true);
+    mesh2d.ruppert(lCount, rCount, -0.001, -0.001, xi_max + 0.002, 2.0 * M_PI + 0.002, func2d, charPoints2d, true);
 
     // сглаживание Лапласа, взвешенное по растояниям до соседних узлов
-//    for (int iter = 0; iter < 5; iter++)
-//    {
-//        for (UInteger i = 0; i < mesh2d.nodesCount(); i++)
-//        {
-//            if (mesh2d.nodeType(i) == INNER)
-//            {
-//                Point2D s(0.0, 0.0);
-//                Point2D c = mesh2d.point2d(i);
-//                Point3D c3 (radius * cos(c.y()), c.x(), radius * sin(c.y()));
-//                AdjacentSet adjacent = mesh2d.adjacent(i);
-//                double w_sum = 0.0;
-//                for (AdjacentSet::iterator it = adjacent.begin(); it != adjacent.end(); ++it)
-//                {
-//                    Triangle t = mesh2d.triangle(*it);
-//                    for (int nnode = 0; nnode < 3; nnode++)
-//                    {
-//                        if (t[nnode] != i)
-//                        {
-//                            Point2D p = mesh2d.point2d(t[nnode]);
-//                            Point3D p3(radius * cos(p.y()), p.x(), radius * sin(p.y()));
-//                            double w = c3.distanceTo(p3);
-//                            w_sum += w;
-//                            s = s + (w * p);
-//                        }
-//                    }
-//                }
-//                mesh2d.setPoint(i, (1.0 / w_sum) * s);
-//            }
-//        } // for i
-//    }
+    for (int iter = 0; iter < 5; iter++)
+    {
+        for (UInteger i = 0; i < mesh2d.nodesCount(); i++)
+        {
+            if (mesh2d.nodeType(i) == INNER)
+            {
+                Point2D s(0.0, 0.0);
+                Point2D c = mesh2d.point2d(i);
+                Point3D c3 (radius * cos(c.y()), c.x() * length / xi_max, radius * sin(c.y()));
+                AdjacentSet adjacent = mesh2d.adjacent(i);
+                double w_sum = 0.0;
+                for (AdjacentSet::iterator it = adjacent.begin(); it != adjacent.end(); ++it)
+                {
+                    Triangle t = mesh2d.triangle(*it);
+                    for (int nnode = 0; nnode < 3; nnode++)
+                    {
+                        if (t[nnode] != i)
+                        {
+                            Point2D p = mesh2d.point2d(t[nnode]);
+                            Point3D p3(radius * cos(p.y()), p.x() * length / xi_max, radius * sin(p.y()));
+                            double w = c3.distanceTo(p3);
+                            w_sum += w;
+                            s = s + (w * p);
+                        }
+                    }
+                }
+                mesh2d.setPoint(i, (1.0 / w_sum) * s);
+            }
+        } // for i
+    }
     // сглаживание Лапласа, взвешенное по мерам углов
 //    for (int iter = 0; iter < 10; iter++)
 //    {
@@ -256,63 +252,63 @@ TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, c
 //        } // for i
 //    }
 
-    for (int iter = 0; iter < 5; iter++)
-    {
-        for (UInteger i = 0; i < mesh2d.nodesCount(); i++)
-        {
-            if (mesh2d.nodeType(i) == INNER)
-            {
-//                Point2D s(0.0, 0.0);
-                Point2D current = mesh2d.point2d(i);
-                std::vector<double> x0(2);
-                std::vector<double> result;
-//                Point3D c3 (radius * cos(c.y()), c.x(), radius * sin(c.y()));
-                AdjacentSet adjacent = mesh2d.adjacent(i);
-                auto functor = [&](const std::vector<double> &xxxx)
-                {
-                    double f = 0.0;
-                    Point2D c(xxxx[0], xxxx[1]);
-                    Point3D c3 (radius * cos(c.y()), c.x(), radius * sin(c.y()));
-                    for (AdjacentSet::iterator it = adjacent.begin(); it != adjacent.end(); ++it)
-                    {
-                        Triangle t = mesh2d.triangle(*it);
-                        for (int nnode = 0; nnode < 3; nnode++)
-                        {
-                            if (t[nnode] == i)
-                            {
-                                Point2D a = mesh2d.point2d(t[nnode - 1]);
-                                Point2D b = mesh2d.point2d(t[nnode + 1]);
-                                Point3D a3(radius * cos(a.y()), a.x(), radius * sin(a.y()));
-                                Point3D b3(radius * cos(b.y()), b.x(), radius * sin(b.y()));
-//                                double alpha = 0.0, beta = 0.0, gamma = 0.0;
-                                double area = Point3D(c3, a3).product(Point3D(c3, b3)).length();
-//                                angles(a3, b3, c3, alpha, beta, gamma);
-                                f +=  area * area;
-                                break;
-                            }
-                        }
-                    }
-                    return f;
-                };
-                x0[0] = current.x();
-                x0[1] = current.y();
-//                std::cout << "f = " << functor(x0) << std::endl;
-                result = descentGradient(functor, x0, epsilon_ * 1000.0, epsilon_ * 100., 1000, false);
-//                std::cout << "f = " << functor(result) << std::endl;
-                mesh2d.setPoint(i, Point2D(result[0], result[1]));
-//                break;
-            }
-        } // for i
-    }
+//    for (int iter = 0; iter < 5; iter++)
+//    {
+//        for (UInteger i = 0; i < mesh2d.nodesCount(); i++)
+//        {
+//            if (mesh2d.nodeType(i) == INNER)
+//            {
+////                Point2D s(0.0, 0.0);
+//                Point2D current = mesh2d.point2d(i);
+//                std::vector<double> x0(2);
+//                std::vector<double> result;
+////                Point3D c3 (radius * cos(c.y()), c.x(), radius * sin(c.y()));
+//                AdjacentSet adjacent = mesh2d.adjacent(i);
+//                auto functor = [&](const std::vector<double> &xxxx)
+//                {
+//                    double f = 0.0;
+//                    Point2D c(xxxx[0], xxxx[1]);
+//                    Point3D c3 (radius * cos(c.y()), c.x() * length / xi_max, radius * sin(c.y()));
+//                    for (AdjacentSet::iterator it = adjacent.begin(); it != adjacent.end(); ++it)
+//                    {
+//                        Triangle t = mesh2d.triangle(*it);
+//                        for (int nnode = 0; nnode < 3; nnode++)
+//                        {
+//                            if (t[nnode] == i)
+//                            {
+//                                Point2D a = mesh2d.point2d(t[nnode - 1]);
+//                                Point2D b = mesh2d.point2d(t[nnode + 1]);
+//                                Point3D a3(radius * cos(a.y()), a.x() * length / xi_max, radius * sin(a.y()));
+//                                Point3D b3(radius * cos(b.y()), b.x() * length / xi_max, radius * sin(b.y()));
+////                                double alpha = 0.0, beta = 0.0, gamma = 0.0;
+//                                double area = Point3D(c3, a3).product(Point3D(c3, b3)).length();
+////                                angles(a3, b3, c3, alpha, beta, gamma);
+//                                f +=  area * area;
+//                                break;
+//                            }
+//                        }
+//                    }
+//                    return f;
+//                };
+//                x0[0] = current.x();
+//                x0[1] = current.y();
+////                std::cout << "f = " << functor(x0) << std::endl;
+//                result = descentGradient(functor, x0, epsilon_ * 1000.0, epsilon_ * 100., 1000, false);
+////                std::cout << "f = " << functor(result) << std::endl;
+//                mesh2d.setPoint(i, Point2D(result[0], result[1]));
+////                break;
+//            }
+//        } // for i
+//    }
 
     for (UInteger i = 0; i < mesh2d.nodesCount(); i++)
     {
         Point2D p = mesh2d.point2d(i);
         NodeType nodeType = (fabs(func2d(p.x(), p.y())) < epsilon_ || mesh2d.nodeType(i) == CHARACTER) ? CHARACTER : BORDER;
         if (fabs(p.y() - 2.0 * M_PI) < epsilon_)
-            nodes_map[i] = addNode(Point3D(radius * cos(p.y()), p.x(), radius * sin(p.y())), CHARACTER);
+            nodes_map[i] = addNode(Point3D(radius * cos(p.y()), p.x() * length / xi_max, radius * sin(p.y())), CHARACTER);
         else
-            nodes_map[i] = pushNode( Point3D(radius * cos(p.y()), p.x(), radius * sin(p.y())), nodeType);
+            nodes_map[i] = pushNode( Point3D(radius * cos(p.y()), p.x() * length / xi_max, radius * sin(p.y())), nodeType);
     }
     for (UInteger i = 0; i < mesh2d.elementsCount(); i++)
     {

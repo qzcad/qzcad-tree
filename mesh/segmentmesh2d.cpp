@@ -40,7 +40,7 @@ SegmentMesh2D::SegmentMesh2D(const UInteger &xCount, const UInteger &yCount, con
     yMax_ = yMin + height;
     const double hx = width / (double)(xCount - 1);
     const double hy = height / (double)(yCount - 1);
-    const double minDistance = 0.4 * sqrt(hx*hx + hy*hy);
+    const double minDistance = 0.33 * sqrt(hx*hx + hy*hy);
     Point2D border[4]; // массив координат пересечения с границей области
     int edge_table[16][5] = {
         { -1, -1, -1, -1, -1 }, // 0
