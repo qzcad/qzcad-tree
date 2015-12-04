@@ -560,7 +560,7 @@ void TriangleMesh2D::ruppert(const UInteger &xCount, const UInteger &yCount, con
             double val_c = func(C.x(), C.y());
             double val_center = func(center.x(), center.y());
 //            if (val_center > -epsilon_)
-            if (val_a > -epsilon_ && val_b > -epsilon_ && val_c > -epsilon_ && val_center > epsilon_)
+            if (val_a > -epsilon_ && val_b > -epsilon_ && val_c > -epsilon_ && val_center > -epsilon_)
             {
                 addElement(addNode(A, triangulation.types[triangle->vertexNode(0)]),
                         addNode(B, triangulation.types[triangle->vertexNode(1)]),
