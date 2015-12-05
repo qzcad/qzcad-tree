@@ -37,7 +37,7 @@ public:
      * @param height Высота прямоугольной области
      * @param parent Указатель на родительский объект
      */
-    explicit QTriangleMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, QObject *parent = 0);
+    QTriangleMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, QObject *parent = 0);
     /**
      * @brief Конструктор создает равномерную секту области, определенной функционально
      * @param xCount Количество узлов вдоль оси абсцисс
@@ -50,17 +50,17 @@ public:
      * @param charPoint Список характерных точек
      * @param parent Указатель на родительский объект
      */
-    explicit QTriangleMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, QObject *parent = 0);
+    QTriangleMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, QObject *parent = 0);
     /**
      * @brief Конструктор копирования
      * @param qmesh Экземпляр объекта для копирования
      */
-    explicit QTriangleMesh2D(const QTriangleMesh2D &qmesh);
+    QTriangleMesh2D(const QTriangleMesh2D &qmesh);
     /**
      * @brief Конструктор для построения триангуляции Делоне заданного двумерного конутра
      * @param mesh Указатель на контур
      */
-    explicit QTriangleMesh2D(const SegmentMesh2D *mesh, QObject *parent = 0);
+    QTriangleMesh2D(const SegmentMesh2D *mesh, QObject *parent = 0);
     /**
      * @brief Метод формирует строку с информацией о сетке
      * @return Строка с информацией о сетке

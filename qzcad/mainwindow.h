@@ -134,6 +134,18 @@ private slots:
 
     void on_actionConeQuadsScript_triggered();
 
+    void on_actionCircleScript_triggered();
+
+    void on_actionEllipseScript_triggered();
+
+    void on_actionBandScript_triggered();
+
+    void on_actionLineScript_triggered();
+
+    void on_actionRectangleScript_triggered();
+
+    void on_actionRoundRectangleScript_triggered();
+
 private:
     Ui::MainWindow *ui; //!< Контейнер элементов графического интерфейса
     QStdRedirector<> *stdRedirector; //!< Перехватчик сообщений стандартного потока
@@ -194,7 +206,17 @@ private:
      * @return true -- Ok, false -- Cancel
      */
     bool maybeSaveScript();
+    /**
+     * @brief Метод инициирует диалог открытия скрипта
+     * @return true -- Ok, false -- Cancel
+     */
     bool openScript();
+    /**
+     * @brief Метод для формирования модели отображения ключевых слов путем считывания из файла
+     * @param fileName Адрес файла с ключевыми словами
+     * @return Модель ключевых слов
+     */
+    QAbstractItemModel *modelFromFile(const QString& fileName);
 };
 
 #endif // MAINWINDOW_H

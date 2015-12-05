@@ -33,7 +33,7 @@ public:
      * @param x Абсцисса
      * @param y Ордината
      */
-    explicit PointEditorDialog(QWidget *parent, const double &x, const double &y);
+    PointEditorDialog(QWidget *parent, const double &x, const double &y);
     /**
      * @brief Конструктор редактора трехмерной точки
      * @param parent Указатель на родительский виджет
@@ -41,7 +41,7 @@ public:
      * @param y Ордината
      * @param z Аппликата
      */
-    explicit PointEditorDialog(QWidget *parent, const double &x, const double &y, const double &z);
+    PointEditorDialog(QWidget *parent, const double &x, const double &y, const double &z);
     ~PointEditorDialog();
     /**
      * @brief Абсцисса

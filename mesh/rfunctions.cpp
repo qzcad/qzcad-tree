@@ -56,4 +56,19 @@ double regular(const double &x, const double &y, const double &r, const int &n)
     return res;
 }
 
+double ellipse(const double &x, const double &y, const double &a, const double &b)
+{
+    return 1.0 - x*x / (a*a) - y*y / (b*b);
+}
+
+double rectangle(const double &x, const double &y, const double &w, const double &h, const double &r)
+{
+    double rr = dis(rectangle(x, y, w - 2.0 * r, h), rectangle(x, y, w, h - 2.0 * r));
+    double cc = dis(dis(dis(circle(x - (w/2.0 - r), y - (h/2.0 - r), r),
+                            circle(x + (w/2.0 - r), y - (h/2.0 - r), r)),
+                        circle(x + (w/2.0 - r), y + (h/2.0 - r), r)),
+                    circle(x - (w/2.0 - r), y + (h/2.0 - r), r));
+    return dis(rr, cc);
+}
+
 }

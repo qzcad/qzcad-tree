@@ -1172,3 +1172,39 @@ void MainWindow::on_actionConeQuadsScript_triggered()
     QString command = "var mesh = ConeQuads(rCount: Integer, lCount: Integer, radiusBottom: Floating, radiusTop: Floating, length: Floating[, function (x, y, z) { return value; }]);";
     ui->codeEditor->insertPlainText(command);
 }
+
+void MainWindow::on_actionCircleScript_triggered()
+{
+    QString command = "circle(x, y, r)";
+    ui->codeEditor->insertPlainText(command);
+}
+
+void MainWindow::on_actionEllipseScript_triggered()
+{
+    QString command = "ellipse(x, y, a, b)";
+    ui->codeEditor->insertPlainText(command);
+}
+
+void MainWindow::on_actionBandScript_triggered()
+{
+    QString command = "band(x, w)";
+    ui->codeEditor->insertPlainText(command);
+}
+
+void MainWindow::on_actionLineScript_triggered()
+{
+    QString command = "line(x, y, x1, y1, x2, y2)";
+    ui->codeEditor->insertPlainText(command);
+}
+
+void MainWindow::on_actionRectangleScript_triggered()
+{
+    QString command = "rectangle(x, y, w, h)";
+    ui->codeEditor->insertPlainText(command);
+}
+
+void MainWindow::on_actionRoundRectangleScript_triggered()
+{
+    QString command = "rectangle(x, y, w, h, r)";
+    ui->codeEditor->insertPlainText(command);
+}

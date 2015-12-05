@@ -30,7 +30,7 @@ public:
      * @brief Конструктор копирования
      * @param mesh Экземпляр объекта для копирования
      */
-    explicit QQuadrilateralMesh3D(const QQuadrilateralMesh3D &mesh);
+    QQuadrilateralMesh3D(const QQuadrilateralMesh3D &mesh);
     /**
      * @brief Конструктор для создания равномерной сетки в цилиндрических координатах
      * @param rCount Количество элементов вдоль радиуса
@@ -39,7 +39,7 @@ public:
      * @param length Длина образующей
      * @param parent Указатель на родительский объект
      */
-    explicit QQuadrilateralMesh3D(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length, QObject *parent = 0);
+    QQuadrilateralMesh3D(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length, QObject *parent = 0);
     /**
      * @brief Конструктор для создания равномерной сетки в конических координатах
      * @param rCount Количество элементов вдоль радиуса
@@ -49,7 +49,7 @@ public:
      * @param length Длина образующей
      * @param parent Указатель на родительский объект
      */
-    explicit QQuadrilateralMesh3D(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length, QObject *parent = 0);
+    QQuadrilateralMesh3D(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length, QObject *parent = 0);
     /**
      * @brief Метод формирует строку с информацией о сетке
      * @return Строка с информацией о сетке

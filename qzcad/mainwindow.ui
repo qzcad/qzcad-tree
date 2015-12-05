@@ -210,6 +210,14 @@
      <addaction name="actionDisjunctionScript"/>
      <addaction name="actionDifferenceScript"/>
      <addaction name="separator"/>
+     <addaction name="actionCircleScript"/>
+     <addaction name="actionEllipseScript"/>
+     <addaction name="separator"/>
+     <addaction name="actionBandScript"/>
+     <addaction name="actionLineScript"/>
+     <addaction name="separator"/>
+     <addaction name="actionRectangleScript"/>
+     <addaction name="actionRoundRectangleScript"/>
     </widget>
     <widget class="QMenu" name="menuMeshScripts">
      <property name="title">
@@ -790,6 +798,36 @@
   <action name="actionConeQuadsScript">
    <property name="text">
     <string>Четырехугольники</string>
+   </property>
+  </action>
+  <action name="actionCircleScript">
+   <property name="text">
+    <string>Круговая область: circle(x, y, r)</string>
+   </property>
+  </action>
+  <action name="actionEllipseScript">
+   <property name="text">
+    <string>Эллиптическая область: ellipse(x, y, a, b)</string>
+   </property>
+  </action>
+  <action name="actionBandScript">
+   <property name="text">
+    <string>Полоса, перпендикулярная оси: band(x, w)</string>
+   </property>
+  </action>
+  <action name="actionLineScript">
+   <property name="text">
+    <string>Полуплоскость, определенная прямой (правая рука): line(x, y, x1, y1, x2, y2)</string>
+   </property>
+  </action>
+  <action name="actionRectangleScript">
+   <property name="text">
+    <string>Прямоугольная область: rectangle(x, y, w, h)</string>
+   </property>
+  </action>
+  <action name="actionRoundRectangleScript">
+   <property name="text">
+    <string>Прямоугольная область со скруглением: rectangle(x, y, w, h, r)</string>
    </property>
   </action>
  </widget>

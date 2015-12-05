@@ -32,12 +32,12 @@ public:
      * @param y Ордината
      * @param parent Указатель на родительский объект
      */
-    explicit QPoint2D(const double &x, const double &y, QObject *parent = 0);
+    QPoint2D(const double &x, const double &y, QObject *parent = 0);
     /**
      * @brief Конструктор копирования
      * @param point Экземпляр для копирования
      */
-    explicit QPoint2D(const QPoint2D &point);
+    QPoint2D(const QPoint2D &point);
     /**
      * @brief Преобразовать в строку вида "(x; y)"
      * @return Строка с координатами точки

@@ -36,7 +36,7 @@ public:
      * @param height Высота прямоугольной области
      * @param parent Указатель на родительский объект
      */
-    explicit QQuadrilateralMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, QObject *parent = 0);
+    QQuadrilateralMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, QObject *parent = 0);
     /**
      * @brief Конструктор создает равномерную структурированную сетку для выпуклой четырехугольной области
      * @param xCount Количество узлов по первому направлению (ребра 0-1 и 2-3)
@@ -47,7 +47,7 @@ public:
      * @param v3 Координаты узла 3
      * @param parent Указатель на родительский объект
      */
-    explicit QQuadrilateralMesh2D(const UInteger &xCount, const UInteger &yCount, const Point2D &v0, const Point2D &v1, const Point2D &v2, const Point2D &v3, QObject *parent = 0);
+    QQuadrilateralMesh2D(const UInteger &xCount, const UInteger &yCount, const Point2D &v0, const Point2D &v1, const Point2D &v2, const Point2D &v3, QObject *parent = 0);
     /**
      * @brief Конструктор создает сетку для треугольной области
      * @param count Количество узлов на сторону треугольника (должно быть четным)
@@ -56,7 +56,7 @@ public:
      * @param v2 Координаты узла 2
      * @param parent Указатель на родительский объект
      */
-    explicit QQuadrilateralMesh2D(const UInteger &count, const Point2D &v0, const Point2D &v1, const Point2D &v2, QObject *parent = 0);
+    QQuadrilateralMesh2D(const UInteger &count, const Point2D &v0, const Point2D &v1, const Point2D &v2, QObject *parent = 0);
     /**
      * @brief Конструктор создает блочно-структурированную сетку для круга (части круга)
      * @param count Базовое количество узлов (По окружности будет 4n - для целого круга, 4n - для половинки, 2n - для четверти)
@@ -64,13 +64,13 @@ public:
      * @param radius Радиус
      * @param part Часть круга для дискретизации (возможные значение: 1 - целый круг, 2 - половинка, 4 - четверть)
      */
-    explicit QQuadrilateralMesh2D(const UInteger &count, const Point2D &center, const double &radius, unsigned short part = 1, QObject *parent = 0);
+    QQuadrilateralMesh2D(const UInteger &count, const Point2D &center, const double &radius, unsigned short part = 1, QObject *parent = 0);
     /**
      * @brief Конструктор копирования
      * @param mesh Экземпляр объекта для копирования
      */
-    explicit QQuadrilateralMesh2D(const QQuadrilateralMesh2D &mesh);
-    explicit QQuadrilateralMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, QObject *parent = 0);
+    QQuadrilateralMesh2D(const QQuadrilateralMesh2D &mesh);
+    QQuadrilateralMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, QObject *parent = 0);
     /**
      * @brief Метод формирует строку с информацией о сетке
      * @return Строка с информацией о сетке

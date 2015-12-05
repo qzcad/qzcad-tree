@@ -32,12 +32,12 @@ public:
      * @param charPoint Список характерных точек
      * @param parent Указатель на родительский объект
      */
-    explicit QSegmentMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, QObject *parent = 0);
+    QSegmentMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, QObject *parent = 0);
     /**
      * @brief Конструктор копирования
      * @param qmesh Экземпляр объекта для копирования
      */
-    explicit QSegmentMesh2D(const QSegmentMesh2D &qmesh);
+    QSegmentMesh2D(const QSegmentMesh2D &qmesh);
     /**
      * @brief Метод формирует строку с информацией о сетке
      * @return Строка с информацией о сетке

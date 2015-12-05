@@ -12,9 +12,9 @@ class QFemCondition : public QObject, public FemCondition
     Q_OBJECT
 public:
     explicit QFemCondition(QObject *parent = 0);
-//    explicit QFemCondition(int type, int direction, double value, const QScriptValue &conditionFunction, QObject *parent = 0);
-    explicit QFemCondition(FemConditionType type, FemDirection direction, const QScriptValue &conditionFunction, const QScriptValue &valueFunction, QObject *parent = 0);
-    explicit QFemCondition(const QFemCondition &qfc);
+//    QFemCondition(int type, int direction, double value, const QScriptValue &conditionFunction, QObject *parent = 0);
+    QFemCondition(FemConditionType type, FemDirection direction, const QScriptValue &conditionFunction, const QScriptValue &valueFunction, QObject *parent = 0);
+    QFemCondition(const QFemCondition &qfc);
     FemConditionType type() const;
     FemDirection direction() const;
     bool isApplied(msh::PointPointer point);

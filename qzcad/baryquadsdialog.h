@@ -37,7 +37,7 @@ public:
      * @param y2 Ордината точки 2
      * @param nodesCount Количество узлов сетки на одну сторону треугольника
      */
-    explicit BaryQuadsDialog(QWidget *parent, const double &x0, const double &y0, const double &x1, const double &y1, const double &x2, const double &y2, const int &nodesCount);
+    BaryQuadsDialog(QWidget *parent, const double &x0, const double &y0, const double &x1, const double &y1, const double &x2, const double &y2, const int &nodesCount);
     ~BaryQuadsDialog();
     double x0() const;
     double y0() const;

@@ -218,6 +218,41 @@ private:
      */
     static QScriptValue diff(QScriptContext *context, QScriptEngine *engine);
     /**
+     * @brief Область, ограниченная окружностью
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны (тип Number), то значение соответствующей функциий, иначе engine->undefinedValue()
+     */
+    static QScriptValue circle(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief Область, ограниченная эллипсом
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны (тип Number), то значение соответствующей функциий, иначе engine->undefinedValue()
+     */
+    static QScriptValue ellipse(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief Полоса, перепендикулярная оси, симметричная относительно начала отсчета
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны (тип Number), то значение соответствующей функциий, иначе engine->undefinedValue()
+     */
+    static QScriptValue band(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief Область находящаяся "выше" прямой, определенной точками (x1, y1), (x2, y2)
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны (тип Number), то значение соответствующей функциий, иначе engine->undefinedValue()
+     */
+    static QScriptValue line(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief Функция области, ограниченной прямоугольником с центром в начале координат
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны (тип Number), то значение соответствующей функциий, иначе engine->undefinedValue()
+     */
+    static QScriptValue rectangle(QScriptContext *context, QScriptEngine *engine);
+    /**
      * @brief МКЭ: плоское напряжение
      * @param context Контекст скрипта
      * @param engine Двигатель скрипта

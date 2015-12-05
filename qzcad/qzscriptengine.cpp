@@ -9,6 +9,8 @@
 #include "qsegmentmesh2d.h"
 #include "qtrianglemesh3d.h"
 
+#include "rfunctions.h"
+
 #include "qfemcondition.h"
 
 #include "planestressstrain.h"
@@ -29,78 +31,68 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     mesh_ = NULL;
     fem_ = NULL;
     // Операция приблизительного равентсва
-    QScriptValue qsApprox = newFunction(approx);
-    globalObject().setProperty("approx", qsApprox);
+    globalObject().setProperty("approx", newFunction(approx));
     // Переопределение печати
-    QScriptValue qsPrint = newFunction(printStd);
-    globalObject().setProperty("print", qsPrint);
+    globalObject().setProperty("print", newFunction(printStd));
     // Функция суммирования
-    QScriptValue qsSum = newFunction(sum);
-    globalObject().setProperty("sum", qsSum);
+    globalObject().setProperty("sum", newFunction(sum));
     // Функция конъюнкции
-    QScriptValue qsCon = newFunction(con);
-    globalObject().setProperty("con", qsCon);
+    globalObject().setProperty("con", newFunction(con));
     // Функция дизъюнкции
-    QScriptValue qsDis = newFunction(dis);
-    globalObject().setProperty("dis", qsDis);
+    globalObject().setProperty("dis", newFunction(dis));
     // Функция разности
-    QScriptValue qsDiff = newFunction(diff);
-    globalObject().setProperty("diff", qsDiff);
-    // Точка на плоскости
-    QScriptValue qsCreatePoint2D = newFunction(createPoint2D);
-    globalObject().setProperty("Point2D", qsCreatePoint2D);
-    // Точка в пространстве
-    QScriptValue qsCreatePoint3D = newFunction(createPoint3D);
-    globalObject().setProperty("Point3D", qsCreatePoint3D);
-    // Двумерная сетка четырехугольников
-    QScriptValue qsCreateQuadrilateralMesh2D = newFunction(createQuadrilateralMesh2D);
-    globalObject().setProperty("Quads2D", qsCreateQuadrilateralMesh2D);
-    // Двумерная сетка отрезков
-    QScriptValue qsCreateSegmentMesh2D = newFunction(createSegmentMesh2D);
-    globalObject().setProperty("Segments2D", qsCreateSegmentMesh2D);
-    // Двумерная сетка треугольников
-    QScriptValue qsCreateTriangleMesh2D = newFunction(createTriangleMesh2D);
-    globalObject().setProperty("Triangles2D", qsCreateTriangleMesh2D);
-    // Триангуляция Делоне
-    QScriptValue qsCreateDelaunay = newFunction(createDelaunay);
-    globalObject().setProperty("delaunay", qsCreateDelaunay);
-    // Триангуляция Делоне с использованием сглаживания методом Рапперта
-    QScriptValue qsCreateRuppert = newFunction(createRuppert);
-    globalObject().setProperty("ruppert", qsCreateRuppert);
-    // Поверхностная сетка четырехугольников
-    QScriptValue qsCreateQuadrilateralMesh3D = newFunction(createQuadrilateralMesh3D);
-    globalObject().setProperty("ShellQuads", qsCreateQuadrilateralMesh3D);
-    // Поверхностная сетка четырехугольников в цилиндрических координатах
-    QScriptValue qsCreateCylinderQuadsD = newFunction(createCylinderQuads);
-    globalObject().setProperty("CylinderQuads", qsCreateCylinderQuadsD);
-    // Поверхностная сетка четырехугольников в конических координатах
-    QScriptValue qsCreateConeQuadsD = newFunction(createConeQuads);
-    globalObject().setProperty("ConeQuads", qsCreateConeQuadsD);
-    // Поверхностная сетка треугольников
-    QScriptValue qsCreateTriangleMesh3D = newFunction(createTriangleMesh3D);
-    globalObject().setProperty("ShellTriangles", qsCreateTriangleMesh3D);
-    // Поверхностная сетка треугольников
-    QScriptValue qsCreateCylinderTriangles = newFunction(createCylinderTriangles);
-    globalObject().setProperty("CylinderTriangles", qsCreateCylinderTriangles);
-    // Поверхностная сетка треугольников в конических координатах
-    QScriptValue qsCreateConeTriangles = newFunction(createConeTriangles);
-    globalObject().setProperty("ConeTriangles", qsCreateConeTriangles);
-    // setMesh
-    QScriptValue qsSetMesh = newFunction(setMesh);
-    globalObject().setProperty("setMesh", qsSetMesh);
-    // About
-    QScriptValue qsAbout = newFunction(about);
-    globalObject().setProperty("About", qsAbout);
-    /// FEM section
-    QScriptValue qsPlaneStress = newFunction(planeStress);
-    globalObject().setProperty("PlaneStress", qsPlaneStress);
-    QScriptValue qsPlaneStrain = newFunction(planeStrain);
-    globalObject().setProperty("PlaneStrain", qsPlaneStrain);
+    globalObject().setProperty("diff", newFunction(diff));
+    // circle
+    globalObject().setProperty("circle", newFunction(circle));
+    // ellipse
+    globalObject().setProperty("ellipse", newFunction(ellipse));
+    // band
+    globalObject().setProperty("band", newFunction(band));
+    // line
+    globalObject().setProperty("line", newFunction(line));
+    // rectangle
+    globalObject().setProperty("rectangle", newFunction(rectangle));
 
-    QScriptValue qsBoundaryCondition = newFunction(createBoundaryCondition);
-    globalObject().setProperty("BoundaryCondition", qsBoundaryCondition);
-    QScriptValue qsNodalForce = newFunction(createNodalForce);
-    globalObject().setProperty("NodalForce", qsNodalForce);
+    // Точка на плоскости
+    globalObject().setProperty("Point2D", newFunction(createPoint2D));
+    // Точка в пространстве
+    globalObject().setProperty("Point3D", newFunction(createPoint3D));
+
+    // Двумерная сетка четырехугольников
+    globalObject().setProperty("Quads2D", newFunction(createQuadrilateralMesh2D));
+    // Двумерная сетка отрезков
+    globalObject().setProperty("Segments2D", newFunction(createSegmentMesh2D));
+    // Двумерная сетка треугольников
+    globalObject().setProperty("Triangles2D", newFunction(createTriangleMesh2D));
+    // Триангуляция Делоне
+    globalObject().setProperty("delaunay", newFunction(createDelaunay));
+    // Триангуляция Делоне с использованием сглаживания методом Рапперта
+    globalObject().setProperty("ruppert", newFunction(createRuppert));
+    // Поверхностная сетка четырехугольников
+    globalObject().setProperty("ShellQuads", newFunction(createQuadrilateralMesh3D));
+    // Поверхностная сетка четырехугольников в цилиндрических координатах
+    globalObject().setProperty("CylinderQuads", newFunction(createCylinderQuads));
+    // Поверхностная сетка четырехугольников в конических координатах
+    globalObject().setProperty("ConeQuads", newFunction(createConeQuads));
+    // Поверхностная сетка треугольников
+    globalObject().setProperty("ShellTriangles", newFunction(createTriangleMesh3D));
+    // Поверхностная сетка треугольников
+    globalObject().setProperty("CylinderTriangles", newFunction(createCylinderTriangles));
+    // Поверхностная сетка треугольников в конических координатах
+    globalObject().setProperty("ConeTriangles", newFunction(createConeTriangles));
+
+    // setMesh
+    globalObject().setProperty("setMesh", newFunction(setMesh));
+
+    // About
+    globalObject().setProperty("About", newFunction(about));
+
+    /// FEM section
+    globalObject().setProperty("PlaneStress", newFunction(planeStress));
+    globalObject().setProperty("PlaneStrain", newFunction(planeStrain));
+
+    globalObject().setProperty("BoundaryCondition", newFunction(createBoundaryCondition));
+    globalObject().setProperty("NodalForce", newFunction(createNodalForce));
     QScriptValue qsSurfaceForce = newFunction(createSurfaceForce);
     globalObject().setProperty("SurfaceForce", qsSurfaceForce);
     globalObject().setProperty("EdgeForce", qsSurfaceForce); // создание синонима
@@ -121,14 +113,11 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     globalObject().setProperty("NINETH", FemCondition::NINETH);
     globalObject().setProperty("TENTH", FemCondition::TENTH);
 
-    QScriptValue qsMindlinPlate = newFunction(mindlinPlate);
-    globalObject().setProperty("MindlinPlate", qsMindlinPlate);
+    globalObject().setProperty("MindlinPlate", newFunction(mindlinPlate));
 
-    QScriptValue qsMindlinShell = newFunction(mindlinShell);
-    globalObject().setProperty("MindlinShell", qsMindlinShell);
+    globalObject().setProperty("MindlinShell", newFunction(mindlinShell));
 
-    QScriptValue qsValues = newFunction(reportValues);
-    globalObject().setProperty("values", qsValues);
+    globalObject().setProperty("values", newFunction(reportValues));
 }
 
 double QZScriptEngine::epsilon() const
@@ -859,6 +848,90 @@ QScriptValue QZScriptEngine::diff(QScriptContext *context, QScriptEngine *engine
         diff += (x - sqrt(diff*diff + x*x));
     }
     return diff;
+}
+
+QScriptValue QZScriptEngine::circle(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(engine);
+    QString typeError = QObject::tr("circle(x, y, r): all arguments must have type Number. Argument # %1.");
+    if (context->argumentCount() != 3)
+        return context->throwError(tr("Function circle has at least three arguments."));
+    for (int i = 0; i < context->argumentCount(); i++)
+        if (!context->argument(i).isNumber())
+            return context->throwError(typeError.arg(i + 1));
+    double x = context->argument(0).toNumber();
+    double y = context->argument(1).toNumber();
+    double r = context->argument(2).toNumber();
+    return msh::circle(x, y, r);
+}
+
+QScriptValue QZScriptEngine::ellipse(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(engine);
+    QString typeError = QObject::tr("ellipse(x, y, a, b): all arguments must have type Number. Argument # %1.");
+    if (context->argumentCount() != 4)
+        return context->throwError(tr("Function circle has at least four arguments."));
+    for (int i = 0; i < context->argumentCount(); i++)
+        if (!context->argument(i).isNumber())
+            return context->throwError(typeError.arg(i + 1));
+    double x = context->argument(0).toNumber();
+    double y = context->argument(1).toNumber();
+    double a = context->argument(2).toNumber();
+    double b = context->argument(3).toNumber();
+    return msh::ellipse(x, y, a, b);
+}
+
+QScriptValue QZScriptEngine::band(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(engine);
+    QString typeError = QObject::tr("band(x, w): all arguments must have type Number. Argument # %1.");
+    if (context->argumentCount() != 2)
+        return context->throwError(tr("Function circle has at least two arguments."));
+    for (int i = 0; i < context->argumentCount(); i++)
+        if (!context->argument(i).isNumber())
+            return context->throwError(typeError.arg(i + 1));
+    double x = context->argument(0).toNumber();
+    double w = context->argument(1).toNumber();
+    return msh::band(x, w);
+}
+
+QScriptValue QZScriptEngine::line(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(engine);
+    QString typeError = QObject::tr("band(x, w): all arguments must have type Number. Argument # %1.");
+    if (context->argumentCount() != 6)
+        return context->throwError(tr("Function circle has at least six arguments."));
+    for (int i = 0; i < context->argumentCount(); i++)
+        if (!context->argument(i).isNumber())
+            return context->throwError(typeError.arg(i + 1));
+    double x = context->argument(0).toNumber();
+    double y = context->argument(1).toNumber();
+    double x1 = context->argument(2).toNumber();
+    double y1 = context->argument(3).toNumber();
+    double x2 = context->argument(4).toNumber();
+    double y2 = context->argument(5).toNumber();
+    return msh::line(x, y, x1, y1, x2, y2);
+}
+
+QScriptValue QZScriptEngine::rectangle(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(engine);
+    QString typeError = QObject::tr("rectangle(x, y, w, h [, r]): all arguments must have type Number. Argument # %1.");
+    if (context->argumentCount() != 4 && context->argumentCount() != 5)
+        return context->throwError(tr("Function circle has at least six arguments."));
+    for (int i = 0; i < context->argumentCount(); i++)
+        if (!context->argument(i).isNumber())
+            return context->throwError(typeError.arg(i + 1));
+    double x = context->argument(0).toNumber();
+    double y = context->argument(1).toNumber();
+    double w = context->argument(2).toNumber();
+    double h = context->argument(3).toNumber();
+    if (context->argumentCount() == 4)
+        return msh::rectangle(x, y, w, h);
+    double r = context->argument(4).toNumber();
+    if (r < 0.0)
+        return context->throwError(typeError.arg("r < 0"));
+    return msh::rectangle(x, y, w, h, r);
 }
 
 QScriptValue QZScriptEngine::planeStress(QScriptContext *context, QScriptEngine *engine)

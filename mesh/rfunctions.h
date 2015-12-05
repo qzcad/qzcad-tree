@@ -25,6 +25,15 @@ double dis(const double &x, const double &y);
  */
 double circle(const double &x, const double &y, const double &r);
 /**
+ * @brief Функция области, ограниченной эллипсом с центром в начале координат
+ * @param x Абсцисса
+ * @param y Ордината
+ * @param a Большая полуось
+ * @param b Малая полуось
+ * @return 1 - x^2 / a^2 - y^2 / b^2
+ */
+double ellipse(const double &x, const double &y, const double &a, const double &b);
+/**
  * @brief Полоса, перепендикулярная оси, симметричная относительно начала отсчета
  * @param x Координата оси
  * @param w Ширина полосы
@@ -42,7 +51,17 @@ double band(const double &x, const double &w);
  */
 double rectangle(const double &x, const double &y, const double &w, const double &h);
 /**
- * @brief Область находящаяся "ниже" прямой, определенной точками (x1, y1), (x2, y2)
+ * @brief Функция области, ограниченной прямоугольником с центром в начале координат
+ * @param x Абсцисса
+ * @param y Ордината
+ * @param w Ширина
+ * @param h Высота
+ * @param r Радиус скругления углов
+ * @return Значение функции области
+ */
+double rectangle(const double &x, const double &y, const double &w, const double &h, const double &r);
+/**
+ * @brief Область находящаяся "выше" прямой, определенной точками (x1, y1), (x2, y2)
  * @param x Абсцисса
  * @param y Ордината
  * @param x1 Абсцисса первой точки прямой

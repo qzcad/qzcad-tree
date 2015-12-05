@@ -40,7 +40,7 @@ public:
      * @param xiCount Колчество узлов сетки вдоль первого напраления
      * @param etaCount Количество узлов сетки вдоль второго направления
      */
-    explicit StructuredIsoMesh2DDialog(QWidget *parent, const double &x0, const double &y0, const double &x1, const double &y1, const double &x2, const double &y2, const double &x3, const double &y3, const int &xiCount, const int &etaCount);
+    StructuredIsoMesh2DDialog(QWidget *parent, const double &x0, const double &y0, const double &x1, const double &y1, const double &x2, const double &y2, const double &x3, const double &y3, const int &xiCount, const int &etaCount);
     ~StructuredIsoMesh2DDialog();
     /**
      * @brief Абсцисса точки 0

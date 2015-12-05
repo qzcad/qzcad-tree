@@ -33,12 +33,12 @@ public:
      * @param z Аппликата
      * @param parent Указатель на родительский объект
      */
-    explicit QPoint3D(const double &x, const double &y, const double &z, QObject *parent = 0);
+    QPoint3D(const double &x, const double &y, const double &z, QObject *parent = 0);
     /**
      * @brief Конструктор копирования
      * @param point Экземпляр объекта для копирования
      */
-    explicit QPoint3D(const QPoint3D &point);
+    QPoint3D(const QPoint3D &point);
     /**
      * @brief Преобразование в строку вида "(x; y; z)"
      * @return Строка с координатами точки
