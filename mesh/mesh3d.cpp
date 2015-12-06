@@ -67,6 +67,11 @@ UInteger Mesh3D::pushNode(const Point3D &point, const NodeType &type)
     return node_.size() - 1;
 }
 
+UInteger Mesh3D::pushNode(PointPointer point, const NodeType &type)
+{
+    return pushNode(Point3D(point->x(), point->y(), point->z()), type);
+}
+
 UInteger Mesh3D::addNode(const Point3D &point, const NodeType &type)
 {
     for (UInteger i = 0; i < node_.size(); i++)

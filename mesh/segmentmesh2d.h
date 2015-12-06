@@ -68,6 +68,11 @@ public:
      */
     void addElement(const UInteger &node0, const UInteger &node1);
     /**
+     * @brief Добавить элемент к сетке
+     * @param Массив ссылок (номеров) на узлы
+     */
+    void addElement(const std::vector<UInteger> &nodes_ref);
+    /**
      * @brief Изменить направление обхода во всех элементах сетки
      */
     virtual void directionChange();

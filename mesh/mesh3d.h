@@ -90,6 +90,13 @@ public:
      */
     UInteger pushNode(const Point3D &point, const NodeType &type);
     /**
+     * @brief Добавить узел в сетку
+     * @param point Указатель на координаты
+     * @param type Тип узла
+     * @return Номер вставленного узла в сетке
+     */
+    UInteger pushNode(PointPointer point, const NodeType &type);
+    /**
      * @brief Добавить узел, заданный точкой, с проверкой на наличие в массиве узлов
      * @param point Координаты узла для вставки
      * @param type Тип узла

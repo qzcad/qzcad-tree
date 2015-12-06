@@ -173,6 +173,11 @@ void SegmentMesh2D::addElement(const UInteger &node0, const UInteger &node1)
     node_[node1].adjacent.insert(element_.size() - 1);
 }
 
+void SegmentMesh2D::addElement(const std::vector<UInteger> &nodes_ref)
+{
+    addElement(nodes_ref[0], nodes_ref[1]);
+}
+
 void SegmentMesh2D::directionChange()
 {
     // to do

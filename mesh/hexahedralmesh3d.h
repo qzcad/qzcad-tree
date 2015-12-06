@@ -105,6 +105,11 @@ public:
      */
     void addElement(const UInteger &node0, const UInteger &node1, const UInteger &node2, const UInteger &node3,
                     const UInteger &node4, const UInteger &node5, const UInteger &node6, const UInteger &node7);
+    /**
+     * @brief Добавить элемент к сетке
+     * @param Массив ссылок (номеров) на узлы
+     */
+    void addElement(const std::vector<UInteger> &nodes_ref);
 //    UInteger toArray(UInteger i, UInteger j, UInteger k, UInteger yCount, UInteger zCount) { return i * yCount * zCount + j * zCount + k; }
 private:
     std::vector<Hexahedral> element_; //!< Массив шестигранных элементов

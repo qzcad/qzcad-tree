@@ -444,6 +444,11 @@ void TriangleMesh2D::addElement(const UInteger &node0, const UInteger &node1, co
     node_[node2].adjacent.insert(element_.size() - 1);
 }
 
+void TriangleMesh2D::addElement(const std::vector<UInteger> &nodes_ref)
+{
+    addElement(nodes_ref[0], nodes_ref[1], nodes_ref[2]);
+}
+
 double TriangleMesh2D::jacobian(const UInteger &elementNum)
 {
     const Triangle tri = element_[elementNum];

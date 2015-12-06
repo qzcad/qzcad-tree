@@ -122,6 +122,11 @@ UInteger Mesh2D::pushNode(const Point2D &point, const NodeType &type)
     return node_.size() - 1;
 }
 
+UInteger Mesh2D::pushNode(PointPointer point, const NodeType &type)
+{
+    return pushNode(Point2D(point->x(), point->y()), type);
+}
+
 UInteger Mesh2D::addNode(const Point2D &point, const NodeType &type, double epsilon)
 {
     for (UInteger i = 0; i < node_.size(); i++)

@@ -23,11 +23,14 @@
 #include "rotationbodymeshdialog.h"
 #include "elasticfemdialog.h"
 
-#include "trianglemesh2d.h"
+#include "segmentmesh2d.h"
 #include "quadrilateralmesh2d.h"
 #include "quadrilateralunion2d.h"
+#include "quadrilateralmesh3d.h"
+#include "trianglemesh2d.h"
 #include "trianglemesh3d.h"
 #include "hexahedralmesh3d.h"
+
 #include "exportmeshdialog.h"
 #include "qstdredirector.h"
 
@@ -393,7 +396,9 @@ void MainWindow::on_actionSaveMesh_triggered()
             out.setRealNumberPrecision(DBL_DIG);
             int dim = mesh->dimesion();
             int elementNodes = mesh->element(0)->verticesCount(); // определяем количество узлов в элементе
-            out << dim << ' ' << elementNodes << '\n';
+            out << dim << ' ' << elementNodes;
+            out << ' ' << mesh->element(0)->facesCount(); // количество граней для устранения неоднозначности (3d: у четырехугольника и тетраэдра одинаковое количество узлов)
+            out << '\n';
             out << mesh->nodesCount() << '\n';
             for (msh::UInteger i = 0; i < mesh->nodesCount(); i++)
             {
@@ -587,78 +592,82 @@ void MainWindow::on_actionLoadMesh_triggered()
     int elementNodes;
     msh::UInteger nodesCount;
     msh::UInteger elementsCount;
+    msh::UInteger facesCount;
     int isLayers;
     in >> dim;
     in >> elementNodes;
+    in >> facesCount;
     in >> nodesCount;
     std::cout << "Размерность: " << dim << std::endl << "Количество узлов: " << nodesCount << std::endl;
-    if (dim == 2 && elementNodes == 4) // четырехугольники
+    if (dim == 2)
     {
-        msh::QuadrilateralMesh2D *qMesh = new msh::QuadrilateralMesh2D();
-        for (msh::UInteger i = 0; i < nodesCount; i++)
-        {
-            double x, y;
-            msh::Point2D point;
-            int nodeType;
-            in >> x;
-            in >> y;
-            in >> nodeType;
-            point.set(x, y);
-            qMesh->pushNode(point, static_cast<msh::NodeType>(nodeType));
+        switch (elementNodes) {
+        case 2:
+            mesh = new msh::SegmentMesh2D();
+            break;
+        case 3:
+            mesh = new msh::TriangleMesh2D();
+            break;
+        case 4:
+            mesh = new msh::QuadrilateralMesh2D();
+            break;
+        default:
+            std::cout << "Error:Mesh type is not recognized." << std::endl;
+            return;
         }
-        in >> elementsCount;
-        in >> isLayers;
-        std::cout << "Количнство элементов: " << elementsCount << std::endl;
-        for (msh::UInteger i = 0; i < elementsCount; i++)
-        {
-            msh::UInteger p[elementNodes];
-            double val;
-            for (int j = 0; j < elementNodes; j++)
-                in >> p[j];
-            qMesh->addElement(p[0], p[1], p[2], p[3]);
-            if (isLayers)
-            {
-                in >> val;
-                qMesh->pushLayer(val);
-            }
-        }
-        qMesh->updateDomain();
-        ui->pictureControl->getGlMeshPicture()->setMesh(qMesh);
     }
-    if (dim == 3 && elementNodes == 8) // шестигранники
+    else if (dim == 3)
     {
-        msh::HexahedralMesh3D *hMesh = new msh::HexahedralMesh3D();
-        for (msh::UInteger i = 0; i < nodesCount; i++)
-        {
-            double x, y, z;
-            msh::Point3D point;
-            int nodeType;
-            in >> x;
-            in >> y;
+        switch (elementNodes) {
+        case 3:
+            mesh = new msh::TriangleMesh3D();
+            std::cout << "3d t";
+            break;
+        case 4:
+            if (facesCount == 1)
+                mesh = new msh::QuadrilateralMesh3D();
+//            else
+//                mesh = new msh::TetrahedralMeshD(); // TODO
+            break;
+        case 8:
+            mesh = new msh::HexahedralMesh3D();
+            break;
+        default:
+            std::cout << "Error:Mesh type is not recognized." << std::endl;
+            return;
+        }
+    }
+    for (msh::UInteger i = 0; i < nodesCount; i++)
+    {
+        double x = 0.0, y = 0.0, z = 0.0;
+        int nodeType;
+        Point3D p;
+        in >> x;
+        in >> y;
+        if (dim == 3)
             in >> z;
-            in >> nodeType;
-            point.set(x, y, z);
-            hMesh->pushNode(point, static_cast<msh::NodeType>(nodeType));
-        }
-        in >> elementsCount;
-        in >> isLayers;
-        std::cout << "Количнство элементов: " << elementsCount << std::endl;
-        for (msh::UInteger i = 0; i < elementsCount; i++)
-        {
-            msh::UInteger p[elementNodes];
-            int val;
-            for (int j = 0; j < elementNodes; j++)
-                in >> p[j];
-            hMesh->addElement(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7]);
-            if (isLayers == 1)
-            {
-                in >> val;
-                hMesh->pushLayer(val);
-            }
-        }
-        hMesh->updateDomain();
-        ui->pictureControl->getGlMeshPicture()->setMesh(hMesh);
+        in >> nodeType;
+        p.set(x, y, z);
+        mesh->pushNode(&p, static_cast<msh::NodeType>(nodeType));
     }
+    in >> elementsCount;
+    in >> isLayers;
+    std::cout << "Количнство элементов: " << elementsCount << std::endl;
+    for (msh::UInteger i = 0; i < elementsCount; i++)
+    {
+        std::vector<msh::UInteger> nodes_ref(elementNodes);
+        int l = 0;
+        for (int j = 0; j < elementNodes; j++)
+            in >> nodes_ref[j];
+        mesh->addElement(nodes_ref);
+        if (isLayers)
+        {
+            in >> l;
+            mesh->pushLayer(l);
+        }
+    }
+    mesh->updateDomain();
+    ui->pictureControl->getGlMeshPicture()->setMesh(mesh);
 }
 
 void MainWindow::on_actionElasticFem_triggered()

@@ -99,6 +99,18 @@ public:
      */
     virtual void updateDomain() = 0;
     /**
+     * @brief Добавить узел в сетку
+     * @param point Указатель на координаты
+     * @param type Тип узла
+     * @return Номер вставленного узла в сетке
+     */
+    virtual UInteger pushNode(PointPointer point, const NodeType &type) = 0;
+    /**
+     * @brief Добавить элемент к сетке
+     * @param Массив ссылок (номеров) на узлы
+     */
+    virtual void addElement(const std::vector<UInteger> &nodes_ref) = 0;
+    /**
      * @brief Номер слоя элемента с заданным номером
      * @param number Номер элемента
      * @return Номер слоя для элемента с заданным номером

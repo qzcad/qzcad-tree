@@ -576,6 +576,11 @@ void TriangleMesh3D::addElement(const Triangle &triangle)
     node_[triangle[2]].adjacent.insert(element_.size() - 1);
 }
 
+void TriangleMesh3D::addElement(const std::vector<UInteger> &nodes_ref)
+{
+    addElement(nodes_ref[0], nodes_ref[1], nodes_ref[2]);
+}
+
 double TriangleMesh3D::area(const UInteger &number) const
 {
     Triangle triangle = element_[number];

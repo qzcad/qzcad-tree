@@ -133,6 +133,11 @@ public:
      * Этот метод не является потокобезопасным.
      */
     void addElement(const Quadrilateral &quad);
+    /**
+     * @brief Добавить элемент к сетке
+     * @param Массив ссылок (номеров) на узлы
+     */
+    void addElement(const std::vector<UInteger> &nodes_ref);
 protected:
     /**
      * @brief Функция формы изопараметрического четырехугольного элемента

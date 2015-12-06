@@ -693,12 +693,7 @@ double QuadrilateralMesh2D::area(const UInteger &number) const
 void QuadrilateralMesh2D::addElement(const UInteger &node0, const UInteger &node1, const UInteger &node2, const UInteger &node3)
 {
     Quadrilateral quad(node0, node1, node2, node3);
-    element_.push_back(quad);
-    // обновление списка смежных узлов
-    node_[node0].adjacent.insert(element_.size() - 1);
-    node_[node1].adjacent.insert(element_.size() - 1);
-    node_[node2].adjacent.insert(element_.size() - 1);
-    node_[node3].adjacent.insert(element_.size() - 1);
+    addElement(quad);
 }
 
 void QuadrilateralMesh2D::addElement(const Quadrilateral &quad)
@@ -709,6 +704,11 @@ void QuadrilateralMesh2D::addElement(const Quadrilateral &quad)
     node_[quad[1]].adjacent.insert(element_.size() - 1);
     node_[quad[2]].adjacent.insert(element_.size() - 1);
     node_[quad[3]].adjacent.insert(element_.size() - 1);
+}
+
+void QuadrilateralMesh2D::addElement(const std::vector<UInteger> &nodes_ref)
+{
+    addElement(nodes_ref[0], nodes_ref[1], nodes_ref[2], nodes_ref[3]);
 }
 
 double QuadrilateralMesh2D::isoFunc(const UInteger &i, const double &xi, const double &eta)

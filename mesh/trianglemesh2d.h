@@ -101,6 +101,11 @@ public:
      */
     void addElement(const UInteger &node0, const UInteger &node1, const UInteger &node2);
     /**
+     * @brief Добавить элемент к сетке
+     * @param Массив ссылок (номеров) на узлы
+     */
+    void addElement(const std::vector<UInteger> &nodes_ref);
+    /**
      * @brief Вычислить значение якобиана элемента (линейный случай)
      * @param elementNum Номер элемента
      * Для линейных функций формы треугольного элемента значение якобиана не зависит от параметров xi (L1) и eta (L2).

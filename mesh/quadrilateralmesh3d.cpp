@@ -161,6 +161,11 @@ void QuadrilateralMesh3D::addElement(const Quadrilateral &quad)
     node_[quad[3]].adjacent.insert(element_.size() - 1);
 }
 
+void QuadrilateralMesh3D::addElement(const std::vector<UInteger> &nodes_ref)
+{
+    addElement(nodes_ref[0], nodes_ref[1], nodes_ref[2], nodes_ref[3]);
+}
+
 double QuadrilateralMesh3D::area(const UInteger &number) const
 {
     Quadrilateral quad = element_[number];

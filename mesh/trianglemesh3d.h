@@ -108,6 +108,11 @@ public:
      */
     void addElement(const Triangle &triangle);
     /**
+     * @brief Добавить элемент к сетке
+     * @param Массив ссылок (номеров) на узлы
+     */
+    void addElement(const std::vector<UInteger> &nodes_ref);
+    /**
      * @brief area Подсчитать площадь элемента
      * @param number Номер элемента
      * @return Площадь элемента
