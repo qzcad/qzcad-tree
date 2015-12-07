@@ -9,7 +9,12 @@ QSegmentMesh2D::QSegmentMesh2D(const UInteger &xCount, const UInteger &yCount, c
 {
 }
 
-QSegmentMesh2D::QSegmentMesh2D(const QSegmentMesh2D &qmesh) : QObject(qmesh.parent()), SegmentMesh2D(qmesh)
+QSegmentMesh2D::QSegmentMesh2D(const QSegmentMesh2D &qmesh) : QObject(qmesh.parent()), SegmentMesh2D(&qmesh)
+{
+}
+
+QSegmentMesh2D::QSegmentMesh2D(SegmentMesh2D *mesh, QObject *parent) :
+    QObject(parent), SegmentMesh2D(mesh)
 {
 }
 

@@ -45,6 +45,11 @@ public:
      */
     msh::Mesh *mesh();
     /**
+     * @brief Установить указатель текущей сетки
+     * @param mesh Указатель на сетку
+     */
+    void setMesh(msh::Mesh *mesh);
+    /**
      * @brief Получить количество векторов со значениями, определенными в узлах
      * @return Количество векторов со значениями, определенными в узлах
      */
@@ -189,6 +194,13 @@ private:
      * @return engine->undefinedValue()
      */
     static QScriptValue setMesh(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief Получить копию текущей сетки в перменной
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Соответсвующий указатель
+     */
+    static QScriptValue currentMesh(QScriptContext *context, QScriptEngine *engine);
     /**
      * @brief Функция суммирования с произвольным числом аргументов
      * @param context Контекст скрипта

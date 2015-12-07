@@ -59,8 +59,15 @@ public:
     /**
      * @brief Конструктор для построения триангуляции Делоне заданного двумерного конутра
      * @param mesh Указатель на контур
+     * @param parent Указатель на родительский объект
      */
     QTriangleMesh2D(const SegmentMesh2D *mesh, QObject *parent = 0);
+    /**
+     * @brief Конструктор создает копию объекта, переданного по указателю
+     * @param mesh Указатель на объект для копирования
+     * @param parent Указатель на родительский объект
+     */
+    QTriangleMesh2D(TriangleMesh2D *mesh, QObject *parent = 0);
     /**
      * @brief Метод формирует строку с информацией о сетке
      * @return Строка с информацией о сетке

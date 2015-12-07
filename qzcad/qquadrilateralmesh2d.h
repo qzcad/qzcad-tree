@@ -63,6 +63,7 @@ public:
      * @param center Координаты центра
      * @param radius Радиус
      * @param part Часть круга для дискретизации (возможные значение: 1 - целый круг, 2 - половинка, 4 - четверть)
+     * @param parent Указатель на родительский объект
      */
     QQuadrilateralMesh2D(const UInteger &count, const Point2D &center, const double &radius, unsigned short part = 1, QObject *parent = 0);
     /**
@@ -70,7 +71,25 @@ public:
      * @param mesh Экземпляр объекта для копирования
      */
     QQuadrilateralMesh2D(const QQuadrilateralMesh2D &mesh);
+    /**
+     * @brief Конструктор создает равномерную секту области, определенной функционально
+     * @param xCount Количество узлов вдоль оси абсцисс
+     * @param yCount Количество узлов вдоль оси ординат
+     * @param xMin Абсцисса нижнего левого угла прямоугольной области
+     * @param yMin Ордината нижнего левого угла прямоугольной области
+     * @param width Ширина прямоугольной области
+     * @param height Высота прямоугольной области
+     * @param func Функция области
+     * @param charPoint Список характерных точек
+     * @param parent Указатель на родительский объект
+     */
     QQuadrilateralMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, QObject *parent = 0);
+    /**
+     * @brief Конструктор создает копию объекта, переданного по указателю
+     * @param mesh Указатель на объект для копирования
+     * @param parent Указатель на родительский объект
+     */
+    QQuadrilateralMesh2D(QuadrilateralMesh2D *mesh, QObject *parent = 0);
     /**
      * @brief Метод формирует строку с информацией о сетке
      * @return Строка с информацией о сетке

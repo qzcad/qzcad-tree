@@ -83,6 +83,8 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
 
     // setMesh
     globalObject().setProperty("setMesh", newFunction(setMesh));
+    // currentMesh
+    globalObject().setProperty("currentMesh", newFunction(currentMesh));
 
     // About
     globalObject().setProperty("About", newFunction(about));
@@ -133,6 +135,11 @@ void QZScriptEngine::setEpsilon(double epsilon)
 Mesh *QZScriptEngine::mesh()
 {
     return mesh_;
+}
+
+void QZScriptEngine::setMesh(Mesh *mesh)
+{
+    mesh_ = mesh;
 }
 
 unsigned long QZScriptEngine::getNodeValuesSize() const
@@ -750,6 +757,22 @@ QScriptValue QZScriptEngine::setMesh(QScriptContext *context, QScriptEngine *eng
         return context->throwError(typeError);
     }
     return engine->undefinedValue();
+}
+
+QScriptValue QZScriptEngine::currentMesh(QScriptContext *context, QScriptEngine *engine)
+{
+    if (dynamic_cast<msh::SegmentMesh2D *>(mesh_))
+        return engine->newQObject(new QSegmentMesh2D(dynamic_cast<SegmentMesh2D *>(mesh_)), QScriptEngine::ScriptOwnership);
+    else if (dynamic_cast<msh::TriangleMesh2D *>(mesh_))
+        return engine->newQObject(new QTriangleMesh2D(dynamic_cast<msh::TriangleMesh2D *>(mesh_)), QScriptEngine::ScriptOwnership);
+    else if (dynamic_cast<msh::QuadrilateralMesh2D *>(mesh_))
+        return engine->newQObject(new QQuadrilateralMesh2D(dynamic_cast<msh::QuadrilateralMesh2D *>(mesh_)), QScriptEngine::ScriptOwnership);
+    else if (dynamic_cast<msh::TriangleMesh3D *>(mesh_))
+        return engine->newQObject(new QTriangleMesh3D(dynamic_cast<msh::TriangleMesh3D *>(mesh_)), QScriptEngine::ScriptOwnership);
+    else if (dynamic_cast<msh::QuadrilateralMesh3D *>(mesh_))
+        return engine->newQObject(new QQuadrilateralMesh3D(dynamic_cast<msh::QuadrilateralMesh3D *>(mesh_)), QScriptEngine::ScriptOwnership);
+    else
+        return context->throwError(QObject::tr("Type of current mesh is unusefull."));
 }
 
 QScriptValue QZScriptEngine::sum(QScriptContext *context, QScriptEngine *engine)

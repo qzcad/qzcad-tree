@@ -20,6 +20,12 @@ QTriangleMesh2D::QTriangleMesh2D(const SegmentMesh2D *mesh, QObject *parent) :
 {
 }
 
+QTriangleMesh2D::QTriangleMesh2D(TriangleMesh2D *mesh, QObject *parent) :
+    QObject(parent), TriangleMesh2D(mesh)
+
+{
+}
+
 QString QTriangleMesh2D::toString() const
 {
     return tr("Сетка треугольных элементов. Узлов: %1; элементов: %2.").arg(nodesCount()).arg(elementsCount());

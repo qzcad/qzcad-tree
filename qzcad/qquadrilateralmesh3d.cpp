@@ -20,6 +20,11 @@ QQuadrilateralMesh3D::QQuadrilateralMesh3D(const UInteger &rCount, const UIntege
 {
 }
 
+QQuadrilateralMesh3D::QQuadrilateralMesh3D(QuadrilateralMesh3D *mesh, QObject *parent) :
+    QObject(parent), QuadrilateralMesh3D(mesh)
+{
+}
+
 QString QQuadrilateralMesh3D::toString() const
 {
     return tr("Сетка четырехугольных элементов (оболочка). Узлов: %1; элементов: %2.").arg(nodesCount()).arg(elementsCount());

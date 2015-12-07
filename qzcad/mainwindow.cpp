@@ -895,11 +895,13 @@ void MainWindow::on_actionSaveAsScript_triggered()
 void MainWindow::on_actionRunScript_triggered()
 {
     QZScriptEngine engine(this);
+    msh::Mesh *mesh = ui->pictureControl->getGlMeshPicture()->releaseMesh();
     QTime time;
     ui->tabWidget->setCurrentIndex(2); // switch to terminal's tab
     std::cout << std::endl;
     std::cout << "QZScriptEngine started..." << std::endl;
     time.start();
+    engine.setMesh(mesh);
     QScriptValue result = engine.evaluate(ui->codeEditor->toPlainText());
     if (engine.hasUncaughtException()) {
         int line = engine.uncaughtExceptionLineNumber();
@@ -908,7 +910,7 @@ void MainWindow::on_actionRunScript_triggered()
     std::cout << "QZScriptEngine finished in " << time.elapsed() << " ms." << std::endl;
     if (engine.mesh() != NULL)
     {
-        clearMesh(ui->pictureControl->getGlMeshPicture()->releaseMesh());
+//        clearMesh(ui->pictureControl->getGlMeshPicture()->releaseMesh());
         ui->pictureControl->getGlMeshPicture()->setMesh(engine.mesh());
 
         for (unsigned i = 0; i < engine.getNodeValuesSize(); i++)

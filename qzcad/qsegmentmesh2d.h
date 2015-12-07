@@ -39,6 +39,12 @@ public:
      */
     QSegmentMesh2D(const QSegmentMesh2D &qmesh);
     /**
+     * @brief Конструктор создает копию объекта, переданного по указателю
+     * @param mesh Указатель на объект для копирования
+     * @param parent Указатель на родительский объект
+     */
+    QSegmentMesh2D(SegmentMesh2D *mesh, QObject *parent = 0);
+    /**
      * @brief Метод формирует строку с информацией о сетке
      * @return Строка с информацией о сетке
      * Метод доступен в скриптах

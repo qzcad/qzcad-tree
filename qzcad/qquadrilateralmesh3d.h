@@ -51,6 +51,12 @@ public:
      */
     QQuadrilateralMesh3D(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length, QObject *parent = 0);
     /**
+     * @brief Конструктор создает копию объекта, переданного по указателю
+     * @param mesh Указатель на объект для копирования
+     * @param parent Указатель на родительский объект
+     */
+    QQuadrilateralMesh3D(QuadrilateralMesh3D *mesh, QObject *parent = 0);
+    /**
      * @brief Метод формирует строку с информацией о сетке
      * @return Строка с информацией о сетке
      * Метод доступен в скриптах
