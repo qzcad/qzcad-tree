@@ -1,7 +1,7 @@
 #include "mesh3d.h"
 
 namespace msh {
-Mesh3D::Mesh3D()
+Mesh3D::Mesh3D(const Mesh3D *mesh) : Mesh(mesh)
 {
     xMin_ = yMin_ = zMin_ = -1.0;
     xMax_ = yMax_ = zMax_ = 1.0;

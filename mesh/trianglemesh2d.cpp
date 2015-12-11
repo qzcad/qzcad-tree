@@ -12,16 +12,13 @@
 namespace msh
 {
 
-TriangleMesh2D::TriangleMesh2D()
+TriangleMesh2D::TriangleMesh2D() : Mesh2D(NULL)
 {
-    xMin_ = -1.0;
-    xMax_ = 1.0;
-    yMin_ = -1.0;
-    yMax_ = 1.0;
 }
 
-TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height)
+void TriangleMesh2D::rectangleDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height)
 {
+    clear();
     double hx = width / (double)(xCount - 1);
     double hy = height / (double)(yCount - 1);
     xMin_ = xMin;
@@ -75,8 +72,9 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
     std::cout << "Создана равномерная сетка треугольных элементов: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
-TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint)
+void TriangleMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint)
 {
+    clear();
     xMin_ = xMin;
     xMax_ = xMin + width;
     yMin_ = yMin;
@@ -358,7 +356,7 @@ TriangleMesh2D::TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, c
     std::cout << "Создана сетка треугольных элементов для функционального объекта: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
-TriangleMesh2D::TriangleMesh2D(const TriangleMesh2D &mesh)
+TriangleMesh2D::TriangleMesh2D(const TriangleMesh2D &mesh) : Mesh2D(&mesh)
 {
     element_ = mesh.element_;
     node_ = mesh.node_;
@@ -368,7 +366,7 @@ TriangleMesh2D::TriangleMesh2D(const TriangleMesh2D &mesh)
     yMax_ = mesh.yMax_;
 }
 
-TriangleMesh2D::TriangleMesh2D(const TriangleMesh2D *mesh)
+TriangleMesh2D::TriangleMesh2D(const TriangleMesh2D *mesh) : Mesh2D(mesh)
 {
     element_ = mesh->element_;
     node_ = mesh->node_;
@@ -378,8 +376,9 @@ TriangleMesh2D::TriangleMesh2D(const TriangleMesh2D *mesh)
     yMax_ = mesh->yMax_;
 }
 
-TriangleMesh2D::TriangleMesh2D(const SegmentMesh2D *mesh)
+void TriangleMesh2D::delaunay(const SegmentMesh2D *mesh)
 {
+    clear();
     Triangulation triangulation = superDelaunay(mesh);
     for (UInteger i = 4; i < triangulation.nodes.size(); i++) pushNode(triangulation.nodes[i], BORDER);
     for (std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
@@ -639,6 +638,13 @@ Triangle TriangleMesh2D::triangle(const UInteger &number) const
     return element_[number];
 }
 
+void TriangleMesh2D::clear()
+{
+    node_.clear();
+    element_.clear();
+    clearLayers();
+    clearDataVectors();
+}
 
 double TriangleMesh2D::minAngle(const Point2D &A, const Point2D &B, const Point2D &C)
 {

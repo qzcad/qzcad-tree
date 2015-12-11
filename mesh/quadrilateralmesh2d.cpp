@@ -13,18 +13,20 @@
 
 namespace msh
 {
-QuadrilateralMesh2D::QuadrilateralMesh2D()
+QuadrilateralMesh2D::QuadrilateralMesh2D() : Mesh2D(NULL)
 {
-    xMin_ = -1.0;
-    xMax_ = 1.0;
-    yMin_ = -1.0;
-    yMax_ = 1.0;
 }
 
-QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &xCount, const UInteger &yCount,
-                                         const double &xMin,
-                                         const double &yMin, const double &width, const double &height)
+void QuadrilateralMesh2D::rectangleDomain(const UInteger &xCount,
+                                          const UInteger &yCount,
+                                          const double &xMin,
+                                          const double &yMin,
+                                          const double &width,
+                                          const double &height)
+
+
 {
+    clear();
     double hx = width / (double)(xCount - 1);
     double hy = height / (double)(yCount - 1);
     // формирование массива узлов
@@ -60,10 +62,11 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &xCount, const UInteger 
     std::cout << "Создана равномерная сетка четырехугольных элементов: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
-QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &xCount, const UInteger &yCount,
+void QuadrilateralMesh2D::quadDomain(const UInteger &xCount, const UInteger &yCount,
                                          const Point2D &v0, const Point2D &v1,
                                          const Point2D &v2, const Point2D &v3)
 {
+    clear();
     double hx = 2.0 / (double)(xCount - 1);
     double hy = 2.0 / (double)(yCount - 1);
     for (UInteger i = 0; i < xCount; i++)
@@ -97,8 +100,9 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &xCount, const UInteger 
     std::cout << "Создана равномерная (изопараметрическое преобразование) сетка четырехугольных элементов: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
-QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &count, const Point2D &v0, const Point2D &v1, const Point2D &v2)
+void QuadrilateralMesh2D::triangleDomain(const UInteger &count, const Point2D &v0, const Point2D &v1, const Point2D &v2)
 {
+    clear();
     Point2D center = (v0 + v1 + v2) / 3.0; // центр треугольника
     Point2D c01 = (v0 + v1) / 2.0; // центр стороны, соединяющей вершину 0 и 1
     Point2D c12 = (v1 + v2) / 2.0; // центр стороны, соединяющей вершину 1 и 2
@@ -150,8 +154,9 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &count, const Point2D &v
     std::cout << "Создана равномерная сетка четырехугольных элементов для тругольной области: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
-QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &count, const Point2D &center, const double &radius, unsigned short part)
+void QuadrilateralMesh2D::circleDomain(const UInteger &count, const Point2D &center, const double &radius, unsigned short part)
 {
+    clear();
     if (part == 1)
     {
         xMin_ = center.x() - radius;
@@ -324,7 +329,8 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &count, const Point2D &c
     }
 }
 
-QuadrilateralMesh2D::QuadrilateralMesh2D(const QuadrilateralMesh2D &mesh)
+QuadrilateralMesh2D::QuadrilateralMesh2D(const QuadrilateralMesh2D &mesh) :
+    Mesh2D(&mesh)
 {
     element_ = mesh.element_;
     node_ = mesh.node_;
@@ -334,7 +340,8 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const QuadrilateralMesh2D &mesh)
     yMax_ = mesh.yMax_;
 }
 
-QuadrilateralMesh2D::QuadrilateralMesh2D(const QuadrilateralMesh2D *mesh)
+QuadrilateralMesh2D::QuadrilateralMesh2D(const QuadrilateralMesh2D *mesh) :
+    Mesh2D(mesh)
 {
     element_ = mesh->element_;
     node_ = mesh->node_;
@@ -344,8 +351,9 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const QuadrilateralMesh2D *mesh)
     yMax_ = mesh->yMax_;
 }
 
-QuadrilateralMesh2D::QuadrilateralMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint)
+void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint)
 {
+    clear();
     xMin_ = xMin;
     xMax_ = xMin + width;
     yMin_ = yMin;
@@ -709,6 +717,18 @@ void QuadrilateralMesh2D::addElement(const Quadrilateral &quad)
 void QuadrilateralMesh2D::addElement(const std::vector<UInteger> &nodes_ref)
 {
     addElement(nodes_ref[0], nodes_ref[1], nodes_ref[2], nodes_ref[3]);
+}
+
+void QuadrilateralMesh2D::clear()
+{
+    node_.clear();
+    element_.clear();
+    clearDataVectors();
+    clearLayers();
+    xMin_ = -1.0;
+    xMax_ = 1.0;
+    yMin_ = -1.0;
+    yMax_ = 1.0;
 }
 
 double QuadrilateralMesh2D::isoFunc(const UInteger &i, const double &xi, const double &eta)

@@ -27,7 +27,7 @@ public:
      */
     QuadrilateralMesh2D();
     /**
-     * @brief Конструктор создает равномерную структурированную секту в прямоугольной области
+     * @brief Метод создает равномерную структурированную секту в прямоугольной области
      * @param xCount Количество узлов вдоль оси абсцисс
      * @param yCount Количество узлов вдоль оси ординат
      * @param xMin Абсцисса нижнего левого угла прямоугольной области
@@ -35,9 +35,9 @@ public:
      * @param width Ширина прямоугольной области
      * @param height Высота прямоугольной области
      */
-    QuadrilateralMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height);
+    void rectangleDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height);
     /**
-     * @brief Конструктор создает равномерную структурированную сетку для выпуклой четырехугольной области
+     * @brief Метод создает равномерную структурированную сетку для выпуклой четырехугольной области
      * @param xCount Количество узлов по первому направлению (ребра 0-1 и 2-3)
      * @param yCount Количество узлов по второму направлению (ребра 1-2 и 3-0)
      * @param v0 Координаты узла 0
@@ -45,23 +45,23 @@ public:
      * @param v2 Координаты узла 2
      * @param v3 Координаты узла 3
      */
-    QuadrilateralMesh2D(const UInteger &xCount, const UInteger &yCount, const Point2D &v0, const Point2D &v1, const Point2D &v2, const Point2D &v3);
+    void quadDomain(const UInteger &xCount, const UInteger &yCount, const Point2D &v0, const Point2D &v1, const Point2D &v2, const Point2D &v3);
     /**
-     * @brief Конструктор создает сетку для треугольной области
+     * @brief Метод создает сетку для треугольной области
      * @param count Количество узлов на сторону треугольника (должно быть четным)
      * @param v0 Координаты узла 0
      * @param v1 Координаты узла 1
      * @param v2 Координаты узла 2
      */
-    QuadrilateralMesh2D(const UInteger &count, const Point2D &v0, const Point2D &v1, const Point2D &v2);
+    void triangleDomain(const UInteger &count, const Point2D &v0, const Point2D &v1, const Point2D &v2);
     /**
-     * @brief Конструктор создает блочно-структурированную сетку для круга (части круга)
+     * @brief Метод создает блочно-структурированную сетку для круга (части круга)
      * @param count Базовое количество узлов (По окружности будет 4n - для целого круга, 4n - для половинки, 2n - для четверти)
      * @param center Координаты центра
      * @param radius Радиус
      * @param part Часть круга для дискретизации (возможные значение: 1 - целый круг, 2 - половинка, 4 - четверть)
      */
-    QuadrilateralMesh2D(const UInteger &count, const Point2D &center, const double &radius, unsigned short part = 1);
+    void circleDomain(const UInteger &count, const Point2D &center, const double &radius, unsigned short part = 1);
     /**
      * @brief Конструктор копирования
      * @param mesh Экземпляр объекта для копирования
@@ -83,7 +83,7 @@ public:
      * @param func Функция области
      * @param charPoint Список характерных точек
      */
-    QuadrilateralMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint);
+    void functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint);
     /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
@@ -138,6 +138,10 @@ public:
      * @param Массив ссылок (номеров) на узлы
      */
     void addElement(const std::vector<UInteger> &nodes_ref);
+    /**
+     * @brief Очистить сетку
+     */
+    void clear();
 protected:
     /**
      * @brief Функция формы изопараметрического четырехугольного элемента

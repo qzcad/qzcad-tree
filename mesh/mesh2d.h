@@ -26,7 +26,7 @@ namespace msh
 class Mesh2D : public Mesh
 {
 public:
-    Mesh2D();
+    Mesh2D(const Mesh2D *mesh);
     /**
      * @brief Количество узлов
      * @return Количество узлов в сетке

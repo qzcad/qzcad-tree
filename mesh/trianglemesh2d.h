@@ -29,7 +29,7 @@ public:
      */
     TriangleMesh2D();
     /**
-     * @brief Конструктор создает равномерную структурированную секту в прямоугольной области
+     * @brief Метод создает равномерную структурированную секту в прямоугольной области
      * @param xCount Количество узлов вдоль оси абсцисс
      * @param yCount Количество узлов вдоль оси ординат
      * @param xMin Абсцисса нижнего левого угла прямоугольной области
@@ -37,9 +37,9 @@ public:
      * @param width Ширина прямоугольной области
      * @param height Высота прямоугольной области
      */
-    TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height);
+    void rectangleDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height);
     /**
-     * @brief Конструктор создает равномерную секту области, определенной функционально
+     * @brief Метод создает равномерную секту области, определенной функционально
      * @param xCount Количество узлов вдоль оси абсцисс
      * @param yCount Количество узлов вдоль оси ординат
      * @param xMin Абсцисса нижнего левого угла прямоугольной области
@@ -49,7 +49,7 @@ public:
      * @param func Функция области
      * @param charPoint Список характерных точек
      */
-    TriangleMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint);
+    void functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint);
     /**
      * @brief Конструктор копирования
      * @param mesh Экземпляр объекта для копирования
@@ -61,10 +61,10 @@ public:
      */
     TriangleMesh2D(const TriangleMesh2D *mesh);
     /**
-     * @brief Конструктор для построения триангуляции Делоне заданного двумерного конутра
+     * @brief Метод построения триангуляции Делоне заданного двумерного конутра
      * @param mesh Указатель на контур
      */
-    TriangleMesh2D(const SegmentMesh2D *mesh);
+    void delaunay(const SegmentMesh2D *mesh);
     /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
@@ -161,6 +161,10 @@ public:
      * @return Треугольник с указанным номером
      */
     Triangle triangle(const UInteger &number) const;
+    /**
+     * @brief Метод очистки данных сетки
+     */
+    void clear();
 protected:
     /**
      * @brief Метод находит значение минимального угла в треугольнике, определенном координатами вершин

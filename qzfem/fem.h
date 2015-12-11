@@ -104,7 +104,7 @@ protected:
      * @param global Ссылка на глобальную матрицу жесткости
      * @param force Ссылка на вектор-столбец
      */
-    DoubleVector solve(MappedDoubleMatrix &global, DoubleVector &force);
+    DoubleVector solve(MappedDoubleMatrix &global, DoubleVector &force, bool cg=true);
 protected:
     Mesh *mesh_; //!< Указатель на сетку конечных элементов
     UInteger freedom_; //!< Количество степеней свободы

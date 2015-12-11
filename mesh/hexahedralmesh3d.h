@@ -24,7 +24,7 @@ class HexahedralMesh3D : public Mesh3D
 public:
     HexahedralMesh3D();
     /**
-     * @brief Конструктор, который создает равномерную сетку шестигранников для прямоугольной призмы
+     * @brief Метод создает равномерную сетку шестигранников для прямоугольной призмы
      * @param xCount Количество точек дискретизации по оси ординат
      * @param yCount Количество точек дискретизации по оси абсцисс
      * @param zCount Количество точек дискретизации по оси аппликат
@@ -35,11 +35,11 @@ public:
      * @param height Высота
      * @param depth Глубина
      */
-    HexahedralMesh3D(const UInteger &xCount, const UInteger &yCount, const UInteger &zCount,
+    void prismDomain(const UInteger &xCount, const UInteger &yCount, const UInteger &zCount,
                      const double &xMin, const double &yMin, const double &zMin,
                      const double &width, const double &height, const double &depth);
     /**
-     * @brief Конструктор, который строит сетку как тело вращения
+     * @brief Метод строит сетку как тело вращения
      * @param baseMesh Указатель на базовую двумерную сетку четырехугольных элементов
      * @param xDelta Смещение вдоль оси ординат
      * @param yDelta Смещение вдоль оси абсцисс
@@ -47,9 +47,9 @@ public:
      * @param x_axes Ось вращения (x_axes == true, то вращение вокруг оси ординат; иначе - абсцисс)
      * @param withLayersInfo Учеть номера слоев
      */
-    HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const double& xDelta, const double& yDelta, const int& lCount, bool x_axes, bool withLayersInfo = true);
+    void rotateBaseMesh(QuadrilateralMesh2D *baseMesh, const double& xDelta, const double& yDelta, const int& lCount, bool x_axes, bool withLayersInfo = true);
     /**
-     * @brief Конструктор, который строит сетку как тело вращения на заданный угол
+     * @brief Метод строит сетку как тело вращения на заданный угол
      * @param baseMesh Указатель на базовую двумерную сетку четырехугольных элементов
      * @param xDelta Смещение вдоль оси ординат
      * @param yDelta Смещение вдоль оси абсцисс
@@ -58,7 +58,7 @@ public:
      * @param x_axes Ось вращения (x_axes == true, то вращение вокруг оси ординат; иначе - абсцисс)
      * @param withLayersInfo Учеть номера слоев
      */
-    HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const double& xDelta, const double& yDelta, const double& angle, const int& lCount, bool x_axes, bool withLayersInfo = true);
+    void rotateBaseMesh(QuadrilateralMesh2D *baseMesh, const double& xDelta, const double& yDelta, const double& angle, const int& lCount, bool x_axes, bool withLayersInfo = true);
     /**
      * @brief Конструктор копирования
      * @param mesh Экземпляр объекта для копирования
@@ -110,6 +110,10 @@ public:
      * @param Массив ссылок (номеров) на узлы
      */
     void addElement(const std::vector<UInteger> &nodes_ref);
+    /**
+     * @brief Метод очистки данных модели
+     */
+    void clear();
 //    UInteger toArray(UInteger i, UInteger j, UInteger k, UInteger yCount, UInteger zCount) { return i * yCount * zCount + j * zCount + k; }
 private:
     std::vector<Hexahedral> element_; //!< Массив шестигранных элементов

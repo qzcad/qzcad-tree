@@ -4,6 +4,15 @@ namespace msh {
 
 double Mesh::epsilon_ = 1.0E-10; // инициализация точности
 
+Mesh::Mesh(const Mesh *mesh)
+{
+    if (mesh != NULL)
+    {
+        layer_ = mesh->layer_;
+        data_ = mesh->data_;
+    }
+}
+
 int Mesh::layer(const msh::UInteger &number) const
 {
     return layer_[number];
@@ -36,6 +45,21 @@ double Mesh::epsilon()
 void Mesh::setEpsilon(double epsilon)
 {
     epsilon_ = epsilon;
+}
+
+UInteger Mesh::dataVectorsCount() const
+{
+    return data_.size();
+}
+
+NamedDoubleVector Mesh::data(const UInteger &i) const
+{
+    return data_[i];
+}
+
+void Mesh::clearDataVectors()
+{
+    data_.clear();
 }
 
 }

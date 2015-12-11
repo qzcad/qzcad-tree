@@ -4,14 +4,8 @@
 
 namespace msh {
 
-QuadrilateralMesh3D::QuadrilateralMesh3D()
+QuadrilateralMesh3D::QuadrilateralMesh3D() : Mesh3D(NULL)
 {
-    xMin_ = -1.0;
-    xMax_ = 1.0;
-    yMin_ = -1.0;
-    yMax_ = 1.0;
-    zMin_ = -1.0;
-    zMax_ = 1.0;
 }
 
 QuadrilateralMesh3D::QuadrilateralMesh3D(const QuadrilateralMesh3D &mesh)

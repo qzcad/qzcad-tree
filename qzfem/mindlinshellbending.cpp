@@ -398,11 +398,8 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
             } // for i
         }
     } // iterator
-//    std::cout << "force: " << force.size() << std::endl;
-//    force.print(' ');
 
     DoubleVector displacement = solve(global, force);
-//    DoubleVector displacement = global.cholesky(force);
 
     std::vector<double> xxx(nodesCount);
     std::vector<double> yyy(nodesCount);
@@ -1004,11 +1001,8 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, const std::vector<double>
             } // for i
         }
     } // iterator
-//    std::cout << "force: " << force.size() << std::endl;
-//    force.print(' ');
 
     DoubleVector displacement = solve(global, force);
-//    DoubleVector displacement = global.cholesky(force);
 
     std::vector<double> xxx(nodesCount);
     std::vector<double> yyy(nodesCount);

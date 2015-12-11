@@ -5,12 +5,13 @@
 #include <float.h>
 
 namespace msh {
-HexahedralMesh3D::HexahedralMesh3D()
+HexahedralMesh3D::HexahedralMesh3D() : Mesh3D(NULL)
 {
 }
 
-HexahedralMesh3D::HexahedralMesh3D(const UInteger &xCount, const UInteger &yCount, const UInteger &zCount, const double &xMin, const double &yMin, const double &zMin, const double &width, const double &height, const double &depth)
+void HexahedralMesh3D::prismDomain(const UInteger &xCount, const UInteger &yCount, const UInteger &zCount, const double &xMin, const double &yMin, const double &zMin, const double &width, const double &height, const double &depth)
 {
+    clear();
     double hx = width / (double)(xCount - 1);
     double hy = height / (double)(yCount - 1);
     double hz = depth / (double)(zCount - 1);
@@ -59,8 +60,9 @@ HexahedralMesh3D::HexahedralMesh3D(const UInteger &xCount, const UInteger &yCoun
     std::cout << "Создана равномерная сетка шестигранных элементов: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
-HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const double &xDelta, const double &yDelta, const int &lCount, bool x_axes, bool withLayersInfo)
+void HexahedralMesh3D::rotateBaseMesh(QuadrilateralMesh2D *baseMesh, const double &xDelta, const double &yDelta, const int &lCount, bool x_axes, bool withLayersInfo)
 {
+    clear();
     xMin_ = DBL_MAX;
     xMax_ = -DBL_MAX;
     yMin_ = DBL_MAX;
@@ -158,8 +160,9 @@ HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const double &
     std::cout << "Создана сетка шестигранных элементов вращением плоского профиля: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
-HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const double &xDelta, const double &yDelta, const double &angle, const int &lCount, bool x_axes, bool withLayersInfo)
+void HexahedralMesh3D::rotateBaseMesh(QuadrilateralMesh2D *baseMesh, const double &xDelta, const double &yDelta, const double &angle, const int &lCount, bool x_axes, bool withLayersInfo)
 {
+    clear();
     xMin_ = DBL_MAX;
     xMax_ = -DBL_MAX;
     yMin_ = DBL_MAX;
@@ -261,7 +264,7 @@ HexahedralMesh3D::HexahedralMesh3D(QuadrilateralMesh2D *baseMesh, const double &
     std::cout << "Создана сетка шестигранных элементов вращением плоского профиля: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
-HexahedralMesh3D::HexahedralMesh3D(const HexahedralMesh3D &mesh)
+HexahedralMesh3D::HexahedralMesh3D(const HexahedralMesh3D &mesh) : Mesh3D(&mesh)
 {
     element_ = mesh.element_;
     node_ = mesh.node_;
@@ -364,7 +367,15 @@ void HexahedralMesh3D::addElement(const std::vector<UInteger> &nodes_ref)
                nodes_ref[4],
                nodes_ref[5],
                nodes_ref[6],
-               nodes_ref[7]);
+            nodes_ref[7]);
+}
+
+void HexahedralMesh3D::clear()
+{
+    node_.clear();
+    element_.clear();
+    clearLayers();
+    clearDataVectors();
 }
 
 }

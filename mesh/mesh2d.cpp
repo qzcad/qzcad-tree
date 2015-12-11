@@ -2,7 +2,7 @@
 #include <math.h>
 namespace msh
 {
-Mesh2D::Mesh2D()
+Mesh2D::Mesh2D(const Mesh2D *mesh) : Mesh(mesh)
 {
     xMin_ = yMin_ = -1.0;
     xMax_ = yMax_ = 1.0;

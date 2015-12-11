@@ -13,6 +13,7 @@
 #include "pointpointer.h"
 #include "elementpointer.h"
 #include "nodetype.h"
+#include "nameddoublevector.h"
 
 namespace msh
 {
@@ -25,6 +26,11 @@ class Mesh
 {
 
 public:
+    /**
+     * @brief Конструктор, обеспечивающий копирование всей дополнительной информации
+     * @param mesh
+     */
+    Mesh(const Mesh *mesh);
     /**
      * @brief Количество узлов
      * @return Количество узлов в сетке
@@ -149,10 +155,14 @@ public:
      * @param epsilon Новое значение текущего уровня нуля
      */
     static void setEpsilon(double epsilon);
+    UInteger dataVectorsCount() const;
+    NamedDoubleVector data(const UInteger &i) const;
+    void clearDataVectors();
 
 protected:
     std::vector<int> layer_; //!< Массив с номером слоя для каждого элемента
     static double epsilon_; //!< Точность вычислительных операций, по умолчантю 1.0E-10
+    std::vector<NamedDoubleVector> data_; //!< Дополнительная числовая информация, определенная на сетке
 };
 }
 #endif // MESH_H

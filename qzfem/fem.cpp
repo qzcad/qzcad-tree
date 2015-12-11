@@ -180,10 +180,14 @@ void Fem::setInitialNodalValue(MappedDoubleMatrix &global, DoubleVector &force, 
     global(rowNumber, rowNumber) = 1.0;
 }
 
-DoubleVector Fem::solve(MappedDoubleMatrix &global, DoubleVector &force)
+DoubleVector Fem::solve(MappedDoubleMatrix &global, DoubleVector &force, bool cg)
 {
     // решение СЛАУ
     std::cout << "Linear Equations (СЛАУ)..." << std::endl;
-    RowDoubleMatrix rdm(global);
-    return rdm.conjugateGradient(force, 1.0E-9);
+    if(cg)
+    {
+        RowDoubleMatrix rdm(global);
+        return rdm.conjugateGradient(force);
+    }
+    return global.cholesky(force);
 }

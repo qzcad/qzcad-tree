@@ -24,7 +24,7 @@ namespace msh {
 class Mesh3D: public Mesh
 {
 public:
-    Mesh3D();
+    Mesh3D(const Mesh3D *mesh);
     /**
      * @brief Количество узлов
      * @return Количество узлов в сетке
