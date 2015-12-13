@@ -737,17 +737,17 @@ void MainWindow::on_actionElasticFem_triggered()
                     for (int i = 0; i < dialog.forcesCount(); i++)
                         delete forces[i];
 
+                    hexahedralMesh->addDataVector("u", fem.u());
+                    hexahedralMesh->addDataVector("v", fem.v());
+                    hexahedralMesh->addDataVector("w", fem.w());
+                    hexahedralMesh->addDataVector("Sigma u", fem.sigmaX());
+                    hexahedralMesh->addDataVector("Sigma v", fem.sigmaY());
+                    hexahedralMesh->addDataVector("Sigma w", fem.sigmaZ());
+                    hexahedralMesh->addDataVector("Tau uv", fem.tauXY());
+                    hexahedralMesh->addDataVector("Tau vw", fem.tauYZ());
+                    hexahedralMesh->addDataVector("Tau wu", fem.tauZX());
+                    hexahedralMesh->addDataVector("sigma", fem.sigma());
                     ui->pictureControl->getGlMeshPicture()->setMesh(hexahedralMesh);
-                    ui->pictureControl->getGlMeshPicture()->pushNodeValuesVector(NamedFloatingVector("u", fem.u()));
-                    ui->pictureControl->getGlMeshPicture()->pushNodeValuesVector(NamedFloatingVector("v", fem.v()));
-                    ui->pictureControl->getGlMeshPicture()->pushNodeValuesVector(NamedFloatingVector("w", fem.w()));
-                    ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector("Sigma u", fem.sigmaX()));
-                    ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector("Sigma v", fem.sigmaY()));
-                    ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector("Sigma w", fem.sigmaZ()));
-                    ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector("Tau uv", fem.tauXY()));
-                    ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector("Tau vw", fem.tauYZ()));
-                    ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector("Tau wu", fem.tauZX()));
-                    ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector("sigma", fem.sigma()));
                 }
             }
         }
@@ -788,7 +788,7 @@ void MainWindow::on_actionLoadNodeValue_triggered()
                 in >> val;
                 v.push_back(val);
             }
-            ui->pictureControl->getGlMeshPicture()->pushNodeValuesVector(NamedFloatingVector(name, v));
+            mesh->addDataVector(name.toStdString(), v);
         }
     }
 }
@@ -826,7 +826,7 @@ void MainWindow::on_actionLoadElementValue_triggered()
                 in >> val;
                 v.push_back(val);
             }
-            ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector(name, v));
+            mesh->addDataVector(name.toStdString(), v);
         }
     }
 }
@@ -837,36 +837,31 @@ void MainWindow::on_actionExtremeValuesStatistica_triggered()
     if (mesh != NULL)
     {
         ui->tabWidget->setCurrentIndex(2); // switch to terminal's tab
-        NamedFloatingVector nfv = ui->pictureControl->getGlMeshPicture()->currentValuesVector();
+        msh::NamedDoubleVector ndv = ui->pictureControl->getGlMeshPicture()->dataVector();
         std::cout << std::endl;
-        if (mesh->elementsCount() == nfv.size())
+        if (mesh->elementsCount() == ndv.size())
         {
-            std::vector<double> data = nfv.data();
-            std::vector<double>::iterator result;
-            std::vector<double>::size_type index;
-            result = std::max_element(data.begin(), data.end());
-            index = std::distance(data.begin(), result);
-            std::cout << "Максимальное значение: " << *result << " в элементе с номером: " << index << std::endl;
-            result = std::min_element(data.begin(), data.end());
-            index = std::distance(data.begin(), result);
-            std::cout << "Минимальное значение: " << *result << " в элементе с номером: " << index << std::endl;
+            double val;
+            msh::UInteger index = 0;
+            std::cout << ndv.name() << ": " << std::endl;
+            val = ndv.min(index);
+            std::cout << "Минимальное значение: " << val << " в элементе с номером: " << index << std::endl;
+            val = ndv.max(index);
+            std::cout << "Максимальное значение: " << val << " в элементе с номером: " << index << std::endl;
         }
-        else if (mesh->nodesCount() == nfv.size())
+        else if (mesh->nodesCount() == ndv.size())
         {
-            std::vector<double> data = nfv.data();
-            std::vector<double>::iterator result;
-            std::vector<double>::size_type index;
+            double val;
+            msh::UInteger index = 0;
             msh::PointPointer node;
-            result = std::max_element(data.begin(), data.end());
-            index = std::distance(data.begin(), result);
+            std::cout << ndv.name() << ": " << std::endl;
+            val = ndv.max(index);
             node = mesh->node(index);
-            std::cout << "Максимальное значение: " << *result << " в узле с номером: " << index << std::endl;
+            std::cout << "Минимальное значение: " << val << " в узле с номером: " << index << std::endl;
             std::cout << "( " << node->x() << "; " << node->y() << "; " << node->z() << " )" << std::endl;
-
-            result = std::min_element(data.begin(), data.end());
-            index = std::distance(data.begin(), result);
+            val = ndv.max(index);
             node = mesh->node(index);
-            std::cout << "Минимальное значение: " << *result << " в узле с номером: " << index << std::endl;
+            std::cout << "Максимальное значение: " << val << " в узле с номером: " << index << std::endl;
             std::cout << "( " << node->x() << "; " << node->y() << "; " << node->z() << " )" << std::endl;
         }
     }
@@ -918,10 +913,10 @@ void MainWindow::on_actionRunScript_triggered()
 //        clearMesh(ui->pictureControl->getGlMeshPicture()->releaseMesh());
         ui->pictureControl->getGlMeshPicture()->setMesh(engine.mesh());
 
-        for (unsigned i = 0; i < engine.getNodeValuesSize(); i++)
-            ui->pictureControl->getGlMeshPicture()->pushNodeValuesVector(engine.getNodeValues(i));
-        for (unsigned i = 0; i < engine.getElementValuesSize(); i++)
-            ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(engine.getElementValues(i));
+//        for (unsigned i = 0; i < engine.getNodeValuesSize(); i++)
+//            ui->pictureControl->getGlMeshPicture()->pushNodeValuesVector(engine.getNodeValues(i));
+//        for (unsigned i = 0; i < engine.getElementValuesSize(); i++)
+//            ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(engine.getElementValues(i));
         ui->tabWidget->setCurrentIndex(0); // switch to picture's tab
     }
 }
@@ -957,7 +952,7 @@ void MainWindow::on_actionJacobianMetric_triggered()
                             max = j[i];
                     }
                 }
-                ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector(tr("якобиан"), j));
+                mesh->addDataVector("Jacobian", j);
             }
         }
         std::cout << "Выполнено: " << min << " <= J <= " << max << std::endl;
@@ -994,7 +989,7 @@ void MainWindow::on_actionLengthAspect_triggered()
                             max = j[i];
                     }
                 }
-                ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector(tr("Соотношение длин сторон"), j));
+                mesh->addDataVector("length ratio", j);
             }
         }
         std::cout << "Выполнено: " << min << "<= aspect(l) <= " << max << std::endl;
@@ -1031,7 +1026,7 @@ void MainWindow::on_actionMinAngleMetric_triggered()
                             max = j[i];
                     }
                 }
-                ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector(tr("Минимальный угол, °"), j));
+                mesh->addDataVector("min angle, gradus", j);
             }
         }
         if (dynamic_cast<msh::TriangleMesh3D*>(mesh))
@@ -1055,7 +1050,7 @@ void MainWindow::on_actionMinAngleMetric_triggered()
                             max = j[i];
                     }
                 }
-                ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector(tr("Минимальный угол, °"), j));
+                mesh->addDataVector("min angle, gradus", j);
             }
         }
         std::cout << "Выполнено: " << min << " <= min(alpha) <= " << max << std::endl;
@@ -1092,7 +1087,7 @@ void MainWindow::on_actionAngleAspect_triggered()
                             max = j[i];
                     }
                 }
-                ui->pictureControl->getGlMeshPicture()->pushElementValuesVector(NamedFloatingVector(tr("Соотношение углов"), j));
+                mesh->addDataVector("angle ratio", j);
             }
         }
         std::cout << "Выполнено: " << min << "<= aspect(alpha) <= " << max << std::endl;

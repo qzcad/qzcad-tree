@@ -9,6 +9,7 @@
 #define MESH_H
 
 #include <vector>
+#include <string>
 
 #include "pointpointer.h"
 #include "elementpointer.h"
@@ -161,11 +162,22 @@ public:
      */
     UInteger dataVectorsCount() const;
     /**
+     * @brief Добавить именованный вектор значений
+     * @param vec Вектор значений
+     */
+    void addDataVector(const NamedDoubleVector &vec);
+    /**
+     * @brief Добавить именованный вектор значений
+     * @param name Название вектора
+     * @param values Значения
+     */
+    void addDataVector(const std::string &name, const std::vector<double> &values);
+    /**
      * @brief Метод для получения массива значений с заданным номером
      * @param i Номер массива
      * @return Массив значений с заданным номером
      */
-    NamedDoubleVector data(const UInteger &i) const;
+    const NamedDoubleVector &data(const UInteger &i) const;
     /**
      * @brief Метод очищает массивы значений
      */
@@ -182,6 +194,10 @@ public:
      * @brief Метод очищает дискретную модель
      */
     virtual void clear();
+    /**
+     * @brief Напечатать в стандартный вывод экстремальные значения векторов данных
+     */
+    void printDataExtremums();
 
 protected:
     std::vector<int> layer_; //!< Массив с номером слоя для каждого элемента

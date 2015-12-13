@@ -25,39 +25,6 @@ UInteger Fem::freedom() const
     return freedom_;
 }
 
-UInteger Fem::nodesVectorsCount() const
-{
-    return nodeValues_.size();
-}
-
-std::vector<double> Fem::nodeVector(UInteger num) const
-{
-    return nodeValues_[num].values;
-}
-
-std::string Fem::nodeVectorName(UInteger num) const
-{
-    return nodeValues_[num].name;
-}
-
-void Fem::printNodeValuesExtremums() const
-{
-    UInteger nodesCount = mesh_->nodesCount();
-    for (UInteger f = 0; f < nodeValues_.size(); f++)
-    {
-        std::vector<double> values = nodeValues_[f].values;
-        double max = values[0];
-        double min = values[0];
-        for (UInteger i = 1; i < nodesCount; i++)
-        {
-            double v = values[i];
-            if (max < v) max = v;
-            if (min > v) min = v;
-        }
-        std::cout << min << " <= " << nodeValues_[f].name << " <= " << max << std::endl;
-    }
-}
-
 void Fem::reportNodeValues(Fem::PointFilterFunc func)
 {
     UInteger nodesCount = mesh_->nodesCount();
@@ -77,10 +44,10 @@ void Fem::reportNodeValues(Fem::PointFilterFunc func)
     for (UInteger i = 0; i < idx.size(); i++)
         std::cout << mesh_->node(idx[i])->z() << "\t";
 
-    for (UInteger f = 0; f < nodeValues_.size(); f++)
+    for (UInteger f = 0; f < mesh_->dataVectorsCount(); f++)
     {
-        std::cout << std::endl << nodeValues_[f].name << "\t";
-        std::vector<double> values = nodeValues_[f].values;
+        std::cout << std::endl << mesh_->data(f).name() << "\t";
+        std::vector<double> values = mesh_->data(f).vector();
         for (UInteger i = 0; i < idx.size(); i++)
             std::cout << values[idx[i]] << "\t";
     }

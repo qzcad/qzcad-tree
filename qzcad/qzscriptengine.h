@@ -14,8 +14,6 @@
 
 #include "fem.h"
 
-#include "namedfloatingvector.h"
-
 /**
  * @brief Интерпретатор скриптов модели
  * @see QScriptEngine
@@ -33,44 +31,22 @@ public:
      * @brief Получить значение точности (машинного нуля) вычислений (минимальное растояние между двумя неравными числами)
      * @return Текущее значение точности
      */
-    double epsilon() const;
+    static double epsilon();
     /**
      * @brief Установить значение точности (машинного нуля) вычислений (минимальное растояние между двумя неравными числами)
      * @param epsilon Новое значение точности (машинного нуля) вычислений (минимальное растояние между двумя неравными числами)
      */
-    void setEpsilon(double epsilon);
+    static void setEpsilon(double epsilon);
     /**
      * @brief Получить указатель на созданую сетку
      * @return Указатель на сетку
      */
-    msh::Mesh *mesh();
+    static msh::Mesh *mesh();
     /**
      * @brief Установить указатель текущей сетки
      * @param mesh Указатель на сетку
      */
-    void setMesh(msh::Mesh *mesh);
-    /**
-     * @brief Получить количество векторов со значениями, определенными в узлах
-     * @return Количество векторов со значениями, определенными в узлах
-     */
-    unsigned long getNodeValuesSize() const;
-    /**
-     * @brief Получить вектор, значений опеределенных в узлах
-     * @param i Номер вектора
-     * @return Вектор, значений определенных в узлах
-     */
-    NamedFloatingVector getNodeValues(const unsigned long &i);
-    /**
-     * @brief Получить количество векторов со значениями, определенными на элементах
-     * @return Количество векторов со значениями, определенными на элементах
-     */
-    unsigned long getElementValuesSize() const;
-    /**
-     * @brief Получить вектор, значений опеределенных на элементах
-     * @param i Номер вектора
-     * @return Вектор, значений определенных на элементах
-     */
-    NamedFloatingVector getElementValues(const unsigned long &i);
+    static void setMesh(msh::Mesh *mesh);
 signals:
 
 public slots:

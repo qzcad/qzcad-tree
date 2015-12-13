@@ -46,27 +46,6 @@ public:
      */
     UInteger freedom() const;
     /**
-     * @brief Метод возвращает количество векторов значений, определенных в узлах
-     * @return
-     */
-    UInteger nodesVectorsCount() const;
-    /**
-     * @brief Метод возвращает узловые значения вектора с указанным номером
-     * @param num Номер вектора узловых значений
-     * @return Вектор значений
-     */
-    std::vector<double> nodeVector(UInteger num) const;
-    /**
-     * @brief Метод возвращает название вектора узловых значений
-     * @param num Номер вектора узловых значений
-     * @return Название вектора узловых значений
-     */
-    std::string nodeVectorName(UInteger num) const;
-    /**
-     * @brief Метод печатает в стандартный вывод экстремальные значения векторов узловых значений
-     */
-    void printNodeValuesExtremums() const;
-    /**
      * @brief Сигнатура функции для фильтрации узлов при формировании отчета
      */
     typedef std::function<bool(PointPointer)> PointFilterFunc;
@@ -109,19 +88,6 @@ protected:
     Mesh *mesh_; //!< Указатель на сетку конечных элементов
     UInteger freedom_; //!< Количество степеней свободы
     UInteger dimension_; //!< Размерность задачи
-    class NamedVector
-    {
-    public:
-        NamedVector(const std::string &n, const std::vector<double> &v)
-        {
-            name = n;
-            values = v;
-        }
-
-        std::string name;
-        std::vector<double> values;
-    };
-    std::vector<NamedVector> nodeValues_;
 };
 
 #endif // FEM_H

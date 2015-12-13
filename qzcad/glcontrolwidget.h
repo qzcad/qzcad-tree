@@ -11,7 +11,6 @@
 #include <QWidget>
 #include "glmeshpicture.h"
 #include "meshpointer.h"
-#include "namedfloatingvector.h"
 
 namespace Ui {
 class GLControlWidget;
@@ -24,21 +23,6 @@ class GLControlWidget : public QWidget
 public:
     explicit GLControlWidget(QWidget *parent = 0);
     ~GLControlWidget();
-    /**
-     * @brief Добавить вектор значений, определенных на элементе
-     * @param vector Вектор значений определенных на элементе
-     */
-    void pushElementValuesVector(const NamedFloatingVector &vector);
-    /**
-     * @brief Очистить вектор значений, определенных на элементе
-     */
-    void clearElementValues();
-    /**
-     * @brief Получить текущий (выбранный) вектор значений
-     * @return Вектор значений, который выбрал пользователь для визуализации
-     * Если нет векторов в соответствующих массивах, будет возвращен пустой вектор.
-     */
-    NamedFloatingVector currentValuesVector();
     /**
      * @brief Получить указатель на экземпляр отрисовщика сеток
      * @return Укзатаель типа GLMeshPicture

@@ -303,8 +303,9 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
         u[i] = displacement[i];
         v[i] = displacement[i + nodesCount];
     }
-    nodeValues_.push_back(NamedVector("U", u));
-    nodeValues_.push_back(NamedVector("V", v));
+
+    mesh_->addDataVector("X", u);
+    mesh_->addDataVector("Y", v);
 
     // вычисление напряжений
     std::vector<double> SigmaX(nodesCount);
@@ -394,7 +395,8 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
         SigmaY[i] /= (double)mesh->adjacentCount(i);
         TauXY[i] /= (double)mesh->adjacentCount(i);
     }
-    nodeValues_.push_back(NamedVector("Sigma X", SigmaX));
-    nodeValues_.push_back(NamedVector("Sigma Y", SigmaY));
-    nodeValues_.push_back(NamedVector("Tau XY", TauXY));
+
+    mesh_->addDataVector("Sigma X", SigmaX);
+    mesh_->addDataVector("Sigma Y", SigmaY);
+    mesh_->addDataVector("Tau XY", TauXY);
 }

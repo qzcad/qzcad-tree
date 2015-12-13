@@ -1,4 +1,5 @@
 #include "mesh.h"
+#include <iostream>
 
 namespace msh {
 
@@ -52,7 +53,18 @@ UInteger Mesh::dataVectorsCount() const
     return data_.size();
 }
 
-NamedDoubleVector Mesh::data(const UInteger &i) const
+void Mesh::addDataVector(const NamedDoubleVector &vec)
+{
+    data_.push_back(vec);
+}
+
+void Mesh::addDataVector(const std::string &name, const std::vector<double> &values)
+{
+    NamedDoubleVector vec(name, values);
+    data_.push_back(vec);
+}
+
+const NamedDoubleVector &Mesh::data(const UInteger &i) const
 {
     return data_[i];
 }
@@ -68,6 +80,15 @@ void Mesh::clear()
     clearLayers();
     clearNodes();
     clearElements();
+}
+
+void Mesh::printDataExtremums()
+{
+    for (UInteger i = 0; i < data_.size(); i++)
+    {
+        NamedDoubleVector ndv = data_[i];
+        std::cout << ndv.min() << "\t<=\t" << ndv.name() << "\t<=\t" << ndv.max() << std::endl;
+    }
 }
 
 }

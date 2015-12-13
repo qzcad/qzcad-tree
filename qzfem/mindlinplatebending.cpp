@@ -326,9 +326,10 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
         theta_x[i] = displacement[i + nodesCount];
         theta_y[i] = displacement[i + nodesCount + nodesCount];
     }
-    nodeValues_.push_back(NamedVector("W", w));
-    nodeValues_.push_back(NamedVector("Theta X", theta_x));
-    nodeValues_.push_back(NamedVector("Theta Y", theta_y));
+
+    mesh_->addDataVector("W", w);
+    mesh_->addDataVector("Theta X", theta_x);
+    mesh_->addDataVector("Theta Y", theta_y);
 
     // вычисление напряжений
     std::vector<double> SigmaX(nodesCount);
@@ -446,12 +447,12 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
         TauYZ[i] /= (double)mesh->adjacentCount(i);
         mises[i] /= (double)mesh->adjacentCount(i);
     }
-    nodeValues_.push_back(NamedVector("Sigma X", SigmaX));
-    nodeValues_.push_back(NamedVector("Sigma Y", SigmaY));
-    nodeValues_.push_back(NamedVector("Tau XY", TauXY));
-    nodeValues_.push_back(NamedVector("Tau XZ", TauXZ));
-    nodeValues_.push_back(NamedVector("Tau YZ", TauYZ));
-    nodeValues_.push_back(NamedVector("von Mises", mises));
+    mesh_->addDataVector("Sigma X", SigmaX);
+    mesh_->addDataVector("Sigma Y", SigmaY);
+    mesh_->addDataVector("Tau XY", TauXY);
+    mesh_->addDataVector("Tau XZ", TauXZ);
+    mesh_->addDataVector("Tau YZ", TauYZ);
+    mesh_->addDataVector("von Mises", mises);
 }
 
 MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh, const std::vector<double> &thickness, const std::vector<ElasticMatrix> &elasticMatrix, std::list<FemCondition *> conditions) :
@@ -789,9 +790,10 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh, const std::vector<double>
         theta_x[i] = displacement[i + nodesCount];
         theta_y[i] = displacement[i + nodesCount + nodesCount];
     }
-    nodeValues_.push_back(NamedVector("W", w));
-    nodeValues_.push_back(NamedVector("Theta X", theta_x));
-    nodeValues_.push_back(NamedVector("Theta Y", theta_y));
+
+    mesh_->addDataVector("W", w);
+    mesh_->addDataVector("Theta X", theta_x);
+    mesh_->addDataVector("Theta Y", theta_y);
 
     // вычисление напряжений
     std::vector<double> SigmaX(nodesCount);
@@ -909,10 +911,10 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh, const std::vector<double>
         TauYZ[i] /= (double)mesh->adjacentCount(i);
         mises[i] /= (double)mesh->adjacentCount(i);
     }
-    nodeValues_.push_back(NamedVector("Sigma X (z = h / 2)", SigmaX));
-    nodeValues_.push_back(NamedVector("Sigma Y (z = h / 2)", SigmaY));
-    nodeValues_.push_back(NamedVector("Tau XY (z = h / 2)", TauXY));
-    nodeValues_.push_back(NamedVector("Tau XZ (z = h / 2)", TauXZ));
-    nodeValues_.push_back(NamedVector("Tau YZ (z = h / 2)", TauYZ));
-    nodeValues_.push_back(NamedVector("von Mises (z = h / 2)", mises));
+    mesh_->addDataVector("Sigma X (z = h / 2)", SigmaX);
+    mesh_->addDataVector("Sigma Y (z = h / 2)", SigmaY);
+    mesh_->addDataVector("Tau XY (z = h / 2)", TauXY);
+    mesh_->addDataVector("Tau XZ (z = h / 2)", TauXZ);
+    mesh_->addDataVector("Tau YZ (z = h / 2)", TauYZ);
+    mesh_->addDataVector("von Mises (z = h / 2)", mises);
 }

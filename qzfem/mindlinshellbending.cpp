@@ -416,12 +416,13 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
         theta_y[i] = displacement[i + 4UL * nodesCount];
         theta_z[i] = displacement[i + 5UL * nodesCount];
     }
-    nodeValues_.push_back(NamedVector("U", xxx));
-    nodeValues_.push_back(NamedVector("V", yyy));
-    nodeValues_.push_back(NamedVector("W", zzz));
-    nodeValues_.push_back(NamedVector("Theta X", theta_x));
-    nodeValues_.push_back(NamedVector("Theta Y", theta_y));
-    nodeValues_.push_back(NamedVector("Theta Z", theta_z));
+
+    mesh_->addDataVector("X", xxx);
+    mesh_->addDataVector("Y", yyy);
+    mesh_->addDataVector("Z", zzz);
+    mesh_->addDataVector("Theta X", theta_x);
+    mesh_->addDataVector("Theta Y", theta_y);
+    mesh_->addDataVector("Theta Z", theta_z);
 
     // вычисление напряжений
     std::vector<double> SigmaX(nodesCount);
@@ -581,13 +582,13 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
         mises[i] /= (double)mesh->adjacentCount(i);
     }
 
-    nodeValues_.push_back(NamedVector("Sigma X", SigmaX));
-    nodeValues_.push_back(NamedVector("Sigma Y", SigmaY));
-    nodeValues_.push_back(NamedVector("Sigma Z", SigmaZ));
-    nodeValues_.push_back(NamedVector("Tau XY", TauXY));
-    nodeValues_.push_back(NamedVector("Tau XZ", TauXZ));
-    nodeValues_.push_back(NamedVector("Tau YZ", TauYZ));
-    nodeValues_.push_back(NamedVector("von Mises", mises));
+    mesh_->addDataVector("Sigma X", SigmaX);
+    mesh_->addDataVector("Sigma Y", SigmaY);
+    mesh_->addDataVector("Sigma Z", SigmaZ);
+    mesh_->addDataVector("Tau XY", TauXY);
+    mesh_->addDataVector("Tau XZ", TauXZ);
+    mesh_->addDataVector("Tau YZ", TauYZ);
+    mesh_->addDataVector("von Mises", mises);
 }
 
 MindlinShellBending::MindlinShellBending(Mesh3D *mesh, const std::vector<double> &thickness, const std::vector<ElasticMatrix> &elasticMatrix, std::list<FemCondition *> conditions) :
@@ -1019,12 +1020,13 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, const std::vector<double>
         theta_y[i] = displacement[i + 4UL * nodesCount];
         theta_z[i] = displacement[i + 5UL * nodesCount];
     }
-    nodeValues_.push_back(NamedVector("U", xxx));
-    nodeValues_.push_back(NamedVector("V", yyy));
-    nodeValues_.push_back(NamedVector("W", zzz));
-    nodeValues_.push_back(NamedVector("Theta X", theta_x));
-    nodeValues_.push_back(NamedVector("Theta Y", theta_y));
-    nodeValues_.push_back(NamedVector("Theta Z", theta_z));
+
+    mesh_->addDataVector("X", xxx);
+    mesh_->addDataVector("Y", yyy);
+    mesh_->addDataVector("Z", zzz);
+    mesh_->addDataVector("Theta X", theta_x);
+    mesh_->addDataVector("Theta Y", theta_y);
+    mesh_->addDataVector("Theta Z", theta_z);
 
     // вычисление напряжений
     std::vector<double> SigmaX(nodesCount);
@@ -1184,13 +1186,13 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, const std::vector<double>
         mises[i] /= (double)mesh->adjacentCount(i);
     }
 
-    nodeValues_.push_back(NamedVector("Sigma X", SigmaX));
-    nodeValues_.push_back(NamedVector("Sigma Y", SigmaY));
-    nodeValues_.push_back(NamedVector("Sigma Z", SigmaZ));
-    nodeValues_.push_back(NamedVector("Tau XY", TauXY));
-    nodeValues_.push_back(NamedVector("Tau XZ", TauXZ));
-    nodeValues_.push_back(NamedVector("Tau YZ", TauYZ));
-    nodeValues_.push_back(NamedVector("von Mises", mises));
+    mesh_->addDataVector("Sigma X", SigmaX);
+    mesh_->addDataVector("Sigma Y", SigmaY);
+    mesh_->addDataVector("Sigma Z", SigmaZ);
+    mesh_->addDataVector("Tau XY", TauXY);
+    mesh_->addDataVector("Tau XZ", TauXZ);
+    mesh_->addDataVector("Tau YZ", TauYZ);
+    mesh_->addDataVector("von Mises", mises);
 }
 
 DoubleMatrix MindlinShellBending::cosinuses(const Point3D &A, const Point3D &B, const Point3D &C)

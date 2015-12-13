@@ -41,7 +41,6 @@ SOURCES += main.cpp\
     qtscriptfemcondition3d.cpp \
     qtscriptforcecondition3d.cpp \
     elasticconstatntswidget.cpp \
-    namedfloatingvector.cpp \
     codeeditor.cpp \
     qzscriptengine.cpp \
     qquadrilateralmesh2d.cpp \
@@ -74,7 +73,6 @@ HEADERS  += mainwindow.h \
     qtscriptfemcondition3d.h \
     qtscriptforcecondition3d.h \
     elasticconstatntswidget.h \
-    namedfloatingvector.h \
     codeeditor.h \
     qzscriptengine.h \
     qquadrilateralmesh2d.h \
