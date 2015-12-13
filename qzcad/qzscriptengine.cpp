@@ -243,7 +243,11 @@ QScriptValue QZScriptEngine::createQuadrilateralMesh2D(QScriptContext *context, 
         QPoint2D *center = qscriptvalue_cast<QPoint2D *>(context->argument(1));
         double radius = context->argument(2).toNumber();
         int part = context->argument(3).toNumber();
-        return engine->newQObject(new QQuadrilateralMesh2D(count, msh::Point2D(center->x(), center->y()), radius, part), QScriptEngine::ScriptOwnership);
+
+        QQuadrilateralMesh2D *qmo = new QQuadrilateralMesh2D();
+        qmo->circleDomain(count, msh::Point2D(center->x(), center->y()), radius, part);
+
+        return engine->newQObject(qmo, QScriptEngine::ScriptOwnership);
     }
     if (context->argumentCount() == 5)
     {
@@ -263,7 +267,11 @@ QScriptValue QZScriptEngine::createQuadrilateralMesh2D(QScriptContext *context, 
         QPoint2D *origin = qscriptvalue_cast<QPoint2D *>(context->argument(2));
         double width = context->argument(3).toNumber();
         double height = context->argument(4).toNumber();
-        return engine->newQObject(new QQuadrilateralMesh2D(xCount, yCount, origin->x(), origin->y(), width, height), QScriptEngine::ScriptOwnership);
+
+        QQuadrilateralMesh2D *qmo = new QQuadrilateralMesh2D();
+        qmo->rectangleDomain(xCount, yCount, origin->x(), origin->y(), width, height);
+
+        return engine->newQObject(qmo, QScriptEngine::ScriptOwnership);
     }
 
     if (context->argumentCount() == 6 || context->argumentCount() == 7)
@@ -307,7 +315,11 @@ QScriptValue QZScriptEngine::createQuadrilateralMesh2D(QScriptContext *context, 
                 pointList.push_back(Point2D(point->x(), point->y()));
             }
         }
-        return engine->newQObject(new QQuadrilateralMesh2D(xCount, yCount, origin->x(), origin->y(), width, height, func, pointList), QScriptEngine::ScriptOwnership);
+
+        QQuadrilateralMesh2D *qmo = new QQuadrilateralMesh2D();
+        qmo->functionalDomain(xCount, yCount, origin->x(), origin->y(), width, height, func, pointList);
+
+        return engine->newQObject(qmo, QScriptEngine::ScriptOwnership);
     }
     return context->throwError(QObject::tr("Quads2D(): arguments count error."));
 }
@@ -355,7 +367,11 @@ QScriptValue QZScriptEngine::createSegmentMesh2D(QScriptContext *context, QScrip
                     pointList.push_back(Point2D(point->x(), point->y()));
                 }
             }
-            return engine->newQObject(new QSegmentMesh2D(xCount, yCount, origin->x(), origin->y(), width, height, func, pointList), QScriptEngine::ScriptOwnership);
+
+            QSegmentMesh2D *smo = new QSegmentMesh2D();
+            smo->functionalDomain(xCount, yCount, origin->x(), origin->y(), width, height, func, pointList);
+
+            return engine->newQObject(smo, QScriptEngine::ScriptOwnership);
         }
         return context->throwError(QObject::tr("Segments2D(xCount: Integer, yCount: Integer, origin: Point2D, width: Floating, height: Floating): arguments count error."));
 }
@@ -370,7 +386,11 @@ QScriptValue QZScriptEngine::createTriangleMesh2D(QScriptContext *context, QScri
         if (qscriptvalue_cast<QSegmentMesh2D *>(context->argument(0)) != NULL)
         {
             SegmentMesh2D sm(qscriptvalue_cast<QSegmentMesh2D *>(context->argument(0)));
-            return engine->newQObject(new QTriangleMesh2D(&sm), QScriptEngine::ScriptOwnership);
+
+            QTriangleMesh2D *tmo = new QTriangleMesh2D();
+            tmo->delaunay(&sm);
+
+            return engine->newQObject(tmo, QScriptEngine::ScriptOwnership);
         }
     }
     else if (context->argumentCount() == 5)
@@ -391,7 +411,11 @@ QScriptValue QZScriptEngine::createTriangleMesh2D(QScriptContext *context, QScri
         QPoint2D *origin = qscriptvalue_cast<QPoint2D *>(context->argument(2));
         double width = context->argument(3).toNumber();
         double height = context->argument(4).toNumber();
-        return engine->newQObject(new QTriangleMesh2D(xCount, yCount, origin->x(), origin->y(), width, height), QScriptEngine::ScriptOwnership);
+
+        QTriangleMesh2D *tmo = new QTriangleMesh2D();
+        tmo->rectangleDomain(xCount, yCount, origin->x(), origin->y(), width, height);
+
+        return engine->newQObject(tmo, QScriptEngine::ScriptOwnership);
     }
     else if (context->argumentCount() == 6 || context->argumentCount() == 7)
     {
@@ -434,7 +458,11 @@ QScriptValue QZScriptEngine::createTriangleMesh2D(QScriptContext *context, QScri
                 pointList.push_back(Point2D(point->x(), point->y()));
             }
         }
-        return engine->newQObject(new QTriangleMesh2D(xCount, yCount, origin->x(), origin->y(), width, height, func, pointList), QScriptEngine::ScriptOwnership);
+
+        QTriangleMesh2D *tmo = new QTriangleMesh2D();
+        tmo->functionalDomain(xCount, yCount, origin->x(), origin->y(), width, height, func, pointList);
+
+        return engine->newQObject(tmo, QScriptEngine::ScriptOwnership);
     }
     return context->throwError(QObject::tr("Triangles2D(xCount: Integer, yCount: Integer, origin: Point2D, width: Floating, height: Floating): arguments count error."));
 }
@@ -556,7 +584,11 @@ QScriptValue QZScriptEngine::createQuadrilateralMesh3D(QScriptContext *context, 
         UInteger lCount = context->argument(1).toUInt32();
         double radius = context->argument(2).toNumber();
         double length = context->argument(3).toNumber();
-        return engine->newQObject(new QQuadrilateralMesh3D(rCount, lCount, radius, length), QScriptEngine::ScriptOwnership);
+
+        QQuadrilateralMesh3D *qmo = new QQuadrilateralMesh3D();
+        qmo->cylinderDomain(rCount, lCount, radius, length);
+
+        return engine->newQObject(qmo, QScriptEngine::ScriptOwnership);
     }
     return context->throwError(QObject::tr("ShellQuads(): arguments count error."));
 }
@@ -578,7 +610,11 @@ QScriptValue QZScriptEngine::createCylinderQuads(QScriptContext *context, QScrip
         UInteger lCount = context->argument(1).toUInt32();
         double radius = context->argument(2).toNumber();
         double length = context->argument(3).toNumber();
-        return engine->newQObject(new QQuadrilateralMesh3D(rCount, lCount, radius, length), QScriptEngine::ScriptOwnership);
+
+        QQuadrilateralMesh3D *qmo = new QQuadrilateralMesh3D();
+        qmo->cylinderDomain(rCount, lCount, radius, length);
+
+        return engine->newQObject(qmo, QScriptEngine::ScriptOwnership);
     }
     return context->throwError(QObject::tr("CylinderQuads(): arguments count error."));
 }
@@ -603,7 +639,11 @@ QScriptValue QZScriptEngine::createConeQuads(QScriptContext *context, QScriptEng
         double radiusBottom = context->argument(2).toNumber();
         double radiusTop = context->argument(3).toNumber();
         double length = context->argument(4).toNumber();
-        return engine->newQObject(new QQuadrilateralMesh3D(rCount, lCount, radiusBottom, radiusTop, length), QScriptEngine::ScriptOwnership);
+
+        QQuadrilateralMesh3D *qmo = new QQuadrilateralMesh3D();
+        qmo->coneDomain(rCount, lCount, radiusBottom, radiusTop, length);
+
+        return engine->newQObject(qmo, QScriptEngine::ScriptOwnership);
     }
     return context->throwError(QObject::tr("ConeQuads(): arguments count error."));
 }
@@ -625,7 +665,11 @@ QScriptValue QZScriptEngine::createTriangleMesh3D(QScriptContext *context, QScri
         UInteger lCount = context->argument(1).toUInt32();
         double radius = context->argument(2).toNumber();
         double length = context->argument(3).toNumber();
-        return engine->newQObject(new QTriangleMesh3D(rCount, lCount, radius, length), QScriptEngine::ScriptOwnership);
+
+        QTriangleMesh3D *tmo = new QTriangleMesh3D();
+        tmo->cylinderDomain(rCount, lCount, radius, length);
+
+        return engine->newQObject(tmo, QScriptEngine::ScriptOwnership);
     }
     return context->throwError(QObject::tr("ShellTriangles(): arguments count error."));
 }
@@ -648,7 +692,12 @@ QScriptValue QZScriptEngine::createCylinderTriangles(QScriptContext *context, QS
         double radius = context->argument(2).toNumber();
         double length = context->argument(3).toNumber();
         if (context->argumentCount() == 4)
-            return engine->newQObject(new QTriangleMesh3D(rCount, lCount, radius, length), QScriptEngine::ScriptOwnership);
+        {
+            QTriangleMesh3D *tmo = new QTriangleMesh3D();
+            tmo->cylinderDomain(rCount, lCount, radius, length);
+
+            return engine->newQObject(tmo, QScriptEngine::ScriptOwnership);
+        }
         else
         {
             QScriptValue function = context->argument(4);
@@ -660,7 +709,11 @@ QScriptValue QZScriptEngine::createCylinderTriangles(QScriptContext *context, QS
                 args << x << y << z;
                 return function.call(QScriptValue(), args).toNumber();
             };
-            return engine->newQObject(new QTriangleMesh3D(rCount, lCount, radius, length, func), QScriptEngine::ScriptOwnership);
+
+            QTriangleMesh3D *tmo = new QTriangleMesh3D();
+            tmo->cylinderDomain(rCount, lCount, radius, length, func);
+
+            return engine->newQObject(tmo, QScriptEngine::ScriptOwnership);
         }
     }
     return context->throwError(QObject::tr("CylinderTriangles(): arguments count error."));
@@ -687,7 +740,11 @@ QScriptValue QZScriptEngine::createConeTriangles(QScriptContext *context, QScrip
         double radiusTop = context->argument(3).toNumber();
         double length = context->argument(4).toNumber();
         if (context->argumentCount() == 5)
-            return engine->newQObject(new QTriangleMesh3D(rCount, lCount, radiusBottom, radiusTop, length), QScriptEngine::ScriptOwnership);
+        {
+            QTriangleMesh3D *tmo = new QTriangleMesh3D();
+            tmo->coneDomain(rCount, lCount, radiusBottom, radiusTop, length);
+            return engine->newQObject(tmo, QScriptEngine::ScriptOwnership);
+        }
         else
         {
             QScriptValue function = context->argument(5);
@@ -699,7 +756,9 @@ QScriptValue QZScriptEngine::createConeTriangles(QScriptContext *context, QScrip
                 args << x << y << z;
                 return function.call(QScriptValue(), args).toNumber();
             };
-            return engine->newQObject(new QTriangleMesh3D(rCount, lCount, radiusBottom, radiusTop, length, func), QScriptEngine::ScriptOwnership);
+            QTriangleMesh3D *tmo = new QTriangleMesh3D();
+            tmo->coneDomain(rCount, lCount, radiusBottom, radiusTop, length, func);
+            return engine->newQObject(tmo, QScriptEngine::ScriptOwnership);
         }
 
     }

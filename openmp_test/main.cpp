@@ -91,7 +91,8 @@ msh::TriangleMesh2D *meshPlanka1(int count)
     character.push_back(msh::Point2D(w / 2.0, h / 2.0));
     character.push_back(msh::Point2D(-w / 2.0, h / 2.0));
     double time = omp_get_wtime();
-    msh::TriangleMesh2D *triangles = new msh::TriangleMesh2D(count, count, -w, -w, 2.0 * w, 2.0 * w, planka1, character);
+    msh::TriangleMesh2D *triangles = new msh::TriangleMesh2D();
+    triangles->functionalDomain(count, count, -w, -w, 2.0 * w, 2.0 * w, planka1, character);
     //    double xmin = -w / 2.0 - h / 2;
     //    double ymin = -w / 2.0 - h / 2;
     //    double hh = (w + h) / (count - 1.0);
@@ -163,7 +164,8 @@ msh::TriangleMesh2D *meshPlrokladka(int count)
     character.push_back(msh::Point2D(-w1 / 2.0, r2 + h1));
     character.push_back(msh::Point2D( w1 / 2.0, r2 + h1));
     double time = omp_get_wtime();
-    msh::TriangleMesh2D *triangles = new msh::TriangleMesh2D(count, 2 * count + 1, -r1, -h2 - r5, 2.0 * r1, r1 + h2 + r5, prokladka, character);
+    msh::TriangleMesh2D *triangles = new msh::TriangleMesh2D();
+    triangles->functionalDomain(count, 2 * count + 1, -r1, -h2 - r5, 2.0 * r1, r1 + h2 + r5, prokladka, character);
 //    cout << endl << "hx = " << 2.0 * r1 / (count - 1.0) << " hy = " << (r1 + h2 + r5) / (2.0 * count) << endl;
     cout << "Time: " << omp_get_wtime() - time << " s" << endl;
     return triangles;
@@ -202,7 +204,8 @@ msh::TriangleMesh2D *meshPerfor(int count)
     character.push_back(msh::Point2D(w / 2.0, w / 2.0));
     character.push_back(msh::Point2D(w / 2.0, -w / 2.0));
     double time = omp_get_wtime();
-    msh::TriangleMesh2D *triangles = new msh::TriangleMesh2D(count, count, -w / 2.0, -w / 2.0, w, w, perfor, character);
+    msh::TriangleMesh2D *triangles = new msh::TriangleMesh2D();
+    triangles->functionalDomain(count, count, -w / 2.0, -w / 2.0, w, w, perfor, character);
 //    cout << endl << "hx = " << 2.0 * r1 / (count - 1.0) << " hy = " << (r1 + h2 + r5) / (2.0 * count) << endl;
     cout << "Time: " << omp_get_wtime() - time << " s" << endl;
     return triangles;

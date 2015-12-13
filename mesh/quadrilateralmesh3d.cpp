@@ -8,32 +8,21 @@ QuadrilateralMesh3D::QuadrilateralMesh3D() : Mesh3D(NULL)
 {
 }
 
-QuadrilateralMesh3D::QuadrilateralMesh3D(const QuadrilateralMesh3D &mesh)
+QuadrilateralMesh3D::QuadrilateralMesh3D(const QuadrilateralMesh3D &mesh) : Mesh3D(&mesh)
 {
     node_ = mesh.node_;
     element_ = mesh.element_;
-    xMin_ = mesh.xMin_;
-    xMax_ = mesh.xMax_;
-    yMin_ = mesh.yMin_;
-    yMax_ = mesh.yMax_;
-    zMin_ = mesh.zMin_;
-    zMax_ = mesh.zMax_;
 }
 
-QuadrilateralMesh3D::QuadrilateralMesh3D(const QuadrilateralMesh3D *mesh)
+QuadrilateralMesh3D::QuadrilateralMesh3D(const QuadrilateralMesh3D *mesh) : Mesh3D(mesh)
 {
     node_ = mesh->node_;
     element_ = mesh->element_;
-    xMin_ = mesh->xMin_;
-    xMax_ = mesh->xMax_;
-    yMin_ = mesh->yMin_;
-    yMax_ = mesh->yMax_;
-    zMin_ = mesh->zMin_;
-    zMax_ = mesh->zMax_;
 }
 
-QuadrilateralMesh3D::QuadrilateralMesh3D(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length)
+void QuadrilateralMesh3D::cylinderDomain(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length)
 {
+    clear();
     double hphi = 2.0 * M_PI / (double)rCount;
     double hl = length / (double)lCount;
     double phi = 0.0;
@@ -70,8 +59,9 @@ QuadrilateralMesh3D::QuadrilateralMesh3D(const UInteger &rCount, const UInteger 
     yMax_ = length;
 }
 
-QuadrilateralMesh3D::QuadrilateralMesh3D(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length)
+void QuadrilateralMesh3D::coneDomain(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length)
 {
+    clear();
     double hphi = 2.0 * M_PI / (double)rCount;
     double hl = length / (double)lCount;
     double phi = 0.0;
@@ -202,5 +192,10 @@ void QuadrilateralMesh3D::translate(const double &x, const double &y, const doub
         Point3D p = node_[i].point;
         node_[i].point.set(p.x() + x, p.y() + y, p.z() + z);
     }
+}
+
+void QuadrilateralMesh3D::clearElements()
+{
+    element_.clear();
 }
 }

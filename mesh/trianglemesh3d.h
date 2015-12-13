@@ -36,33 +36,33 @@ public:
      */
     TriangleMesh3D(const TriangleMesh3D *mesh);
     /**
-     * @brief Конструктор для создания равномерной сетки в цилиндрических координатах
+     * @brief Метод для создания равномерной сетки в цилиндрических координатах
      * @param rCount Количество элементов вдоль радиуса
      * @param lCount Количество элементов вдоль образующей
      * @param radius Радиус
      * @param length Высота
      */
-    TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length);
+    void cylinderDomain(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length);
     /**
-     * @brief Конструктор для создания равномерной сетки в цилиндрических координатах с адаптацией под область, ограниченную функцией
+     * @brief Метод для создания равномерной сетки в цилиндрических координатах с адаптацией под область, ограниченную функцией
      * @param rCount Количество элементов вдоль радиуса
      * @param lCount Количество элементов вдоль образующей
      * @param radius Радиус
      * @param length Высота
      * @param func Функция, положительная во внутренних точка и отрицательная во внешних
      */
-    TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length, std::function<double(double, double, double)> func);
+    void cylinderDomain(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length, std::function<double(double, double, double)> func);
     /**
-     * @brief Конструктор для создания равномерной сетки в конических координатах
+     * @brief Метод для создания равномерной сетки в конических координатах
      * @param rCount Количество элементов вдоль радиуса
      * @param lCount Количество элементов вдоль образующей
      * @param bottom_radius Нижний радиус
      * @param top_radius Верхний радиус
      * @param length Высота
      */
-    TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length);
+    void coneDomain(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length);
     /**
-     * @brief Конструктор для создания равномерной сетки в конических координатах с адаптацией под область, ограниченную функцией
+     * @brief Метод для создания равномерной сетки в конических координатах с адаптацией под область, ограниченную функцией
      * @param rCount Количество элементов вдоль радиуса
      * @param lCount Количество элементов вдоль образующей
      * @param bottom_radius Нижний радиус
@@ -70,7 +70,7 @@ public:
      * @param length Высота
      * @param func Функция, положительная во внутренних точка и отрицательная во внешних
      */
-    TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length, std::function<double(double, double, double)> func);
+    void coneDomain(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length, std::function<double(double, double, double)> func);
     /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
@@ -124,6 +124,10 @@ public:
      * @return Минимальный угол элемента (радианы)
      */
     double minAngle(const UInteger &elNum);
+    /**
+     * @brief Метод очищает информацию об елементах
+     */
+    virtual void clearElements();
 protected:
     /**
      * @brief Функция для подсчета значений углов треугольника

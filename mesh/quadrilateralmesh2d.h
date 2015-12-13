@@ -139,9 +139,9 @@ public:
      */
     void addElement(const std::vector<UInteger> &nodes_ref);
     /**
-     * @brief Очистить сетку
+     * @brief Метод очищает информацию об елементах
      */
-    void clear();
+    virtual void clearElements();
 protected:
     /**
      * @brief Функция формы изопараметрического четырехугольного элемента

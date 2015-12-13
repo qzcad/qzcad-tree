@@ -719,16 +719,9 @@ void QuadrilateralMesh2D::addElement(const std::vector<UInteger> &nodes_ref)
     addElement(nodes_ref[0], nodes_ref[1], nodes_ref[2], nodes_ref[3]);
 }
 
-void QuadrilateralMesh2D::clear()
+void QuadrilateralMesh2D::clearElements()
 {
-    node_.clear();
     element_.clear();
-    clearDataVectors();
-    clearLayers();
-    xMin_ = -1.0;
-    xMax_ = 1.0;
-    yMin_ = -1.0;
-    yMax_ = 1.0;
 }
 
 double QuadrilateralMesh2D::isoFunc(const UInteger &i, const double &xi, const double &eta)

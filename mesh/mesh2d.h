@@ -80,6 +80,10 @@ public:
      */
     virtual NodeType nodeType(const UInteger &number) const;
     /**
+     * @brief Метод очищает информацию об узлах сетки
+     */
+    virtual void clearNodes();
+    /**
      * @brief Отразить сетку по вертикали
      */
     void flipVertically();

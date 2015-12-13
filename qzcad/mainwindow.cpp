@@ -285,9 +285,8 @@ void MainWindow::on_actionStructQuads_triggered()
     {
         msh::MeshPointer meshPtr = ui->pictureControl->getGlMeshPicture()->releaseMesh();
         clearMesh(meshPtr);
-        msh::QuadrilateralMesh2D * mesh = new msh::QuadrilateralMesh2D(dialog.xCount(), dialog.yCount(),
-                                                                       dialog.xMin(), dialog.yMin(),
-                                                                       dialog.rectWidth(), dialog.rectHeight());
+        msh::QuadrilateralMesh2D * mesh = new msh::QuadrilateralMesh2D();
+        mesh->rectangleDomain(dialog.xCount(), dialog.yCount(), dialog.xMin(), dialog.yMin(), dialog.rectWidth(), dialog.rectHeight());
         meshPtr = mesh;
         ui->pictureControl->getGlMeshPicture()->setMesh(meshPtr);
     }
@@ -301,12 +300,13 @@ void MainWindow::on_actionStructIsoQuads_triggered()
     {
         msh::MeshPointer meshPtr = ui->pictureControl->getGlMeshPicture()->releaseMesh();
         clearMesh(meshPtr);
-        msh::QuadrilateralMesh2D * mesh = new msh::QuadrilateralMesh2D(dialog.xiCount(),
-                                                                       dialog.etaCount(),
-                                                                       msh::Point2D(dialog.x0(), dialog.y0()),
-                                                                       msh::Point2D(dialog.x1(), dialog.y1()),
-                                                                       msh::Point2D(dialog.x2(), dialog.y2()),
-                                                                       msh::Point2D(dialog.x3(), dialog.y3()));
+        msh::QuadrilateralMesh2D * mesh = new msh::QuadrilateralMesh2D();
+        mesh->quadDomain(dialog.xiCount(),
+                         dialog.etaCount(),
+                         msh::Point2D(dialog.x0(), dialog.y0()),
+                         msh::Point2D(dialog.x1(), dialog.y1()),
+                         msh::Point2D(dialog.x2(), dialog.y2()),
+                         msh::Point2D(dialog.x3(), dialog.y3()));
         meshPtr = mesh;
         ui->pictureControl->getGlMeshPicture()->setMesh(meshPtr);
     }
@@ -320,10 +320,11 @@ void MainWindow::on_actionBaryQuads_triggered()
     {
         msh::MeshPointer meshPtr = ui->pictureControl->getGlMeshPicture()->releaseMesh();
         clearMesh(meshPtr);
-        msh::QuadrilateralMesh2D * mesh = new msh::QuadrilateralMesh2D(dialog.nodesCount(),
-                                                                       msh::Point2D(dialog.x0(), dialog.y0()),
-                                                                       msh::Point2D(dialog.x1(), dialog.y1()),
-                                                                       msh::Point2D(dialog.x2(), dialog.y2()));
+        msh::QuadrilateralMesh2D * mesh = new msh::QuadrilateralMesh2D();
+        mesh->triangleDomain(dialog.nodesCount(),
+                             msh::Point2D(dialog.x0(), dialog.y0()),
+                             msh::Point2D(dialog.x1(), dialog.y1()),
+                             msh::Point2D(dialog.x2(), dialog.y2()));
         meshPtr = mesh;
         ui->pictureControl->getGlMeshPicture()->setMesh(meshPtr);
     }
@@ -344,7 +345,8 @@ void MainWindow::on_actionPolygonalModel_triggered()
             int xiCount = 0;
             int etaCount = 0;
             std::vector<msh::Point2D> quad = dialog.quad(i, xiCount, etaCount);
-            msh::QuadrilateralMesh2D qmesh (xiCount, etaCount, quad[0], quad[1], quad[2], quad[3]);
+            msh::QuadrilateralMesh2D qmesh;
+            qmesh.quadDomain(xiCount, etaCount, quad[0], quad[1], quad[2], quad[3]);
             mesh->addMesh(&qmesh);
         }
 
@@ -353,7 +355,8 @@ void MainWindow::on_actionPolygonalModel_triggered()
         {
             int nodesCount = 0;
             std::vector<msh::Point2D> tri = dialog.triangle(i, nodesCount);
-            msh::QuadrilateralMesh2D qmesh (nodesCount, tri[0], tri[1], tri[2]);
+            msh::QuadrilateralMesh2D qmesh;
+            qmesh.triangleDomain(nodesCount, tri[0], tri[1], tri[2]);
             mesh->addMesh(&qmesh);
         }
         meshPtr = mesh;
@@ -369,9 +372,10 @@ void MainWindow::on_actionStructHex_triggered()
     {
         msh::MeshPointer meshPtr = ui->pictureControl->getGlMeshPicture()->releaseMesh();
         clearMesh(meshPtr);
-        msh::HexahedralMesh3D * mesh = new msh::HexahedralMesh3D(dialog.xCount(), dialog.yCount(), dialog.zCount(),
-                                                                 dialog.xMin(), dialog.yMin(), dialog.zMin(),
-                                                                 dialog.rectWidth(), dialog.rectHeight(), dialog.rectDepth());
+        msh::HexahedralMesh3D * mesh = new msh::HexahedralMesh3D();
+        mesh->prismDomain(dialog.xCount(), dialog.yCount(), dialog.zCount(),
+                          dialog.xMin(), dialog.yMin(), dialog.zMin(),
+                          dialog.rectWidth(), dialog.rectHeight(), dialog.rectDepth());
         meshPtr = mesh;
         ui->pictureControl->getGlMeshPicture()->setMesh(meshPtr);
     }
@@ -446,10 +450,11 @@ void MainWindow::on_actionRotationBodyMesh_triggered()
                 int layersCount = dialog.layersCount();
                 bool isClosedBody = dialog.isClosedBody();
                 double angle = dialog.rotationAngle();
+                hmesh = new msh::HexahedralMesh3D();
                 if (isClosedBody)
-                    hmesh = new msh::HexahedralMesh3D(qmesh, (axe == 0) ? 0.0 : radius, (axe == 0) ? radius : 0.0, layersCount, (axe == 0) ? true : false );
+                    hmesh->rotateBaseMesh(qmesh, (axe == 0) ? 0.0 : radius, (axe == 0) ? radius : 0.0, layersCount, (axe == 0) ? true : false);
                 else
-                    hmesh = new msh::HexahedralMesh3D(qmesh, (axe == 0) ? 0.0 : radius, (axe == 0) ? radius : 0.0, angle, layersCount, (axe == 0) ? true : false );
+                    hmesh->rotateBaseMesh(qmesh, (axe == 0) ? 0.0 : radius, (axe == 0) ? radius : 0.0, angle, layersCount, (axe == 0) ? true : false );
                 msh::MeshPointer mesh3d(hmesh);
                 ui->pictureControl->getGlMeshPicture()->setMesh(mesh3d);
                 // !!! удаляем старые данные

@@ -10,7 +10,7 @@
 
 namespace msh {
 
-TriangleMesh3D::TriangleMesh3D()
+TriangleMesh3D::TriangleMesh3D() : Mesh3D(NULL)
 {
     xMin_ = -1.0;
     xMax_ = 1.0;
@@ -20,32 +20,21 @@ TriangleMesh3D::TriangleMesh3D()
     zMax_ = 1.0;
 }
 
-TriangleMesh3D::TriangleMesh3D(const TriangleMesh3D &mesh)
+TriangleMesh3D::TriangleMesh3D(const TriangleMesh3D &mesh) : Mesh3D(&mesh)
 {
     node_ = mesh.node_;
     element_ = mesh.element_;
-    xMin_ = mesh.xMin_;
-    xMax_ = mesh.xMax_;
-    yMin_ = mesh.yMin_;
-    yMax_ = mesh.yMax_;
-    zMin_ = mesh.zMin_;
-    zMax_ = mesh.zMax_;
 }
 
-TriangleMesh3D::TriangleMesh3D(const TriangleMesh3D *mesh)
+TriangleMesh3D::TriangleMesh3D(const TriangleMesh3D *mesh) : Mesh3D(mesh)
 {
     node_ = mesh->node_;
     element_ = mesh->element_;
-    xMin_ = mesh->xMin_;
-    xMax_ = mesh->xMax_;
-    yMin_ = mesh->yMin_;
-    yMax_ = mesh->yMax_;
-    zMin_ = mesh->zMin_;
-    zMax_ = mesh->zMax_;
 }
 
-TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length)
+void TriangleMesh3D::cylinderDomain(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length)
 {
+    clear();
     double hphi = 2.0 * M_PI / (double)rCount;
     double hl = length / (double)lCount;
     double phi = 0.0;
@@ -88,8 +77,9 @@ TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, c
     yMax_ = length;
 }
 
-TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length, std::function<double (double, double, double)> func)
+void TriangleMesh3D::cylinderDomain(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length, std::function<double (double, double, double)> func)
 {
+    clear();
     const double xi_max = (double)lCount * 2.0 * M_PI / (double)rCount;
     const double xi_max_2 = xi_max / 2.0;
     auto con = [](const double &x, const double &y)
@@ -324,8 +314,9 @@ TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, c
     yMax_ = length;
 }
 
-TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length)
+void TriangleMesh3D::coneDomain(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length)
 {
+    clear();
     double hphi = 2.0 * M_PI / (double)rCount;
     double hl = length / (double)lCount;
     double phi = 0.0;
@@ -370,8 +361,9 @@ TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, c
     yMax_ = length;
 }
 
-TriangleMesh3D::TriangleMesh3D(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length, std::function<double (double, double, double)> func)
+void TriangleMesh3D::coneDomain(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length, std::function<double (double, double, double)> func)
 {
+    clear();
     const double xi_max = (double)lCount * 2.0 * M_PI / (double)rCount;
     const double xi_max_2 = xi_max / 2.0;
     auto con = [](const double &x, const double &y)
@@ -601,6 +593,11 @@ double TriangleMesh3D::minAngle(const UInteger &elNum)
     const Point3D p1 = node_[tri[1]].point;
     const Point3D p2 = node_[tri[2]].point;
     return minAngle(p0, p1, p2);
+}
+
+void TriangleMesh3D::clearElements()
+{
+    element_.clear();
 }
 
 bool TriangleMesh3D::angles(const Point3D &A, const Point3D &B, const Point3D &C, double &alpha, double &beta, double &gamma)

@@ -3,8 +3,20 @@
 namespace msh {
 Mesh3D::Mesh3D(const Mesh3D *mesh) : Mesh(mesh)
 {
-    xMin_ = yMin_ = zMin_ = -1.0;
-    xMax_ = yMax_ = zMax_ = 1.0;
+    if (mesh != NULL)
+    {
+        xMin_ = mesh->xMin_;
+        yMin_ = mesh->yMin_;
+        zMin_ = mesh->zMin_;
+        xMax_ = mesh->xMax_;
+        yMax_ = mesh->yMax_;
+        zMax_ = mesh->zMax_;
+    }
+    else
+    {
+        xMin_ = yMin_ = zMin_ = -1.0;
+        xMax_ = yMax_ = zMax_ = 1.0;
+    }
 }
 
 UInteger Mesh3D::nodesCount() const
@@ -56,6 +68,11 @@ double Mesh3D::zMax() const
 int Mesh3D::dimesion() const
 {
     return 3;
+}
+
+void Mesh3D::clearNodes()
+{
+    node_.clear();
 }
 
 UInteger Mesh3D::pushNode(const Point3D &point, const NodeType &type)

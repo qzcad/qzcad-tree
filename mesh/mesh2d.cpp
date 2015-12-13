@@ -4,8 +4,18 @@ namespace msh
 {
 Mesh2D::Mesh2D(const Mesh2D *mesh) : Mesh(mesh)
 {
-    xMin_ = yMin_ = -1.0;
-    xMax_ = yMax_ = 1.0;
+    if (mesh != NULL)
+    {
+        xMin_ = mesh->xMin_;
+        yMin_ = mesh->yMin_;
+        xMax_ = mesh->xMax_;
+        yMax_ = mesh->yMax_;
+    }
+    else
+    {
+        xMin_ = yMin_ = -1.0;
+        xMax_ = yMax_ = 1.0;
+    }
 }
 
 UInteger Mesh2D::nodesCount() const
@@ -57,6 +67,11 @@ int Mesh2D::dimesion() const
 NodeType Mesh2D::nodeType(const UInteger &number) const
 {
     return node_[number].type;
+}
+
+void Mesh2D::clearNodes()
+{
+    node_.clear();
 }
 
 void Mesh2D::flipVertically()

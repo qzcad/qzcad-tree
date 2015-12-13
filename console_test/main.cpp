@@ -672,7 +672,8 @@ int main()
         double E = 203200.0;
         double nu = 0.27;
         double P = 100.0;
-        msh::QuadrilateralMesh2D beam(41, 17, 0.0, -c, l, 2.0 * c);
+        msh::QuadrilateralMesh2D beam;
+        beam.rectangleDomain(41, 17, 0.0, -c, l, 2.0 * c);
         ElasticMatrix D(E, nu, false);
         // TODO FEM
         return 0;
@@ -684,7 +685,8 @@ int main()
         double E = 203200.0;
         double nu = 0.27;
         double q = 200.0;
-        msh::QuadrilateralMesh2D beam(51, 11, -l, -c, 2.0 * l, 2.0 * c);
+        msh::QuadrilateralMesh2D beam;
+        beam.rectangleDomain(51, 11, -l, -c, 2.0 * l, 2.0 * c);
         ElasticMatrix D(E, nu, false);
         // TODO FEM
         return 0;
@@ -696,7 +698,8 @@ int main()
         double E = 203200.0;
         double nu = 0.0;
         double gamma = 10.0;
-        msh::QuadrilateralMesh2D beam(11, 101, -c, -l, 2.0 * c, 2.0 * l);
+        msh::QuadrilateralMesh2D beam;
+        beam.rectangleDomain(11, 101, -c, -l, 2.0 * c, 2.0 * l);
         ElasticMatrix D(E, nu, false);
         // TODO FEM
         cout << "Сопромат: dL = " << 2.0 * l * gamma * l / E << endl;

@@ -28,40 +28,10 @@ public:
      */
     explicit QTriangleMesh2D(QObject *parent = 0);
     /**
-     * @brief Конструктор создает равномерную структурированную секту в прямоугольной области
-     * @param xCount Количество узлов вдоль оси абсцисс
-     * @param yCount Количество узлов вдоль оси ординат
-     * @param xMin Абсцисса нижнего левого угла прямоугольной области
-     * @param yMin Ордината нижнего левого угла прямоугольной области
-     * @param width Ширина прямоугольной области
-     * @param height Высота прямоугольной области
-     * @param parent Указатель на родительский объект
-     */
-    QTriangleMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, QObject *parent = 0);
-    /**
-     * @brief Конструктор создает равномерную секту области, определенной функционально
-     * @param xCount Количество узлов вдоль оси абсцисс
-     * @param yCount Количество узлов вдоль оси ординат
-     * @param xMin Абсцисса нижнего левого угла прямоугольной области
-     * @param yMin Ордината нижнего левого угла прямоугольной области
-     * @param width Ширина прямоугольной области
-     * @param height Высота прямоугольной области
-     * @param func Функция области
-     * @param charPoint Список характерных точек
-     * @param parent Указатель на родительский объект
-     */
-    QTriangleMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, QObject *parent = 0);
-    /**
      * @brief Конструктор копирования
      * @param qmesh Экземпляр объекта для копирования
      */
     QTriangleMesh2D(const QTriangleMesh2D &qmesh);
-    /**
-     * @brief Конструктор для построения триангуляции Делоне заданного двумерного конутра
-     * @param mesh Указатель на контур
-     * @param parent Указатель на родительский объект
-     */
-    QTriangleMesh2D(const SegmentMesh2D *mesh, QObject *parent = 0);
     /**
      * @brief Конструктор создает копию объекта, переданного по указателю
      * @param mesh Указатель на объект для копирования
@@ -74,30 +44,6 @@ public:
      * Метод доступен в скриптах
      */
     Q_INVOKABLE QString toString() const;
-    /**
-     * @brief Триангуляция Делоне объекта, представленного функционально
-     * @param xCount Количество узлов вдоль оси абсцисс
-     * @param yCount Количество узлов вдоль оси ординат
-     * @param xMin Абсцисса нижнего левого угла прямоугольной области
-     * @param yMin Ордината нижнего левого угла прямоугольной области
-     * @param width Ширина прямоугольной области
-     * @param height Высота прямоугольной области
-     * @param func Функция области
-     * @param charPoint Список характерных точек
-     */
-    void delaunay(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint);
-    /**
-     * @brief Триангуляция Делоне с использование метода Рапперта для объекта, представленного функционально
-     * @param xCount Количество узлов вдоль оси абсцисс
-     * @param yCount Количество узлов вдоль оси ординат
-     * @param xMin Абсцисса нижнего левого угла прямоугольной области
-     * @param yMin Ордината нижнего левого угла прямоугольной области
-     * @param width Ширина прямоугольной области
-     * @param height Высота прямоугольной области
-     * @param func Функция области
-     * @param charPoint Список характерных точек
-     */
-    void ruppert(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint);
 signals:
 
 public slots:

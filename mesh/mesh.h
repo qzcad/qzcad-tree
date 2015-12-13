@@ -155,9 +155,33 @@ public:
      * @param epsilon Новое значение текущего уровня нуля
      */
     static void setEpsilon(double epsilon);
+    /**
+     * @brief Метод для получения количества массивов значений с дополнительной числовой инфориацией
+     * @return Количество массивов значений с дополнительной числовой инфориацией
+     */
     UInteger dataVectorsCount() const;
+    /**
+     * @brief Метод для получения массива значений с заданным номером
+     * @param i Номер массива
+     * @return Массив значений с заданным номером
+     */
     NamedDoubleVector data(const UInteger &i) const;
-    void clearDataVectors();
+    /**
+     * @brief Метод очищает массивы значений
+     */
+    virtual void clearDataVectors();
+    /**
+     * @brief Метод очищает информацию об узлах сетки
+     */
+    virtual void clearNodes() = 0;
+    /**
+     * @brief Метод очищает информацию об елементах
+     */
+    virtual void clearElements() = 0;
+    /**
+     * @brief Метод очищает дискретную модель
+     */
+    virtual void clear();
 
 protected:
     std::vector<int> layer_; //!< Массив с номером слоя для каждого элемента

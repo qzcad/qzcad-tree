@@ -33,22 +33,22 @@ public:
      */
     QuadrilateralMesh3D(const QuadrilateralMesh3D *mesh);
     /**
-     * @brief Конструктор для создания равномерной сетки в цилиндрических координатах
+     * @brief Метод для создания равномерной сетки в цилиндрических координатах
      * @param rCount Количество элементов вдоль радиуса
      * @param lCount Количество элементов вдоль образующей
      * @param radius Радиус
      * @param length Длина образующей
      */
-    QuadrilateralMesh3D(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length);
+    void cylinderDomain(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length);
     /**
-     * @brief Конструктор для создания равномерной сетки в конических координатах
+     * @brief Метод для создания равномерной сетки в конических координатах
      * @param rCount Количество элементов вдоль радиуса
      * @param lCount Количество элементов вдоль образующей
      * @param bottom_radius Нижний радиус
      * @param top_radius Верхний радиус
      * @param length Длина образующей
      */
-    QuadrilateralMesh3D(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length);
+    void coneDomain(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length);
     /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
@@ -109,6 +109,10 @@ public:
      * @param y Аппликата радиус вектора перемещения
      */
     void translate(const double &x, const double &y, const double &z);
+    /**
+     * @brief Метод очищает информацию об елементах
+     */
+    virtual void clearElements();
 protected:
     std::vector<Quadrilateral> element_; //!< Массив элементов
 };

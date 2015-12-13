@@ -513,10 +513,13 @@ double TriangleMesh2D::angleAspect(const UInteger &elNum)
 
 void TriangleMesh2D::delaunay(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint)
 {
-    SegmentMesh2D mesh(xCount, yCount, xMin, yMin, width, height, func, charPoint);
+    clear();
+
+    SegmentMesh2D mesh;
+    mesh.functionalDomain(xCount, yCount, xMin, yMin, width, height, func, charPoint);
+
     Triangulation triangulation = superDelaunay(&mesh);
-    node_.clear();
-    element_.clear();
+
     for (UInteger i = 4; i < triangulation.nodes.size(); i++) pushNode(triangulation.nodes[i], triangulation.types[i]);
     for (std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
          triangle != triangulation.triangles.end(); ++triangle)
@@ -537,10 +540,12 @@ void TriangleMesh2D::delaunay(const UInteger &xCount, const UInteger &yCount, co
 
 void TriangleMesh2D::ruppert(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint, bool refineArea)
 {
-    SegmentMesh2D mesh(xCount, yCount, xMin, yMin, width, height, func, charPoint);
+    clear();
+
+    SegmentMesh2D mesh;
+    mesh.functionalDomain(xCount, yCount, xMin, yMin, width, height, func, charPoint);
+
     Triangulation triangulation = superDelaunay(&mesh);
-    node_.clear();
-    element_.clear();
 
     superRuppert(triangulation);
     if (refineArea)
@@ -638,12 +643,9 @@ Triangle TriangleMesh2D::triangle(const UInteger &number) const
     return element_[number];
 }
 
-void TriangleMesh2D::clear()
+void TriangleMesh2D::clearElements()
 {
-    node_.clear();
     element_.clear();
-    clearLayers();
-    clearDataVectors();
 }
 
 double TriangleMesh2D::minAngle(const Point2D &A, const Point2D &B, const Point2D &C)

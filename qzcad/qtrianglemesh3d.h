@@ -32,46 +32,6 @@ public:
      */
     QTriangleMesh3D(const QTriangleMesh3D &mesh);
     /**
-     * @brief Конструктор для создания равномерной сетки в цилиндрических координатах
-     * @param rCount Количество элементов вдоль радиуса
-     * @param lCount Количество элементов вдоль образующей
-     * @param radius Радиус
-     * @param length Длина образующей
-     * @param parent Указатель на родительский объект
-     */
-    QTriangleMesh3D(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length, QObject *parent = 0);
-    /**
-     * @brief Конструктор для создания равномерной сетки в цилиндрических координатах с адаптацией под область, ограниченную функцией
-     * @param rCount Количество элементов вдоль радиуса
-     * @param lCount Количество элементов вдоль образующей
-     * @param radius Радиус
-     * @param length Высота
-     * @param func Функция, положительная во внутренних точка и отрицательная во внешних
-     * @param parent Указатель на родительский объект
-     */
-    QTriangleMesh3D(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length, std::function<double(double, double, double)> func, QObject *parent = 0);
-    /**
-     * @brief Конструктор для создания равномерной сетки в конических координатах
-     * @param rCount Количество элементов вдоль радиуса
-     * @param lCount Количество элементов вдоль образующей
-     * @param bottom_radius Нижний радиус
-     * @param top_radius Верхний радиус
-     * @param length Длина образующей
-     * @param parent Указатель на родительский объект
-     */
-    QTriangleMesh3D(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length, QObject *parent = 0);
-    /**
-     * @brief Конструктор для создания равномерной сетки в конических координатах с адаптацией под область, ограниченную функцией
-     * @param rCount Количество элементов вдоль радиуса
-     * @param lCount Количество элементов вдоль образующей
-     * @param bottom_radius Нижний радиус
-     * @param top_radius Верхний радиус
-     * @param length Высота
-     * @param func Функция, положительная во внутренних точка и отрицательная во внешних
-     * @param parent Указатель на родительский объект
-     */
-    QTriangleMesh3D(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length, std::function<double(double, double, double)> func, QObject *parent = 0);
-    /**
      * @brief Конструктор создает копию объекта, переданного по указателю
      * @param mesh Указатель на объект для копирования
      * @param parent Указатель на родительский объект

@@ -62,6 +62,14 @@ void Mesh::clearDataVectors()
     data_.clear();
 }
 
+void Mesh::clear()
+{
+    clearDataVectors();
+    clearLayers();
+    clearNodes();
+    clearElements();
+}
+
 }
 
 

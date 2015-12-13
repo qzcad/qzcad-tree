@@ -10,16 +10,6 @@ QQuadrilateralMesh3D::QQuadrilateralMesh3D(const QQuadrilateralMesh3D &mesh) :
 {
 }
 
-QQuadrilateralMesh3D::QQuadrilateralMesh3D(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length, QObject *parent) :
-    QObject(parent), QuadrilateralMesh3D(rCount, lCount, radius, length)
-{
-}
-
-QQuadrilateralMesh3D::QQuadrilateralMesh3D(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length, QObject *parent) :
-    QObject(parent), QuadrilateralMesh3D(rCount, lCount, bottom_radius, top_radius, length)
-{
-}
-
 QQuadrilateralMesh3D::QQuadrilateralMesh3D(QuadrilateralMesh3D *mesh, QObject *parent) :
     QObject(parent), QuadrilateralMesh3D(mesh)
 {

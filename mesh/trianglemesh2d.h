@@ -162,9 +162,9 @@ public:
      */
     Triangle triangle(const UInteger &number) const;
     /**
-     * @brief Метод очистки данных сетки
+     * @brief Метод очищает информацию об елементах
      */
-    void clear();
+    virtual void clearElements();
 protected:
     /**
      * @brief Метод находит значение минимального угла в треугольнике, определенном координатами вершин

@@ -39,7 +39,7 @@ public:
      */
     SegmentMesh2D(const SegmentMesh2D *mesh);
     /**
-     * @brief Конструктор создает равномерную секту области, определенной функционально
+     * @brief Метод создает равномерную секту области, определенной функционально
      * @param xCount Количество узлов вдоль оси абсцисс
      * @param yCount Количество узлов вдоль оси ординат
      * @param xMin Абсцисса нижнего левого угла прямоугольной области
@@ -49,7 +49,7 @@ public:
      * @param func Функция области
      * @param charPoint Список характерных точек
      */
-    SegmentMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint);
+    void functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint);
     /**
      * @brief elementsCount Количество элементов
      * @return Количество отрезков (граней), которые образуют контур
@@ -94,6 +94,10 @@ public:
      * @return Отрезок с заданным номером
      */
     Segment segment(const UInteger &number) const;
+    /**
+     * @brief Метод очищает информацию об елементах
+     */
+    virtual void clearElements();
 protected:
 
 private:

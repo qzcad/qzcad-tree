@@ -268,12 +268,6 @@ HexahedralMesh3D::HexahedralMesh3D(const HexahedralMesh3D &mesh) : Mesh3D(&mesh)
 {
     element_ = mesh.element_;
     node_ = mesh.node_;
-    xMin_ = mesh.xMin_;
-    xMax_ = mesh.xMax_;
-    yMin_ = mesh.yMin_;
-    yMax_ = mesh.yMax_;
-    zMin_ = mesh.zMin_;
-    zMax_ = mesh.zMax_;
 }
 
 UInteger HexahedralMesh3D::elementsCount() const
@@ -370,12 +364,9 @@ void HexahedralMesh3D::addElement(const std::vector<UInteger> &nodes_ref)
             nodes_ref[7]);
 }
 
-void HexahedralMesh3D::clear()
+void HexahedralMesh3D::clearElements()
 {
-    node_.clear();
     element_.clear();
-    clearLayers();
-    clearDataVectors();
 }
 
 }

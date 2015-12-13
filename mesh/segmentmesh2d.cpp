@@ -6,34 +6,25 @@
 
 namespace msh
 {
-SegmentMesh2D::SegmentMesh2D()
+SegmentMesh2D::SegmentMesh2D() : Mesh2D(NULL)
 {
-    xMax_ = yMax_ = 1.0;
-    xMin_ = yMin_ = -1.0;
 }
 
-SegmentMesh2D::SegmentMesh2D(const SegmentMesh2D &mesh)
+SegmentMesh2D::SegmentMesh2D(const SegmentMesh2D &mesh) : Mesh2D(&mesh)
 {
-    xMin_ = mesh.xMin_;
-    xMax_ = mesh.xMax_;
-    yMin_ = mesh.yMin_;
-    yMax_ = mesh.yMax_;
     node_ = mesh.node_;
     element_ = mesh.element_;
 }
 
-SegmentMesh2D::SegmentMesh2D(const SegmentMesh2D *mesh)
+SegmentMesh2D::SegmentMesh2D(const SegmentMesh2D *mesh) : Mesh2D(mesh)
 {
     element_ = mesh->element_;
     node_ = mesh->node_;
-    xMin_ = mesh->xMin_;
-    xMax_ = mesh->xMax_;
-    yMin_ = mesh->yMin_;
-    yMax_ = mesh->yMax_;
 }
 
-SegmentMesh2D::SegmentMesh2D(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint)
+void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint)
 {
+    clear();
     xMin_ = xMin;
     xMax_ = xMin + width;
     yMin_ = yMin;
@@ -196,6 +187,11 @@ bool SegmentMesh2D::isBorderElement(const UInteger &number) const
 Segment SegmentMesh2D::segment(const UInteger &number) const
 {
     return element_[number];
+}
+
+void SegmentMesh2D::clearElements()
+{
+    element_.clear();
 }
 
 }

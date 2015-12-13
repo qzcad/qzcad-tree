@@ -111,9 +111,9 @@ public:
      */
     void addElement(const std::vector<UInteger> &nodes_ref);
     /**
-     * @brief Метод очистки данных модели
+     * @brief Метод очищает информацию об елементах
      */
-    void clear();
+    virtual void clearElements();
 //    UInteger toArray(UInteger i, UInteger j, UInteger k, UInteger yCount, UInteger zCount) { return i * yCount * zCount + j * zCount + k; }
 private:
     std::vector<Hexahedral> element_; //!< Массив шестигранных элементов
