@@ -842,7 +842,7 @@ void MainWindow::on_actionExtremeValuesStatistica_triggered()
         if (mesh->elementsCount() == ndv.size())
         {
             double val;
-            msh::UInteger index = 0;
+            msh::NamedDoubleVector::size_type index = 0;
             std::cout << ndv.name() << ": " << std::endl;
             val = ndv.min(index);
             std::cout << "Минимальное значение: " << val << " в элементе с номером: " << index << std::endl;
@@ -852,7 +852,7 @@ void MainWindow::on_actionExtremeValuesStatistica_triggered()
         else if (mesh->nodesCount() == ndv.size())
         {
             double val;
-            msh::UInteger index = 0;
+            msh::NamedDoubleVector::size_type index = 0;
             msh::PointPointer node;
             std::cout << ndv.name() << ": " << std::endl;
             val = ndv.max(index);
