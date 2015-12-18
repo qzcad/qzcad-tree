@@ -59,6 +59,48 @@ void QuadrilateralMesh3D::cylinderDomain(const UInteger &rCount, const UInteger 
     yMax_ = length;
 }
 
+void QuadrilateralMesh3D::cylinderDomain(const UInteger &rCount, const UInteger &lCount, std::function<double (double)> radius, const double &length)
+{
+    clear();
+    double hphi = 2.0 * M_PI / (double)rCount;
+    double hl = length / (double)lCount;
+    double phi = 0.0;
+    double r_max = 0.0;
+    // формирование массива узлов
+    for (UInteger i = 0; i < rCount; i++)
+    {
+        double l = 0.0;
+        for (UInteger j = 0; j <= lCount; j++)
+        {
+            double r = radius(l);
+            Point3D point(r * cos(phi), l, r * sin(phi));
+            if (j == 0 || j == lCount)
+                pushNode(point, CHARACTER);
+            else
+                pushNode(point, BORDER);
+            l += hl;
+            if (r > r_max) r_max = r;
+        }
+        phi += hphi;
+    }
+    // формирование массива элементов
+    for (UInteger i = 0; i < rCount; i++)
+    {
+        for (UInteger j = 0; j < lCount; j++)
+        {
+            if (i < rCount - 1)
+                addElement(i * (lCount + 1) + j, (i + 1) * (lCount + 1) + j, (i + 1) * (lCount + 1) + j + 1, i * (lCount + 1) + j + 1);
+            else
+                addElement(i * (lCount + 1) + j, j, j + 1, i * (lCount + 1) + j + 1);
+        }
+    }
+    // размеры области
+    xMin_ = zMin_ = -r_max;
+    xMax_ = zMax_ = r_max;
+    yMin_ = 0.0;
+    yMax_ = length;
+}
+
 void QuadrilateralMesh3D::coneDomain(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length)
 {
     clear();

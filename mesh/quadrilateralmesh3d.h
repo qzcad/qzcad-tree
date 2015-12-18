@@ -8,6 +8,8 @@
 #ifndef QUADRILATERALMESH3D_H
 #define QUADRILATERALMESH3D_H
 
+#include <functional>
+
 #include "mesh3d.h"
 #include "quadrilateral.h"
 
@@ -40,6 +42,7 @@ public:
      * @param length Длина образующей
      */
     void cylinderDomain(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length);
+    void cylinderDomain(const UInteger &rCount, const UInteger &lCount, std::function<double (double)> radius, const double &length);
     /**
      * @brief Метод для создания равномерной сетки в конических координатах
      * @param rCount Количество элементов вдоль радиуса

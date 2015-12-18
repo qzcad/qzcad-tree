@@ -558,17 +558,32 @@ QScriptValue QZScriptEngine::createQuadrilateralMesh3D(QScriptContext *context, 
             return context->throwError(typeError.arg("rCount"));
         if (!context->argument(1).isNumber())
             return context->throwError(typeError.arg("lCount"));
-        if (!context->argument(2).isNumber())
+        if (!(context->argument(2).isNumber() || context->argument(2).isFunction()))
             return context->throwError(typeError.arg("radius"));
         if (!context->argument(3).isNumber())
             return context->throwError(typeError.arg("length"));
         UInteger rCount = context->argument(0).toUInt32();
         UInteger lCount = context->argument(1).toUInt32();
-        double radius = context->argument(2).toNumber();
         double length = context->argument(3).toNumber();
 
         QQuadrilateralMesh3D *qmo = new QQuadrilateralMesh3D();
-        qmo->cylinderDomain(rCount, lCount, radius, length);
+
+        if (context->argument(2).isNumber())
+        {
+            double radius = context->argument(2).toNumber();
+            qmo->cylinderDomain(rCount, lCount, radius, length);
+        }
+        else
+        {
+            QScriptValue radius = context->argument(2);
+            auto radius_func = [&](double x)
+            {
+                QScriptValueList args;
+                args << x;
+                return radius.call(QScriptValue(), args).toNumber();
+            };
+            qmo->cylinderDomain(rCount, lCount, radius_func, length);
+        }
 
         return engine->newQObject(qmo, QScriptEngine::ScriptOwnership);
     }
@@ -584,17 +599,32 @@ QScriptValue QZScriptEngine::createCylinderQuads(QScriptContext *context, QScrip
             return context->throwError(typeError.arg("rCount"));
         if (!context->argument(1).isNumber())
             return context->throwError(typeError.arg("lCount"));
-        if (!context->argument(2).isNumber())
+        if (!(context->argument(2).isNumber() || context->argument(2).isFunction()))
             return context->throwError(typeError.arg("radius"));
         if (!context->argument(3).isNumber())
             return context->throwError(typeError.arg("length"));
         UInteger rCount = context->argument(0).toUInt32();
         UInteger lCount = context->argument(1).toUInt32();
-        double radius = context->argument(2).toNumber();
         double length = context->argument(3).toNumber();
 
         QQuadrilateralMesh3D *qmo = new QQuadrilateralMesh3D();
-        qmo->cylinderDomain(rCount, lCount, radius, length);
+
+        if (context->argument(2).isNumber())
+        {
+            double radius = context->argument(2).toNumber();
+            qmo->cylinderDomain(rCount, lCount, radius, length);
+        }
+        else
+        {
+            QScriptValue radius = context->argument(2);
+            auto radius_func = [&](double x)
+            {
+                QScriptValueList args;
+                args << x;
+                return radius.call(QScriptValue(), args).toNumber();
+            };
+            qmo->cylinderDomain(rCount, lCount, radius_func, length);
+        }
 
         return engine->newQObject(qmo, QScriptEngine::ScriptOwnership);
     }
