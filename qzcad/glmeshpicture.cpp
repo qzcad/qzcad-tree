@@ -742,10 +742,7 @@ void GLMeshPicture::paintGL()
                         else if (visualizationMode_ == USER_COLOR || visualizationMode_ == ELEMENT_VALUE)
                             qglColor(elementColor_);
                         // нормаль к многоугольнику
-                        if(mesh_->dimesion() == 2)
-                            glNormal3d(nx, ny, nz);
-                        else
-                            glNormal3d(-nx, -ny, -nz);
+                        glNormal3d(nx, ny, nz);
                         drawFace(face, GL_POLYGON);
                         if(showMesh_)
                         {

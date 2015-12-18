@@ -58,16 +58,23 @@ void TriangleMesh3D::cylinderDomain(const UInteger &rCount, const UInteger &lCou
     {
         for (UInteger j = 0; j < lCount; j++)
         {
+            UInteger p0, p1, p2, p3;
             if (i < rCount - 1)
             {
-                addElement(i * (lCount + 1) + j, (i + 1) * (lCount + 1) + j, (i + 1) * (lCount + 1) + j + 1);
-                addElement(i * (lCount + 1) + j, (i + 1) * (lCount + 1) + j + 1, i * (lCount + 1) + j + 1);
+                p0 = i * (lCount + 1) + j;
+                p1 = i * (lCount + 1) + j + 1;
+                p2 = (i + 1) * (lCount + 1) + j + 1;
+                p3 = (i + 1) * (lCount + 1) + j;
             }
             else
             {
-                addElement(i * (lCount + 1) + j, j, j + 1);
-                addElement(i * (lCount + 1) + j, j + 1, i * (lCount + 1) + j + 1);
+                p0 = i * (lCount + 1) + j;
+                p1 = i * (lCount + 1) + j + 1;
+                p2 = j + 1;
+                p3 = j;
             }
+            addElement(p0, p2, p3);
+            addElement(p0, p1, p2);
         }
     }
     // размеры области
@@ -303,7 +310,7 @@ void TriangleMesh3D::cylinderDomain(const UInteger &rCount, const UInteger &lCou
     for (UInteger i = 0; i < mesh2d.elementsCount(); i++)
     {
         Triangle t = mesh2d.triangle(i);
-        addElement(nodes_map[t[1]], nodes_map[t[0]], nodes_map[t[2]]);
+        addElement(nodes_map[t[0]], nodes_map[t[1]], nodes_map[t[2]]);
 //        addElement(t[1], t[0], t[2]);
     }
 
@@ -342,16 +349,23 @@ void TriangleMesh3D::coneDomain(const UInteger &rCount, const UInteger &lCount, 
     {
         for (UInteger j = 0; j < lCount; j++)
         {
+            UInteger p0, p1, p2, p3;
             if (i < rCount - 1)
             {
-                addElement(i * (lCount + 1) + j, (i + 1) * (lCount + 1) + j, (i + 1) * (lCount + 1) + j + 1);
-                addElement(i * (lCount + 1) + j, (i + 1) * (lCount + 1) + j + 1, i * (lCount + 1) + j + 1);
+                p0 = i * (lCount + 1) + j;
+                p1 = i * (lCount + 1) + j + 1;
+                p2 = (i + 1) * (lCount + 1) + j + 1;
+                p3 = (i + 1) * (lCount + 1) + j;
             }
             else
             {
-                addElement(i * (lCount + 1) + j, j, j + 1);
-                addElement(i * (lCount + 1) + j, j + 1, i * (lCount + 1) + j + 1);
+                p0 = i * (lCount + 1) + j;
+                p1 = i * (lCount + 1) + j + 1;
+                p2 = j + 1;
+                p3 = j;
             }
+            addElement(p0, p2, p3);
+            addElement(p0, p1, p2);
         }
     }
     // размеры области
@@ -514,7 +528,7 @@ void TriangleMesh3D::coneDomain(const UInteger &rCount, const UInteger &lCount, 
     for (UInteger i = 0; i < mesh2d.elementsCount(); i++)
     {
         Triangle t = mesh2d.triangle(i);
-        addElement(nodes_map[t[1]], nodes_map[t[0]], nodes_map[t[2]]);
+        addElement(nodes_map[t[0]], nodes_map[t[1]], nodes_map[t[2]]);
     }
 
     // размеры области

@@ -1200,10 +1200,10 @@ DoubleMatrix MindlinShellBending::cosinuses(const Point3D &A, const Point3D &B, 
     DoubleMatrix lambda(3, 3, 0.0);
     Point3D AB = B - A;
     Point3D AC = C - A;
-    Point3D N = AC.product(AB); // со scilab отличается порядок обхода узлов, значит меняется порядок произвденеия для нахождения нормали
+    Point3D N = AB.product(AC);
     Point3D Vx = AB.normalized();
     Point3D Vz = N.normalized();
-    Point3D Vy = Vx.product(Vz);
+    Point3D Vy = Vz.product(Vx);
     lambda(0, 0) = Vx.x(); lambda(0, 1) = Vx.y(); lambda(0, 2) = Vx.z();
     lambda(1, 0) = Vy.x(); lambda(1, 1) = Vy.y(); lambda(1, 2) = Vy.z();
     lambda(2, 0) = Vz.x(); lambda(2, 1) = Vz.y(); lambda(2, 2) = Vz.z();

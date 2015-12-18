@@ -81,27 +81,27 @@ UIntegerVector Hexahedral::face(const int &i) const
     UIntegerVector face(4);
     if (i == 0)
     {   // 0_1_2_3
-        face[0] = vertex_[0];   face[1] = vertex_[1];   face[2] = vertex_[2]; face[3] = vertex_[3];
+        face[0] = vertex_[0];   face[3] = vertex_[1];   face[2] = vertex_[2]; face[1] = vertex_[3];
     }
     else if (i == 1)
     {   // 0_4_5_1
-        face[0] = vertex_[0];   face[1] = vertex_[4];   face[2] = vertex_[5]; face[3] = vertex_[1];
+        face[0] = vertex_[0];   face[3] = vertex_[4];   face[2] = vertex_[5]; face[1] = vertex_[1];
     }
     else if (i == 2)
     {   // 1_5_6_2
-        face[0] = vertex_[1];   face[1] = vertex_[5];   face[2] = vertex_[6]; face[3] = vertex_[2];
+        face[0] = vertex_[1];   face[3] = vertex_[5];   face[2] = vertex_[6]; face[1] = vertex_[2];
     }
     else if (i == 3)
     {   // 3_2_6_7
-        face[0] = vertex_[3];   face[1] = vertex_[2];   face[2] = vertex_[6]; face[3] = vertex_[7];
+        face[0] = vertex_[3];   face[3] = vertex_[2];   face[2] = vertex_[6]; face[1] = vertex_[7];
     }
     else if (i == 4)
     {   // 0_3_7_4
-        face[0] = vertex_[0];   face[1] = vertex_[3];   face[2] = vertex_[7]; face[3] = vertex_[4];
+        face[0] = vertex_[0];   face[3] = vertex_[3];   face[2] = vertex_[7]; face[1] = vertex_[4];
     }
     else if (i == 5)
     {   // 4_7_6_5
-        face[0] = vertex_[4];   face[1] = vertex_[7];   face[2] = vertex_[6]; face[3] = vertex_[5];
+        face[0] = vertex_[4];   face[3] = vertex_[7];   face[2] = vertex_[6]; face[1] = vertex_[5];
     }
     return face;
 }

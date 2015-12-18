@@ -46,10 +46,22 @@ void QuadrilateralMesh3D::cylinderDomain(const UInteger &rCount, const UInteger 
     {
         for (UInteger j = 0; j < lCount; j++)
         {
+            UInteger p0, p1, p2, p3;
             if (i < rCount - 1)
-                addElement(i * (lCount + 1) + j, (i + 1) * (lCount + 1) + j, (i + 1) * (lCount + 1) + j + 1, i * (lCount + 1) + j + 1);
+            {
+                p0 = i * (lCount + 1) + j;
+                p1 = i * (lCount + 1) + j + 1;
+                p2 = (i + 1) * (lCount + 1) + j + 1;
+                p3 = (i + 1) * (lCount + 1) + j;
+            }
             else
-                addElement(i * (lCount + 1) + j, j, j + 1, i * (lCount + 1) + j + 1);
+            {
+                p0 = i * (lCount + 1) + j;
+                p1 = i * (lCount + 1) + j + 1;
+                p2 = j + 1;
+                p3 = j;
+            }
+            addElement(p0, p1, p2, p3);
         }
     }
     // размеры области
@@ -88,10 +100,22 @@ void QuadrilateralMesh3D::cylinderDomain(const UInteger &rCount, const UInteger 
     {
         for (UInteger j = 0; j < lCount; j++)
         {
+            UInteger p0, p1, p2, p3;
             if (i < rCount - 1)
-                addElement(i * (lCount + 1) + j, (i + 1) * (lCount + 1) + j, (i + 1) * (lCount + 1) + j + 1, i * (lCount + 1) + j + 1);
+            {
+                p0 = i * (lCount + 1) + j;
+                p1 = i * (lCount + 1) + j + 1;
+                p2 = (i + 1) * (lCount + 1) + j + 1;
+                p3 = (i + 1) * (lCount + 1) + j;
+            }
             else
-                addElement(i * (lCount + 1) + j, j, j + 1, i * (lCount + 1) + j + 1);
+            {
+                p0 = i * (lCount + 1) + j;
+                p1 = i * (lCount + 1) + j + 1;
+                p2 = j + 1;
+                p3 = j;
+            }
+            addElement(p0, p1, p2, p3);
         }
     }
     // размеры области
@@ -129,10 +153,22 @@ void QuadrilateralMesh3D::coneDomain(const UInteger &rCount, const UInteger &lCo
     {
         for (UInteger j = 0; j < lCount; j++)
         {
+            UInteger p0, p1, p2, p3;
             if (i < rCount - 1)
-                addElement(i * (lCount + 1) + j, (i + 1) * (lCount + 1) + j, (i + 1) * (lCount + 1) + j + 1, i * (lCount + 1) + j + 1);
+            {
+                p0 = i * (lCount + 1) + j;
+                p1 = i * (lCount + 1) + j + 1;
+                p2 = (i + 1) * (lCount + 1) + j + 1;
+                p3 = (i + 1) * (lCount + 1) + j;
+            }
             else
-                addElement(i * (lCount + 1) + j, j, j + 1, i * (lCount + 1) + j + 1);
+            {
+                p0 = i * (lCount + 1) + j;
+                p1 = i * (lCount + 1) + j + 1;
+                p2 = j + 1;
+                p3 = j;
+            }
+            addElement(p0, p1, p2, p3);
         }
     }
     // размеры области
