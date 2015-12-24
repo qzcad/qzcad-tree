@@ -41,7 +41,7 @@ public:
      * @param value Значение, для которого необходимо найти цвет
      * @return Цвет, соответствующий значению
      */
-    QColor color(const double &value, int colors = 16);
+    QColor color(const double &value, int colors = 10);
 
 protected:
     /**
@@ -51,7 +51,7 @@ protected:
      * @param b Правая граница интервала
      * @return Точка из интервала [a; b]
      */
-    double scaleOn(const double &value, const double &a, const double &b, int colors = 16);
+    double scaleOn(const double &value, const double &a, const double &b, int colors = 10);
 
 private:
     double min_;
