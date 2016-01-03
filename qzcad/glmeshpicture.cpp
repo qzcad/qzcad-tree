@@ -11,7 +11,7 @@ GLMeshPicture::GLMeshPicture(QWidget *parent) :
     meshColor_ = QColor (Qt::black);
     textColor_ = QColor (Qt::blue);
     mouseMode_ = ROTATION;
-    visualizationMode_ = USER_COLOR;
+    visualizationMode_ = COLOR;
     isMousePressed_ = false;
     showColorBar_ = false;
     isLighting_ = true;
@@ -19,7 +19,7 @@ GLMeshPicture::GLMeshPicture(QWidget *parent) :
     isShowInitialFrames = false;
     setFont(QFont("Monospace", 14, QFont::Bold));
     setDefault();
-#ifdef WIN32
+#ifdef Q_OS_WIN
     setFormat(QGLFormat(QGL::SingleBuffer | QGL::DepthBuffer));
 #endif
 }
@@ -258,7 +258,7 @@ void GLMeshPicture::drawColorBar()
     double maxVal = 1.0;
     const double width = 0.04 * (maxVal - minVal);
     const double length = 0.2 * (maxVal - minVal);
-    const double top = -1.0 + length;
+    const double top = -1.0 + length + 0.1;
     const double right = minVal + width;
     // изменение режима проекции для отрисовки контрольной полосы
     glMatrixMode(GL_PROJECTION);
@@ -364,10 +364,8 @@ void GLMeshPicture::drawFace(const msh::UIntegerVector &face, GLenum mode, GLflo
         {
             if (useNodeColors)
             {
-                if (visualizationMode_ == NODE_VALUE && valueIndex_ < mesh_->dataVectorsCount() && mesh_->data(valueIndex_).size() == mesh_->nodesCount())
+                if (visualizationMode_ == VALUE && valueIndex_ < mesh_->dataVectorsCount() && mesh_->data(valueIndex_).size() == mesh_->nodesCount())
                     qglColor( map_.color( mesh_->data(valueIndex_)[face[j]] ) );
-                else if (visualizationMode_ == NODE_VALUE)
-                    qglColor(elementColor_); // если индекс вне диапазона, то цветом пользователя
             }
             if (isUseVector_ && mesh_->dataVectorsCount() >= 2 && mesh_->dimesion() == 2 && mesh_->data(0).size() == mesh_->nodesCount() && mesh_->data(1).size() == mesh_->nodesCount())
                 pointToGLVertex(mesh_->node(face[j]),
@@ -490,6 +488,19 @@ void GLMeshPicture::setShowColorBar(bool show)
 void GLMeshPicture::setBackgroundColor(QColor color)
 {
     backgroundColor_ = color;
+    initializeGL();
+    updateGL();
+}
+
+void GLMeshPicture::setMeshColor(QColor color)
+{
+    meshColor_ = color;
+    updateGL();
+}
+
+void GLMeshPicture::setElementColor(QColor color)
+{
+    elementColor_ = color;
     updateGL();
 }
 
@@ -531,26 +542,16 @@ void GLMeshPicture::setVisualisationMode(int mode)
     if(mesh_)
     {
         valueIndex_ = 0;
-        if ((visualizationMode_ == ELEMENT_VALUE || visualizationMode_ == NODE_VALUE) && mesh_->dataVectorsCount() > 0)
+        if (visualizationMode_ == VALUE && mesh_->dataVectorsCount() > 0)
         {
             map_.setMin(mesh_->data(valueIndex_).min());
             map_.setMax(mesh_->data(valueIndex_).max());
         }
-//        if (visualizationMode_ == ELEMENT_VALUE  && valueIndex_ < elementValues_.size())
-//        {
-//            map_.setMin(elementValues_[valueIndex_].min());
-//            map_.setMax(elementValues_[valueIndex_].max());
-//        }
-//        else if (visualizationMode_ == NODE_VALUE && valueIndex_ < nodeValues_.size())
-//        {
-//            map_.setMin(nodeValues_[valueIndex_].min());
-//            map_.setMax(nodeValues_[valueIndex_].max());
-//        }
     }
     updateGL();
 }
 
-void GLMeshPicture::setColormapName(int mapID)
+void GLMeshPicture::setColormap(int mapID)
 {
     map_.setColorMap(static_cast<ColorValueMap::ColorMapName>(mapID));
     updateGL();
@@ -692,7 +693,7 @@ void GLMeshPicture::paintGL()
             {
                 glNormal3d(0.0, 0.0, -1.0);
                 msh::UIntegerVector face = element->face(0);
-                if (visualizationMode_ == ELEMENT_VALUE  && valueIndex_ < mesh_->dataVectorsCount() && mesh_->data(valueIndex_).size() == mesh_->elementsCount())
+                if (visualizationMode_ == VALUE  && valueIndex_ < mesh_->dataVectorsCount() && mesh_->data(valueIndex_).size() == mesh_->elementsCount())
                     qglColor(map_.color(mesh_->data(valueIndex_)[i], 256));
                 else
                     qglColor(elementColor_);
@@ -737,9 +738,9 @@ void GLMeshPicture::paintGL()
                         nx = nx / nn;
                         ny = ny / nn;
                         nz = nz / nn;
-                        if (visualizationMode_ == ELEMENT_VALUE  && valueIndex_ < mesh_->dataVectorsCount() && mesh_->data(valueIndex_).size() == mesh_->elementsCount())
+                        if (visualizationMode_ == VALUE  && valueIndex_ < mesh_->dataVectorsCount() && mesh_->data(valueIndex_).size() == mesh_->elementsCount())
                             qglColor(map_.color(mesh_->data(valueIndex_)[i], 1024));
-                        else if (visualizationMode_ == USER_COLOR || visualizationMode_ == ELEMENT_VALUE)
+                        else
                             qglColor(elementColor_);
                         // нормаль к многоугольнику
                         glNormal3d(nx, ny, nz);
@@ -850,5 +851,20 @@ msh::NamedDoubleVector GLMeshPicture::dataVector() const
     msh::NamedDoubleVector data;
     if(mesh_ && valueIndex_ < mesh_->dataVectorsCount()) data = mesh_->data(valueIndex_);
     return data;
+}
+
+QColor GLMeshPicture::backgroundColor() const
+{
+    return backgroundColor_;
+}
+
+QColor GLMeshPicture::meshColor() const
+{
+    return meshColor_;
+}
+
+QColor GLMeshPicture::elementColor() const
+{
+    return elementColor_;
 }
 

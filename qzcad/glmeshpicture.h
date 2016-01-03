@@ -54,8 +54,26 @@ public:
      * @return Значение указателя на сетку
      */
     msh::MeshPointer releaseMesh();
-
+    /**
+     * @brief Получить экземпляр текущего вектора данных
+     * @return экземпляр текущего вектора данных
+     */
     msh::NamedDoubleVector dataVector() const;
+    /**
+     * @brief Получить цвет фона
+     * @return Цвет фона
+     */
+    QColor backgroundColor() const;
+    /**
+     * @brief Получить цвет сетки
+     * @return Цвет сетки
+     */
+    QColor meshColor() const;
+    /**
+     * @brief Получить цвет элементов
+     * @return Цвет элементов
+     */
+    QColor elementColor() const;
 
 signals:
     /**
@@ -167,6 +185,16 @@ public slots:
      */
     void setBackgroundColor (QColor color);
     /**
+     * @brief Установить цвет сетки
+     * @param color Цвет сетки
+     */
+    void setMeshColor(QColor color);
+    /**
+     * @brief Установить цвет элементов (заливки)
+     * @param Цвет элементов (заливки
+     */
+    void setElementColor(QColor color);
+    /**
      * @brief Установить цвет текста
      * @param color Цвет текста
      */
@@ -192,7 +220,7 @@ public slots:
      * @brief Установить номер схемы цветовой визуализации
      * @param mapID Номер схемы
      */
-    void setColormapName(int mapID);
+    void setColormap(int mapID);
     /**
      * @brief Включить/выключить освещение
      * @param isLighting true - освещение включено; false - освещение выключено
@@ -290,11 +318,10 @@ private:
     ColorValueMap map_; //!< Карта отображеня значения из диапазона на цветовую схему
     /**
      * @brief Список режимов визуализации:
-     * @value USER_COLOR цветовая визуализация на основе цветов, указанных пользователем
-     * @value NODE_VALUE цветовая вмзуализация на основе значений в узлах сетки и цветовых схем
-     * @value ELEMENT_VALUE цветовая вмзуализация на основе значений на элементах и цветовых схем
+     * @value COLOR цветовая визуализация на основе цветов, указанных пользователем
+     * @value VALUE цветовая вмзуализация на основе значений в узлах сетки и цветовых схем
      */
-    enum VisualizationMode { USER_COLOR = 0, NODE_VALUE = 1, ELEMENT_VALUE = 2 };
+    enum VisualizationMode { COLOR = 0, VALUE = 1 };
     VisualizationMode visualizationMode_; //!< Индикатор включения цветовой визуализации значений, определенных на элементе
     bool isMousePressed_; //!< Флаг нажатия кнопки мышки
     bool isLighting_; //!< Флаг включения/выключения освещения

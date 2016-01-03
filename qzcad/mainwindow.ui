@@ -19,19 +19,49 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout_3">
+    <property name="spacing">
+     <number>2</number>
+    </property>
+    <property name="leftMargin">
+     <number>2</number>
+    </property>
+    <property name="topMargin">
+     <number>2</number>
+    </property>
+    <property name="rightMargin">
+     <number>2</number>
+    </property>
+    <property name="bottomMargin">
+     <number>2</number>
+    </property>
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="tabPosition">
        <enum>QTabWidget::West</enum>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tabObject">
        <attribute name="title">
         <string>Объект</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_4">
+        <property name="spacing">
+         <number>2</number>
+        </property>
+        <property name="leftMargin">
+         <number>2</number>
+        </property>
+        <property name="topMargin">
+         <number>2</number>
+        </property>
+        <property name="rightMargin">
+         <number>2</number>
+        </property>
+        <property name="bottomMargin">
+         <number>2</number>
+        </property>
         <item>
          <widget class="GLControlWidget" name="pictureControl" native="true"/>
         </item>
@@ -42,6 +72,21 @@
         <string>Скрипт</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_5">
+        <property name="spacing">
+         <number>2</number>
+        </property>
+        <property name="leftMargin">
+         <number>2</number>
+        </property>
+        <property name="topMargin">
+         <number>2</number>
+        </property>
+        <property name="rightMargin">
+         <number>2</number>
+        </property>
+        <property name="bottomMargin">
+         <number>2</number>
+        </property>
         <item>
          <widget class="CodeEditor" name="codeEditor" native="true">
           <property name="font">
@@ -58,6 +103,21 @@
         <string>Журнал</string>
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout_6">
+        <property name="spacing">
+         <number>2</number>
+        </property>
+        <property name="leftMargin">
+         <number>2</number>
+        </property>
+        <property name="topMargin">
+         <number>2</number>
+        </property>
+        <property name="rightMargin">
+         <number>2</number>
+        </property>
+        <property name="bottomMargin">
+         <number>2</number>
+        </property>
         <item>
          <widget class="QTextEdit" name="terminalText">
           <property name="font">
@@ -188,6 +248,9 @@
      <string>&amp;Настройки</string>
     </property>
     <addaction name="actionDoubleBufferGL"/>
+    <addaction name="actionChangePictureBackground"/>
+    <addaction name="actionChangeMeshColor"/>
+    <addaction name="actionChangeElementColor"/>
    </widget>
    <widget class="QMenu" name="menuFEM">
     <property name="title">
@@ -828,6 +891,21 @@
   <action name="actionRoundRectangleScript">
    <property name="text">
     <string>Прямоугольная область со скруглением: rectangle(x, y, w, h, r)</string>
+   </property>
+  </action>
+  <action name="actionChangePictureBackground">
+   <property name="text">
+    <string>Изменить фон изображения...</string>
+   </property>
+  </action>
+  <action name="actionChangeMeshColor">
+   <property name="text">
+    <string>Изменить цвет сетки...</string>
+   </property>
+  </action>
+  <action name="actionChangeElementColor">
+   <property name="text">
+    <string>Изменить цвет элементов...</string>
    </property>
   </action>
  </widget>

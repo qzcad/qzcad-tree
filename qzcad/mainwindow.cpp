@@ -12,6 +12,7 @@
 #include <QTime>
 #include <QFileInfo>
 #include <QTime>
+#include <QColorDialog>
 
 #include "globalconsts.h"
 
@@ -53,6 +54,10 @@ MainWindow::MainWindow(QWidget *parent) :
 #if QT_VERSION < QT_VERSION_CHECK(5, 0, 0)
     QTextCodec::setCodecForCStrings(QTextCodec::codecForName("UTF-8"));
     QTextCodec::setCodecForTr(QTextCodec::codecForName("UTF-8"));
+#endif
+
+#ifdef Q_OS_WIN
+    ui->actionDoubleBufferGL->setChecked(false); // disable double buffer in Win32
 #endif
 
     showMaximized();
@@ -1218,4 +1223,25 @@ void MainWindow::on_actionRoundRectangleScript_triggered()
 {
     QString command = "rectangle(x, y, w, h, r)";
     ui->codeEditor->insertPlainText(command);
+}
+
+void MainWindow::on_actionChangePictureBackground_triggered()
+{
+    QColor color = QColorDialog::getColor(ui->pictureControl->getGlMeshPicture()->backgroundColor());
+    if (color.isValid())
+        ui->pictureControl->getGlMeshPicture()->setBackgroundColor(color);
+}
+
+void MainWindow::on_actionChangeMeshColor_triggered()
+{
+    QColor color = QColorDialog::getColor(ui->pictureControl->getGlMeshPicture()->meshColor());
+    if (color.isValid())
+        ui->pictureControl->getGlMeshPicture()->setMeshColor(color);
+}
+
+void MainWindow::on_actionChangeElementColor_triggered()
+{
+    QColor color = QColorDialog::getColor(ui->pictureControl->getGlMeshPicture()->elementColor());
+    if (color.isValid())
+        ui->pictureControl->getGlMeshPicture()->setElementColor(color);
 }

@@ -14,6 +14,21 @@
    <string>Form</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_9">
+   <property name="spacing">
+    <number>2</number>
+   </property>
+   <property name="leftMargin">
+    <number>2</number>
+   </property>
+   <property name="topMargin">
+    <number>2</number>
+   </property>
+   <property name="rightMargin">
+    <number>2</number>
+   </property>
+   <property name="bottomMargin">
+    <number>2</number>
+   </property>
    <item>
     <widget class="GLMeshPicture" name="picture" native="true">
      <property name="sizePolicy">
@@ -27,12 +42,12 @@
    <item>
     <layout class="QVBoxLayout" name="verticalLayout_7">
      <property name="spacing">
-      <number>1</number>
+      <number>0</number>
      </property>
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_5">
        <property name="spacing">
-        <number>2</number>
+        <number>0</number>
        </property>
        <item>
         <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -52,7 +67,7 @@
          <item>
           <layout class="QHBoxLayout" name="horizontalLayout">
            <property name="spacing">
-            <number>2</number>
+            <number>0</number>
            </property>
            <item>
             <layout class="QVBoxLayout" name="verticalLayout">
@@ -288,6 +303,9 @@
      </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_3">
+       <property name="spacing">
+        <number>0</number>
+       </property>
        <item>
         <widget class="QLabel" name="labelTranslateStep">
          <property name="sizePolicy">
@@ -330,6 +348,9 @@
      </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <property name="spacing">
+        <number>0</number>
+       </property>
        <item>
         <widget class="QLabel" name="labelXTranslation">
          <property name="text">
@@ -357,6 +378,9 @@
      </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_6">
+       <property name="spacing">
+        <number>0</number>
+       </property>
        <item>
         <widget class="QLabel" name="labelYTranslation">
          <property name="text">
@@ -384,6 +408,9 @@
      </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_7">
+       <property name="spacing">
+        <number>0</number>
+       </property>
        <item>
         <widget class="QLabel" name="labelZTranslation">
          <property name="text">
@@ -425,6 +452,9 @@
      </item>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <property name="spacing">
+        <number>0</number>
+       </property>
        <item>
         <widget class="QComboBox" name="visualizationMode">
          <item>
@@ -434,12 +464,7 @@
          </item>
          <item>
           <property name="text">
-           <string>узел</string>
-          </property>
-         </item>
-         <item>
-          <property name="text">
-           <string>элемент</string>
+           <string>значение</string>
           </property>
          </item>
         </widget>
@@ -597,7 +622,7 @@
     <slot>setShowCube(bool)</slot>
     <slot>setTranslateStep(double)</slot>
     <slot>setVisualisationMode(int)</slot>
-    <slot>setColormapName(int)</slot>
+    <slot>setColormap(int)</slot>
     <slot>setXTranslation(double)</slot>
     <slot>setYTranslation(double)</slot>
     <slot>setZTranslation(double)</slot>
@@ -937,7 +962,7 @@
    <sender>colorMap</sender>
    <signal>activated(int)</signal>
    <receiver>picture</receiver>
-   <slot>setColormapName(int)</slot>
+   <slot>setColormap(int)</slot>
    <hints>
     <hint type="sourcelabel">
      <x>599</x>

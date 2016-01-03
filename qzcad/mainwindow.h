@@ -146,6 +146,12 @@ private slots:
 
     void on_actionRoundRectangleScript_triggered();
 
+    void on_actionChangePictureBackground_triggered();
+
+    void on_actionChangeMeshColor_triggered();
+
+    void on_actionChangeElementColor_triggered();
+
 private:
     Ui::MainWindow *ui; //!< Контейнер элементов графического интерфейса
     QStdRedirector<> *stdRedirector; //!< Перехватчик сообщений стандартного потока

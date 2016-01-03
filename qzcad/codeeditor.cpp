@@ -15,7 +15,11 @@ CodeEditor::CodeEditor(QWidget *parent) :
 
     updateLineNumberAreaWidth(0);
     highlightCurrentLine();
-    setFont(QFont("Monospace"));
+    QFont font("Monospace");
+#ifdef Q_OS_WIN
+    font.setStyleHint(QFont::TypeWriter);
+#endif
+    setFont(font);
     setTabStopWidth(fontMetrics().width(QLatin1Char(' ')) * tabSymbols_);
     autoindent_ = true;
 }
