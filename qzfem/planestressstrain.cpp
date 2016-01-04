@@ -1,6 +1,7 @@
 #include "planestressstrain.h"
 
 #include <iostream>
+#include <math.h>
 
 #include "rowdoublematrix.h"
 #include "mappeddoublematrix.h"
@@ -110,11 +111,11 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
         UInteger index_j = 0;
         for (UInteger i = 0; i < elementNodes * freedom_; i++)
         {
-            index_i = element->vertexNode(i / freedom_) + (i % freedom_) * nodesCount;
+            index_i = freedom_ * element->vertexNode(i / freedom_) + (i % freedom_);
 
             for (UInteger j = i; j < elementNodes * freedom_; j++)
             {
-                index_j = element->vertexNode(j / freedom_) + (j % freedom_) * nodesCount;
+                index_j = freedom_ * element->vertexNode(j / freedom_) + (j % freedom_);
                 global(index_i, index_j) += local(i, j);
                 if (index_i != index_j) global(index_j, index_i) = global(index_i, index_j);
             } // for j
@@ -137,9 +138,9 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
                     double f = (*condition)->value(point);
                     FemCondition::FemDirection dir = (*condition)->direction();
                     if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
-                        force(i) += f;
+                        force(freedom_ * i) += f;
                     if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
-                        force(i + nodesCount) += f;
+                        force(freedom_ * i + 1) += f;
                 }
                 ++progressBar;
             } // for i
@@ -187,13 +188,13 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
                                 } // for ixi
                                 if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
                                 {
-                                    force(element->vertexNode(i)) += f0;
-                                    force(element->vertexNode(i + 1)) += f1;
+                                    force(freedom_ * element->vertexNode(i)) += f0;
+                                    force(freedom_ * element->vertexNode(i + 1)) += f1;
                                 }
                                 if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
                                 {
-                                    force(element->vertexNode(i) + nodesCount) += f0;
-                                    force(element->vertexNode(i + 1) + nodesCount) += f1;
+                                    force(freedom_ * element->vertexNode(i) + 1) += f0;
+                                    force(freedom_ * element->vertexNode(i + 1) + 1) += f1;
                                 }
                             }
                         } // if
@@ -262,9 +263,9 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
                 for (UInteger i = 0 ; i < elementNodes; i++)
                 {
                     if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
-                        force(element->vertexNode(i)) += vForce[i];
+                        force(freedom_ * element->vertexNode(i)) += vForce[i];
                     if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
-                        force(element->vertexNode(i) + nodesCount) += vForce[i];
+                        force(freedom_ * element->vertexNode(i) + 1) += vForce[i];
                 }
             } //for elNum
         }
@@ -285,9 +286,9 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
                 {
                     FemCondition::FemDirection dir = (*condition)->direction();
                     if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
-                        setInitialNodalValue(global, force, i, (*condition)->value(point));
+                        setInitialNodalValue(global, force, freedom_ * i, (*condition)->value(point));
                     if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
-                        setInitialNodalValue(global, force, i + nodesCount, (*condition)->value(point));
+                        setInitialNodalValue(global, force, freedom_ * i + 1, (*condition)->value(point));
                 }
                 ++progressBar;
             } // for i
@@ -300,24 +301,18 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
     std::vector<double> v(nodesCount);
     for (UInteger i = 0; i < nodesCount; i++)
     {
-        u[i] = displacement[i];
-        v[i] = displacement[i + nodesCount];
+        u[i] = displacement[freedom_ * i];
+        v[i] = displacement[freedom_ * i + 1];
     }
 
     mesh_->addDataVector("X", u);
     mesh_->addDataVector("Y", v);
 
     // вычисление напряжений
-    std::vector<double> SigmaX(nodesCount);
-    std::vector<double> SigmaY(nodesCount);
-    std::vector<double> TauXY(nodesCount);
-
-    for (UInteger i = 0; i < nodesCount; i++)
-    {
-        SigmaX[i] = 0.0;
-        SigmaY[i] = 0.0;
-        TauXY[i] = 0.0;
-    }
+    std::vector<double> SigmaX(nodesCount, 0.0);
+    std::vector<double> SigmaY(nodesCount, 0.0);
+    std::vector<double> TauXY(nodesCount, 0.0);
+    std::vector<double> mises(nodesCount, 0.0);
 
     double xi[elementNodes];
     double eta[elementNodes];
@@ -379,14 +374,15 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
 
             for (UInteger i = 0; i < elementNodes; i++)
             {
-                dis(i * freedom_, 0) = displacement[element->vertexNode(i)];
-                dis(i * freedom_ + 1, 0) = displacement[element->vertexNode(i) + nodesCount];
+                dis(i * freedom_, 0) = displacement[freedom_ * element->vertexNode(i)];
+                dis(i * freedom_ + 1, 0) = displacement[freedom_ * element->vertexNode(i) + 1];
             }
 
             sigma = (D * B) * dis;
             SigmaX[element->vertexNode(inode)] += sigma(0, 0);
             SigmaY[element->vertexNode(inode)] += sigma(1, 0);
             TauXY[element->vertexNode(inode)] += sigma(2, 0);
+            mises[element->vertexNode(inode)] += sqrt(sigma(0,0)*sigma(0,0) - sigma(0,0)*sigma(1,0) + sigma(1,0)*sigma(1,0) + 3.0 * sigma(2,0)*sigma(2,0)); // general plane stress
         }
     } //for elNum
     for (UInteger i = 0; i < nodesCount; i++)
@@ -394,9 +390,11 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
         SigmaX[i] /= (double)mesh->adjacentCount(i);
         SigmaY[i] /= (double)mesh->adjacentCount(i);
         TauXY[i] /= (double)mesh->adjacentCount(i);
+        mises[i] /= (double)mesh->adjacentCount(i);
     }
 
     mesh_->addDataVector("Sigma X", SigmaX);
     mesh_->addDataVector("Sigma Y", SigmaY);
     mesh_->addDataVector("Tau XY", TauXY);
+    mesh_->addDataVector("von Mises", mises);
 }
