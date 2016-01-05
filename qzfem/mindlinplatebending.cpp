@@ -121,11 +121,11 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
         UInteger index_j = 0;
         for (UInteger i = 0; i < elementNodes * freedom_; i++)
         {
-            index_i = element->vertexNode(i / freedom_) + (i % freedom_) * nodesCount;
+            index_i = freedom_ * element->vertexNode(i / freedom_) + (i % freedom_);
 
             for (UInteger j = i; j < elementNodes * freedom_; j++)
             {
-                index_j = element->vertexNode(j / freedom_) + (j % freedom_) * nodesCount;
+                index_j = freedom_ * element->vertexNode(j / freedom_) + (j % freedom_);
                 global(index_i, index_j) += local(i, j);
                 if (index_i != index_j) global(index_j, index_i) = global(index_i, index_j);
             } // for j
@@ -148,11 +148,11 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
                     double f = (*condition)->value(point);
                     FemCondition::FemDirection dir = (*condition)->direction();
                     if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
-                        force(i) += f;
+                        force(freedom_ * i) += f;
                     if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
-                        force(i + nodesCount) += f;
+                        force(freedom_ * i + 1) += f;
                     if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
-                        force(i + nodesCount + nodesCount) += f;
+                        force(freedom_ * i + 2) += f;
                 }
                 ++progressBar;
             } // for i
@@ -200,18 +200,18 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
                                 } // for ixi
                                 if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
                                 {
-                                    force(element->vertexNode(i)) += f0;
-                                    force(element->vertexNode(i + 1)) += f1;
+                                    force(freedom_ * element->vertexNode(i)) += f0;
+                                    force(freedom_ * element->vertexNode(i + 1)) += f1;
                                 }
                                 if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
                                 {
-                                    force(element->vertexNode(i) + nodesCount) += f0;
-                                    force(element->vertexNode(i + 1) + nodesCount) += f1;
+                                    force(freedom_ * element->vertexNode(i) + 1) += f0;
+                                    force(freedom_ * element->vertexNode(i + 1) + 1) += f1;
                                 }
                                 if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
                                 {
-                                    force(element->vertexNode(i) + nodesCount + nodesCount) += f0;
-                                    force(element->vertexNode(i + 1) + nodesCount + nodesCount) += f1;
+                                    force(freedom_ * element->vertexNode(i) + 2) += f0;
+                                    force(freedom_ * element->vertexNode(i + 1) + 2) += f1;
                                 }
                             }
                         } // if
@@ -280,11 +280,11 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
                 for (UInteger i = 0 ; i < elementNodes; i++)
                 {
                     if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
-                        force(element->vertexNode(i)) += vForce[i];
+                        force(freedom_ * element->vertexNode(i)) += vForce[i];
                     if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
-                        force(element->vertexNode(i) + nodesCount) += vForce[i];
+                        force(freedom_ * element->vertexNode(i) + 1) += vForce[i];
                     if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
-                        force(element->vertexNode(i) + nodesCount + nodesCount) += vForce[i];
+                        force(freedom_ * element->vertexNode(i) + 2) += vForce[i];
                 }
             } //for elNum
         }
@@ -305,11 +305,11 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
                 {
                     FemCondition::FemDirection dir = (*condition)->direction();
                     if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
-                        setInitialNodalValue(global, force, i, (*condition)->value(point));
+                        setInitialNodalValue(global, force, freedom_ * i, (*condition)->value(point));
                     if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
-                        setInitialNodalValue(global, force, i + nodesCount, (*condition)->value(point));
+                        setInitialNodalValue(global, force, freedom_ * i + 1, (*condition)->value(point));
                     if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
-                        setInitialNodalValue(global, force, i + nodesCount + nodesCount, (*condition)->value(point));
+                        setInitialNodalValue(global, force, freedom_ * i + 2, (*condition)->value(point));
                 }
                 ++progressBar;
             } // for i
@@ -322,9 +322,9 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
     std::vector<double> theta_y(nodesCount);
     for (UInteger i = 0; i < nodesCount; i++)
     {
-        w[i] = displacement[i];
-        theta_x[i] = displacement[i + nodesCount];
-        theta_y[i] = displacement[i + nodesCount + nodesCount];
+        w[i] = displacement[freedom_ * i];
+        theta_x[i] = displacement[freedom_ * i + 1];
+        theta_y[i] = displacement[freedom_ * i + 2];
     }
 
     mesh_->addDataVector("W", w);
@@ -332,22 +332,12 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
     mesh_->addDataVector("Theta Y", theta_y);
 
     // вычисление напряжений
-    std::vector<double> SigmaX(nodesCount);
-    std::vector<double> SigmaY(nodesCount);
-    std::vector<double> TauXY(nodesCount);
-    std::vector<double> TauXZ(nodesCount);
-    std::vector<double> TauYZ(nodesCount);
-    std::vector<double> mises(nodesCount);
-
-    for (UInteger i = 0; i < nodesCount; i++)
-    {
-        SigmaX[i] = 0.0;
-        SigmaY[i] = 0.0;
-        TauXY[i] = 0.0;
-        TauXZ[i] = 0.0;
-        TauYZ[i] = 0.0;
-        mises[i] = 0.0;
-    }
+    std::vector<double> SigmaX(nodesCount, 0.0);
+    std::vector<double> SigmaY(nodesCount, 0.0);
+    std::vector<double> TauXY(nodesCount, 0.0);
+    std::vector<double> TauXZ(nodesCount, 0.0);
+    std::vector<double> TauYZ(nodesCount, 0.0);
+    std::vector<double> mises(nodesCount, 0.0);
 
     double xi[elementNodes];
     double eta[elementNodes];
@@ -417,9 +407,9 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
 
             for (UInteger i = 0; i < elementNodes; i++)
             {
-                dis(3 * i, 0) = displacement[element->vertexNode(i)];
-                dis(3 * i + 1, 0) = displacement[element->vertexNode(i) + nodesCount];
-                dis(3 * i + 2, 0) = displacement[element->vertexNode(i) + nodesCount + nodesCount];
+                dis(freedom_ * i, 0) = displacement[freedom_ * element->vertexNode(i)];
+                dis(freedom_ * i + 1, 0) = displacement[freedom_ * element->vertexNode(i) + 1];
+                dis(freedom_ * i + 2, 0) = displacement[freedom_ * element->vertexNode(i) + 2];
             }
 
             sigma = thickness / 2.0 * ((D * Bf) * dis);
