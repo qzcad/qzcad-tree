@@ -13,6 +13,7 @@
 
 #include "meshpointer.h"
 #include "colorvaluemap.h"
+#include "point3d.h"
 
 class GLMeshPicture : public QGLWidget
 {
@@ -355,8 +356,20 @@ private:
     /**
      * @brief Преобразование точки сетки в точку openGL
      * @param point Указатель на точку сетки
+     * @param dx Смещение по оси абсцисс
+     * @param dy Смещение по оси ординат
+     * @param dz Смещение по оси аппдикат
      */
     void pointToGLVertex(const msh::PointPointer &point, double dx = 0.0, double dy = 0.0, double dz = 0.0) const;
+    /**
+     * @brief Функция вычисления координат точки на сцене OpenGL
+     * @param point Указатель на точку сетки
+     * @param dx Смещение по оси абсцисс
+     * @param dy Смещение по оси ординат
+     * @param dz Смещение по оси аппдикат
+     * @return Соответсвующая трехмерная координаты сцены
+     */
+    msh::Point3D pointToScenePoint(const msh::PointPointer &point, double dx = 0.0, double dy = 0.0, double dz = 0.0) const;
     /**
      * @brief Нарисовать контрольную цветную полосу
      */
@@ -375,6 +388,17 @@ private:
      * @param filter Фильтер типа узлов (если UNDEFINED, то используются все узлы, иначе только указанного типа)
      */
     void drawFace(const msh::UIntegerVector &face, GLenum mode, GLfloat width = 1.0, GLfloat size = 1.0, bool useNodeColors = true, msh::NodeType filter = msh::UNDEFINED);
+    /**
+     * @brief Метод рекурсивного рисования треугольника
+     * @param p0 Координаты первой вершины
+     * @param p1 Координаты второй вершины
+     * @param p2 Координаты третьей вершины
+     * @param v0 Значение в первой вершине
+     * @param v1 Значение во второй веришней
+     * @param v2 Значение в третьей вершине
+     * @param level Уровень рекурсии
+     */
+    void drawTriangle(const msh::Point3D &p0, const msh::Point3D &p1, const msh::Point3D &p2, double v0, double v1, double v2, int level);
 };
 
 #endif // GLMESHPICTURE_H

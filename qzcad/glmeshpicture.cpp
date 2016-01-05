@@ -1,5 +1,6 @@
 #include "glmeshpicture.h"
 #include "segmentmesh2d.h"
+#include "point3d.h"
 
 GLMeshPicture::GLMeshPicture(QWidget *parent) :
     QGLWidget(QGLFormat(QGL::DoubleBuffer | QGL::DepthBuffer), parent)
@@ -250,6 +251,11 @@ void GLMeshPicture::pointToGLVertex(const msh::PointPointer &point, double dx, d
     glVertex3d(point->x() + dx - centerX_, point->y() + dy - centerY_, point->z() + dz - centerZ_);
 }
 
+msh::Point3D GLMeshPicture::pointToScenePoint(const msh::PointPointer &point, double dx, double dy, double dz) const
+{
+    return msh::Point3D(point->x() + dx - centerX_, point->y() + dy - centerY_, point->z() + dz - centerZ_);
+}
+
 void GLMeshPicture::drawColorBar()
 {
     double min = map_.min();
@@ -357,32 +363,97 @@ void GLMeshPicture::drawFace(const msh::UIntegerVector &face, GLenum mode, GLflo
 {
     glLineWidth(width);
     glPointSize(size);
-    glBegin(mode);
-    for (msh::UInteger j = 0; j < face.size(); j++)
+    msh::UInteger face_size = face.size();
+    if (useNodeColors && (face_size == 3 || face_size == 4) && visualizationMode_ == VALUE && valueIndex_ < mesh_->dataVectorsCount() && mesh_->data(valueIndex_).size() == mesh_->nodesCount())
     {
-        if (filter == msh::UNDEFINED || filter == mesh_->nodeType(face[j]))
+        bool usable = true;
+        msh::Point3D p[face_size];
+        double v[face_size];
+        for (msh::UInteger j = 0; j < face_size; j++)
         {
-            if (useNodeColors)
+            if (!(filter == msh::UNDEFINED || filter == mesh_->nodeType(face[j])))
             {
-                if (visualizationMode_ == VALUE && valueIndex_ < mesh_->dataVectorsCount() && mesh_->data(valueIndex_).size() == mesh_->nodesCount())
-                    qglColor( map_.color( mesh_->data(valueIndex_)[face[j]] ) );
+                usable = false;
+                break;
             }
+
             if (isUseVector_ && mesh_->dataVectorsCount() >= 2 && mesh_->dimesion() == 2 && mesh_->data(0).size() == mesh_->nodesCount() && mesh_->data(1).size() == mesh_->nodesCount())
-                pointToGLVertex(mesh_->node(face[j]),
-                                vectorScale_ * mesh_->data(0)[face[j]],
-                                vectorScale_ * mesh_->data(1)[face[j]]);
+                p[j] = pointToScenePoint(mesh_->node(face[j]),
+                                      vectorScale_ * mesh_->data(0)[face[j]],
+                                      vectorScale_ * mesh_->data(1)[face[j]]);
             else if (isUseVector_ && mesh_->dataVectorsCount() >= 3 && mesh_->dimesion() == 3 && mesh_->data(0).size() == mesh_->nodesCount() && mesh_->data(1).size() == mesh_->nodesCount() && mesh_->data(2).size() == mesh_->nodesCount())
-                pointToGLVertex(mesh_->node(face[j]),
-                                vectorScale_ * mesh_->data(0)[face[j]],
-                                vectorScale_ * mesh_->data(1)[face[j]],
-                                vectorScale_ * mesh_->data(2)[face[j]]);
+                p[j] = pointToScenePoint(mesh_->node(face[j]),
+                                      vectorScale_ * mesh_->data(0)[face[j]],
+                                      vectorScale_ * mesh_->data(1)[face[j]],
+                                      vectorScale_ * mesh_->data(2)[face[j]]);
             else
-                pointToGLVertex(mesh_->node(face[j]));
+                p[j] = pointToScenePoint(mesh_->node(face[j]));
+
+            v[j] = mesh_->data(valueIndex_)[face[j]];
         }
+        if (!usable)
+            return;
+        drawTriangle(p[0], p[1], p[2], v[0], v[1], v[2], 1);
+        if (face_size == 4)
+            drawTriangle(p[0], p[2], p[3], v[0], v[2], v[3], 1);
     }
-    glEnd();
+    else
+    {
+        glBegin(mode);
+        for (msh::UInteger j = 0; j < face.size(); j++)
+        {
+            if (filter == msh::UNDEFINED || filter == mesh_->nodeType(face[j]))
+            {
+                if (useNodeColors && visualizationMode_ == VALUE && valueIndex_ < mesh_->dataVectorsCount() && mesh_->data(valueIndex_).size() == mesh_->nodesCount())
+                    qglColor( map_.color( mesh_->data(valueIndex_)[face[j]] ) );
+                if (isUseVector_ && mesh_->dataVectorsCount() >= 2 && mesh_->dimesion() == 2 && mesh_->data(0).size() == mesh_->nodesCount() && mesh_->data(1).size() == mesh_->nodesCount())
+                    pointToGLVertex(mesh_->node(face[j]),
+                                    vectorScale_ * mesh_->data(0)[face[j]],
+                            vectorScale_ * mesh_->data(1)[face[j]]);
+                else if (isUseVector_ && mesh_->dataVectorsCount() >= 3 && mesh_->dimesion() == 3 && mesh_->data(0).size() == mesh_->nodesCount() && mesh_->data(1).size() == mesh_->nodesCount() && mesh_->data(2).size() == mesh_->nodesCount())
+                    pointToGLVertex(mesh_->node(face[j]),
+                                    vectorScale_ * mesh_->data(0)[face[j]],
+                            vectorScale_ * mesh_->data(1)[face[j]],
+                            vectorScale_ * mesh_->data(2)[face[j]]);
+                else
+                    pointToGLVertex(mesh_->node(face[j]));
+            }
+        }
+        glEnd();
+    }
     glLineWidth(1.0);
     glPointSize(1.0);
+}
+
+void GLMeshPicture::drawTriangle(const msh::Point3D &p0, const msh::Point3D &p1, const msh::Point3D &p2, double v0, double v1, double v2, int level)
+{
+    QColor c0 = map_.color( v0 );
+    QColor c1 = map_.color( v1 );
+    QColor c2 = map_.color( v2 );
+    if ((c0 == c1 && c1 == c2) || level >= 6)
+    {
+        glBegin(GL_TRIANGLES);
+        qglColor(c0);
+        glVertex3d(p0.x(), p0.y(), p0.z());
+        qglColor(c1);
+        glVertex3d(p1.x(), p1.y(), p1.z());
+        qglColor(c2);
+        glVertex3d(p2.x(), p2.y(), p2.z());
+        glEnd();
+    }
+    else
+    {
+        msh::Point3D p01 = 0.5 * (p0 + p1);
+        double v01 = 0.5 * (v0 + v1);
+        msh::Point3D p12 = 0.5 * (p1 + p2);
+        double v12 = 0.5 * (v1 + v2);
+        msh::Point3D p20 = 0.5 * (p2 + p0);
+        double v20 = 0.5 * (v2 + v0);
+        drawTriangle(p0, p01, p20, v0, v01, v20, level + 1);
+        drawTriangle(p1, p12, p01, v1, v12, v01, level + 1);
+        drawTriangle(p2, p20, p12, v2, v20, v12, level + 1);
+        drawTriangle(p01, p12, p20, v01, v12, v20, level + 1);
+    }
 }
 
 void GLMeshPicture::setXRotation(int angle)
