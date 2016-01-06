@@ -269,6 +269,29 @@ DoubleMatrix DoubleMatrix::inverted() const
 
 }
 
+
+DoubleMatrix operator +(const DoubleMatrix &a, const DoubleMatrix &b)
+{
+    DoubleMatrix sum(a.rowCount(), a.colCount());
+    for (size_type i = 0; i < a.rowCount(); i++)
+    {
+        for (size_type j = 0; j < a.colCount(); j++)
+            sum.data_[i][j] = a.data_[i][j] + b.data_[i][j];
+    }
+    return sum;
+}
+
+DoubleMatrix operator -(const DoubleMatrix &a, const DoubleMatrix &b)
+{
+    DoubleMatrix c(a.rowCount(), a.colCount());
+    for (size_type i = 0; i < a.rowCount(); i++)
+    {
+        for (size_type j = 0; j < a.colCount(); j++)
+            c.data_[i][j] = a.data_[i][j] - b.data_[i][j];
+    }
+    return c;
+}
+
 DoubleVector operator *(const DoubleMatrix &a, const DoubleVector &b)
 {
     DoubleVector mul(a.rowCount());

@@ -147,6 +147,20 @@ public:
      */
     DoubleMatrix transpose();
     /**
+     * @brief Оператор сложения матриц
+     * @param a Первое слогаемое
+     * @param b Второе слогаемое
+     * @return Матрица c = a + b
+     */
+    friend DoubleMatrix operator + (const DoubleMatrix &a, const DoubleMatrix &b);
+    /**
+     * @brief Оператор вычитания матриц
+     * @param a Уменьшаемое
+     * @param b Вычитаемое
+     * @return Матрица c = a - b
+     */
+    friend DoubleMatrix operator - (const DoubleMatrix &a, const DoubleMatrix &b);
+    /**
      * @brief Оператор умножения матриц
      * @param a Первый операнд произведения
      * @param b Второй операнд произведения
