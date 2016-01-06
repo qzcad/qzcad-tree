@@ -4,6 +4,7 @@ ColorValueMap::ColorValueMap(double min, double max, ColorMapName colorMapName)
 {
     min_ = min;
     max_ = max;
+    if (min_ == max_) min_ -= 1.0; // защита от деления на ноль
     colorMap_ = colorMapName;
 }
 
@@ -67,6 +68,7 @@ double ColorValueMap::max() const
 void ColorValueMap::setMax(double max)
 {
     max_ = max;
+    if (min_ == max_) min_ -= 1.0; // защита от деления на ноль
 }
 
 double ColorValueMap::min() const
@@ -77,4 +79,5 @@ double ColorValueMap::min() const
 void ColorValueMap::setMin(double min)
 {
     min_ = min;
+    if (min_ == max_) max_ += 1.0; // защита от деления на ноль
 }
