@@ -16,6 +16,7 @@
 using namespace msh;
 
 #include "doublevector.h"
+#include "doublematrix.h"
 #include "mappeddoublematrix.h"
 using namespace mtx;
 
@@ -70,6 +71,13 @@ protected:
      * @param weight Массив для записи весовых коэффициентов соответствующих координат
      */
     void quadrature(int count, DoubleVector &xi, DoubleVector &eta, DoubleVector &weight);
+    /**
+     * @brief Процедура ансамля локальной матрицы в глобальную
+     * @param element Указатель на элемент сетки
+     * @param local Локальная матрица
+     * @param global Ссылка на глобальную матрицу
+     */
+    void assembly(ElementPointer element, const DoubleMatrix &local, MappedDoubleMatrix &global);
     /**
      * @brief Метод для учета граничных условий (начальных перемещений, температур и т.п.)
      * @param global Ссылка на глобальную матрицу жесткости

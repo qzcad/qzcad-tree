@@ -140,19 +140,7 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
 
         DoubleMatrix surf = T.transpose() * local * T;
         // Ансамблирование
-        UInteger index_i = 0;
-        UInteger index_j = 0;
-        for (UInteger i = 0; i < elementNodes * freedom_; i++)
-        {
-            index_i = element->vertexNode(i / freedom_) + (i % freedom_) * nodesCount;
-
-            for (UInteger j = i; j < elementNodes * freedom_; j++)
-            {
-                index_j = element->vertexNode(j / freedom_) + (j % freedom_) * nodesCount;
-                global(index_i, index_j) += surf(i, j);
-                if (index_i != index_j) global(index_j, index_i) = global(index_i, index_j);
-            } // for j
-        } // for i
+        assembly(element, surf, global);
     } //for elNum
 
     // Учет сил
@@ -171,17 +159,17 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
                     double f = (*condition)->value(point);
                     FemCondition::FemDirection dir = (*condition)->direction();
                     if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
-                        force(i) += f;
+                        force(freedom_ * i) += f;
                     if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
-                        force(i + nodesCount) += f;
+                        force(freedom_ * i + 1UL) += f;
                     if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
-                        force(i + nodesCount + nodesCount) += f;
+                        force(freedom_ * i + 2UL) += f;
                     if (dir == FemCondition::ALL || dir == FemCondition::FOURTH)
-                        force(i + nodesCount + nodesCount + nodesCount) += f;
+                        force(freedom_ * i + 3UL) += f;
                     if (dir == FemCondition::ALL || dir == FemCondition::FIFTH)
-                        force(i + nodesCount + nodesCount + nodesCount + nodesCount) += f;
+                        force(freedom_ * i + 4UL) += f;
                     if (dir == FemCondition::ALL || dir == FemCondition::SIXTH)
-                        force(i + nodesCount + nodesCount + nodesCount + nodesCount + nodesCount) += f;
+                        force(freedom_ * i + 5UL) += f;
                 }
                 ++progressBar;
             } // for i
@@ -230,33 +218,33 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
                                 } // for ixi
                                 if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
                                 {
-                                    force(element->vertexNode(i)) += f0;
-                                    force(element->vertexNode(i + 1)) += f1;
+                                    force(freedom_ * element->vertexNode(i)) += f0;
+                                    force(freedom_ * element->vertexNode(i + 1)) += f1;
                                 }
                                 if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
                                 {
-                                    force(element->vertexNode(i) + nodesCount) += f0;
-                                    force(element->vertexNode(i + 1) + nodesCount) += f1;
+                                    force(freedom_ * element->vertexNode(i) + 1UL) += f0;
+                                    force(freedom_ * element->vertexNode(i + 1) + 1UL) += f1;
                                 }
                                 if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
                                 {
-                                    force(element->vertexNode(i) + 2UL * nodesCount) += f0;
-                                    force(element->vertexNode(i + 1) + 2UL * nodesCount) += f1;
+                                    force(freedom_ * element->vertexNode(i) + 2UL) += f0;
+                                    force(freedom_ * element->vertexNode(i + 1) + 2UL) += f1;
                                 }
                                 if (dir == FemCondition::ALL || dir == FemCondition::FOURTH)
                                 {
-                                    force(element->vertexNode(i) + 3UL * nodesCount) += f0;
-                                    force(element->vertexNode(i + 1) + 3UL * nodesCount) += f1;
+                                    force(freedom_ * element->vertexNode(i) + 3UL) += f0;
+                                    force(freedom_ * element->vertexNode(i + 1) + 3UL) += f1;
                                 }
                                 if (dir == FemCondition::ALL || dir == FemCondition::FIFTH)
                                 {
-                                    force(element->vertexNode(i) + 4UL * nodesCount) += f0;
-                                    force(element->vertexNode(i + 1) + 4UL * nodesCount) += f1;
+                                    force(freedom_ * element->vertexNode(i) + 4UL) += f0;
+                                    force(freedom_ * element->vertexNode(i + 1) + 4UL) += f1;
                                 }
                                 if (dir == FemCondition::ALL || dir == FemCondition::SIXTH)
                                 {
-                                    force(element->vertexNode(i) + 5UL * nodesCount) += f0;
-                                    force(element->vertexNode(i + 1) + 5UL * nodesCount) += f1;
+                                    force(freedom_ * element->vertexNode(i) + 5UL) += f0;
+                                    force(freedom_ * element->vertexNode(i + 1) + 5UL) += f1;
                                 }
                             }
                         } // if
@@ -340,27 +328,27 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
                 {
                     if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
                     {
-                        force(element->vertexNode(i)) += element_force[i];
+                        force(freedom_ * element->vertexNode(i)) += element_force[i];
                     }
                     if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
                     {
-                        force(element->vertexNode(i) + nodesCount) += element_force[i];
+                        force(freedom_ * element->vertexNode(i) + 1UL) += element_force[i];
                     }
                     if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
                     {
-                        force(element->vertexNode(i) + 2UL * nodesCount) += element_force[i];
+                        force(freedom_ * element->vertexNode(i) + 2UL) += element_force[i];
                     }
                     if (dir == FemCondition::ALL || dir == FemCondition::FOURTH)
                     {
-                        force(element->vertexNode(i) + 3UL * nodesCount) += element_force[i];
+                        force(freedom_ * element->vertexNode(i) + 3UL) += element_force[i];
                     }
                     if (dir == FemCondition::ALL || dir == FemCondition::FIFTH)
                     {
-                        force(element->vertexNode(i) + 4UL * nodesCount) += element_force[i];
+                        force(freedom_ * element->vertexNode(i) + 4UL) += element_force[i];
                     }
                     if (dir == FemCondition::ALL || dir == FemCondition::SIXTH)
                     {
-                        force(element->vertexNode(i) + 5UL * nodesCount) += element_force[i];
+                        force(freedom_ * element->vertexNode(i) + 5UL) += element_force[i];
                     }
                 }
             } //for elNum
@@ -382,17 +370,17 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
                 {
                     FemCondition::FemDirection dir = (*condition)->direction();
                     if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
-                        setInitialNodalValue(global, force, i, (*condition)->value(point));
+                        setInitialNodalValue(global, force, freedom_ * i, (*condition)->value(point));
                     if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
-                        setInitialNodalValue(global, force, i + nodesCount, (*condition)->value(point));
+                        setInitialNodalValue(global, force, freedom_ * i + 1UL, (*condition)->value(point));
                     if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
-                        setInitialNodalValue(global, force, i + 2UL * nodesCount, (*condition)->value(point));
+                        setInitialNodalValue(global, force, freedom_ * i + 2UL, (*condition)->value(point));
                     if (dir == FemCondition::ALL || dir == FemCondition::FOURTH)
-                        setInitialNodalValue(global, force, i + 3UL * nodesCount, (*condition)->value(point));
+                        setInitialNodalValue(global, force, freedom_ * i + 3UL, (*condition)->value(point));
                     if (dir == FemCondition::ALL || dir == FemCondition::FIFTH)
-                        setInitialNodalValue(global, force, i + 4UL * nodesCount, (*condition)->value(point));
+                        setInitialNodalValue(global, force, freedom_ * i + 4UL, (*condition)->value(point));
                     if (dir == FemCondition::ALL || dir == FemCondition::SIXTH)
-                        setInitialNodalValue(global, force, i + 5UL * nodesCount, (*condition)->value(point));
+                        setInitialNodalValue(global, force, freedom_ * i + 5UL, (*condition)->value(point));
                 }
                 ++progressBar;
             } // for i
@@ -409,12 +397,12 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
     std::vector<double> theta_z(nodesCount);
     for (UInteger i = 0; i < nodesCount; i++)
     {
-        xxx[i] = displacement[i];
-        yyy[i] = displacement[i + nodesCount];
-        zzz[i] = displacement[i + 2UL * nodesCount];
-        theta_x[i] = displacement[i + 3UL * nodesCount];
-        theta_y[i] = displacement[i + 4UL * nodesCount];
-        theta_z[i] = displacement[i + 5UL * nodesCount];
+        xxx[i] = displacement[freedom_ * i];
+        yyy[i] = displacement[freedom_ * i + 1UL];
+        zzz[i] = displacement[freedom_ * i + 2UL];
+        theta_x[i] = displacement[freedom_ * i + 3UL];
+        theta_y[i] = displacement[freedom_ * i + 4UL];
+        theta_z[i] = displacement[freedom_ * i + 5UL];
     }
 
     mesh_->addDataVector("X", xxx);
@@ -425,24 +413,13 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
     mesh_->addDataVector("Theta Z", theta_z);
 
     // вычисление напряжений
-    std::vector<double> SigmaX(nodesCount);
-    std::vector<double> SigmaY(nodesCount);
-    std::vector<double> SigmaZ(nodesCount);
-    std::vector<double> TauXY(nodesCount);
-    std::vector<double> TauXZ(nodesCount);
-    std::vector<double> TauYZ(nodesCount);
-    std::vector<double> mises(nodesCount);
-
-    for (UInteger i = 0; i < nodesCount; i++)
-    {
-        SigmaX[i] = 0.0;
-        SigmaY[i] = 0.0;
-        SigmaZ[i] = 0.0;
-        TauXY[i] = 0.0;
-        TauXZ[i] = 0.0;
-        TauYZ[i] = 0.0;
-        mises[i] = 0.0;
-    }
+    std::vector<double> SigmaX(nodesCount, 0.0);
+    std::vector<double> SigmaY(nodesCount, 0.0);
+    std::vector<double> SigmaZ(nodesCount, 0.0);
+    std::vector<double> TauXY(nodesCount, 0.0);
+    std::vector<double> TauXZ(nodesCount, 0.0);
+    std::vector<double> TauYZ(nodesCount, 0.0);
+    std::vector<double> mises(nodesCount, 0.0);
 
     double xi[elementNodes];
     double eta[elementNodes];
@@ -534,12 +511,12 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
 
             for (UInteger i = 0; i < elementNodes; i++)
             {
-                dis(freedom_ * i) = displacement[element->vertexNode(i)];
-                dis(freedom_ * i + 1) = displacement[element->vertexNode(i) + nodesCount];
-                dis(freedom_ * i + 2) = displacement[element->vertexNode(i) + 2UL * nodesCount];
-                dis(freedom_ * i + 3) = displacement[element->vertexNode(i) + 3UL * nodesCount];
-                dis(freedom_ * i + 4) = displacement[element->vertexNode(i) + 4UL * nodesCount];
-                dis(freedom_ * i + 5) = displacement[element->vertexNode(i) + 5UL * nodesCount];
+                dis(freedom_ * i) = displacement[freedom_ * element->vertexNode(i)];
+                dis(freedom_ * i + 1) = displacement[freedom_ * element->vertexNode(i) + 1UL];
+                dis(freedom_ * i + 2) = displacement[freedom_ * element->vertexNode(i) + 2UL];
+                dis(freedom_ * i + 3) = displacement[freedom_ * element->vertexNode(i) + 3UL];
+                dis(freedom_ * i + 4) = displacement[freedom_ * element->vertexNode(i) + 4UL];
+                dis(freedom_ * i + 5) = displacement[freedom_ * element->vertexNode(i) + 5UL];
             }
 
             DoubleVector dLocal = T * dis;
@@ -744,19 +721,7 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, const std::vector<double>
 
         DoubleMatrix surf = T.transpose() * local * T;
         // Ансамблирование
-        UInteger index_i = 0;
-        UInteger index_j = 0;
-        for (UInteger i = 0; i < elementNodes * freedom_; i++)
-        {
-            index_i = element->vertexNode(i / freedom_) + (i % freedom_) * nodesCount;
-
-            for (UInteger j = i; j < elementNodes * freedom_; j++)
-            {
-                index_j = element->vertexNode(j / freedom_) + (j % freedom_) * nodesCount;
-                global(index_i, index_j) += surf(i, j);
-                if (index_i != index_j) global(index_j, index_i) = global(index_i, index_j);
-            } // for j
-        } // for i
+        assembly(element, surf, global);
     } //for elNum
 
     // Учет сил
@@ -775,17 +740,17 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, const std::vector<double>
                     double f = (*condition)->value(point);
                     FemCondition::FemDirection dir = (*condition)->direction();
                     if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
-                        force(i) += f;
+                        force(freedom_ * i) += f;
                     if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
-                        force(i + nodesCount) += f;
+                        force(freedom_ * i + 1UL) += f;
                     if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
-                        force(i + nodesCount + nodesCount) += f;
+                        force(freedom_ * i + 2UL) += f;
                     if (dir == FemCondition::ALL || dir == FemCondition::FOURTH)
-                        force(i + nodesCount + nodesCount + nodesCount) += f;
+                        force(freedom_ * i + 3UL) += f;
                     if (dir == FemCondition::ALL || dir == FemCondition::FIFTH)
-                        force(i + nodesCount + nodesCount + nodesCount + nodesCount) += f;
+                        force(freedom_ * i + 4UL) += f;
                     if (dir == FemCondition::ALL || dir == FemCondition::SIXTH)
-                        force(i + nodesCount + nodesCount + nodesCount + nodesCount + nodesCount) += f;
+                        force(freedom_ * i + 5UL) += f;
                 }
                 ++progressBar;
             } // for i
@@ -834,33 +799,33 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, const std::vector<double>
                                 } // for ixi
                                 if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
                                 {
-                                    force(element->vertexNode(i)) += f0;
-                                    force(element->vertexNode(i + 1)) += f1;
+                                    force(freedom_ * element->vertexNode(i)) += f0;
+                                    force(freedom_ * element->vertexNode(i + 1)) += f1;
                                 }
                                 if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
                                 {
-                                    force(element->vertexNode(i) + nodesCount) += f0;
-                                    force(element->vertexNode(i + 1) + nodesCount) += f1;
+                                    force(freedom_ * element->vertexNode(i) + 1UL) += f0;
+                                    force(freedom_ * element->vertexNode(i + 1) + 1UL) += f1;
                                 }
                                 if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
                                 {
-                                    force(element->vertexNode(i) + 2UL * nodesCount) += f0;
-                                    force(element->vertexNode(i + 1) + 2UL * nodesCount) += f1;
+                                    force(freedom_ * element->vertexNode(i) + 2UL) += f0;
+                                    force(freedom_ * element->vertexNode(i + 1) + 2UL) += f1;
                                 }
                                 if (dir == FemCondition::ALL || dir == FemCondition::FOURTH)
                                 {
-                                    force(element->vertexNode(i) + 3UL * nodesCount) += f0;
-                                    force(element->vertexNode(i + 1) + 3UL * nodesCount) += f1;
+                                    force(freedom_ * element->vertexNode(i) + 3UL) += f0;
+                                    force(freedom_ * element->vertexNode(i + 1) + 3UL) += f1;
                                 }
                                 if (dir == FemCondition::ALL || dir == FemCondition::FIFTH)
                                 {
-                                    force(element->vertexNode(i) + 4UL * nodesCount) += f0;
-                                    force(element->vertexNode(i + 1) + 4UL * nodesCount) += f1;
+                                    force(freedom_ * element->vertexNode(i) + 4UL) += f0;
+                                    force(freedom_ * element->vertexNode(i + 1) + 4UL) += f1;
                                 }
                                 if (dir == FemCondition::ALL || dir == FemCondition::SIXTH)
                                 {
-                                    force(element->vertexNode(i) + 5UL * nodesCount) += f0;
-                                    force(element->vertexNode(i + 1) + 5UL * nodesCount) += f1;
+                                    force(freedom_ * element->vertexNode(i) + 5UL) += f0;
+                                    force(freedom_ * element->vertexNode(i + 1) + 5UL) += f1;
                                 }
                             }
                         } // if
@@ -944,27 +909,27 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, const std::vector<double>
                 {
                     if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
                     {
-                        force(element->vertexNode(i)) += element_force[i];
+                        force(freedom_ * element->vertexNode(i)) += element_force[i];
                     }
                     if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
                     {
-                        force(element->vertexNode(i) + nodesCount) += element_force[i];
+                        force(freedom_ * element->vertexNode(i) + 1UL) += element_force[i];
                     }
                     if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
                     {
-                        force(element->vertexNode(i) + 2UL * nodesCount) += element_force[i];
+                        force(freedom_ * element->vertexNode(i) + 2UL) += element_force[i];
                     }
                     if (dir == FemCondition::ALL || dir == FemCondition::FOURTH)
                     {
-                        force(element->vertexNode(i) + 3UL * nodesCount) += element_force[i];
+                        force(freedom_ * element->vertexNode(i) + 3UL) += element_force[i];
                     }
                     if (dir == FemCondition::ALL || dir == FemCondition::FIFTH)
                     {
-                        force(element->vertexNode(i) + 4UL * nodesCount) += element_force[i];
+                        force(freedom_ * element->vertexNode(i) + 4UL) += element_force[i];
                     }
                     if (dir == FemCondition::ALL || dir == FemCondition::SIXTH)
                     {
-                        force(element->vertexNode(i) + 5UL * nodesCount) += element_force[i];
+                        force(freedom_ * element->vertexNode(i) + 5UL) += element_force[i];
                     }
                 }
             } //for elNum
@@ -986,17 +951,17 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, const std::vector<double>
                 {
                     FemCondition::FemDirection dir = (*condition)->direction();
                     if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
-                        setInitialNodalValue(global, force, i, (*condition)->value(point));
+                        setInitialNodalValue(global, force, freedom_ * i, (*condition)->value(point));
                     if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
-                        setInitialNodalValue(global, force, i + nodesCount, (*condition)->value(point));
+                        setInitialNodalValue(global, force, freedom_ * i + 1UL, (*condition)->value(point));
                     if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
-                        setInitialNodalValue(global, force, i + 2UL * nodesCount, (*condition)->value(point));
+                        setInitialNodalValue(global, force, freedom_ * i + 2UL, (*condition)->value(point));
                     if (dir == FemCondition::ALL || dir == FemCondition::FOURTH)
-                        setInitialNodalValue(global, force, i + 3UL * nodesCount, (*condition)->value(point));
+                        setInitialNodalValue(global, force, freedom_ * i + 3UL, (*condition)->value(point));
                     if (dir == FemCondition::ALL || dir == FemCondition::FIFTH)
-                        setInitialNodalValue(global, force, i + 4UL * nodesCount, (*condition)->value(point));
+                        setInitialNodalValue(global, force, freedom_ * i + 4UL, (*condition)->value(point));
                     if (dir == FemCondition::ALL || dir == FemCondition::SIXTH)
-                        setInitialNodalValue(global, force, i + 5UL * nodesCount, (*condition)->value(point));
+                        setInitialNodalValue(global, force, freedom_ * i + 5UL, (*condition)->value(point));
                 }
                 ++progressBar;
             } // for i
@@ -1013,12 +978,12 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, const std::vector<double>
     std::vector<double> theta_z(nodesCount);
     for (UInteger i = 0; i < nodesCount; i++)
     {
-        xxx[i] = displacement[i];
-        yyy[i] = displacement[i + nodesCount];
-        zzz[i] = displacement[i + 2UL * nodesCount];
-        theta_x[i] = displacement[i + 3UL * nodesCount];
-        theta_y[i] = displacement[i + 4UL * nodesCount];
-        theta_z[i] = displacement[i + 5UL * nodesCount];
+        xxx[i] = displacement[freedom_ * i];
+        yyy[i] = displacement[freedom_ * i + 1UL];
+        zzz[i] = displacement[freedom_ * i + 2UL];
+        theta_x[i] = displacement[freedom_ * i + 3UL];
+        theta_y[i] = displacement[freedom_ * i + 4UL];
+        theta_z[i] = displacement[freedom_ * i + 5UL];
     }
 
     mesh_->addDataVector("X", xxx);
@@ -1029,24 +994,13 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, const std::vector<double>
     mesh_->addDataVector("Theta Z", theta_z);
 
     // вычисление напряжений
-    std::vector<double> SigmaX(nodesCount);
-    std::vector<double> SigmaY(nodesCount);
-    std::vector<double> SigmaZ(nodesCount);
-    std::vector<double> TauXY(nodesCount);
-    std::vector<double> TauXZ(nodesCount);
-    std::vector<double> TauYZ(nodesCount);
-    std::vector<double> mises(nodesCount);
-
-    for (UInteger i = 0; i < nodesCount; i++)
-    {
-        SigmaX[i] = 0.0;
-        SigmaY[i] = 0.0;
-        SigmaZ[i] = 0.0;
-        TauXY[i] = 0.0;
-        TauXZ[i] = 0.0;
-        TauYZ[i] = 0.0;
-        mises[i] = 0.0;
-    }
+    std::vector<double> SigmaX(nodesCount, 0.0);
+    std::vector<double> SigmaY(nodesCount, 0.0);
+    std::vector<double> SigmaZ(nodesCount, 0.0);
+    std::vector<double> TauXY(nodesCount, 0.0);
+    std::vector<double> TauXZ(nodesCount, 0.0);
+    std::vector<double> TauYZ(nodesCount, 0.0);
+    std::vector<double> mises(nodesCount, 0.0);
 
     double xi[elementNodes];
     double eta[elementNodes];
@@ -1138,12 +1092,12 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, const std::vector<double>
 
             for (UInteger i = 0; i < elementNodes; i++)
             {
-                dis(freedom_ * i) = displacement[element->vertexNode(i)];
-                dis(freedom_ * i + 1) = displacement[element->vertexNode(i) + nodesCount];
-                dis(freedom_ * i + 2) = displacement[element->vertexNode(i) + 2UL * nodesCount];
-                dis(freedom_ * i + 3) = displacement[element->vertexNode(i) + 3UL * nodesCount];
-                dis(freedom_ * i + 4) = displacement[element->vertexNode(i) + 4UL * nodesCount];
-                dis(freedom_ * i + 5) = displacement[element->vertexNode(i) + 5UL * nodesCount];
+                dis(freedom_ * i) = displacement[freedom_ * element->vertexNode(i)];
+                dis(freedom_ * i + 1) = displacement[freedom_ * element->vertexNode(i) + 1UL];
+                dis(freedom_ * i + 2) = displacement[freedom_ * element->vertexNode(i) + 2UL];
+                dis(freedom_ * i + 3) = displacement[freedom_ * element->vertexNode(i) + 3UL];
+                dis(freedom_ * i + 4) = displacement[freedom_ * element->vertexNode(i) + 4UL];
+                dis(freedom_ * i + 5) = displacement[freedom_ * element->vertexNode(i) + 5UL];
             }
 
             DoubleVector dLocal = T * dis;

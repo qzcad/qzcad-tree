@@ -117,19 +117,7 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
             local += jacobian * w * kappa * thickness * (Bc.transpose() * Dc * Bc);
         } // ig
         // Ансамблирование
-        UInteger index_i = 0;
-        UInteger index_j = 0;
-        for (UInteger i = 0; i < elementNodes * freedom_; i++)
-        {
-            index_i = freedom_ * element->vertexNode(i / freedom_) + (i % freedom_);
-
-            for (UInteger j = i; j < elementNodes * freedom_; j++)
-            {
-                index_j = freedom_ * element->vertexNode(j / freedom_) + (j % freedom_);
-                global(index_i, index_j) += local(i, j);
-                if (index_i != index_j) global(index_j, index_i) = global(index_i, index_j);
-            } // for j
-        } // for i
+        assembly(element, local, global);
     } //for elNum
 
     // Учет сил
@@ -580,19 +568,7 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh, const std::vector<double>
             }
         } // ig
         // Ансамблирование
-        UInteger index_i = 0;
-        UInteger index_j = 0;
-        for (UInteger i = 0; i < elementNodes * freedom_; i++)
-        {
-            index_i = freedom_ * element->vertexNode(i / freedom_) + (i % freedom_);
-
-            for (UInteger j = i; j < elementNodes * freedom_; j++)
-            {
-                index_j = freedom_ * element->vertexNode(j / freedom_) + (j % freedom_);
-                global(index_i, index_j) += local(i, j);
-                if (index_i != index_j) global(index_j, index_i) = global(index_i, index_j);
-            } // for j
-        } // for i
+        assembly(element, local, global);
     } //for elNum
 
     // Учет сил

@@ -133,6 +133,23 @@ void Fem::quadrature(int count, DoubleVector &xi, DoubleVector &eta, DoubleVecto
     weight.scale(0.5); // площадь единичного треугольника равна 0,5
 }
 
+void Fem::assembly(ElementPointer element, const DoubleMatrix &local, MappedDoubleMatrix &global)
+{
+    UInteger index_i = 0;
+    UInteger index_j = 0;
+    for (UInteger i = 0; i < local.rowCount(); i++)
+    {
+        index_i = freedom_ * element->vertexNode(i / freedom_) + (i % freedom_);
+
+        for (UInteger j = i; j < local.colCount(); j++)
+        {
+            index_j = freedom_ * element->vertexNode(j / freedom_) + (j % freedom_);
+            global(index_i, index_j) += local(i, j);
+            if (index_i != index_j) global(index_j, index_i) = global(index_i, index_j);
+        } // for j
+    } // for i
+}
+
 void Fem::setInitialNodalValue(MappedDoubleMatrix &global, DoubleVector &force, const UInteger &rowNumber, const double value)
 {
     for (UInteger j = 0; j < global.size(); j++)
