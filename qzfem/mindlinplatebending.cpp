@@ -446,7 +446,7 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
 }
 
 MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh, const std::vector<double> &thickness, const std::vector<ElasticMatrix> &elasticMatrix, std::list<FemCondition *> conditions) :
-    Fem2D(mesh, 3)
+    Fem2D(mesh, 5)
 {
     const double kappa = 5.0 / 6.0;
 
@@ -548,25 +548,34 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh, const std::vector<double>
                 jacobian = isoQuad4(xi, eta, x, y, N, dNdX, dNdY);
             }
             //
+            DoubleMatrix Bm(3, freedom_ * elementNodes, 0.0);
             DoubleMatrix Bf(3, freedom_ * elementNodes, 0.0);
             DoubleMatrix Bc(2, freedom_ * elementNodes, 0.0);
 
             for (UInteger i = 0; i < elementNodes; i++)
             {
-                Bf(0, i * freedom_ + 1) = dNdX(i);
-                Bf(1, i * freedom_ + 2) = dNdY(i);
-                Bf(2, i * freedom_ + 1) = dNdY(i);  Bf(2, i * freedom_ + 2) = dNdX(i);
+                Bm(0, i * freedom_) = dNdX(i);
+                                                    Bm(1, i * freedom_ + 1) = dNdY(i);
+                Bm(2, i * freedom_) = dNdY(i);      Bm(2, i * freedom_ + 1) = dNdX(i);
 
-                Bc(0, i * freedom_) = dNdX(i);  Bc(0, i * freedom_ + 1) = N(i);
-                Bc(1, i * freedom_) = dNdY(i);  Bc(1, i * freedom_ + 2) = N(i);
+                Bf(0, i * freedom_ + 3) = dNdX(i);
+                                                    Bf(1, i * freedom_ + 4) = dNdY(i);
+                Bf(2, i * freedom_ + 3) = dNdY(i);  Bf(2, i * freedom_ + 4) = dNdX(i);
+
+                Bc(0, i * freedom_ + 2) = dNdX(i);  Bc(0, i * freedom_ + 3) = N(i);
+                Bc(1, i * freedom_ + 2) = dNdY(i);  Bc(1, i * freedom_ + 4) = N(i);
             }
+
             double z0 = -H / 2.0;
             double z1 = 0.0;
             for (unsigned i = 0; i < layers_count; i++)
             {
                 z1 = z0 + thickness[i];
-                local += (jacobian * w * (z1*z1*z1 - z0*z0*z0) / 3.0) * (Bf.transpose() * D[i] * Bf);
-                local += (jacobian * w * kappa * (z1 - z0)) * (Bc.transpose() * Dc[i] * Bc);
+                local += jacobian * w * (z1 - z0) * (Bm.transpose() * D[i] * Bm);
+                local += jacobian * w * (z1*z1 - z0*z0) / 2.0 * (Bm.transpose() * D[i] * Bf);
+                local += jacobian * w * (z1*z1 - z0*z0) / 2.0 * (Bf.transpose() * D[i] * Bm);
+                local += jacobian * w * (z1*z1*z1 - z0*z0*z0) / 3.0 * (Bf.transpose() * D[i] * Bf);
+                local += jacobian * w * kappa * (z1 - z0) * (Bc.transpose() * Dc[i] * Bc);
                 z0 = z1;
             }
         } // ig
@@ -575,11 +584,11 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh, const std::vector<double>
         UInteger index_j = 0;
         for (UInteger i = 0; i < elementNodes * freedom_; i++)
         {
-            index_i = element->vertexNode(i / freedom_) + (i % freedom_) * nodesCount;
+            index_i = freedom_ * element->vertexNode(i / freedom_) + (i % freedom_);
 
             for (UInteger j = i; j < elementNodes * freedom_; j++)
             {
-                index_j = element->vertexNode(j / freedom_) + (j % freedom_) * nodesCount;
+                index_j = freedom_ * element->vertexNode(j / freedom_) + (j % freedom_);
                 global(index_i, index_j) += local(i, j);
                 if (index_i != index_j) global(index_j, index_i) = global(index_i, index_j);
             } // for j
@@ -602,11 +611,15 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh, const std::vector<double>
                     double f = (*condition)->value(point);
                     FemCondition::FemDirection dir = (*condition)->direction();
                     if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
-                        force(i) += f;
+                        force(freedom_ * i) += f;
                     if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
-                        force(i + nodesCount) += f;
+                        force(freedom_ * i + 1) += f;
                     if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
-                        force(i + nodesCount + nodesCount) += f;
+                        force(freedom_ * i + 2) += f;
+                    if (dir == FemCondition::ALL || dir == FemCondition::FOURTH)
+                        force(freedom_ * i + 3) += f;
+                    if (dir == FemCondition::ALL || dir == FemCondition::FIFTH)
+                        force(freedom_ * i + 4) += f;
                 }
                 ++progressBar;
             } // for i
@@ -654,18 +667,28 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh, const std::vector<double>
                                 } // for ixi
                                 if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
                                 {
-                                    force(element->vertexNode(i)) += f0;
-                                    force(element->vertexNode(i + 1)) += f1;
+                                    force(freedom_ * element->vertexNode(i)) += f0;
+                                    force(freedom_ * element->vertexNode(i + 1)) += f1;
                                 }
                                 if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
                                 {
-                                    force(element->vertexNode(i) + nodesCount) += f0;
-                                    force(element->vertexNode(i + 1) + nodesCount) += f1;
+                                    force(freedom_ * element->vertexNode(i) + 1) += f0;
+                                    force(freedom_ * element->vertexNode(i + 1) + 1) += f1;
                                 }
                                 if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
                                 {
-                                    force(element->vertexNode(i) + nodesCount + nodesCount) += f0;
-                                    force(element->vertexNode(i + 1) + nodesCount + nodesCount) += f1;
+                                    force(freedom_ * element->vertexNode(i) + 2) += f0;
+                                    force(freedom_ * element->vertexNode(i + 1) + 2) += f1;
+                                }
+                                if (dir == FemCondition::ALL || dir == FemCondition::FOURTH)
+                                {
+                                    force(freedom_ * element->vertexNode(i) + 3) += f0;
+                                    force(freedom_ * element->vertexNode(i + 1) + 3) += f1;
+                                }
+                                if (dir == FemCondition::ALL || dir == FemCondition::FIFTH)
+                                {
+                                    force(freedom_ * element->vertexNode(i) + 4) += f0;
+                                    force(freedom_ * element->vertexNode(i + 1) + 4) += f1;
                                 }
                             }
                         } // if
@@ -734,11 +757,15 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh, const std::vector<double>
                 for (UInteger i = 0 ; i < elementNodes; i++)
                 {
                     if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
-                        force(element->vertexNode(i)) += vForce[i];
+                        force(freedom_ * element->vertexNode(i)) += vForce[i];
                     if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
-                        force(element->vertexNode(i) + nodesCount) += vForce[i];
+                        force(freedom_ * element->vertexNode(i) + 1) += vForce[i];
                     if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
-                        force(element->vertexNode(i) + nodesCount + nodesCount) += vForce[i];
+                        force(freedom_ * element->vertexNode(i) + 2) += vForce[i];
+                    if (dir == FemCondition::ALL || dir == FemCondition::FOURTH)
+                        force(freedom_ * element->vertexNode(i) + 3) += vForce[i];
+                    if (dir == FemCondition::ALL || dir == FemCondition::FIFTH)
+                        force(freedom_ * element->vertexNode(i) + 4) += vForce[i];
                 }
             } //for elNum
         }
@@ -759,11 +786,15 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh, const std::vector<double>
                 {
                     FemCondition::FemDirection dir = (*condition)->direction();
                     if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
-                        setInitialNodalValue(global, force, i, (*condition)->value(point));
+                        setInitialNodalValue(global, force, freedom_ * i, (*condition)->value(point));
                     if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
-                        setInitialNodalValue(global, force, i + nodesCount, (*condition)->value(point));
+                        setInitialNodalValue(global, force, freedom_ * i + 1, (*condition)->value(point));
                     if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
-                        setInitialNodalValue(global, force, i + nodesCount + nodesCount, (*condition)->value(point));
+                        setInitialNodalValue(global, force, freedom_ * i + 2, (*condition)->value(point));
+                    if (dir == FemCondition::ALL || dir == FemCondition::FOURTH)
+                        setInitialNodalValue(global, force, freedom_ * i + 3, (*condition)->value(point));
+                    if (dir == FemCondition::ALL || dir == FemCondition::FIFTH)
+                        setInitialNodalValue(global, force, freedom_ * i + 4, (*condition)->value(point));
                 }
                 ++progressBar;
             } // for i
@@ -771,37 +802,32 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh, const std::vector<double>
     } // iterator
 
     DoubleVector displacement = solve(global, force);
+    std::vector<double> u(nodesCount);
+    std::vector<double> v(nodesCount);
     std::vector<double> w(nodesCount);
     std::vector<double> theta_x(nodesCount);
     std::vector<double> theta_y(nodesCount);
     for (UInteger i = 0; i < nodesCount; i++)
     {
-        w[i] = displacement[i];
-        theta_x[i] = displacement[i + nodesCount];
-        theta_y[i] = displacement[i + nodesCount + nodesCount];
+        u[i] = displacement[freedom_ * i];
+        v[i] = displacement[freedom_ * i + 1];
+        w[i] = displacement[freedom_ * i + 2];
+        theta_x[i] = displacement[freedom_ * i + 3];
+        theta_y[i] = displacement[freedom_ * i + 4];
     }
-
-    mesh_->addDataVector("W", w);
+    mesh_->addDataVector("X", u);
+    mesh_->addDataVector("Y", v);
+    mesh_->addDataVector("Z", w);
     mesh_->addDataVector("Theta X", theta_x);
     mesh_->addDataVector("Theta Y", theta_y);
 
     // вычисление напряжений
-    std::vector<double> SigmaX(nodesCount);
-    std::vector<double> SigmaY(nodesCount);
-    std::vector<double> TauXY(nodesCount);
-    std::vector<double> TauXZ(nodesCount);
-    std::vector<double> TauYZ(nodesCount);
-    std::vector<double> mises(nodesCount);
-
-    for (UInteger i = 0; i < nodesCount; i++)
-    {
-        SigmaX[i] = 0.0;
-        SigmaY[i] = 0.0;
-        TauXY[i] = 0.0;
-        TauXZ[i] = 0.0;
-        TauYZ[i] = 0.0;
-        mises[i] = 0.0;
-    }
+    std::vector<double> SigmaX(nodesCount, 0.0);
+    std::vector<double> SigmaY(nodesCount, 0.0);
+    std::vector<double> TauXY(nodesCount, 0.0);
+    std::vector<double> TauXZ(nodesCount, 0.0);
+    std::vector<double> TauYZ(nodesCount, 0.0);
+    std::vector<double> mises(nodesCount, 0.0);
 
     double xi[elementNodes];
     double eta[elementNodes];
@@ -856,32 +882,34 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh, const std::vector<double>
                 isoQuad4(xi[inode], eta[inode], x, y, N, dNdX, dNdY);
             }
             //
+            DoubleMatrix Bm(3, freedom_ * elementNodes, 0.0);
             DoubleMatrix Bf(3, freedom_ * elementNodes, 0.0);
             DoubleMatrix Bc(2, freedom_ * elementNodes, 0.0);
-
             for (UInteger i = 0; i < elementNodes; i++)
             {
-                Bf(0, i * freedom_ + 1) = dNdX(i);
-                Bf(1, i * freedom_ + 2) = dNdY(i);
-                Bf(2, i * freedom_ + 1) = dNdY(i);  Bf(2, i * freedom_ + 2) = dNdX(i);
+                Bm(0, i * freedom_) = dNdX(i);
+                                                    Bm(1, i * freedom_ + 1) = dNdY(i);
+                Bm(2, i * freedom_) = dNdY(i);      Bm(2, i * freedom_ + 1) = dNdX(i);
 
-                Bc(0, i * freedom_) = dNdX(i);  Bc(0, i * freedom_ + 1) = N(i);
-                Bc(1, i * freedom_) = dNdY(i);  Bc(1, i * freedom_ + 2) = N(i);
+                Bf(0, i * freedom_ + 3) = dNdX(i);
+                                                    Bf(1, i * freedom_ + 4) = dNdY(i);
+                Bf(2, i * freedom_ + 3) = dNdY(i);  Bf(2, i * freedom_ + 4) = dNdX(i);
+
+                Bc(0, i * freedom_ + 2) = dNdX(i);  Bc(0, i * freedom_ + 3) = N(i);
+                Bc(1, i * freedom_ + 2) = dNdY(i);  Bc(1, i * freedom_ + 4) = N(i);
             }
 
             for (UInteger i = 0; i < elementNodes; i++)
             {
-                dis(3 * i, 0) = displacement[element->vertexNode(i)];
-                dis(3 * i + 1, 0) = displacement[element->vertexNode(i) + nodesCount];
-                dis(3 * i + 2, 0) = displacement[element->vertexNode(i) + nodesCount + nodesCount];
+                dis(freedom_ * i, 0) = displacement[freedom_ * element->vertexNode(i)];
+                dis(freedom_ * i + 1, 0) = displacement[freedom_ * element->vertexNode(i) + 1];
+                dis(freedom_ * i + 2, 0) = displacement[freedom_ * element->vertexNode(i) + 2];
+                dis(freedom_ * i + 3, 0) = displacement[freedom_ * element->vertexNode(i) + 3];
+                dis(freedom_ * i + 4, 0) = displacement[freedom_ * element->vertexNode(i) + 4];
             }
 
-            sigma = H / 2.0 * ((D[layers_count - 1] * Bf) * dis);
+            sigma = ((D[layers_count - 1] * Bm) * dis) + (H / 2.0 * ((D[layers_count - 1] * Bf) * dis));
             tau = ((Dc[layers_count - 1] * Bc) * dis);
-//            double von = sqrt( 0.5 * ((sigma(0,0) - sigma(1,0))*(sigma(0,0) - sigma(1,0)) +
-//                          sigma(1,0)*sigma(1,0) +
-//                          sigma(0,0)*sigma(0,0) +
-//                          6.0 * (sigma(2, 0)*sigma(2, 0) + tau(0, 0)*tau(0, 0) + tau(1, 0)*tau(1, 0))) );
             double von = sqrt(sigma(0,0)*sigma(0,0) - sigma(0,0)*sigma(1,0) + sigma(1,0)*sigma(1,0) + 3.0 * sigma(2,0)*sigma(2,0));
 
             SigmaX[element->vertexNode(inode)] += sigma(0, 0);
