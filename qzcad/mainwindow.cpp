@@ -58,6 +58,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
 #ifdef Q_OS_WIN
     ui->actionDoubleBufferGL->setChecked(false); // disable double buffer in Win32
+    ui->terminalText->setFont(QFont("Courier"));
+#else
+    ui->terminalText->setFont(QFont("Monospace"));
 #endif
 
     showMaximized();

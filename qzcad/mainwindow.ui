@@ -88,13 +88,7 @@
          <number>2</number>
         </property>
         <item>
-         <widget class="CodeEditor" name="codeEditor" native="true">
-          <property name="font">
-           <font>
-            <family>Monospace</family>
-           </font>
-          </property>
-         </widget>
+         <widget class="CodeEditor" name="codeEditor" native="true"/>
         </item>
        </layout>
       </widget>
@@ -120,11 +114,6 @@
         </property>
         <item>
          <widget class="QTextEdit" name="terminalText">
-          <property name="font">
-           <font>
-            <family>DejaVu Sans Mono</family>
-           </font>
-          </property>
           <property name="documentTitle">
            <string>Сообщения системы</string>
           </property>
@@ -145,7 +134,7 @@
      <x>0</x>
      <y>0</y>
      <width>943</width>
-     <height>25</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -438,8 +427,7 @@
   <action name="actionExit">
    <property name="icon">
     <iconset theme="exit">
-     <normaloff/>
-    </iconset>
+     <normaloff>.</normaloff>.</iconset>
    </property>
    <property name="text">
     <string>&amp;Выход</string>

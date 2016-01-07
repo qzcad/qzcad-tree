@@ -15,10 +15,13 @@ CodeEditor::CodeEditor(QWidget *parent) :
 
     updateLineNumberAreaWidth(0);
     highlightCurrentLine();
-    QFont font("Monospace");
+
 #ifdef Q_OS_WIN
-    font.setStyleHint(QFont::TypeWriter);
+    QFont font("Courier New");
+#else
+    QFont font("Monospace");
 #endif
+    font.setPointSize(10);
     setFont(font);
     setTabStopWidth(fontMetrics().width(QLatin1Char(' ')) * tabSymbols_);
     autoindent_ = true;

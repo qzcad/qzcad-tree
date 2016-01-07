@@ -18,7 +18,12 @@ GLMeshPicture::GLMeshPicture(QWidget *parent) :
     isLighting_ = true;
     isUseVector_ = false;
     isShowInitialFrames = false;
+
+#ifdef Q_OS_WIN
+    setFont(QFont("Courier New", 14, QFont::Bold));
+#else
     setFont(QFont("Monospace", 14, QFont::Bold));
+#endif
     setDefault();
 #ifdef Q_OS_WIN
     setFormat(QGLFormat(QGL::SingleBuffer | QGL::DepthBuffer));
