@@ -736,24 +736,77 @@ void TriangleMesh2D::superRuppert(TriangleMesh2D::Triangulation &triangulation)
     std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
     while (triangle != triangulation.triangles.end() && niter < 10000000UL)
     {
+        bool divided = false;
         if (triangle->vertexNode(0) > 3 && triangle->vertexNode(1) > 3 && triangle->vertexNode(2) > 3)
         {
-        Point2D A = triangulation.nodes[triangle->vertexNode(0)];
-        Point2D B = triangulation.nodes[triangle->vertexNode(1)];
-        Point2D C = triangulation.nodes[triangle->vertexNode(2)];
-        if (minAngle(A, B, C) < 0.35)
+            Point2D A = triangulation.nodes[triangle->vertexNode(0)];
+            Point2D B = triangulation.nodes[triangle->vertexNode(1)];
+            Point2D C = triangulation.nodes[triangle->vertexNode(2)];
+            Point2D AB = 0.5 * (A + B);
+            Point2D BC = 0.5 * (B + C);
+            Point2D CA = 0.5 * (C + A);
+            double rab = A.distanceTo(B) / 2.0;
+            double rbc = B.distanceTo(C) / 2.0;
+            double rca = C.distanceTo(A) / 2.0;
+            for (UInteger i = 4; i < triangulation.nodes.size(); i++)
+            {
+                if (i != triangle->vertexNode(0) && i != triangle->vertexNode(1) && i != triangle->vertexNode(2))
+                {
+                    Point2D current = triangulation.nodes[triangle->vertexNode(0)];
+                    if (fabs(AB.distanceTo(current) - rab) < -epsilon_*1000.)
+                    {
+                        insertDelaunayNode(AB, INNER, triangulation.nodes, triangulation.types, triangulation.triangles);
+                        divided =true;
+                        break;
+                    }
+                    if (fabs(BC.distanceTo(current) - rbc) < -epsilon_*1000.)
+                    {
+                        insertDelaunayNode(BC, INNER, triangulation.nodes, triangulation.types, triangulation.triangles);
+                        divided =true;
+                        break;
+                    }
+                    if (fabs(CA.distanceTo(current) - rca) < -epsilon_*1000.)
+                    {
+                        insertDelaunayNode(CA, INNER, triangulation.nodes, triangulation.types, triangulation.triangles);
+                        divided =true;
+                        break;
+                    }
+                }
+            }
+        }
+        if (!divided)
         {
-            Point2D center;
-            double xc = 0.0, yc = 0.0, r = 0.0;
-            circumCircle(0.0, 0.0, A.x(), A.y(), B.x(), B.y(), C.x(), C.y(), xc, yc, r);
-            center.set(xc, yc);
-            if (insertDelaunayNode(center, INNER, triangulation.nodes, triangulation.types, triangulation.triangles))
-                triangle = triangulation.triangles.begin();
-            else
-                ++triangle;
+            ++triangle;
         }
         else
-            ++triangle;
+        {
+            triangle = triangulation.triangles.begin();
+        }
+        niter++;
+    }
+    std::cout << "Edges: " << niter << std::endl;
+    niter = 0;
+    triangle = triangulation.triangles.begin();
+    while (triangle != triangulation.triangles.end() && niter < 10000000UL)
+    {
+        if (triangle->vertexNode(0) > 3 && triangle->vertexNode(1) > 3 && triangle->vertexNode(2) > 3)
+        {
+            Point2D A = triangulation.nodes[triangle->vertexNode(0)];
+            Point2D B = triangulation.nodes[triangle->vertexNode(1)];
+            Point2D C = triangulation.nodes[triangle->vertexNode(2)];
+            if (minAngle(A, B, C) < 0.35)
+            {
+                Point2D center;
+                double xc = 0.0, yc = 0.0, r = 0.0;
+                circumCircle(0.0, 0.0, A.x(), A.y(), B.x(), B.y(), C.x(), C.y(), xc, yc, r);
+                center.set(xc, yc);
+                if (insertDelaunayNode(center, INNER, triangulation.nodes, triangulation.types, triangulation.triangles))
+                    triangle = triangulation.triangles.begin();
+                else
+                    ++triangle;
+            }
+            else
+                ++triangle;
         }
         else
             ++triangle;
@@ -774,7 +827,7 @@ void TriangleMesh2D::areaRefinement(double max_area, std::function<double (doubl
         Point2D B = triangulation.nodes[triangle->vertexNode(1)];
         Point2D C = triangulation.nodes[triangle->vertexNode(2)];
         Point2D center = (1.0 / 3.0) * (A + B + C);
-        if (func(center.x(), center.y()) > 0 && fabs(signedArea(A, B, C)) > max_area)
+        if (fabs(signedArea(A, B, C)) > max_area)
         {
             if (insertDelaunayNode(center, INNER, triangulation.nodes, triangulation.types, triangulation.triangles))
                 triangle = triangulation.triangles.begin();
