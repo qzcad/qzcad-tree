@@ -71,7 +71,7 @@ void GLMeshPicture::setMesh(msh::MeshPointer mesh)
     //    emit zMaxChanged(zMax_);
     resetProjectionMatrix ();
     setVisualisationMode(visualizationMode_); // необходимо обновить цветовую карту
-    updateGL ();
+//    updateGL ();
 }
 
 void GLMeshPicture::resetMesh()
@@ -649,16 +649,12 @@ void GLMeshPicture::nextValueIndex()
     {
         if (mesh_->dataVectorsCount() > 0)
         {
-            valueIndex_ = valueIndex_ + 1;
-            if (mesh_->dataVectorsCount() <= valueIndex_)
-            {
+            ++valueIndex_;
+            if (valueIndex_ >= mesh_->dataVectorsCount())
                 valueIndex_ = 0;
-            }
-            if (valueIndex_ < mesh_->dataVectorsCount())
-            {
-                map_.setMin(mesh_->data(valueIndex_).min());
-                map_.setMax(mesh_->data(valueIndex_).max());
-            }
+
+            map_.setMin(mesh_->data(valueIndex_).min());
+            map_.setMax(mesh_->data(valueIndex_).max());
             updateGL();
         }
     }
@@ -670,15 +666,13 @@ void GLMeshPicture::prevValueIndex()
     {
         if (mesh_->dataVectorsCount() > 0)
         {
-            if (valueIndex_ > 0)
-                valueIndex_ = valueIndex_ - 1;
-            else
+            if (valueIndex_ == 0)
                 valueIndex_ = mesh_->dataVectorsCount() - 1;
-            if (valueIndex_ < mesh_->dataVectorsCount())
-            {
-                map_.setMin(mesh_->data(valueIndex_).min());
-                map_.setMax(mesh_->data(valueIndex_).max());
-            }
+            else
+                --valueIndex_;
+
+            map_.setMin(mesh_->data(valueIndex_).min());
+            map_.setMax(mesh_->data(valueIndex_).max());
             updateGL();
         }
     }
