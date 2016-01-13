@@ -142,6 +142,43 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
             node_[i].adjacent.insert(min_el);
         }
     }
+    // оптимизация по кривизне границы
+    for (int it = 0; it < 4; ++it)
+    {
+        std::cout << "Curvature it " << it << " ";
+        UInteger es = element_.size();
+        for (UInteger i = 0; i < es; i++)
+        {
+            Segment s = element_[i];
+            Point2D a = node_[s[0]].point;
+            Point2D b = node_[s[1]].point;
+            Point2D v(a, b);
+            Point2D n(v.y(), -v.x());
+            Point2D c = 0.5 * (a + b);
+            double l = v.length();
+            Point2D p0 = -l * n.normalized() + c;
+            Point2D p1 = l * n.normalized() + c;
+            if (func(p0.x(), p0.y()) * func(p1.x(), p1.y()) < epsilon_)
+            {
+                Point2D border = binary(p0, p1, func);
+                if (!border.isEqualTo(c, 0.075 * l))
+                {
+                    UInteger j = pushNode(border, BORDER);
+                    addElement(j, s[1]);
+                    AdjacentSet a1 = node_[s[1]].adjacent;
+                    a1.erase(i);
+                    element_[i][1] = j;
+                    node_[j].adjacent.insert(i);
+                    std::cout << '+';
+                }
+            }
+            else
+            {
+                std::cout << '-';
+            }
+        }
+        std::cout << std::endl;
+    }
 }
 
 UInteger SegmentMesh2D::elementsCount() const
