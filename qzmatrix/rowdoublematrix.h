@@ -50,6 +50,16 @@ public:
      * @return Решение СЛАУ
      */
     DoubleVector conjugateGradient(const DoubleVector &B, double epsilon = 1.0E-7, unsigned int niter = 1000000U, bool printMessages = true, unsigned int messageStep = 500U) const;
+    /**
+     * @brief Метод сопряженных градиентов для решения предобусловленной СЛАУ, определенного матрицей и свободным вектором-столбцом
+     * @param B Вектор-столбец СЛАУ
+     * @param epsilon Точность меотда
+     * @param niter Максимальное количество итераций
+     * @param printMessages Флаг пеачти сообщений
+     * @param messageStep Щаг печати сообщений (через сколько итеаций выводить сообщение
+     * @return Решение СЛАУ
+     */
+    DoubleVector preconditionedConjugateGradient(const DoubleVector &B, double epsilon = 1.0E-7, unsigned int niter = 1000000U, bool printMessages = true, unsigned int messageStep = 500U) const;
 protected:
     /**
      * @brief Метод для очистки памяти

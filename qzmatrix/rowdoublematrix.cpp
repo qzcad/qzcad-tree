@@ -117,6 +117,72 @@ DoubleVector RowDoubleMatrix::conjugateGradient(const DoubleVector &B, double ep
     return X;
 }
 
+DoubleVector RowDoubleMatrix::preconditionedConjugateGradient(const DoubleVector &B, double epsilon, unsigned int niter, bool printMessages, unsigned int messageStep) const
+{
+    DoubleVector X(size_, 0.0); // начальное приближение - вектор нулей
+    DoubleVector resid(size_); // невязка
+    DoubleVector M(size_); // предусловие
+    DoubleVector Z(size_);
+    DoubleVector P(size_);
+    DoubleVector temp(size_); // ременное хранилище
+    double resid_norm;
+    for (size_type i = 0; i < size_; i++)
+    {
+        for (size_type j = 0; j < row_size_[i]; j++)
+        {
+            ColumnValuePair pair = data_[i][j];
+            if (pair.column == i)
+            {
+                M[i] = 1.0 / pair.value;
+            }
+        }
+    }
+    residual(X, B, resid);
+    resid_norm = resid.norm_2();
+    if (printMessages)
+    {
+        std::cout << "Метод сопряженных градиентов для решения предобусловленной СЛАУ" << std::endl;
+        std::cout << "Начальная невязка: " << resid_norm << std::endl;
+    }
+    if (resid_norm > epsilon)
+    {
+        double ha;
+        Z = M.dotProduct( resid ); // z_0
+        P = Z; // p_0
+        ha = (resid * Z);
+        for (unsigned int i = 0; i < niter; i++)
+        {
+            double alpha;
+            double beta;
+            double hanew;
+
+            product(P, temp);
+
+            alpha = ha / (P * temp);
+            X += alpha * P;
+            resid -= alpha * temp;
+            resid_norm = resid.norm_2();
+            if (resid_norm <= epsilon)
+            {
+                if (printMessages)
+                    std::cout << "Решение найдено. Итераций: " << i << ", невязка: " << resid_norm << std::endl;
+                return X;
+            }
+            if (printMessages && (i % messageStep == 0))
+                std::cout << i << ": " << resid_norm << std::endl;
+
+            Z = M.dotProduct( resid ); // z_i
+            hanew = (Z * resid);
+            beta = hanew / (ha);
+            ha = hanew;
+            // p = z + beta * p
+            P.scale(beta);
+            P += Z;
+        }
+    }
+    return X;
+}
+
 void RowDoubleMatrix::clear()
 {
     if (size_ > 0)

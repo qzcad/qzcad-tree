@@ -171,7 +171,7 @@ DoubleVector Fem::solve(MappedDoubleMatrix &global, DoubleVector &force, bool cg
     if(cg)
     {
         RowDoubleMatrix rdm(global);
-        return rdm.conjugateGradient(force);
+        return rdm.preconditionedConjugateGradient(force);
     }
     return global.cholesky(force);
 }

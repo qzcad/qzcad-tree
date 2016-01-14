@@ -114,6 +114,18 @@ double DoubleVector::norm_2() const
     return sqrt(sum);
 }
 
+DoubleVector DoubleVector::dotProduct(const DoubleVector &dv) const
+{
+    DoubleVector result(size_);
+    const_pointer pdv = dv.begin();
+    pointer rdv = result.begin();
+    for (const_pointer p = begin(); p != end(); p++, pdv++, rdv++)
+    {
+        (*rdv) = (*p) * (*pdv);
+    }
+    return result;
+}
+
 reference DoubleVector::operator ()(size_type i)
 {
     return data_[i];

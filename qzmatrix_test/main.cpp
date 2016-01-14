@@ -80,6 +80,9 @@ int main()
     RowDoubleMatrix rdm(mdm);
     X = rdm.conjugateGradient(v3);
     X.print();
+    X = rdm.preconditionedConjugateGradient(v3);
+    X.print();
+        cout << " !!! " << endl;
 //    MappedDoubleMatrix tst(2);
 //    tst(0,0) = 4.0; tst(0, 1) = 1.0;
 //    tst(1,0) = 1.0; tst(1, 1) = 3.0;
