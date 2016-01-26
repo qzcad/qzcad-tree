@@ -66,19 +66,12 @@ private:
      */
     static QScriptValue approx(QScriptContext *context, QScriptEngine *engine);
     /**
-     * @brief "Конструктор" двумерных точек в скриптах
+     * @brief "Конструктор" точек в скриптах
      * @param context Контекст скрипта
      * @param engine Двигатель скрипта
      * @return Объект для использования в скриптах
      */
-    static QScriptValue createPoint2D(QScriptContext *context, QScriptEngine *engine);
-    /**
-     * @brief "Конструктор" трехмерных точек в скриптах
-     * @param context Контекст скрипта
-     * @param engine Двигатель скрипта
-     * @return Объект для использованиия в скриптах
-     */
-    static QScriptValue createPoint3D(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue createPoint(QScriptContext *context, QScriptEngine *engine);
     /**
      * @brief "Конструктор" сеток четырехугольных элементов на плоскости
      * @param context Контекст скрипта

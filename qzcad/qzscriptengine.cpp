@@ -53,10 +53,8 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     // rectangle
     globalObject().setProperty("rectangle", newFunction(rectangle));
 
-    // Точка на плоскости
-    globalObject().setProperty("Point2D", newFunction(createPoint2D));
-    // Точка в пространстве
-    globalObject().setProperty("Point3D", newFunction(createPoint3D));
+    // Точка (плоскость или пространство)
+    globalObject().setProperty("Point", newFunction(createPoint));
 
     // Двумерная сетка четырехугольников
     globalObject().setProperty("Quads2D", newFunction(createQuadrilateralMesh2D));
@@ -179,33 +177,32 @@ QScriptValue QZScriptEngine::approx(QScriptContext *context, QScriptEngine *engi
     return fabs(a - b) < eps;
 }
 
-QScriptValue QZScriptEngine::createPoint2D(QScriptContext *context, QScriptEngine *engine)
+QScriptValue QZScriptEngine::createPoint(QScriptContext *context, QScriptEngine *engine)
 {
-    if (context->argumentCount() != 2)
-        return context->throwError(QObject::tr("Point2D() takes exactly two arguments: Point2D(x, y)"));
-    if (!context->argument(0).isNumber())
-        return context->throwError(QScriptContext::TypeError, QObject::tr("Point2D(): first argument is not a number"));
-    if (!context->argument(1).isNumber())
-        return context->throwError(QScriptContext::TypeError, QObject::tr("Point2D(): second argument is not a number"));
-    double x = context->argument(0).toNumber();
-    double y = context->argument(1).toNumber();
-    return engine->newQObject(new QPoint2D(x, y), QScriptEngine::ScriptOwnership);
-}
-
-QScriptValue QZScriptEngine::createPoint3D(QScriptContext *context, QScriptEngine *engine)
-{
-    if (context->argumentCount() != 3)
-        return context->throwError(QObject::tr("Point3D() takes exactly three arguments: Point3D(x, y, z)"));
-    if (!context->argument(0).isNumber())
-        return context->throwError(QScriptContext::TypeError, QObject::tr("Point3D(): first argument is not a number"));
-    if (!context->argument(1).isNumber())
-        return context->throwError(QScriptContext::TypeError, QObject::tr("Point3D(): second argument is not a number"));
-    if (!context->argument(2).isNumber())
-        return context->throwError(QScriptContext::TypeError, QObject::tr("Point3D(): third argument is not a number"));
-    double x = context->argument(0).toNumber();
-    double y = context->argument(1).toNumber();
-    double z = context->argument(2).toNumber();
-    return engine->newQObject(new QPoint3D(x, y, z), QScriptEngine::ScriptOwnership);
+    if (context->argumentCount() == 2)
+    {
+        if (!context->argument(0).isNumber())
+            return context->throwError(QScriptContext::TypeError, QObject::tr("Point(): first argument is not a number"));
+        if (!context->argument(1).isNumber())
+            return context->throwError(QScriptContext::TypeError, QObject::tr("Point(): second argument is not a number"));
+        double x = context->argument(0).toNumber();
+        double y = context->argument(1).toNumber();
+        return engine->newQObject(new QPoint2D(x, y), QScriptEngine::ScriptOwnership);
+    }
+    else if (context->argumentCount() == 3)
+    {
+        if (!context->argument(0).isNumber())
+            return context->throwError(QScriptContext::TypeError, QObject::tr("Point(): first argument is not a number"));
+        if (!context->argument(1).isNumber())
+            return context->throwError(QScriptContext::TypeError, QObject::tr("Point(): second argument is not a number"));
+        if (!context->argument(2).isNumber())
+            return context->throwError(QScriptContext::TypeError, QObject::tr("Point(): third argument is not a number"));
+        double x = context->argument(0).toNumber();
+        double y = context->argument(1).toNumber();
+        double z = context->argument(2).toNumber();
+        return engine->newQObject(new QPoint3D(x, y, z), QScriptEngine::ScriptOwnership);
+    }
+    return context->throwError(QObject::tr("Point() takes two or three arguments: Point(x, y) or Point(x, y, z)"));
 }
 
 QScriptValue QZScriptEngine::createQuadrilateralMesh2D(QScriptContext *context, QScriptEngine *engine)
