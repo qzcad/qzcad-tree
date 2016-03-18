@@ -4,6 +4,7 @@
 #include <math.h>
 #include <map>
 #include <climits>
+#include <algorithm>
 #include <float.h>
 #ifdef WITH_OPENMP
 #include <omp.h>
@@ -351,7 +352,7 @@ void TriangleMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yC
             }
         }
     }
-
+    flip();
     // the end.
     std::cout << "Создана сетка треугольных элементов для функционального объекта: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
@@ -646,6 +647,74 @@ Triangle TriangleMesh2D::triangle(const UInteger &number) const
 void TriangleMesh2D::clearElements()
 {
     element_.clear();
+}
+
+void TriangleMesh2D::flip()
+{
+    for (UInteger t = 0; t < element_.size(); t++)
+    {
+        Triangle triangle = element_[t];
+        for (int i = 0; i < 3; i++)
+        {
+            UInteger index0 = triangle[i];
+            UInteger index1 = triangle[i + 1];
+            AdjacentSet a1 = node_[index0].adjacent;
+            AdjacentSet a2 = node_[index1].adjacent;
+            std::vector<UInteger> common;
+            set_intersection(a1.begin(), a1.end(), a2.begin(), a2.end(), std::back_inserter(common));
+            if (common.size() == 2)
+            {
+                std::cout << common[0] << " " << common[1] << std::endl;
+                Point2D p0 = node_[index0].point;
+                Point2D p1 = node_[index1].point;
+                UInteger index2 = triangle[i - 1];
+                Point2D p2 = node_[index2].point;
+                UInteger indexf;
+                int subindex;
+                Point2D f;
+                UInteger t1;
+                if (common[0] != t)
+                {
+                    t1 = common[0];
+                }
+                else
+                {
+                    t1 = common[1];
+                }
+
+                if (element_[t1][0] != index0 && element_[t1][0] != index1)
+                {
+                    indexf = element_[t1][0];
+                    subindex = 0;
+                }
+                else if (element_[t1][1] != index0 && element_[t1][1] != index1)
+                {
+                    indexf = element_[t1][1];
+                    subindex = 1;
+                }
+                else
+                {
+                    indexf = element_[t1][2];
+                    subindex = 2;
+                }
+
+                f = node_[indexf].point;
+                double min_c = std::min(minAngle(p0, p1, p2), minAngle(p0, f, p1));
+                double min_n = std::min(minAngle(p0, f, p2), minAngle(p2, f, p1));
+                if (min_n > min_c)
+                {
+                    std::cout << " flip " << std::endl;
+                    node_[index0].adjacent.erase(t1);
+                    node_[index1].adjacent.erase(t);
+                    element_[t][i + 1] = indexf;
+                    node_[indexf].adjacent.insert(t);
+                    element_[t1][subindex - 1] = index2;
+                    node_[index2].adjacent.insert(t1);
+
+                }
+            }
+        }
+    }
 }
 
 double TriangleMesh2D::minAngle(const Point2D &A, const Point2D &B, const Point2D &C)
