@@ -51,6 +51,19 @@ public:
      */
     void functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint);
     /**
+     * @brief Метод создает равномерную секту области, определенной функционально (случай контакта двух тел)
+     * @param xCount Количество узлов вдоль оси абсцисс
+     * @param yCount Количество узлов вдоль оси ординат
+     * @param xMin Абсцисса нижнего левого угла прямоугольной области
+     * @param yMin Ордината нижнего левого угла прямоугольной области
+     * @param width Ширина прямоугольной области
+     * @param height Высота прямоугольной области
+     * @param func_a Функция области A
+     * @param func_b Функция области B
+     * @param charPoint Список характерных точек
+     */
+    void functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func_a, std::function<double(double, double)> func_b, std::list<Point2D> charPoint);
+    /**
      * @brief elementsCount Количество элементов
      * @return Количество отрезков (граней), которые образуют контур
      */

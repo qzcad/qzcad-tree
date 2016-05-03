@@ -136,8 +136,7 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
                 }
             }
             addElement(i, element_[min_el][1]);
-            AdjacentSet a1 = node_[element_[min_el][1]].adjacent;
-            a1.erase(min_el);
+            node_[element_[min_el][1]].adjacent.erase(min_el);
             element_[min_el][1] = i;
             node_[i].adjacent.insert(min_el);
         }
@@ -165,11 +164,268 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
                 {
                     UInteger j = pushNode(border, BORDER);
                     addElement(j, s[1]);
-                    AdjacentSet a1 = node_[s[1]].adjacent;
-                    a1.erase(i);
+                    node_[s[1]].adjacent.erase(i);
                     element_[i][1] = j;
                     node_[j].adjacent.insert(i);
                     std::cout << '+';
+                }
+            }
+            else
+            {
+                std::cout << '-';
+            }
+        }
+        std::cout << std::endl;
+    }
+}
+
+void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func_a, std::function<double (double, double)> func_b, std::list<Point2D> charPoint)
+{
+    clear();
+    // Основная идея:
+    // 1. Строим модель области A и присоединяем характерные узлы, соответствующие этой области
+    // 2. Запоминаем кол-во элементов в element_b.
+    // 3. Строим модель области B с тем же шагом и присоединяем характерные узлы, соответствующие этой области
+    // На предыдщем шаге при поиске сегментов для присоединения обоабатываем элементы начиная с номера element_b
+    // 4. Оптимизация по кривизне границ
+    xMin_ = xMin;
+    xMax_ = xMin + width;
+    yMin_ = yMin;
+    yMax_ = yMin + height;
+    const double hx = width / (double)(xCount - 1);
+    const double hy = height / (double)(yCount - 1);
+    const double minDistance = 0.4 * sqrt(hx*hx + hy*hy);
+    Point2D border[4]; // массив координат пересечения с границей области
+    int edge_table[16][5] = {
+        { -1, -1, -1, -1, -1 }, // 0
+        {  3,  0, -1, -1, -1 }, // 1
+        {  0,  1, -1, -1, -1 }, // 2
+        {  3,  1, -1, -1, -1 }, // 3
+        {  1,  2, -1, -1, -1 }, // 4
+        {  1,  0,  3,  2, -1 }, // 5
+        {  0,  2, -1, -1, -1 }, // 6
+        {  3,  2, -1, -1, -1 }, // 7
+        {  2,  3, -1, -1, -1 }, // 8
+        {  2,  0, -1, -1, -1 }, // 9
+        {  0,  3,  2,  1, -1 }, // 10
+        {  2,  1, -1, -1, -1 }, // 11
+        {  1,  3, -1, -1, -1 }, // 12
+        {  1,  0, -1, -1, -1 }, // 13
+        {  0,  3, -1, -1, -1 }, // 14
+        { -1, -1, -1, -1, -1 }  // 15
+    };
+    int search_table[16] = {
+        0, // 0
+        1 | 8, // 1
+        1 | 2, // 2
+        2 | 8, // 3
+        2 | 4, // 4
+        1 | 2 | 4 | 8, // 5
+        1 | 4, // 6
+        4 | 8, // 7
+        4 | 8, // 8
+        1 | 4, // 9
+        1 | 2 | 4 | 8, // 10
+        2 | 4, // 11
+        2 | 8, // 12
+        1 | 2, // 13
+        1 | 8, // 14
+        0 //15
+    };
+    for (std::list<Point2D>::iterator cPoint = charPoint.begin(); cPoint != charPoint.end(); ++cPoint)
+    {
+        pushNode(*cPoint, CHARACTER);
+    }
+    double x0 = xMin_;
+    for (UInteger i = 0; i < xCount - 1; i++)
+    {
+        double y0 = yMin_;
+        for (UInteger j = 0; j < yCount - 1; j++)
+        {
+            int index = 0;
+            Point2D p0 (x0, y0);
+            Point2D p1 ((i < xCount - 2) ? (x0 + hx) : xMax_, y0);
+            Point2D p2 ((i < xCount - 2) ? (x0 + hx) : xMax_, (j < yCount - 2) ? (y0 + hy) : yMax_);
+            Point2D p3 (x0, (j < yCount - 2) ? (y0 + hy) : yMax_);
+
+            if (func_a(p0.x(), p0.y()) < epsilon_) index |= 1;
+            if (func_a(p1.x(), p1.y()) < epsilon_) index |= 2;
+            if (func_a(p2.x(), p2.y()) < epsilon_) index |= 4;
+            if (func_a(p3.x(), p3.y()) < epsilon_) index |= 8;
+
+            if (search_table[index] & 1) border[0] = binary(p0, p1, func_a);
+            if (search_table[index] & 2) border[1] = binary(p1, p2, func_a);
+            if (search_table[index] & 4) border[2] = binary(p2, p3, func_a);
+            if (search_table[index] & 8) border[3] = binary(p3, p0, func_a);
+
+            for (int ii = 0; edge_table[index][ii] != -1; ii += 2)
+            {
+                Point2D prev = border[edge_table[index][ii]];
+                Point2D next = border[edge_table[index][ii + 1]];
+                UInteger ii0 = addNode(prev, BORDER, minDistance);
+                UInteger ii1 = addNode(next, BORDER, minDistance);
+                if (ii0 != ii1)
+                {
+                    addElement(ii0, ii1);
+                }
+            }
+
+            y0 += hy;
+        }
+        x0 += hx;
+    }
+    x0 = xMin_;
+    for (UInteger i = 0; i < xCount - 1; i++)
+    {
+        double y0 = yMin_;
+        for (UInteger j = 0; j < yCount - 1; j++)
+        {
+            int index = 0;
+            Point2D p0 (x0, y0);
+            Point2D p1 ((i < xCount - 2) ? (x0 + hx) : xMax_, y0);
+            Point2D p2 ((i < xCount - 2) ? (x0 + hx) : xMax_, (j < yCount - 2) ? (y0 + hy) : yMax_);
+            Point2D p3 (x0, (j < yCount - 2) ? (y0 + hy) : yMax_);
+
+            if (func_b(p0.x(), p0.y()) < epsilon_) index |= 1;
+            if (func_b(p1.x(), p1.y()) < epsilon_) index |= 2;
+            if (func_b(p2.x(), p2.y()) < epsilon_) index |= 4;
+            if (func_b(p3.x(), p3.y()) < epsilon_) index |= 8;
+
+            if (search_table[index] & 1) border[0] = binary(p0, p1, func_b);
+            if (search_table[index] & 2) border[1] = binary(p1, p2, func_b);
+            if (search_table[index] & 4) border[2] = binary(p2, p3, func_b);
+            if (search_table[index] & 8) border[3] = binary(p3, p0, func_b);
+
+            for (int ii = 0; edge_table[index][ii] != -1; ii += 2)
+            {
+                Point2D prev = border[edge_table[index][ii]];
+                Point2D next = border[edge_table[index][ii + 1]];
+                UInteger ii0 = addNode(prev, BORDER, minDistance);
+                UInteger ii1 = addNode(next, BORDER, minDistance);
+                if (ii0 != ii1)
+                {
+                    addElement(ii0, ii1);
+                }
+            }
+
+            y0 += hy;
+        }
+        x0 += hx;
+    }
+    // учет характерных точек, для которых не нашлось пары
+    for (UInteger i = 0; i < charPoint.size(); i++)
+    {
+        Node2D node = node_[i];
+        if (node.adjacent.size() == 0)
+        {
+            Point2D point = node.point;
+            if (fabs(func_a(point.x(), point.y())) < epsilon_ && fabs(func_b(point.x(), point.y())))
+            {
+                // точка контактная, нужно найти два отрезка: по одному от каждой области
+            }
+            UInteger min_el = 0;
+            Point2D p0 = node_[element_[0][0]].point;
+            Point2D p1 = node_[element_[0][1]].point;
+            double min_d = point.distanceTo(p0) * point.distanceTo(p0) +
+                    point.distanceTo(p1) * point.distanceTo(p1);
+            for (UInteger j = 1; j < elementsCount(); j++)
+            {
+                p0 = node_[element_[j][0]].point;
+                p1 = node_[element_[j][1]].point;
+                double d = point.distanceTo(p0) * point.distanceTo(p0) +
+                        point.distanceTo(p1) * point.distanceTo(p1);
+                if (d < min_d)
+                {
+                    min_d = d;
+                    min_el = j;
+                }
+            }
+            addElement(i, element_[min_el][1]);
+            node_[element_[min_el][1]].adjacent.erase(min_el);
+            element_[min_el][1] = i;
+            node_[i].adjacent.insert(min_el);
+        }
+    }
+    // оптимизация по кривизне границы
+    for (int it = 0; it < 4; ++it)
+    {
+        std::cout << "Curvature it " << it << " ";
+        UInteger es = element_.size();
+        for (UInteger i = 0; i < es; i++)
+        {
+            Segment s = element_[i];
+            Point2D a = node_[s[0]].point;
+            Point2D b = node_[s[1]].point;
+            Point2D v(a, b);
+            Point2D n(v.y(), -v.x());
+            Point2D c = 0.5 * (a + b);
+            double l = v.length();
+            Point2D p0 = -l * n.normalized() + c;
+            Point2D p1 = l * n.normalized() + c;
+            /*if (func_a(p0.x(), p0.y()) * func_a(p1.x(), p1.y()) < epsilon_)
+            {
+                Point2D border = binary(p0, p1, func_a);
+                if (!border.isEqualTo(c, 0.075 * l))
+                {
+                    UInteger j = pushNode(border, BORDER);
+                    addElement(j, s[1]);
+                    node_[s[1]].adjacent.erase(i);
+                    element_[i][1] = j;
+                    node_[j].adjacent.insert(i);
+                    std::cout << '+';
+                }
+            }
+            else */if (func_b(p0.x(), p0.y()) * func_b(p1.x(), p1.y()) < epsilon_)
+            {
+                Point2D border = binary(p0, p1, func_b);
+                if (!border.isEqualTo(c, 0.075 * l))
+                {
+                    UInteger j = pushNode(border, BORDER);
+                    addElement(j, s[1]);
+                    node_[s[1]].adjacent.erase(i);
+                    element_[i][1] = j;
+                    node_[j].adjacent.insert(i);
+                    std::cout << '+';
+//                    UInteger added = element_.size() - 1;
+                    std::cout << border.x() << " " << border.y() << std::endl;
+//                    if (fabs(func_a(border.x(), border.y())) < epsilon_ &&
+//                            (!(fabs(func_a(a.x(), a.y())) < epsilon_) || !(fabs(func_a(b.x(), b.y())) < epsilon_)))
+//                    {
+//                        std::cout << "must be";
+//                        AdjacentSet adjacent;
+//                        if (fabs(func_a(a.x(), a.y())) < epsilon_)
+//                        {
+//                            adjacent = node_[s[0]].adjacent;
+//                        }
+//                        else if (fabs(func_a(b.x(), b.y())) < epsilon_)
+//                        {
+//                            adjacent = node_[s[1]].adjacent;
+//                        }
+//                        for (AdjacentSet::iterator adj = adjacent.begin(); adj != adjacent.end(); ++adj)
+//                        {
+//                            if (*adj != i && *adj != added)
+//                            {
+//                                Point2D n0 = node_[element_[*adj][0]].point;
+//                                Point2D n1 = node_[element_[*adj][1]].point;
+//                                if (fabs(func_a(n0.x(), n0.y())) < epsilon_ && !fabs(func_b(n0.x(), n0.y())) < epsilon_)
+//                                {
+//                                    node_[element_[*adj][1]].adjacent.erase(*adj);
+//                                    element_[*adj][1] = j;
+//                                    node_[element_[*adj][1]].adjacent.insert(*adj);
+//                                    std::cout << "correction";
+//                                    break;
+//                                }
+//                                if (fabs(func_a(n1.x(), n1.y())) < epsilon_ && !fabs(func_b(n1.x(), n1.y())) < epsilon_)
+//                                {
+//                                    node_[element_[*adj][0]].adjacent.erase(*adj);
+//                                    element_[*adj][0] = j;
+//                                    node_[element_[*adj][0]].adjacent.insert(*adj);
+//                                    std::cout << "correction";
+//                                    break;
+//                                }
+//                            }
+//                        }
+//                    }
                 }
             }
             else
