@@ -115,6 +115,7 @@ protected:
 
 private:
     std::vector<Segment> element_; //!< Массив элементов
+    typedef std::vector<Segment>::iterator ElementIterator;
 };
 }
 
