@@ -49,7 +49,7 @@ public:
      * @param func Функция области
      * @param charPoint Список характерных точек
      */
-    void functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint);
+    void functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, bool isOptimized = true);
     /**
      * @brief Метод создает равномерную секту области, определенной функционально (случай контакта двух тел)
      * @param xCount Количество узлов вдоль оси абсцисс
@@ -61,8 +61,9 @@ public:
      * @param func_a Функция области A
      * @param func_b Функция области B
      * @param charPoint Список характерных точек
+     * @param delta Параметр сгущения элементов в окрестности контакта (если меньше 0, то сгущение отсутствует)
      */
-    void functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func_a, std::function<double(double, double)> func_b, std::list<Point2D> charPoint);
+    void functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func_a, std::function<double(double, double)> func_b, std::list<Point2D> charPoint, double delta = -1.0);
     /**
      * @brief elementsCount Количество элементов
      * @return Количество отрезков (граней), которые образуют контур
@@ -74,6 +75,11 @@ public:
      * @return Указатель на элемент сетки
      */
     virtual ElementPointer element(const UInteger &number) const;
+    /**
+     * @brief Добавить элемент сетки
+     * @param segment Экземляр элемента для добавления в сетку
+     */
+    void addElement(const Segment &segment);
     /**
      * @brief Добавить элемент сетки
      * @param node0 Первый узел элемента

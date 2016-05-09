@@ -209,7 +209,7 @@ QScriptValue QZScriptEngine::createQuadrilateralMesh2D(QScriptContext *context, 
 {
     if (context->argumentCount() == 4)
     {
-        QString typeError = QObject::tr("Quads2D(count: Integer, center: Point2D, radius: Floating, part: {1, 2, 4}): argument type error (%1).");
+        QString typeError = QObject::tr("Quads2D(count: Integer, center: Point, radius: Floating, part: {1, 2, 4}): argument type error (%1).");
         if (!context->argument(0).isNumber())
             return context->throwError(typeError.arg("count"));
         if (!context->argument(1).isQObject() || qscriptvalue_cast<QPoint2D *>(context->argument(1)) == NULL)
@@ -230,7 +230,7 @@ QScriptValue QZScriptEngine::createQuadrilateralMesh2D(QScriptContext *context, 
     }
     if (context->argumentCount() == 5)
     {
-        QString typeError = QObject::tr("Quads2D(xCount: Integer, yCount: Integer, origin: Point2D, width: Floating, height: Floating): argument type error (%1).");
+        QString typeError = QObject::tr("Quads2D(xCount: Integer, yCount: Integer, origin: Point, width: Floating, height: Floating): argument type error (%1).");
         if (!context->argument(0).isNumber())
             return context->throwError(typeError.arg("xCount"));
         if (!context->argument(1).isNumber())
@@ -255,7 +255,7 @@ QScriptValue QZScriptEngine::createQuadrilateralMesh2D(QScriptContext *context, 
 
     if (context->argumentCount() == 6 || context->argumentCount() == 7)
     {
-        QString typeError = QObject::tr("Quads2D(xCount: Integer, yCount: Integer, origin: Point2D, width: Floating, height: Floating, function: Function[, points: Array]): argument type error (%1).");
+        QString typeError = QObject::tr("Quads2D(xCount: Integer, yCount: Integer, origin: Point, width: Floating, height: Floating, function: Function[, points: Array]): argument type error (%1).");
         std::list<msh::Point2D> pointList;
         if (!context->argument(0).isNumber())
             return context->throwError(typeError.arg("xCount"));
@@ -305,9 +305,9 @@ QScriptValue QZScriptEngine::createQuadrilateralMesh2D(QScriptContext *context, 
 
 QScriptValue QZScriptEngine::createSegmentMesh2D(QScriptContext *context, QScriptEngine *engine)
 {
-    if (context->argumentCount() == 6 || context->argumentCount() == 7 || context->argumentCount() == 8)
+    if (context->argumentCount() == 6 || (context->argumentCount() >= 7 && context->argumentCount() <= 9))
         {
-            QString typeError = QObject::tr("Segments2D(xCount: Integer, yCount: Integer, origin: Point2D, width: Floating, height: Floating, function: Function[, points: Array]): argument type error (%1).");
+            QString typeError = QObject::tr("Segments2D(xCount: Integer, yCount: Integer, origin: Point, width: Floating, height: Floating, function: Function[, points: Array]): argument type error (%1).");
             std::list<msh::Point2D> pointList;
             if (!context->argument(0).isNumber())
                 return context->throwError(typeError.arg("xCount"));
@@ -350,7 +350,8 @@ QScriptValue QZScriptEngine::createSegmentMesh2D(QScriptContext *context, QScrip
             else if (context->argumentCount() >= 7)
             {
                 // случай контакта
-                QString typeError = QObject::tr("Segments2D(xCount: Integer, yCount: Integer, origin: Point2D, width: Floating, height: Floating, func_a: Function, func_b: Function[, points: Array]): argument type error (%1).");
+                double delta = -1.0; // парметр окрестности сгущения: по умолчани не сгущаем
+                QString typeError = QObject::tr("Segments2D(xCount: Integer, yCount: Integer, origin: Point, width: Floating, height: Floating, func_a: Function, func_b: Function[, points: Array, delta: Floating]): argument type error (%1).");
                 if (!context->argument(6).isFunction())
                     return context->throwError(typeError.arg("func_b"));
                 QScriptValue function_b = context->argument(6);
@@ -360,7 +361,7 @@ QScriptValue QZScriptEngine::createSegmentMesh2D(QScriptContext *context, QScrip
                     args << x << y;
                     return function_b.call(QScriptValue(), args).toNumber();
                 };
-                if (context->argumentCount() == 8)
+                if (context->argumentCount() >= 8)
                 {
                     if (!context->argument(7).isArray())
                         return context->throwError(typeError.arg("points"));
@@ -371,8 +372,15 @@ QScriptValue QZScriptEngine::createSegmentMesh2D(QScriptContext *context, QScrip
                         pointList.push_back(Point2D(point->x(), point->y()));
                     }
                 }
+                if (context->argumentCount() == 9)
+                {
+                    if (!context->argument(8).isNumber())
+                        return context->throwError(typeError.arg("delta"));
+                    delta = context->argument(8).toNumber();
+                    std::cout << delta << std::endl;
+                }
                 QSegmentMesh2D *smo = new QSegmentMesh2D();
-                smo->functionalDomain(xCount, yCount, origin->x(), origin->y(), width, height, func, func_b, pointList);
+                smo->functionalDomain(xCount, yCount, origin->x(), origin->y(), width, height, func, func_b, pointList, delta);
 
                 return engine->newQObject(smo, QScriptEngine::ScriptOwnership);
             }
@@ -382,7 +390,7 @@ QScriptValue QZScriptEngine::createSegmentMesh2D(QScriptContext *context, QScrip
 
             return engine->newQObject(smo, QScriptEngine::ScriptOwnership);
         }
-        return context->throwError(QObject::tr("Segments2D(xCount: Integer, yCount: Integer, origin: Point2D, width: Floating, height: Floating): arguments count error."));
+        return context->throwError(QObject::tr("Segments2D(xCount: Integer, yCount: Integer, origin: Point, width: Floating, height: Floating): arguments count error."));
 }
 
 QScriptValue QZScriptEngine::createTriangleMesh2D(QScriptContext *context, QScriptEngine *engine)
@@ -404,7 +412,7 @@ QScriptValue QZScriptEngine::createTriangleMesh2D(QScriptContext *context, QScri
     }
     else if (context->argumentCount() == 5)
     {
-        QString typeError = QObject::tr("Triangles2D(xCount: Integer, yCount: Integer, origin: Point2D, width: Floating, height: Floating): argument type error (%1).");
+        QString typeError = QObject::tr("Triangles2D(xCount: Integer, yCount: Integer, origin: Point, width: Floating, height: Floating): argument type error (%1).");
         if (!context->argument(0).isNumber())
             return context->throwError(typeError.arg("xCount"));
         if (!context->argument(1).isNumber())
@@ -428,7 +436,7 @@ QScriptValue QZScriptEngine::createTriangleMesh2D(QScriptContext *context, QScri
     }
     else if (context->argumentCount() == 6 || context->argumentCount() == 7)
     {
-        QString typeError = QObject::tr("Triangles2D(xCount: Integer, yCount: Integer, origin: Point2D, width: Floating, height: Floating, function: Function[, points: Array]): argument type error (%1).");
+        QString typeError = QObject::tr("Triangles2D(xCount: Integer, yCount: Integer, origin: Point, width: Floating, height: Floating, function: Function[, points: Array]): argument type error (%1).");
         std::list<msh::Point2D> pointList;
         if (!context->argument(0).isNumber())
             return context->throwError(typeError.arg("xCount"));
@@ -473,14 +481,14 @@ QScriptValue QZScriptEngine::createTriangleMesh2D(QScriptContext *context, QScri
 
         return engine->newQObject(tmo, QScriptEngine::ScriptOwnership);
     }
-    return context->throwError(QObject::tr("Triangles2D(xCount: Integer, yCount: Integer, origin: Point2D, width: Floating, height: Floating): arguments count error."));
+    return context->throwError(QObject::tr("Triangles2D(xCount: Integer, yCount: Integer, origin: Point, width: Floating, height: Floating): arguments count error."));
 }
 
 QScriptValue QZScriptEngine::createDelaunay(QScriptContext *context, QScriptEngine *engine)
 {
     if (context->argumentCount() == 6 || context->argumentCount() == 7)
         {
-            QString typeError = QObject::tr("delaunay(xCount: Integer, yCount: Integer, origin: Point2D, width: Floating, height: Floating, function: Function[, points: Array]): argument type error (%1).");
+            QString typeError = QObject::tr("delaunay(xCount: Integer, yCount: Integer, origin: Point, width: Floating, height: Floating, function: Function[, points: Array]): argument type error (%1).");
             std::list<msh::Point2D> pointList;
             if (!context->argument(0).isNumber())
                 return context->throwError(typeError.arg("xCount"));
@@ -523,14 +531,14 @@ QScriptValue QZScriptEngine::createDelaunay(QScriptContext *context, QScriptEngi
             qtm->delaunay(xCount, yCount, origin->x(), origin->y(), width, height, func, pointList);
             return engine->newQObject(qtm, QScriptEngine::ScriptOwnership);
         }
-    return context->throwError(QObject::tr("delaunay(xCount: Integer, yCount: Integer, origin: Point2D, width: Floating, height: Floating): arguments count error."));
+    return context->throwError(QObject::tr("delaunay(xCount: Integer, yCount: Integer, origin: Point, width: Floating, height: Floating): arguments count error."));
 }
 
 QScriptValue QZScriptEngine::createRuppert(QScriptContext *context, QScriptEngine *engine)
 {
-    if (context->argumentCount() == 6 || context->argumentCount() == 7)
+    if (context->argumentCount() == 6  || (context->argumentCount() >= 7 && context->argumentCount() <= 9))
         {
-            QString typeError = QObject::tr("ruppert(xCount: Integer, yCount: Integer, origin: Point2D, width: Floating, height: Floating, function: Function[, points: Array]): argument type error (%1).");
+            QString typeError = QObject::tr("ruppert(xCount: Integer, yCount: Integer, origin: Point, width: Floating, height: Floating, function: Function[, points: Array]): argument type error (%1).");
             std::list<msh::Point2D> pointList;
             if (!context->argument(0).isNumber())
                 return context->throwError(typeError.arg("xCount"));
@@ -558,7 +566,7 @@ QScriptValue QZScriptEngine::createRuppert(QScriptContext *context, QScriptEngin
                 args << x << y;
                 return function.call(QScriptValue(), args).toNumber();
             };
-            if (context->argumentCount() == 7)
+            if (context->argumentCount() == 7 && context->argument(6).isArray())
             {
                 if (!context->argument(6).isArray())
                     return context->throwError(typeError.arg("points"));
@@ -569,11 +577,48 @@ QScriptValue QZScriptEngine::createRuppert(QScriptContext *context, QScriptEngin
                     pointList.push_back(Point2D(point->x(), point->y()));
                 }
             }
+            else if (context->argumentCount() >= 7)
+            {
+                // случай контакта
+                double delta = -1.0; // парметр окрестности сгущения: по умолчани не сгущаем
+                QString typeError = QObject::tr("Segments2D(xCount: Integer, yCount: Integer, origin: Point, width: Floating, height: Floating, func_a: Function, func_b: Function[, points: Array, delta: Floating]): argument type error (%1).");
+                if (!context->argument(6).isFunction())
+                    return context->throwError(typeError.arg("func_b"));
+                QScriptValue function_b = context->argument(6);
+                auto func_b = [&](double x, double y)
+                {
+                    QScriptValueList args;
+                    args << x << y;
+                    return function_b.call(QScriptValue(), args).toNumber();
+                };
+                if (context->argumentCount() >= 8)
+                {
+                    if (!context->argument(7).isArray())
+                        return context->throwError(typeError.arg("points"));
+                    QScriptValue array = context->argument(7);
+                    for (int i = 0; i < array.property("length").toInteger(); i++)
+                    {
+                        QPoint2D *point = qscriptvalue_cast<QPoint2D *>(array.property(i));
+                        pointList.push_back(Point2D(point->x(), point->y()));
+                    }
+                }
+                if (context->argumentCount() == 9)
+                {
+                    if (!context->argument(8).isNumber())
+                        return context->throwError(typeError.arg("delta"));
+                    delta = context->argument(8).toNumber();
+                    std::cout << delta << std::endl;
+                }
+                QTriangleMesh2D  *qtm = new QTriangleMesh2D();
+                qtm->ruppert(xCount, yCount, origin->x(), origin->y(), width, height, func, func_b, pointList, delta);
+
+                return engine->newQObject(qtm, QScriptEngine::ScriptOwnership);
+            }
             QTriangleMesh2D  *qtm = new QTriangleMesh2D();
             qtm->ruppert(xCount, yCount, origin->x(), origin->y(), width, height, func, pointList);
             return engine->newQObject(qtm, QScriptEngine::ScriptOwnership);
         }
-    return context->throwError(QObject::tr("ruppert(xCount: Integer, yCount: Integer, origin: Point2D, width: Floating, height: Floating): arguments count error."));
+    return context->throwError(QObject::tr("ruppert(xCount: Integer, yCount: Integer, origin: Point, width: Floating, height: Floating): arguments count error."));
 }
 
 QScriptValue QZScriptEngine::createQuadrilateralMesh3D(QScriptContext *context, QScriptEngine *engine)
@@ -892,7 +937,7 @@ QScriptValue QZScriptEngine::sum(QScriptContext *context, QScriptEngine *engine)
         {
             for (int i = 1; i < context->argumentCount(); i++)
                 if (qscriptvalue_cast<QPoint2D*>(context->argument(i)) == NULL)
-                    return context->throwError(typeError.arg("Point2D"));
+                    return context->throwError(typeError.arg("Point"));
             QPoint2D *p0 = qscriptvalue_cast<QPoint2D*>(context->argument(0));
             QPoint2D *sum = new QPoint2D(*p0);
             for (int i = 1; i < context->argumentCount(); i++)

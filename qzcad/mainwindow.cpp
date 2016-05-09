@@ -1104,43 +1104,43 @@ void MainWindow::on_actionAngleAspect_triggered()
 
 void MainWindow::on_actionSegments_triggered()
 {
-    QString command = "var mesh = new Segments2D(xCount: Integer, yCount: Integer, origin: new Point2D(x, y), width: Floating, height: Floating, function (x, y) { return value; } [, points: Array]);";
+    QString command = "var mesh = new Segments2D(xCount: Integer, yCount: Integer, origin: new Point(x, y), width: Floating, height: Floating, function (x, y) { return value; } [, points: Array]);";
     ui->codeEditor->insertPlainText(command);
 }
 
 void MainWindow::on_actionTrianglesScript_triggered()
 {
-    QString command = "var mesh = new Triangles2D(xCount: Integer, yCount: Integer, origin: new Point2D(x, y), width: Floating, height: Floating, function (x, y) { return value; } [, points: Array]);";
+    QString command = "var mesh = new Triangles2D(xCount: Integer, yCount: Integer, origin: new Point(x, y), width: Floating, height: Floating, function (x, y) { return value; } [, points: Array]);";
     ui->codeEditor->insertPlainText(command);
 }
 
 void MainWindow::on_actionQuadsScript_triggered()
 {
-    QString command = "var mesh = new Quads2D(xCount: Integer, yCount: Integer, origin: new Point2D(x, y), width: Floating, height: Floating, function (x, y) { return value; } [, points: Array]);";
+    QString command = "var mesh = new Quads2D(xCount: Integer, yCount: Integer, origin: new Point(x, y), width: Floating, height: Floating, function (x, y) { return value; } [, points: Array]);";
     ui->codeEditor->insertPlainText(command);
 }
 
 void MainWindow::on_actionDelaunayTriScript_triggered()
 {
-    QString command = "var mesh = new delaunay(xCount: Integer, yCount: Integer, origin: new Point2D(x, y), width: Floating, height: Floating, function (x, y) { return value; } [, points: Array]);";
+    QString command = "var mesh = new delaunay(xCount: Integer, yCount: Integer, origin: new Point(x, y), width: Floating, height: Floating, function (x, y) { return value; } [, points: Array]);";
     ui->codeEditor->insertPlainText(command);
 }
 
 void MainWindow::on_actionRuppertTriScript_triggered()
 {
-    QString command = "var mesh = new ruppert(xCount: Integer, yCount: Integer, origin: new Point2D(x, y), width: Floating, height: Floating, function (x, y) { return value; } [, points: Array]);";
+    QString command = "var mesh = new ruppert(xCount: Integer, yCount: Integer, origin: new Point(x, y), width: Floating, height: Floating, function (x, y) { return value; } [, points: Array]);";
     ui->codeEditor->insertPlainText(command);
 }
 
 void MainWindow::on_actionRectangularTriScript_triggered()
 {
-    QString command = "var mesh = new Triangles2D(xCount: Integer, yCount: Integer, origin: new Point2D(x, y), width: Floating, height: Floating);";
+    QString command = "var mesh = new Triangles2D(xCount: Integer, yCount: Integer, origin: new Point(x, y), width: Floating, height: Floating);";
     ui->codeEditor->insertPlainText(command);
 }
 
 void MainWindow::on_actionRectangularQuadsScript_triggered()
 {
-    QString command = "var mesh = new Quads2D(xCount: Integer, yCount: Integer, origin: new Point2D(x, y), width: Floating, height: Floating);";
+    QString command = "var mesh = new Quads2D(xCount: Integer, yCount: Integer, origin: new Point(x, y), width: Floating, height: Floating);";
     ui->codeEditor->insertPlainText(command);
 }
 

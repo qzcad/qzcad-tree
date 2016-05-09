@@ -22,7 +22,7 @@ SegmentMesh2D::SegmentMesh2D(const SegmentMesh2D *mesh) : Mesh2D(mesh)
     node_ = mesh->node_;
 }
 
-void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint)
+void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint, bool isOptimized)
 {
     clear();
     xMin_ = xMin;
@@ -99,8 +99,9 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
             {
                 Point2D prev = border[edge_table[index][ii]];
                 Point2D next = border[edge_table[index][ii + 1]];
-                UInteger ii0 = addNode(prev, BORDER, minDistance);
-                UInteger ii1 = addNode(next, BORDER, minDistance);
+                // упорядоченное добавление узлов
+                UInteger ii0 = (prev.x() < next.x()) ? addNode(prev, BORDER, minDistance) : addNode(next, BORDER, minDistance);
+                UInteger ii1 = (prev.x() < next.x()) ? addNode(next, BORDER, minDistance) : addNode(prev, BORDER, minDistance);
                 if (ii0 != ii1)
                 {
                     addElement(ii0, ii1);
@@ -142,9 +143,10 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
         }
     }
     // оптимизация по кривизне границы
-    for (int it = 0; it < 4; ++it)
+    for (int it = 0; (it < 4) && isOptimized; ++it)
     {
         std::cout << "Curvature it " << it << " ";
+        isOptimized = false;
         UInteger es = element_.size();
         for (UInteger i = 0; i < es; i++)
         {
@@ -155,12 +157,12 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
             Point2D n(v.y(), -v.x());
             Point2D c = 0.5 * (a + b);
             double l = v.length();
-            Point2D p0 = -l * n.normalized() + c;
-            Point2D p1 = l * n.normalized() + c;
+            Point2D p0 = (-0.25 * l * n.normalized()) + c;
+            Point2D p1 = (0.25 * l * n.normalized()) + c;
             if (func(p0.x(), p0.y()) * func(p1.x(), p1.y()) < epsilon_)
             {
                 Point2D border = binary(p0, p1, func);
-                if (!border.isEqualTo(c, 0.075 * l))
+                if (!border.isEqualTo(c, 0.08 * l))
                 {
                     UInteger j = pushNode(border, BORDER);
                     addElement(j, s[1]);
@@ -168,6 +170,7 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
                     element_[i][1] = j;
                     node_[j].adjacent.insert(i);
                     std::cout << '+';
+                    isOptimized = true;
                 }
             }
             else
@@ -177,9 +180,10 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
         }
         std::cout << std::endl;
     }
+    std::cout << "Segments mesh: nodes - " << nodesCount() << " elements - " << elementsCount() << std::endl;
 }
 
-void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func_a, std::function<double (double, double)> func_b, std::list<Point2D> charPoint)
+void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func_a, std::function<double (double, double)> func_b, std::list<Point2D> charPoint, double delta)
 {
     clear();
     SegmentMesh2D mesh_a, mesh_b;
@@ -194,8 +198,8 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
         if (fabs(func_a(point.x(), point.y())) < epsilon_) points_a.push_back(point);
         if (fabs(func_b(point.x(), point.y())) < epsilon_) points_b.push_back(point);
     }
-    mesh_a.functionalDomain(xCount, yCount, xMin, yMin, width, height, func_a, points_a);
-    mesh_b.functionalDomain(xCount, yCount, xMin, yMin, width, height, func_b, points_b);
+    mesh_a.functionalDomain(xCount, yCount, xMin, yMin, width, height, func_a, points_a, true);
+    mesh_b.functionalDomain(xCount, yCount, xMin, yMin, width, height, func_b, points_b, true);
     node_ = mesh_a.node_;
     element_ = mesh_a.element_;
     for (ElementIterator el_b = mesh_b.element_.begin(); el_b != mesh_b.element_.end(); ++el_b)
@@ -203,22 +207,24 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
         Segment seg = *el_b;
         Node2D n0 = mesh_b.node_[seg[0]];
         Node2D n1 = mesh_b.node_[seg[1]];
-        UInteger ii0 = addNode(n0.point, n0.type, 100.0 * epsilon_);
-        UInteger ii1 = addNode(n1.point, n1.type, 100.0 * epsilon_);
+        seg[0] = addNode(n0.point, n0.type, 100.0 * epsilon_);
+        seg[1] = addNode(n1.point, n1.type, 100.0 * epsilon_);
+        // Новый элемент добавляем, если такого элемента нет
         bool exist = false;
         for (ElementIterator el_a = element_.begin(); el_a != element_.end(); ++el_a)
-            if ((*el_a)[0] == ii0 && (*el_a)[1] == ii1 || (*el_a)[1] == ii0 && (*el_a)[0] == ii1)
+            if (seg.isSame(*el_a))
             {
                 exist = true;
                 break;
             }
         if (!exist)
-            addElement(ii0, ii1);
+            addElement(seg);
     }
+    // сгущение сетки в окрестности контакта
     UInteger baseElementsCount = elementsCount();
-    double delta = 0.5;
     for (UInteger i = 0; i < baseElementsCount; i++)
     {
+        // во все элементы, находящиеся в окрестности контакта добавляем узел в серидину
         Segment seg = element_[i];
         Point2D p0 = node_[seg[0]].point;
         Point2D p1 = node_[seg[1]].point;
@@ -249,13 +255,18 @@ ElementPointer SegmentMesh2D::element(const UInteger &number) const
     return elementPtr;
 }
 
+void SegmentMesh2D::addElement(const Segment &segment)
+{
+    element_.push_back(segment);
+    // обновление списка смежных узлов
+    node_[segment[0]].adjacent.insert(element_.size() - 1);
+    node_[segment[1]].adjacent.insert(element_.size() - 1);
+}
+
 void SegmentMesh2D::addElement(const UInteger &node0, const UInteger &node1)
 {
     Segment segment(node0, node1);
-    element_.push_back(segment);
-    // обновление списка смежных узлов
-    node_[node0].adjacent.insert(element_.size() - 1);
-    node_[node1].adjacent.insert(element_.size() - 1);
+    addElement(segment);
 }
 
 void SegmentMesh2D::addElement(const std::vector<UInteger> &nodes_ref)

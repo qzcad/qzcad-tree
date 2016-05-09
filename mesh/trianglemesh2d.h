@@ -156,6 +156,21 @@ public:
      */
     void ruppert(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, bool refineArea = false);
     /**
+     * @brief Триангуляция Делоне с использованием метода Рапперта для контактных задач
+     * @param xCount Количество узлов вдоль оси абсцисс
+     * @param yCount Количество узлов вдоль оси ординат
+     * @param xMin Абсцисса нижнего левого угла прямоугольной области
+     * @param yMin Ордината нижнего левого угла прямоугольной области
+     * @param width Ширина прямоугольной области
+     * @param height Высота прямоугольной области
+     * @param func_a Функция области A
+     * @param func_b Функция области B
+     * @param charPoint Список характерных точек
+     * @param delta Параметр сгущения элементов в окрестности контакта (если меньше 0, то сгущение отсутствует)
+     * @param refineArea Флаг, указывающий на необходимость оптимизации по площади
+     */
+    void ruppert(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func_a, std::function<double(double, double)> func_b, std::list<Point2D> charPoint, double delta = -1.0, bool refineArea = false);
+    /**
      * @brief Элемент сетки (треугольник)
      * @param number Номер треугольника
      * @return Треугольник с указанным номером
