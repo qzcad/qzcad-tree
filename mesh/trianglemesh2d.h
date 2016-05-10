@@ -236,6 +236,7 @@ protected:
      * @param Triangulation Ссылка на триангуляцию Делоне супер области
      */
     void superRuppert(Triangulation &triangulation);
+    void splitSegments(Triangulation &triangulation);
     /**
      * @brief Метод контроля за максимальной площадью элемента на основе вставки нового узла в центр масс
      * @param func Функция области (обрабатываются только внутренние элементы)

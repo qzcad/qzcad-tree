@@ -150,8 +150,6 @@ UInteger Mesh2D::addNode(const Point2D &point, const NodeType &type, double epsi
         {
             if ((node_[i].type == INNER || node_[i].type == BORDER) && (type == BORDER || type == CHARACTER)) // обновление типа узла
                 node_[i].type = type;
-            if (point.x() < node_[i].point.x() || (point.x() == node_[i].point.x() && point.y() < node_[i].point.y()))
-                node_[i].point = point; // приоритет "меньшим" координатам для упорядоченного добавления
             return i;
         }
     }

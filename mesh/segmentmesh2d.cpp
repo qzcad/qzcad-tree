@@ -198,8 +198,13 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
         if (fabs(func_a(point.x(), point.y())) < epsilon_) points_a.push_back(point);
         if (fabs(func_b(point.x(), point.y())) < epsilon_) points_b.push_back(point);
     }
-    mesh_a.functionalDomain(xCount, yCount, xMin, yMin, width, height, func_a, points_a, false);
-    mesh_b.functionalDomain(xCount, yCount, xMin, yMin, width, height, func_b, points_b, false);
+    mesh_a.functionalDomain(xCount, yCount, xMin, yMin, width, height, func_a, points_a, true);
+    for (UInteger i = 0 ; i < mesh_a.nodesCount(); i++)
+    {
+        Point2D point = mesh_a.node_[i].point;
+        if (fabs(func_b(point.x(), point.y())) < epsilon_) points_b.push_back(point);
+    }
+    mesh_b.functionalDomain(xCount, yCount, xMin, yMin, width, height, func_b, points_b, true);
     node_ = mesh_a.node_;
     element_ = mesh_a.element_;
     for (ElementIterator el_b = mesh_b.element_.begin(); el_b != mesh_b.element_.end(); ++el_b)
@@ -226,18 +231,27 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
     {
         // во все элементы, находящиеся в окрестности контакта добавляем узел в серидину
         Segment seg = element_[i];
-        Point2D p0 = node_[seg[0]].point;
-        Point2D p1 = node_[seg[1]].point;
-        double a0 = func_a(p0.x(), p0.y()), b0 = func_b(p0.x(), p0.y());
-        double a1 = func_a(p1.x(), p1.y()), b1 = func_b(p1.x(), p1.y());
-        if (sqrt(a0*a0 + b0*b0) < delta || sqrt(a1*a1 + b1*b1) < delta)
+        Point2D a = node_[seg[0]].point;
+        Point2D b = node_[seg[1]].point;
+        double val_a_a = func_a(a.x(), a.y()), val_a_b = func_b(a.x(), a.y());
+        double val_b_a = func_a(b.x(), b.y()), val_b_b = func_b(b.x(), b.y());
+        if (sqrt(val_a_a*val_a_a + val_a_b*val_a_b) < delta || sqrt(val_b_a*val_b_a + val_b_b*val_b_b) < delta)
         {
-            Point2D c = 0.5 * (p0 + p1);
-            UInteger ic = pushNode(c, BORDER);
-            addElement(ic, seg[1]);
-            node_[seg[1]].adjacent.erase(i);
-            element_[i][1] = ic;
-            node_[ic].adjacent.insert(i);
+            Point2D v(a, b);
+            Point2D n(v.y(), -v.x());
+            Point2D c = 0.5 * (a + b);
+            double l = v.length();
+            Point2D p0 = (-0.25 * l * n.normalized()) + c;
+            Point2D p1 = (0.25 * l * n.normalized()) + c;
+            if (func_a(p0.x(), p0.y()) * func_a(p1.x(), p1.y()) < epsilon_)
+            {
+                Point2D border = binary(p0, p1, func_a);
+                UInteger ic = pushNode(border, CHARACTER);
+                addElement(ic, seg[1]);
+                node_[seg[1]].adjacent.erase(i);
+                element_[i][1] = ic;
+                node_[ic].adjacent.insert(i);
+            }
         }
     }
 
