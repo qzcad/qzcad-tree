@@ -100,8 +100,8 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
                 Point2D prev = border[edge_table[index][ii]];
                 Point2D next = border[edge_table[index][ii + 1]];
                 // упорядоченное добавление узлов
-                UInteger ii0 = (prev.x() < next.x()) ? addNode(prev, BORDER, minDistance) : addNode(next, BORDER, minDistance);
-                UInteger ii1 = (prev.x() < next.x()) ? addNode(next, BORDER, minDistance) : addNode(prev, BORDER, minDistance);
+                UInteger ii0 = (prev.x() < next.x() || (prev.x() == next.x() && prev.y() < next.y())) ? addNode(prev, BORDER, minDistance) : addNode(next, BORDER, minDistance);
+                UInteger ii1 = (prev.x() < next.x() || (prev.x() == next.x() && prev.y() < next.y())) ? addNode(next, BORDER, minDistance) : addNode(prev, BORDER, minDistance);
                 if (ii0 != ii1)
                 {
                     addElement(ii0, ii1);
@@ -198,8 +198,8 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
         if (fabs(func_a(point.x(), point.y())) < epsilon_) points_a.push_back(point);
         if (fabs(func_b(point.x(), point.y())) < epsilon_) points_b.push_back(point);
     }
-    mesh_a.functionalDomain(xCount, yCount, xMin, yMin, width, height, func_a, points_a, true);
-    mesh_b.functionalDomain(xCount, yCount, xMin, yMin, width, height, func_b, points_b, true);
+    mesh_a.functionalDomain(xCount, yCount, xMin, yMin, width, height, func_a, points_a, false);
+    mesh_b.functionalDomain(xCount, yCount, xMin, yMin, width, height, func_b, points_b, false);
     node_ = mesh_a.node_;
     element_ = mesh_a.element_;
     for (ElementIterator el_b = mesh_b.element_.begin(); el_b != mesh_b.element_.end(); ++el_b)

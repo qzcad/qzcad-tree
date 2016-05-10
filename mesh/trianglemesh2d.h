@@ -93,7 +93,12 @@ public:
      */
     virtual double area(const UInteger &number) const;
     /**
-     * @brief Добавить элемент (треугольник)
+     * @brief Добавить элемент к сетке
+     * @param triangle Экземпляр элемента (треугольник)
+     */
+    void addElement(const Triangle &triangle);
+    /**
+     * @brief Добавить элемент к сетке
      * @param node0 Номер (хеш-код) узла
      * @param node1 Номер (хеш-код) узла
      * @param node2 Номер (хеш-код) узла
@@ -270,6 +275,7 @@ protected:
     bool circumCircle(double xp, double yp, double x1, double y1, double x2, double y2, double x3, double y3, double &xc, double &yc, double &r);
 protected:
     std::vector<Triangle> element_; //!< Массив элементов
+    typedef std::vector<Triangle>::iterator ElementIterator;
 };
 }
 

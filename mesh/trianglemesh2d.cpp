@@ -434,19 +434,25 @@ double TriangleMesh2D::area(const UInteger &number) const
     return 0.5 * fabs( (b.x() - a.x()) * (c.y() - a.y()) - (c.x() - a.x()) * (b.y() - a.y()) );
 }
 
+void TriangleMesh2D::addElement(const Triangle &triangle)
+{
+    element_.push_back(triangle);
+    // обновление списка смежных узлов
+    node_[triangle[0]].adjacent.insert(element_.size() - 1);
+    node_[triangle[1]].adjacent.insert(element_.size() - 1);
+    node_[triangle[2]].adjacent.insert(element_.size() - 1);
+}
+
 void TriangleMesh2D::addElement(const UInteger &node0, const UInteger &node1, const UInteger &node2)
 {
     Triangle triangle(node0, node1, node2);
-    element_.push_back(triangle);
-    // обновление списка смежных узлов
-    node_[node0].adjacent.insert(element_.size() - 1);
-    node_[node1].adjacent.insert(element_.size() - 1);
-    node_[node2].adjacent.insert(element_.size() - 1);
+    addElement(triangle);
 }
 
 void TriangleMesh2D::addElement(const std::vector<UInteger> &nodes_ref)
 {
-    addElement(nodes_ref[0], nodes_ref[1], nodes_ref[2]);
+    Triangle triangle(nodes_ref[0], nodes_ref[1], nodes_ref[2]);
+    addElement(triangle);
 }
 
 double TriangleMesh2D::jacobian(const UInteger &elementNum)
@@ -710,9 +716,182 @@ void TriangleMesh2D::ruppert(const UInteger &xCount, const UInteger &yCount, con
         if (fabs(func_b(point.x(), point.y())) < epsilon_) points_b.push_back(point);
     }
     mesh_a.ruppert(xCount, yCount, xMin, yMin, width, height, func_a, points_a, true);
-//    mesh_b.ruppert(xCount, yCount, xMin, yMin, width, height, func_b, points_b, true);
+    mesh_b.ruppert(xCount, yCount, xMin, yMin, width, height, func_b, points_b, true);
     node_ = mesh_a.node_;
     element_ = mesh_a.element_;
+
+    for (ElementIterator el_b = mesh_b.element_.begin(); el_b != mesh_b.element_.end(); ++el_b)
+    {
+        Triangle tri = *el_b;
+        Node2D n0 = mesh_b.node_[tri[0]];
+        Node2D n1 = mesh_b.node_[tri[1]];
+        Node2D n2 = mesh_b.node_[tri[2]];
+        tri[0] = addNode(n0.point, n0.type, 100.0 * epsilon_);
+        tri[1] = addNode(n1.point, n1.type, 100.0 * epsilon_);
+        tri[2] = addNode(n2.point, n2.type, 100.0 * epsilon_);
+        addElement(tri);
+    }
+
+//    SegmentMesh2D mesh;
+//    mesh.functionalDomain(xCount, yCount, xMin, yMin, width, height, func_a, func_b, charPoint, delta);
+
+//    Triangulation triangulation = superDelaunay(&mesh);
+
+//    superRuppert(triangulation);
+////    if (refineArea)
+////    {
+////        areaRefinement(3.0 * (width / (double)(xCount - 1) * height / (double)(yCount - 1)), func, triangulation);
+////        superRuppert(triangulation);
+////    }
+
+//    UInteger niter = 0;
+//    std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
+//    while (triangle != triangulation.triangles.end() && niter < 4294967294UL)
+//    {
+//        if (triangle->vertexNode(0) > 3 && triangle->vertexNode(1) > 3 && triangle->vertexNode(2) > 3)
+//        {
+//            Point2D A = triangulation.nodes[triangle->vertexNode(0)];
+//            Point2D B = triangulation.nodes[triangle->vertexNode(1)];
+//            Point2D C = triangulation.nodes[triangle->vertexNode(2)];
+//            Point2D AB = 0.5 * (A + B);
+//            Point2D AC = 0.5 * (A + C);
+//            Point2D BC = 0.5 * (B + C);
+//            double val_a = func_a(A.x(), A.y());
+//            double val_b = func_a(B.x(), B.y());
+//            double val_c = func_a(C.x(), C.y());
+//            double val_ab = func_a(AB.x(), AB.y());
+//            double val_bc = func_a(BC.x(), BC.y());
+//            double val_ac = func_a(AC.x(), AC.y());
+
+//            if (fabs(val_a) > epsilon_ && fabs(val_ab) > epsilon_ && val_a * val_ab < 0.0)
+//            {
+//                Point2D p = binary(A, AB, func_a);
+//                if (insertDelaunayNode(p, BORDER, triangulation.nodes, triangulation.types, triangulation.triangles))
+//                {
+//                    triangle = triangulation.triangles.begin();
+//                    ++niter;
+//                    continue;
+//                }
+//            }
+//            else if (fabs(val_b) > epsilon_ && fabs(val_ab) > epsilon_ && val_b * val_ab < 0.0)
+//            {
+//                Point2D p = binary(B, AB, func_a);
+//                if (insertDelaunayNode(p, BORDER, triangulation.nodes, triangulation.types, triangulation.triangles))
+//                {
+//                    triangle = triangulation.triangles.begin();
+//                    ++niter;
+//                    continue;
+//                }
+//            }
+//            if (fabs(val_a) > epsilon_ && fabs(val_ac) > epsilon_ && val_a * val_ac < 0.0)
+//            {
+//                Point2D p = binary(A, AC, func_a);
+//                if (insertDelaunayNode(p, BORDER, triangulation.nodes, triangulation.types, triangulation.triangles))
+//                {
+//                    triangle = triangulation.triangles.begin();
+//                    ++niter;
+//                    continue;
+//                }
+//            }
+//            else if (fabs(val_c) > epsilon_ && fabs(val_ac) > epsilon_ && val_c * val_ac < 0.0)
+//            {
+//                Point2D p = binary(C, AC, func_a);
+//                if (insertDelaunayNode(p, BORDER, triangulation.nodes, triangulation.types, triangulation.triangles))
+//                {
+//                    triangle = triangulation.triangles.begin();
+//                    ++niter;
+//                    continue;
+//                }
+//            }
+//            if (fabs(val_b) > epsilon_ && fabs(val_bc) > epsilon_ && val_b * val_bc < 0.0)
+//            {
+//                Point2D p = binary(B, BC, func_a);
+//                if (insertDelaunayNode(p, BORDER, triangulation.nodes, triangulation.types, triangulation.triangles))
+//                {
+//                    triangle = triangulation.triangles.begin();
+//                    ++niter;
+//                    continue;
+//                }
+//            }
+//            else if (fabs(val_c) > epsilon_ && fabs(val_bc) > epsilon_ && val_c * val_bc < 0.0)
+//            {
+//                Point2D p = binary(C, BC, func_a);
+//                if (insertDelaunayNode(p, BORDER, triangulation.nodes, triangulation.types, triangulation.triangles))
+//                {
+//                    triangle = triangulation.triangles.begin();
+//                    ++niter;
+//                    continue;
+//                }
+//            }
+
+//        }
+//        ++triangle;
+
+//    }
+//    std::cout << "Edges niter: " << niter << std::endl;
+
+//    for (std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
+//             triangle != triangulation.triangles.end(); )
+//    {
+//        Point2D A = triangulation.nodes[triangle->vertexNode(0)];
+//        Point2D B = triangulation.nodes[triangle->vertexNode(1)];
+//        Point2D C = triangulation.nodes[triangle->vertexNode(2)];
+//        Point2D center = 1.0 / 3.0 * (A + B + C);
+//        double val_a_a = func_a(A.x(), A.y());
+//        double val_b_a = func_a(B.x(), B.y());
+//        double val_c_a = func_a(C.x(), C.y());
+//        double val_center_a = func_a(center.x(), center.y());
+//        double val_a_b = func_b(A.x(), A.y());
+//        double val_b_b = func_b(B.x(), B.y());
+//        double val_c_b = func_b(C.x(), C.y());
+//        double val_center_b = func_b(center.x(), center.y());
+//        //            double val_center_b = func_b(center.x(), center.y());
+//        if (!((val_a_a >= -epsilon_ || val_a_b >= -epsilon_) && (val_b_a >= -epsilon_ || val_b_b >= -epsilon_) &&
+//                (val_c_a >= -epsilon_ || val_c_b >= -epsilon_) && (val_center_a >= -epsilon_ || val_center_b >= -epsilon_)))
+//        {
+//            triangle = triangulation.triangles.erase(triangle);
+//        }
+//        else
+//        {
+//             triangle++;
+//        }
+//    }
+
+//    superRuppert(triangulation);
+
+//    for (std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
+//             triangle != triangulation.triangles.end(); ++triangle)
+//    {
+//        if (triangle->vertexNode(0) > 3 && triangle->vertexNode(1) > 3 && triangle->vertexNode(2) > 3)
+//        {
+//            Point2D A = triangulation.nodes[triangle->vertexNode(0)];
+//            Point2D B = triangulation.nodes[triangle->vertexNode(1)];
+//            Point2D C = triangulation.nodes[triangle->vertexNode(2)];
+//            Point2D center = 1.0 / 3.0 * (A + B + C);
+//            double val_a_a = func_a(A.x(), A.y());
+//            double val_b_a = func_a(B.x(), B.y());
+//            double val_c_a = func_a(C.x(), C.y());
+//            double val_center_a = func_a(center.x(), center.y());
+//            double val_a_b = func_b(A.x(), A.y());
+//            double val_b_b = func_b(B.x(), B.y());
+//            double val_c_b = func_b(C.x(), C.y());
+//            double val_center_b = func_b(center.x(), center.y());
+//            //            double val_center_b = func_b(center.x(), center.y());
+//            if ((val_a_a >= -epsilon_ || val_a_b >= -epsilon_) && (val_b_a >= -epsilon_ || val_b_b >= -epsilon_) &&
+//                    (val_c_a >= -epsilon_ || val_c_b >= -epsilon_) && (val_center_a >= -epsilon_ || val_center_b >= -epsilon_))
+//            {
+//                addElement(addNode(A, triangulation.types[triangle->vertexNode(0)]),
+//                        addNode(B, triangulation.types[triangle->vertexNode(1)]),
+//                        addNode(C, triangulation.types[triangle->vertexNode(2)]));
+//            }
+//            else
+//            {
+//                std::cout << "hmm" << std::endl;
+//            }
+//        }
+//    }
+//    xMin_ = mesh.xMin(); xMax_ = mesh.xMax();
+//    yMin_ = mesh.yMin(); yMax_ = mesh.yMax();
 
 //    SegmentMesh2D mesh;
 //    mesh.functionalDomain(xCount, yCount, xMin, yMin, width, height, func_a, func_b, charPoint, delta);
