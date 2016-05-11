@@ -140,4 +140,9 @@ Point2D::PointToSegment Point2D::classify(const Point2D &p0, const Point2D &p1)
         return DESTINATION;
     return BETWEEN;
 }
+
+Point2D Point2D::perpendicular() const
+{
+    return Point2D(-y(), x());
+}
 }

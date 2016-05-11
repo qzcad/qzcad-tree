@@ -64,7 +64,7 @@ public:
      * @brief Метод построения триангуляции Делоне заданного двумерного конутра
      * @param mesh Указатель на контур
      */
-    void delaunay(const SegmentMesh2D *mesh);
+    void delaunay(SegmentMesh2D *mesh);
     /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
@@ -230,12 +230,12 @@ protected:
      * @param mesh Указатель на сетку-контур
      * @return Триаунгуляцию, как выпуклого множества
      */
-    Triangulation superDelaunay(const SegmentMesh2D *mesh);
+    Triangulation superDelaunay(SegmentMesh2D *mesh, std::function<double(double, double)> func);
     /**
      * @brief Оптимизация триангуляции Делоне методом Рапперта (супер область)
      * @param Triangulation Ссылка на триангуляцию Делоне супер области
      */
-    void superRuppert(Triangulation &triangulation);
+    void superRuppert(Triangulation &triangulation, SegmentMesh2D *mesh, std::function<double(double, double)> func);
     void splitSegments(Triangulation &triangulation);
     /**
      * @brief Метод контроля за максимальной площадью элемента на основе вставки нового узла в центр масс

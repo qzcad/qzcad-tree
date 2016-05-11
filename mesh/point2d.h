@@ -122,6 +122,11 @@ public:
         DESTINATION //!< Конец
     };
     PointToSegment classify(const Point2D &p0, const Point2D &p1);
+    /**
+     * @brief Метод возвращает вектор, перепендикулярный текущему (x, y) _|_ (-y, x)
+     * @return Экзмепляр перпендикулярного вектора
+     */
+    Point2D perpendicular() const;
 private:
     double y_; //!< Ордината точки
 };

@@ -69,6 +69,7 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
         1 | 8, // 14
         0 //15
     };
+    std::cout << "Character nodes: " << charPoint.size() << std::endl;
     for (std::list<Point2D>::iterator cPoint = charPoint.begin(); cPoint != charPoint.end(); ++cPoint)
     {
         pushNode(*cPoint, CHARACTER);
@@ -154,11 +155,11 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
             Point2D a = node_[s[0]].point;
             Point2D b = node_[s[1]].point;
             Point2D v(a, b);
-            Point2D n(v.y(), -v.x());
+            Point2D n = v.perpendicular().normalized();
             Point2D c = 0.5 * (a + b);
             double l = v.length();
-            Point2D p0 = (-0.25 * l * n.normalized()) + c;
-            Point2D p1 = (0.25 * l * n.normalized()) + c;
+            Point2D p0 = (-0.25 * l * n) + c;
+            Point2D p1 = (0.25 * l * n) + c;
             if (func(p0.x(), p0.y()) * func(p1.x(), p1.y()) < epsilon_)
             {
                 Point2D border = binary(p0, p1, func);
@@ -192,13 +193,15 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
     xMax_ = xMin + width;
     yMin_ = yMin;
     yMax_ = yMin + height;
+    // формировка массивов особых точек
     for (std::list<Point2D>::iterator p = charPoint.begin(); p != charPoint.end(); ++p)
     {
         Point2D point = *p;
         if (fabs(func_a(point.x(), point.y())) < epsilon_) points_a.push_back(point);
-        if (fabs(func_b(point.x(), point.y())) < epsilon_) points_b.push_back(point);
+        else if (fabs(func_b(point.x(), point.y())) < epsilon_) points_b.push_back(point); // общие точки добавятся во время обработки узлов зоны контакта
     }
     mesh_a.functionalDomain(xCount, yCount, xMin, yMin, width, height, func_a, points_a, true);
+    // обработка узлов зоны контакта
     for (UInteger i = 0 ; i < mesh_a.nodesCount(); i++)
     {
         Point2D point = mesh_a.node_[i].point;
@@ -238,11 +241,11 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
         if (sqrt(val_a_a*val_a_a + val_a_b*val_a_b) < delta || sqrt(val_b_a*val_b_a + val_b_b*val_b_b) < delta)
         {
             Point2D v(a, b);
-            Point2D n(v.y(), -v.x());
+            Point2D n = v.perpendicular().normalized();
             Point2D c = 0.5 * (a + b);
             double l = v.length();
-            Point2D p0 = (-0.25 * l * n.normalized()) + c;
-            Point2D p1 = (0.25 * l * n.normalized()) + c;
+            Point2D p0 = (-0.25 * l * n) + c;
+            Point2D p1 = (0.25 * l * n) + c;
             if (func_a(p0.x(), p0.y()) * func_a(p1.x(), p1.y()) < epsilon_)
             {
                 Point2D border = binary(p0, p1, func_a);
@@ -311,6 +314,95 @@ Segment SegmentMesh2D::segment(const UInteger &number) const
 void SegmentMesh2D::clearElements()
 {
     element_.clear();
+}
+
+bool SegmentMesh2D::isCrossedElement(const Point2D &p0, const Point2D &p1, UInteger &number)
+{
+    double x[2][2], y[2][2];
+    double A[2], B[2], C[2];
+    double det;
+    double t[2];
+    x[0][0] = p0.x();
+    y[0][0] = p0.y();
+    x[1][0] = p1.x();
+    y[1][0] = p1.y();
+    for (ElementIterator el = element_.begin(); el != element_.end(); ++el)
+    {
+        Segment segment = *el;
+        Point2D p0 = node_[segment[0]].point;
+        Point2D p1 = node_[segment[1]].point;
+        x[0][1] = p0.x();
+        y[0][1] = p0.y();
+        x[1][1] = p1.x();
+        y[1][1] = p1.y();
+        A[0] = x[1][0] - x[0][0];
+        A[1] = y[1][0] - y[0][0];
+        B[0] = x[0][1] - x[1][1];
+        B[1] = y[0][1] - y[1][1];
+        C[0] = x[0][1] - x[0][0];
+        C[1] = y[0][1] - y[0][0];
+        det = A[0] * B[1] - B[0] * A[1];
+        if (fabs(det) > epsilon_)
+        {
+            t[0] = (C[0] * B[1] - B[0] * C[1]) / det;
+            t[1] = (A[0] * C[1] - C[0] * A[1]) / det;
+            if (t[0] > - epsilon_ && t[0] < 1.0 + epsilon_ && t[1] > epsilon_ && t[1] < 1.0 - epsilon_)
+            {
+                // точка пересечения находится строго можду началом у концом второго отрезка (возможно совпадение с началом или концом первого отрезка)
+                number = el - element_.begin();
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+Point2D SegmentMesh2D::refineMidpoint(const UInteger &number, std::function<double(double, double)> func)
+{
+    Segment seg = element_[number];
+    Point2D a = node_[seg[0]].point;
+    Point2D b = node_[seg[1]].point;
+    Point2D v(a, b);
+    Point2D n = v.perpendicular().normalized();
+    Point2D c = 0.5 * (a + b);
+    double l = v.length();
+    Point2D p0 = ((-0.25 * l) * n) + c;
+    Point2D p1 = ((0.25 * l) * n) + c;
+    Point2D border = c;
+    if (func != nullptr && func(p0.x(), p0.y()) * func(p1.x(), p1.y()) < epsilon_)
+    {
+        border = binary(p0, p1, func);
+    }
+    else if (func != nullptr)
+    {
+        std::cout << "l = " << l << std::endl;
+        std::cout << "c: " << c.x() << " " << c.y() << std::endl;
+        std::cout << p0.x() << ", " << p0.y() << "; " << p1.x() << ", " << p1.y() << ": "<< func(p0.x(), p0.y()) << " * " << func(p1.x(), p1.y()) << std::endl;
+    }
+    UInteger ic = pushNode(border, BORDER);
+    addElement(ic, seg[1]);
+    node_[seg[1]].adjacent.erase(number);
+    element_[number][1] = ic;
+    node_[ic].adjacent.insert(number);
+    return border;
+}
+
+bool SegmentMesh2D::isEncroached(const Point2D &point, UInteger &number)
+{
+    for (ElementIterator el = element_.begin(); el != element_.end(); ++el)
+    {
+        Segment segment = *el;
+        Point2D p0 = node_[segment[0]].point;
+        Point2D p1 = node_[segment[1]].point;
+        Point2D c = 0.5 * (p0 + p1);
+        double r = p0.distanceTo(p1) / 2.0;
+        if (c.distanceTo(point) < r - epsilon_)
+        {
+            number = el - element_.begin();
+            return true;
+        }
+    }
+    return false;
 }
 
 }

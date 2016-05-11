@@ -117,6 +117,28 @@ public:
      * @brief Метод очищает информацию об елементах
      */
     virtual void clearElements();
+    /**
+     * @brief Метод проверяет пересечение заданного отрезка сегментом сетки (! строго его внутренней частью)
+     * @param p0 Первая точка отрезка
+     * @param p1 Вторая точка отрезка
+     * @param number Номер первого сегмента, с которым найдено пересечение
+     * @return true, если был найден походящий сегмент
+     */
+    bool isCrossedElement(const Point2D &p0, const Point2D &p1, UInteger &number);
+    /**
+     * @brief Метод репроекции средины сегмента на границу
+     * @param number Номер сегмента (элемента)
+     * @param func Функция области
+     * @return Координаты нового узла
+     */
+    Point2D refineMidpoint(const UInteger &number, std::function<double(double, double)> func);
+    /**
+     * @brief Метод проверяет попадание точки в окружность, радиусом которой приходится один из сегментов (элементов)
+     * @param point Координаты точки
+     * @param number Номер первого элемента, для которого обнаружено вхождение
+     * @return true, если был найден походящий сегмент
+     */
+    bool isEncroached(const Point2D &point, UInteger &number);
 protected:
 
 private:
