@@ -47,7 +47,7 @@ public:
     /// Объявление полей, доступных в скриптах
     Q_PROPERTY(double x READ x WRITE setX) //!< Абсцисса
     Q_PROPERTY(double y READ y WRITE setY) //!< Ордината
-    Q_PROPERTY(double y READ z WRITE setZ) //!< Аппликата
+    Q_PROPERTY(double z READ z WRITE setZ) //!< Аппликата
 signals:
 
 public slots:
