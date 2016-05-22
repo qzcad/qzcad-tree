@@ -78,6 +78,8 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     globalObject().setProperty("CylinderTriangles", newFunction(createCylinderTriangles));
     // Поверхностная сетка треугольников в конических координатах
     globalObject().setProperty("ConeTriangles", newFunction(createConeTriangles));
+    // Поверхностная сетка треугольников в параметрических координатах
+    globalObject().setProperty("ParametricTriangles", newFunction(createParametricTriangles));
 
     // setMesh
     globalObject().setProperty("setMesh", newFunction(setMesh));
@@ -847,6 +849,40 @@ QScriptValue QZScriptEngine::createConeTriangles(QScriptContext *context, QScrip
 
     }
     return context->throwError(QObject::tr("ConeTriangles(): arguments count error."));
+}
+
+QScriptValue QZScriptEngine::createParametricTriangles(QScriptContext *context, QScriptEngine *engine)
+{
+    if (context->argumentCount() == 3 || context->argumentCount() == 4)
+    {
+        QString typeError = QObject::tr("ParametricTriangles(uCount: Integer, vCount: Integer, domain: Function [, rfunc: Function]): argument type error (%1).");
+        if (!context->argument(0).isNumber())
+            return context->throwError(typeError.arg("uCount"));
+        if (!context->argument(1).isNumber())
+            return context->throwError(typeError.arg("vCount"));
+        QScriptValue domain_function = context->argument(2);
+        if (!domain_function.isFunction())
+            return context->throwError(typeError.arg("domain"));
+        auto domain = [&](double u, double v)
+        {
+            QScriptValueList args;
+            args << u << v;
+            QPoint3D *p = qscriptvalue_cast<QPoint3D *>(domain_function.call(QScriptValue(), args));
+            return Point3D(*p);
+        };
+
+        UInteger uCount = context->argument(0).toUInt32();
+        UInteger vCount = context->argument(1).toUInt32();
+
+        if (context->argumentCount() == 3)
+        {
+            QTriangleMesh3D *tmo = new QTriangleMesh3D();
+            tmo->parametricDomain(uCount, vCount, domain, nullptr);
+            return engine->newQObject(tmo, QScriptEngine::ScriptOwnership);
+        }
+
+    }
+    return context->throwError(QObject::tr("ParametricTriangles(): arguments count error."));
 }
 
 QScriptValue QZScriptEngine::printStd(QScriptContext *context, QScriptEngine *engine)

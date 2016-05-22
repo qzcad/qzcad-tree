@@ -71,6 +71,7 @@ public:
      * @param func Функция, положительная во внутренних точка и отрицательная во внешних
      */
     void coneDomain(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length, std::function<double(double, double, double)> func);
+    void parametricDomain(const UInteger &uCount, const UInteger &vCount, std::function<Point3D(double, double)> domainFunction, std::function<double(double, double, double)> rfunc);
     /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
@@ -153,6 +154,15 @@ protected:
      * @return Значение минимального угла в треугольнике (радианы)
      */
     double minAngle(const Point3D &A, const Point3D &B, const Point3D &C);
+    /**
+     * @brief Метод проверяет попадание точки P в сферу, для которой описанная окружность треугольника ABC является диаметральным сечением
+     * @param P Координаты точки для проверки
+     * @param A Первая точка треугольника
+     * @param B Втораяточка треуольника
+     * @param C Третья точка треугольника
+     * @return true, если точка попадает в сферу
+     */
+    bool inCircumSphere(const Point3D &P, const Point3D &A, const Point3D &B, const Point3D &C);
 protected:
     std::vector<Triangle> element_; //!< Массив элементов
 };

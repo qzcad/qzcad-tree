@@ -22,7 +22,7 @@ SegmentMesh2D::SegmentMesh2D(const SegmentMesh2D *mesh) : Mesh2D(mesh)
     node_ = mesh->node_;
 }
 
-void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint, bool isOptimized)
+void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint, bool isOptimized, std::function<double(Point2D, Point2D)> distance)
 {
     clear();
     xMin_ = xMin;
@@ -31,7 +31,7 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
     yMax_ = yMin + height;
     const double hx = width / (double)(xCount - 1);
     const double hy = height / (double)(yCount - 1);
-    const double minDistance = 0.4 * sqrt(hx*hx + hy*hy);
+    double minDistance = 0.4 * sqrt(hx*hx + hy*hy);
     Point2D border[4]; // массив координат пересечения с границей области
     int edge_table[16][5] = {
         { -1, -1, -1, -1, -1 }, // 0
@@ -86,6 +86,8 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
             Point2D p2 ((i < xCount - 2) ? (x0 + hx) : xMax_, (j < yCount - 2) ? (y0 + hy) : yMax_);
             Point2D p3 (x0, (j < yCount - 2) ? (y0 + hy) : yMax_);
 
+            if (distance != nullptr) minDistance = 0.4 * distance(p0, p3);
+
             if (func(p0.x(), p0.y()) < epsilon_) index |= 1;
             if (func(p1.x(), p1.y()) < epsilon_) index |= 2;
             if (func(p2.x(), p2.y()) < epsilon_) index |= 4;
@@ -101,8 +103,8 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
                 Point2D prev = border[edge_table[index][ii]];
                 Point2D next = border[edge_table[index][ii + 1]];
                 // упорядоченное добавление узлов
-                UInteger ii0 = (prev.x() < next.x() || (prev.x() == next.x() && prev.y() < next.y())) ? addNode(prev, BORDER, minDistance) : addNode(next, BORDER, minDistance);
-                UInteger ii1 = (prev.x() < next.x() || (prev.x() == next.x() && prev.y() < next.y())) ? addNode(next, BORDER, minDistance) : addNode(prev, BORDER, minDistance);
+                UInteger ii0 = (prev.x() < next.x() || (prev.x() == next.x() && prev.y() < next.y())) ? addNode(prev, BORDER, minDistance, distance) : addNode(next, BORDER, minDistance, distance);
+                UInteger ii1 = (prev.x() < next.x() || (prev.x() == next.x() && prev.y() < next.y())) ? addNode(next, BORDER, minDistance, distance) : addNode(prev, BORDER, minDistance, distance);
                 if (ii0 != ii1)
                 {
                     addElement(ii0, ii1);
@@ -123,14 +125,16 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
             UInteger min_el = 0;
             Point2D p0 = node_[element_[0][0]].point;
             Point2D p1 = node_[element_[0][1]].point;
-            double min_d = point.distanceTo(p0) * point.distanceTo(p0) +
-                    point.distanceTo(p1) * point.distanceTo(p1);
+            double dp0 = (distance == nullptr) ? point.distanceTo(p0) : distance(point, p0);
+            double dp1 = (distance == nullptr) ? point.distanceTo(p1) : distance(point, p1);
+            double min_d = dp0 * dp0 + dp1 * dp1;
             for (UInteger j = 1; j < elementsCount(); j++)
             {
                 p0 = node_[element_[j][0]].point;
                 p1 = node_[element_[j][1]].point;
-                double d = point.distanceTo(p0) * point.distanceTo(p0) +
-                        point.distanceTo(p1) * point.distanceTo(p1);
+                dp0 = (distance == nullptr) ? point.distanceTo(p0) : distance(point, p0);
+                dp1 = (distance == nullptr) ? point.distanceTo(p1) : distance(point, p1);
+                double d = dp0 * dp0 + dp1 * dp1;
                 if (d < min_d)
                 {
                     min_d = d;

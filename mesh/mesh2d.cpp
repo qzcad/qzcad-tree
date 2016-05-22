@@ -142,11 +142,12 @@ UInteger Mesh2D::pushNode(PointPointer point, const NodeType &type)
     return pushNode(Point2D(point->x(), point->y()), type);
 }
 
-UInteger Mesh2D::addNode(const Point2D &point, const NodeType &type, double epsilon)
+UInteger Mesh2D::addNode(const Point2D &point, const NodeType &type, double epsilon, std::function<double(Point2D, Point2D)> distance)
 {
     for (UInteger i = 0; i < node_.size(); i++)
     {
-        if ( point.isEqualTo(node_[i].point, epsilon) )
+        if ( (distance == nullptr && point.isEqualTo(node_[i].point, epsilon)) ||
+             (distance != nullptr && distance(point, node_[i].point) < epsilon))
         {
             if ((node_[i].type == INNER || node_[i].type == BORDER) && (type == BORDER || type == CHARACTER)) // обновление типа узла
                 node_[i].type = type;

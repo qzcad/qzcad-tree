@@ -84,6 +84,14 @@ void Point3D::print()
     std::cout << '(' << x() << "; " << y() << "; " << z() << ')';
 }
 
+Point3D Point3D::inCoordSystem(const Point3D &Vx, const Point3D &Vy, const Point3D &Vz) const
+{
+    Point3D p(Vx.x() * x() + Vx.y() * y() + Vx.z() * z(),
+              Vy.x() * x() + Vy.y() * y() + Vy.z() * z(),
+              Vz.x() * x() + Vz.y() * y() + Vz.z() * z());
+    return p;
+}
+
 Point2D &Point3D::operator =(const Point3D &point)
 {
     if (this != &point)

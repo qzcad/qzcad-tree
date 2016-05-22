@@ -186,7 +186,6 @@ public:
      */
     virtual void clearElements();
     void flip();
-protected:
     /**
      * @brief Метод находит значение минимального угла в треугольнике, определенном координатами вершин
      * @param A Координаты вершины
@@ -199,7 +198,7 @@ protected:
      *       c
      * @return Значение минимального угла в треугольнике (радианы)
      */
-    double minAngle(const Point2D &A, const Point2D &B, const Point2D &C);
+    static double minAngle(const Point2D &A, const Point2D &B, const Point2D &C);
     /**
      * @brief Функция для подсчета значений углов треугольника
      * @param A Координаты первой вершины
@@ -215,7 +214,7 @@ protected:
      *    A --- B
      *       c
      */
-    bool angles(const Point2D &A, const Point2D &B, const Point2D &C, double &alpha, double &beta, double &gamma);
+    static bool angles(const Point2D &A, const Point2D &B, const Point2D &C, double &alpha, double &beta, double &gamma);
     /**
      * @brief Структура для временного хранения триангуляции
      */
@@ -230,26 +229,30 @@ protected:
      * @param mesh Указатель на сетку-контур
      * @return Триаунгуляцию, как выпуклого множества
      */
-    Triangulation superDelaunay(SegmentMesh2D *mesh, std::function<double(double, double)> func);
+    static Triangulation superDelaunay(SegmentMesh2D *mesh, std::function<double(double, double)> func);
     /**
      * @brief Оптимизация триангуляции Делоне методом Рапперта (супер область)
      * @param Triangulation Ссылка на триангуляцию Делоне супер области
      */
-    void superRuppert(Triangulation &triangulation, SegmentMesh2D *mesh, std::function<double(double, double)> func);
-    void splitSegments(Triangulation &triangulation);
+    static void superRuppert(Triangulation &triangulation, SegmentMesh2D *mesh, std::function<double(double, double)> func);
+    /**
+     * @brief Метод выполняет процедуру разбиения всех сегментов, в диаметр-окружности которых поападают другие вершины
+     * @param triangulation Ссылка на триангуляцию Делоне
+     */
+    static void splitSegments(Triangulation &triangulation);
     /**
      * @brief Метод контроля за максимальной площадью элемента на основе вставки нового узла в центр масс
      * @param func Функция области (обрабатываются только внутренние элементы)
      * @param triangulation Ссылка на триангуляцию Делоне супер области
      */
-    void areaRefinement(double max_area, std::function<double(double, double)> func, Triangulation &triangulation);
+    static void areaRefinement(double max_area, std::function<double(double, double)> func, Triangulation &triangulation);
     /**
      * @brief Операция вставки узла в триангуляцию Делоне
      * @param point Координаты узла для вставки (входной парметр)
-     * @param nodes Ссылка на массив узлов для вставки (выходной параметр)
+     * @param type Тип добавляемого узла (входной парметр)
      * @paran triangles Ссылка на массив элементов для вставки (выходной параметр)
      */
-    bool insertDelaunayNode(const Point2D &point, const NodeType &type, std::vector<Point2D> &nodes, std::vector<NodeType> &types, std::list<Triangle> &triangles);
+    static bool insertDelaunayNode(const Point2D &point, const NodeType &type, Triangulation &triangulation);
     /**
      * @brief Метод вычисления площади треугольника с учетом знака (площадь отрицательная при обходе узлов треугольника против часовой стрелки)
      * @param A Координаты первого узла треугольника
@@ -257,7 +260,7 @@ protected:
      * @param C Координаты третьего узла треугольника
      * @return Площадь треугольника со знаком
      */
-    double signedArea(const Point2D &A, const Point2D &B, const Point2D &C) const;
+    static double signedArea(const Point2D &A, const Point2D &B, const Point2D &C);
     /**
      * @brief Метод проверки вхождения точки в описанную вокруг треугольника окргужность
      * @param xp Абсцисса точки
@@ -273,7 +276,7 @@ protected:
      * @param r Радиус описанной окружности
      * @return true, если заданная точка попала в описанную окружность
      */
-    bool circumCircle(double xp, double yp, double x1, double y1, double x2, double y2, double x3, double y3, double &xc, double &yc, double &r);
+    static bool circumCircle(double xp, double yp, double x1, double y1, double x2, double y2, double x3, double y3, double &xc, double &yc, double &r);
 protected:
     std::vector<Triangle> element_; //!< Массив элементов
     typedef std::vector<Triangle>::iterator ElementIterator;

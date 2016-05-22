@@ -5,6 +5,7 @@
 #include <climits>
 #include <iostream>
 #include "funcopt.h"
+#include "rfunctions.h"
 
 #include "trianglemesh2d.h"
 
@@ -89,10 +90,6 @@ void TriangleMesh3D::cylinderDomain(const UInteger &rCount, const UInteger &lCou
     clear();
     const double xi_max = (double)lCount * 2.0 * M_PI / (double)rCount;
     const double xi_max_2 = xi_max / 2.0;
-    auto con = [](const double &x, const double &y)
-    {
-        return x + y - sqrt(x*x + y*y);
-    };
 
     auto local_func = [&](double xi, double eta)
     {
@@ -380,10 +377,6 @@ void TriangleMesh3D::coneDomain(const UInteger &rCount, const UInteger &lCount, 
     clear();
     const double xi_max = (double)lCount * 2.0 * M_PI / (double)rCount;
     const double xi_max_2 = xi_max / 2.0;
-    auto con = [](const double &x, const double &y)
-    {
-        return x + y - sqrt(x*x + y*y);
-    };
 
     auto conePoint3d = [&](const double &xi, const double &eta)
     {
@@ -587,6 +580,128 @@ void TriangleMesh3D::coneDomain(const UInteger &rCount, const UInteger &lCount, 
     yMax_ = length;
 }
 
+void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vCount, std::function<Point3D (double, double)> domainFunction, std::function<double (double, double, double)> rfunc)
+{
+    auto distance = [&](Point2D p0, Point2D p1)
+    {
+        Point3D pp0 = domainFunction(p0.x(), p0.y());
+        Point3D pp1 = domainFunction(p1.x(), p1.y());
+        return pp0.distanceTo(pp1);
+    };
+
+    auto local_func = [&](double u, double v)
+    {
+        Point3D p3 = domainFunction(u, v);
+        return (rfunc != nullptr) ? rfunc(p3.x(), p3.y(), p3.z()) : 1.0;
+    };
+
+    auto func2d = [&](double u, double v)
+    {
+        double f = local_func(u, v);
+        double r = con(0.5 * 0.5 - (u - 0.5) * (u - 0.5), 0.5 * 0.5 - (v - 0.5) * (v - 0.5));
+        return con(f, r);
+    };
+    std::list<Point2D> charPoints2d;
+    TriangleMesh2D mesh2d;
+
+    if (local_func(0.0, 0.0) > -epsilon_ )
+    {
+        charPoints2d.push_back(Point2D(0.0, 0.0));
+    }
+    if (local_func(1.0, 0.0) > -epsilon_ )
+    {
+        charPoints2d.push_back(Point2D(1.0, 0.0));
+    }
+    if (local_func(1.0, 1.0) > -epsilon_ )
+    {
+        charPoints2d.push_back(Point2D(1.0, 1.0));
+    }
+    if (local_func(0.0, 1.0) > -epsilon_ )
+    {
+        charPoints2d.push_back(Point2D(0.0, 1.0));
+    }
+    double du = 1.0 / (double)uCount;
+    double dv = 1.0 / (double)vCount;
+    // двоичный поиск по первому направлению
+    for (UInteger i = 0; i < uCount; i++)
+    {
+        double u0 = (double)i * du;
+        double u1 = (double)(i + 1) * du;
+        double v[] = {0.0, 1.0};
+        for (int j = 0; j < 2; j++)
+        {
+            double val0 = local_func(u0, v[j]);
+            double val1 = local_func(u1, v[j]);
+            if (fabs(val0) > epsilon_ && fabs(val1) > epsilon_ && val0 * val1 < 0.0)
+            {
+                Point2D p0(u0, v[j]);
+                Point2D p1(u1, v[j]);
+                Point2D b = Mesh2D::binary(p0, p1, local_func);
+                charPoints2d.push_back(Point2D(b.x(), b.y()));
+            }
+            if (fabs(val0) < epsilon_ && i > 0)
+            {
+                charPoints2d.push_back(Point2D(u0, v[j]));
+            }
+            if (fabs(val1) < epsilon_ && i < uCount - 1)
+            {
+                charPoints2d.push_back(Point2D(u1, v[j]));
+            }
+        }
+    }
+    // двоичный поиск по второму направлению
+    for (UInteger i = 0; i < vCount; i++)
+    {
+        double u[] = {0.0, 1.0};
+        double v0 = (double)i * dv;
+        double v1 = (double)(i + 1) * dv;
+        for (int j = 0; j < 2; j++)
+        {
+            double val0 = local_func(u[j], v0);
+            double val1 = local_func(u[j], v1);
+            if (fabs(val0) > epsilon_ && fabs(val1) > epsilon_ && val0 * val1 < 0.0)
+            {
+                Point2D p0(u[j], v0);
+                Point2D p1(u[j], v1);
+                Point2D b = Mesh2D::binary(p0, p1, local_func);
+                charPoints2d.push_back(Point2D(u[j], b.y()));
+            }
+            if (fabs(val0) < epsilon_ && i > 0)
+            {
+                charPoints2d.push_back(Point2D(u[j], v0));
+            }
+            if (fabs(val1) < epsilon_ && i < vCount - 1)
+            {
+                charPoints2d.push_back(Point2D(u[j], v1));
+            }
+        }
+    }
+    mesh2d.ruppert(uCount, vCount, 0.0, 0.0, 1.0, 1.0, func2d, charPoints2d, true);
+    std::map<UInteger, UInteger> nodes_map;
+    Point3D zero = domainFunction(0.0, 0.0);
+    xMin_ = xMax_ = zero.x();
+    yMin_ = yMax_ = zero.y();
+    zMin_ = zMax_ = zero.z();
+    for (UInteger i = 0; i < mesh2d.nodesCount(); i++)
+    {
+        Point2D p = mesh2d.point2d(i);
+        Point3D p3 = domainFunction(p.x(), p.y());
+        NodeType nodeType = (fabs(func2d(p.x(), p.y())) < epsilon_ || mesh2d.nodeType(i) == CHARACTER) ? CHARACTER : BORDER;
+        nodes_map[i] = pushNode(p3, nodeType);
+        if (p3.x() < xMin_) xMin_ = p3.x();
+        if (p3.x() > xMax_) xMax_ = p3.x();
+        if (p3.y() < yMin_) yMin_ = p3.y();
+        if (p3.y() > yMax_) yMax_ = p3.y();
+        if (p3.z() < zMin_) zMin_ = p3.z();
+        if (p3.z() > zMax_) zMax_ = p3.z();
+    }
+    for (UInteger i = 0; i < mesh2d.elementsCount(); i++)
+    {
+        Triangle t = mesh2d.triangle(i);
+        addElement(nodes_map[t[0]], nodes_map[t[1]], nodes_map[t[2]]);
+    }
+}
+
 UInteger TriangleMesh3D::elementsCount() const
 {
     return element_.size();
@@ -718,6 +833,27 @@ double TriangleMesh3D::minAngle(const Point3D &A, const Point3D &B, const Point3
     double alpha = 0.0, beta = 0.0, gamma = 0.0;
     angles(A, B, C, alpha, beta, gamma);
     return std::min(alpha, std::min(beta, gamma));
+}
+
+bool TriangleMesh3D::inCircumSphere(const Point3D &P, const Point3D &A, const Point3D &B, const Point3D &C)
+{
+    Point3D AB = B - A;
+    Point3D AC = C - A;
+    Point3D N = AB.product(AC);
+    Point3D Vx = AB.normalized();
+    Point3D Vz = N.normalized();
+    Point3D Vy = Vz.product(Vx);
+
+    Point3D p = P.inCoordSystem(Vx, Vy, Vz);
+    Point3D a = A.inCoordSystem(Vx, Vy, Vz);
+    Point3D b = B.inCoordSystem(Vx, Vy, Vz);
+    Point3D c = C.inCoordSystem(Vx, Vy, Vz);
+    Point3D center;
+    double xc = 0.0, yc = 0.0, r = 0.0;
+    a.print(); b.print(); c.print();
+    TriangleMesh2D::circumCircle(p.x(), p.y(), a.x(), a.y(), b.x(), b.y(), c.x(), c.y(), xc, yc, r);
+    center.set(xc, yc, 0.0);
+    return p.distanceTo(center) < r;
 }
 
 }
