@@ -127,6 +127,17 @@ public:
      * @return Экзмепляр перпендикулярного вектора
      */
     Point2D perpendicular() const;
+    /**
+     * @brief Проверка пересекаются ли прямые P0P1 и Q0Q1
+     * @param P0 Первая точка прямой P
+     * @param P1 Вторая точка прямой P
+     * @param Q0 Первая точка прямой Q
+     * @param Q1 Вторая точка прямой Q
+     * @param p Коэффицент, соответсвующий точке пресечения на прямой P ( X = P0 + p * (P1 - P0) )
+     * @param q Коэффицент, соответсвующий точке пресечения на прямой q ( X = Q0 + q * (Q1 - Q0) )
+     * @return
+     */
+    friend bool isCrossed(const Point2D &P0, const Point2D &P1, const Point2D &Q0, const Point2D &Q1, double &p, double &q);
 private:
     double y_; //!< Ордината точки
 };

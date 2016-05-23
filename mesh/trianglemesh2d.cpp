@@ -73,7 +73,7 @@ void TriangleMesh2D::rectangleDomain(const UInteger &xCount, const UInteger &yCo
     std::cout << "Создана равномерная сетка треугольных элементов: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
-void TriangleMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint)
+void TriangleMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, std::function<double(Point2D, Point2D)> distance)
 {
     clear();
     xMin_ = xMin;
@@ -82,7 +82,7 @@ void TriangleMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yC
     yMax_ = yMin + height;
     const double hx = width / (double)(xCount - 1);
     const double hy = height / (double)(yCount - 1);
-    const double minDistance = 0.4 * sqrt(hx*hx + hy*hy);
+    double minDistance = 0.4 * sqrt(hx*hx + hy*hy);
     std::map<UInteger, UInteger> nodesMap;
     // формирование массива узлов
 #ifdef WITH_OPENMP
@@ -127,6 +127,7 @@ void TriangleMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yC
                 Point2D p1 = node_[iter1->second].point;
                 Point2D p2 = node_[iter2->second].point;
                 Point2D p3 = node_[iter3->second].point;
+                if (distance != nullptr) minDistance = 0.4 * distance(p0, p3); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 if ((xCenter <= p0.x() && yCenter <= p0.y() && xCenter <= p1.x() && yCenter <= p1.y() && xCenter <= p2.x() && yCenter <= p2.y() && xCenter <= p3.x() && yCenter <= p3.y())
                         ||
                         (xCenter >= p0.x() && yCenter >= p0.y() && xCenter >= p1.x() && yCenter >= p1.y() && xCenter >= p2.x() && yCenter >= p2.y() && xCenter >= p3.x() && yCenter >= p3.y()))
@@ -257,7 +258,8 @@ void TriangleMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yC
                 if (iso[j] < ULONG_MAX)
                 {
                     Point2D border = node_[iso[j]].point;
-                    if (border.distanceTo(borderPoint) < minDistance)
+                    if ((distance == nullptr && border.distanceTo(borderPoint) < minDistance) ||
+                            (distance != nullptr && distance(border, borderPoint) < minDistance))
                     {
                         iso[i] = iso[j];
                         isExist = true;
@@ -267,7 +269,8 @@ void TriangleMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yC
             }
             if (!isExist)
             {
-                if (current.distanceTo(borderPoint) < minDistance)
+                if ((distance == nullptr && current.distanceTo(borderPoint) < minDistance) ||
+                        (distance != nullptr && distance(current, borderPoint) < minDistance))
                 {
                     node_[i].point = borderPoint;
                     node_[i].type = nodeType;
@@ -292,7 +295,7 @@ void TriangleMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yC
         {
             if (n->type == BORDER)
             {
-                double d = (n->point).distanceTo(*cPoint);
+                double d = (distance == nullptr) ? (n->point).distanceTo(*cPoint) : distance(n->point, *cPoint);
                 if (d < min_d)
                 {
                     min_d = d;
@@ -843,7 +846,7 @@ void TriangleMesh2D::flip()
             set_intersection(a1.begin(), a1.end(), a2.begin(), a2.end(), std::back_inserter(common));
             if (common.size() == 2)
             {
-                std::cout << common[0] << " " << common[1] << std::endl;
+//                std::cout << common[0] << " " << common[1] << std::endl;
                 Point2D p0 = node_[index0].point;
                 Point2D p1 = node_[index1].point;
                 UInteger index2 = triangle[i - 1];
@@ -880,7 +883,8 @@ void TriangleMesh2D::flip()
                 f = node_[indexf].point;
                 double min_c = std::min(minAngle(p0, p1, p2), minAngle(p0, f, p1));
                 double min_n = std::min(minAngle(p0, f, p2), minAngle(p2, f, p1));
-                if (min_n > min_c)
+                double tp = 0.0, tq = 0.0;
+                if (min_n > min_c && isCrossed(p0, p1, p2, f, tp, tq) && tp > epsilon_ && tp < 1.0 - epsilon_ && tq > epsilon_ && tq < 1.0 - epsilon_ )
                 {
                     std::cout << " flip " << std::endl;
                     node_[index0].adjacent.erase(t1);
@@ -889,7 +893,6 @@ void TriangleMesh2D::flip()
                     node_[indexf].adjacent.insert(t);
                     element_[t1][subindex - 1] = index2;
                     node_[index2].adjacent.insert(t1);
-
                 }
             }
         }

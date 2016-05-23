@@ -582,6 +582,8 @@ void TriangleMesh3D::coneDomain(const UInteger &rCount, const UInteger &lCount, 
 
 void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vCount, std::function<Point3D (double, double)> domainFunction, std::function<double (double, double, double)> rfunc)
 {
+    clear();
+
     auto distance = [&](Point2D p0, Point2D p1)
     {
         Point3D pp0 = domainFunction(p0.x(), p0.y());
@@ -676,133 +678,135 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
             }
         }
     }
-    SegmentMesh2D smesh;
-    smesh.functionalDomain(uCount, vCount, 0.0, 0.0, 1.0, 1.0, func2d, charPoints2d, false, distance);
-    Point2D super0(0.0, 0.0);
-    Point2D super1(1.0, 0.0);
-    Point2D super2(1.0, 1.0);
-    Point2D super3(0.0, 1.0);
-    TriangleMesh2D::Triangulation triangulation;
-    triangulation.nodes.push_back(super0); triangulation.types.push_back(OUTER);
-    triangulation.nodes.push_back(super1); triangulation.types.push_back(OUTER);
-    triangulation.nodes.push_back(super2); triangulation.types.push_back(OUTER);
-    triangulation.nodes.push_back(super3); triangulation.types.push_back(OUTER);
-//    triangulation.nodes.push_back(smesh->point2d(0)); triangulation.types.push_back(mesh->nodeType(0));
-    triangulation.triangles.push_back(Triangle(0, 1, 3));
-    triangulation.triangles.push_back(Triangle(1, 2, 3));
+//    SegmentMesh2D smesh;
+//    smesh.functionalDomain(uCount, vCount, 0.0, 0.0, 1.0, 1.0, func2d, charPoints2d, false, distance);
+//    Point2D super0(0.0, 0.0);
+//    Point2D super1(1.0, 0.0);
+//    Point2D super2(1.0, 1.0);
+//    Point2D super3(0.0, 1.0);
+//    TriangleMesh2D::Triangulation triangulation;
+//    triangulation.nodes.push_back(super0); triangulation.types.push_back(OUTER);
+//    triangulation.nodes.push_back(super1); triangulation.types.push_back(OUTER);
+//    triangulation.nodes.push_back(super2); triangulation.types.push_back(OUTER);
+//    triangulation.nodes.push_back(super3); triangulation.types.push_back(OUTER);
+////    triangulation.nodes.push_back(smesh->point2d(0)); triangulation.types.push_back(mesh->nodeType(0));
+//    triangulation.triangles.push_back(Triangle(0, 1, 3));
+//    triangulation.triangles.push_back(Triangle(1, 2, 3));
 
-    for (UInteger i = 0; i < smesh.nodesCount(); i++)
-    {
-        Point2D point = smesh.point2d(i);
-        NodeType type = smesh.nodeType(i);
-        UInteger number = triangulation.nodes.size();
-        std::vector<int> power;
-        std::vector<Segment> edges;
+//    for (UInteger i = 0; i < smesh.nodesCount(); i++)
+//    {
+////        std::cout << i << " f " << smesh.nodesCount() << std::endl;
+//        Point2D point = smesh.point2d(i);
+//        NodeType type = smesh.nodeType(i);
+//        UInteger number = triangulation.nodes.size();
+//        std::vector<int> power;
+//        std::vector<Segment> edges;
 
-        for (std::vector<Point2D>::iterator p = triangulation.nodes.begin(); p != triangulation.nodes.end(); ++p)
-            if (p->isEqualTo(point, epsilon_)) continue;
+//        for (std::vector<Point2D>::iterator p = triangulation.nodes.begin(); p != triangulation.nodes.end(); ++p)
+//            if (p->isEqualTo(point, epsilon_)) continue;
 
-        triangulation.nodes.push_back(point);
-        triangulation.types.push_back(type);
+//        triangulation.nodes.push_back(point);
+//        triangulation.types.push_back(type);
 
-        for (std::list<Triangle>::iterator triangle = triangulation.triangles.begin(); triangle != triangulation.triangles.end(); )
-        {
-            Point2D A = triangulation.nodes[triangle->vertexNode(0)];
-            Point2D B = triangulation.nodes[triangle->vertexNode(1)];
-            Point2D C = triangulation.nodes[triangle->vertexNode(2)];
-            double xc = 0.0, yc = 0.0, r = 0.0;
-            Segment e0(triangle->vertexNode(0), triangle->vertexNode(1));
-            Segment e1(triangle->vertexNode(1), triangle->vertexNode(2));
-            Segment e2(triangle->vertexNode(2), triangle->vertexNode(0));
-            bool flags[] = {false, false, false};
-//            if (circumCircle(point.x(), point.y(), A.x(), A.y(), B.x(), B.y(), C.x(), C.y(), xc, yc, r))
-            if (inCircumSphere(domainFunction(point.x(), point.y()), domainFunction(A.x(), A.y()), domainFunction(B.x(), B.y()), domainFunction(C.x(), C.y())))
-            {
-                for (UInteger j = 0; j < edges.size(); j++)
-                {
-                    if (e0.isSame(edges[j]))
-                    {
-                        power[j] += 1;
-                        flags[0] = true;
-                    }
-                    else if (e1.isSame(edges[j]))
-                    {
-                        power[j] += 1;
-                        flags[1] = true;
-                    }
-                    else if (e2.isSame(edges[j]))
-                    {
-                        power[j] += 1;
-                        flags[2] = true;
-                    }
-                }
+//        for (std::list<Triangle>::iterator triangle = triangulation.triangles.begin(); triangle != triangulation.triangles.end(); )
+//        {
+//            Point2D A = triangulation.nodes[triangle->vertexNode(0)];
+//            Point2D B = triangulation.nodes[triangle->vertexNode(1)];
+//            Point2D C = triangulation.nodes[triangle->vertexNode(2)];
+//            double xc = 0.0, yc = 0.0, r = 0.0;
+//            Segment e0(triangle->vertexNode(0), triangle->vertexNode(1));
+//            Segment e1(triangle->vertexNode(1), triangle->vertexNode(2));
+//            Segment e2(triangle->vertexNode(2), triangle->vertexNode(0));
+//            bool flags[] = {false, false, false};
+////            if (TriangleMesh2D::circumCircle(point.x(), point.y(), A.x(), A.y(), B.x(), B.y(), C.x(), C.y(), xc, yc, r))
+//            if (inCircumSphere(domainFunction(point.x(), point.y()), domainFunction(A.x(), A.y()), domainFunction(B.x(), B.y()), domainFunction(C.x(), C.y())))
+//            {
+//                for (UInteger j = 0; j < edges.size(); j++)
+//                {
+//                    if (e0.isSame(edges[j]))
+//                    {
+//                        power[j] += 1;
+//                        flags[0] = true;
+//                    }
+//                    else if (e1.isSame(edges[j]))
+//                    {
+//                        power[j] += 1;
+//                        flags[1] = true;
+//                    }
+//                    else if (e2.isSame(edges[j]))
+//                    {
+//                        power[j] += 1;
+//                        flags[2] = true;
+//                    }
+//                }
 
-                if (!flags[0])
-                {
-                    edges.push_back(e0);
-                    power.push_back(1);
-                }
-                if (!flags[1])
-                {
-                    edges.push_back(e1);
-                    power.push_back(1);
-                }
-                if (!flags[2])
-                {
-                    edges.push_back(e2);
-                    power.push_back(1);
-                }
-                triangle = triangulation.triangles.erase(triangle);
-            }
-            else
-            {
-                ++triangle;
-            }
-        }
+//                if (!flags[0])
+//                {
+//                    edges.push_back(e0);
+//                    power.push_back(1);
+//                }
+//                if (!flags[1])
+//                {
+//                    edges.push_back(e1);
+//                    power.push_back(1);
+//                }
+//                if (!flags[2])
+//                {
+//                    edges.push_back(e2);
+//                    power.push_back(1);
+//                }
+//                triangle = triangulation.triangles.erase(triangle);
+//            }
+//            else
+//            {
+//                ++triangle;
+//            }
+//        }
 
-        for (UInteger j = 0; j < edges.size(); j++)
-        {
-            if ((power[j] % 2) == 1)
-            {
-                if (TriangleMesh2D::signedArea(triangulation.nodes[edges[j][1]], triangulation.nodes[edges[j][0]], triangulation.nodes[number]) > 0.0)
-                    triangulation.triangles.push_back(Triangle(edges[j][1], edges[j][0], number));
-                else
-                    triangulation.triangles.push_back(Triangle(edges[j][0], edges[j][1], number));
-            }
-        }
-    }
+//        for (UInteger j = 0; j < edges.size(); j++)
+//        {
+//            if ((power[j] % 2) == 1)
+//            {
+//                if (TriangleMesh2D::signedArea(triangulation.nodes[edges[j][1]], triangulation.nodes[edges[j][0]], triangulation.nodes[number]) > 0.0)
+//                    triangulation.triangles.push_back(Triangle(edges[j][1], edges[j][0], number));
+//                else
+//                    triangulation.triangles.push_back(Triangle(edges[j][0], edges[j][1], number));
+//            }
+//        }
+//    }
 
-    for (std::list<Triangle>::iterator triangle = triangulation.triangles.begin(); triangle != triangulation.triangles.end(); )
-    {
-        Point2D A = triangulation.nodes[triangle->vertexNode(0)];
-        Point2D B = triangulation.nodes[triangle->vertexNode(1)];
-        Point2D C = triangulation.nodes[triangle->vertexNode(2)];
-        addElement(addNode(domainFunction(A.x(), A.y()), BORDER), addNode(domainFunction(B.x(), B.y()), BORDER), addNode(domainFunction(C.x(), C.y()), BORDER));
-    }
+//    for (std::list<Triangle>::iterator triangle = triangulation.triangles.begin(); triangle != triangulation.triangles.end(); ++triangle)
+//    {
+//        Point2D A = triangulation.nodes[triangle->vertexNode(0)];
+//        Point2D B = triangulation.nodes[triangle->vertexNode(1)];
+//        Point2D C = triangulation.nodes[triangle->vertexNode(2)];
+//        addElement(addNode(domainFunction(A.x(), A.y()), BORDER), addNode(domainFunction(B.x(), B.y()), BORDER), addNode(domainFunction(C.x(), C.y()), BORDER));
+//    }
 //    mesh2d.ruppert(uCount, vCount, 0.0, 0.0, 1.0, 1.0, func2d, charPoints2d, true);
-//    std::map<UInteger, UInteger> nodes_map;
-//    Point3D zero = domainFunction(0.0, 0.0);
-//    xMin_ = xMax_ = zero.x();
-//    yMin_ = yMax_ = zero.y();
-//    zMin_ = zMax_ = zero.z();
-//    for (UInteger i = 0; i < mesh2d.nodesCount(); i++)
-//    {
-//        Point2D p = mesh2d.point2d(i);
-//        Point3D p3 = domainFunction(p.x(), p.y());
-//        NodeType nodeType = (fabs(func2d(p.x(), p.y())) < epsilon_ || mesh2d.nodeType(i) == CHARACTER) ? CHARACTER : BORDER;
-//        nodes_map[i] = pushNode(p3, nodeType);
-//        if (p3.x() < xMin_) xMin_ = p3.x();
-//        if (p3.x() > xMax_) xMax_ = p3.x();
-//        if (p3.y() < yMin_) yMin_ = p3.y();
-//        if (p3.y() > yMax_) yMax_ = p3.y();
-//        if (p3.z() < zMin_) zMin_ = p3.z();
-//        if (p3.z() > zMax_) zMax_ = p3.z();
-//    }
-//    for (UInteger i = 0; i < mesh2d.elementsCount(); i++)
-//    {
-//        Triangle t = mesh2d.triangle(i);
-//        addElement(nodes_map[t[0]], nodes_map[t[1]], nodes_map[t[2]]);
-//    }
+    mesh2d.functionalDomain(uCount, vCount, 0.0, 0.0, 1.0, 1.0, func2d, charPoints2d, distance);
+    std::map<UInteger, UInteger> nodes_map;
+    Point3D zero = domainFunction(0.0, 0.0);
+    xMin_ = xMax_ = zero.x();
+    yMin_ = yMax_ = zero.y();
+    zMin_ = zMax_ = zero.z();
+    for (UInteger i = 0; i < mesh2d.nodesCount(); i++)
+    {
+        Point2D p = mesh2d.point2d(i);
+        Point3D p3 = domainFunction(p.x(), p.y());
+        NodeType nodeType = (fabs(func2d(p.x(), p.y())) < epsilon_ || mesh2d.nodeType(i) == CHARACTER) ? CHARACTER : BORDER;
+        nodes_map[i] = pushNode(p3, nodeType);
+        if (p3.x() < xMin_) xMin_ = p3.x();
+        if (p3.x() > xMax_) xMax_ = p3.x();
+        if (p3.y() < yMin_) yMin_ = p3.y();
+        if (p3.y() > yMax_) yMax_ = p3.y();
+        if (p3.z() < zMin_) zMin_ = p3.z();
+        if (p3.z() > zMax_) zMax_ = p3.z();
+    }
+    for (UInteger i = 0; i < mesh2d.elementsCount(); i++)
+    {
+        Triangle t = mesh2d.triangle(i);
+        addElement(nodes_map[t[0]], nodes_map[t[1]], nodes_map[t[2]]);
+    }
 }
 
 UInteger TriangleMesh3D::elementsCount() const
@@ -873,6 +877,7 @@ double TriangleMesh3D::minAngle(const UInteger &elNum)
     const Point3D p0 = node_[tri[0]].point;
     const Point3D p1 = node_[tri[1]].point;
     const Point3D p2 = node_[tri[2]].point;
+//    if (minAngle(p0, p1, p2) < 0.1) std::cout << elNum << " ";
     return minAngle(p0, p1, p2);
 }
 
@@ -883,50 +888,50 @@ void TriangleMesh3D::clearElements()
 
 bool TriangleMesh3D::angles(const Point3D &A, const Point3D &B, const Point3D &C, double &alpha, double &beta, double &gamma)
 {
-    const double a = B.distanceTo(C); // сторона, противолежащяя вершине A (BC)
-    const double b = A.distanceTo(C); // сторона, противолежащяя вершине B (AC)
-    const double c = A.distanceTo(B); // сторона, противолежащяя вершине C (AB)
-    if (a < epsilon_ || b < epsilon_ || c < epsilon_)
-    {
-        alpha = beta = gamma = 0.0;
-        return false;
-    }
-//    alpha = acos(Point3D(A, B).normalized() * Point3D(A, C).normalized());
-//    beta = acos(Point3D(B, A).normalized() * Point3D(B, C).normalized());
-//    gamma = acos(Point3D(C, A).normalized() * Point3D(C, B).normalized());
-    if (a > b && a > c)
-    {
-        // Теорема косинусов
-        alpha = acos((b*b + c*c - a*a) / (2.0 * b * c)); // Угол в вершине A
-        // Теорема синусов
-        // обеспечение вычислительной устойчисвости: значение может на бесконечно малую отклоняться от единицы для угла 90 градусов
-        double sinBeta = sin(alpha) * b / a;
-        beta = (sinBeta > 1.0) ? M_PI_2 : asin(sinBeta); // Угол в вершине B
-        // Теорема о сумме углов треугольника
-        gamma = M_PI - (alpha + beta); // Угол в вершине C
-    }
-    else if (b > a && b > c)
-    {
-        // Теорема косинусов
-        beta = acos((a*a + c*c - b*b) / (2.0 * a * c)); // Угол в вершине B
-        // Теорема синусов
-        // обеспечение вычислительной устойчисвости: значение может на бесконечно малую отклоняться от единицы для угла 90 градусов
-        double sinAlpha = sin(beta) * a / b; // Угол в вершине A
-        alpha = (sinAlpha > 1.0) ? M_PI_2 : asin(sinAlpha);
-        // Теорема о сумме углов треугольника
-        gamma = M_PI - (alpha + beta); // Угол в вершине C
-    }
-    else
-    {
-        // Теорема косинусов
-        gamma = acos((b*b + a*a - c*c) / (2.0 * b * a)); // Угол в вершине C
-        // Теорема синусов
-        // обеспечение вычислительной устойчисвости: значение может на бесконечно малую отклоняться от единицы для угла 90 градусов
-        double sinGamma = sin(gamma) * b / c;
-        beta = (sinGamma > 1.0) ? M_PI_2 : asin(sinGamma); // Угол в вершине B
-        // Теорема о сумме углов треугольника
-        alpha = M_PI - (gamma + beta); // Угол в вершине A
-    }
+//    const double a = B.distanceTo(C); // сторона, противолежащяя вершине A (BC)
+//    const double b = A.distanceTo(C); // сторона, противолежащяя вершине B (AC)
+//    const double c = A.distanceTo(B); // сторона, противолежащяя вершине C (AB)
+//    if (a < epsilon_ || b < epsilon_ || c < epsilon_)
+//    {
+//        alpha = beta = gamma = 0.0;
+//        return false;
+//    }
+    alpha = acos(Point3D(A, B).normalized() * Point3D(A, C).normalized());
+    beta = acos(Point3D(B, A).normalized() * Point3D(B, C).normalized());
+    gamma = acos(Point3D(C, A).normalized() * Point3D(C, B).normalized());
+//    if (a > b && a > c)
+//    {
+//        // Теорема косинусов
+//        alpha = acos((b*b + c*c - a*a) / (2.0 * b * c)); // Угол в вершине A
+//        // Теорема синусов
+//        // обеспечение вычислительной устойчисвости: значение может на бесконечно малую отклоняться от единицы для угла 90 градусов
+//        double sinBeta = sin(alpha) * b / a;
+//        beta = (sinBeta > 1.0) ? M_PI_2 : asin(sinBeta); // Угол в вершине B
+//        // Теорема о сумме углов треугольника
+//        gamma = M_PI - (alpha + beta); // Угол в вершине C
+//    }
+//    else if (b > a && b > c)
+//    {
+//        // Теорема косинусов
+//        beta = acos((a*a + c*c - b*b) / (2.0 * a * c)); // Угол в вершине B
+//        // Теорема синусов
+//        // обеспечение вычислительной устойчисвости: значение может на бесконечно малую отклоняться от единицы для угла 90 градусов
+//        double sinAlpha = sin(beta) * a / b; // Угол в вершине A
+//        alpha = (sinAlpha > 1.0) ? M_PI_2 : asin(sinAlpha);
+//        // Теорема о сумме углов треугольника
+//        gamma = M_PI - (alpha + beta); // Угол в вершине C
+//    }
+//    else
+//    {
+//        // Теорема косинусов
+//        gamma = acos((b*b + a*a - c*c) / (2.0 * b * a)); // Угол в вершине C
+//        // Теорема синусов
+//        // обеспечение вычислительной устойчисвости: значение может на бесконечно малую отклоняться от единицы для угла 90 градусов
+//        double sinGamma = sin(gamma) * b / c;
+//        beta = (sinGamma > 1.0) ? M_PI_2 : asin(sinGamma); // Угол в вершине B
+//        // Теорема о сумме углов треугольника
+//        alpha = M_PI - (gamma + beta); // Угол в вершине A
+//    }
 
     return true;
 }
@@ -954,9 +959,9 @@ bool TriangleMesh3D::inCircumSphere(const Point3D &P, const Point3D &A, const Po
     Point3D center;
     double xc = 0.0, yc = 0.0, r = 0.0;
 //    a.print(); b.print(); c.print();
-    TriangleMesh2D::circumCircle(p.x(), p.y(), a.x(), a.y(), b.x(), b.y(), c.x(), c.y(), xc, yc, r);
-    center.set(xc, yc, 0.0);
-    return p.distanceTo(center) < r;
+    return TriangleMesh2D::circumCircle(p.x(), p.y(), a.x(), a.y(), b.x(), b.y(), c.x(), c.y(), xc, yc, r);
+//    center.set(xc, yc, 0.0);
+//    return p.distanceTo(center) < r;
 }
 
 }

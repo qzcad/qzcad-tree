@@ -145,4 +145,31 @@ Point2D Point2D::perpendicular() const
 {
     return Point2D(-y(), x());
 }
+
+bool isCrossed(const Point2D &P0, const Point2D &P1, const Point2D &Q0, const Point2D &Q1, double &p, double &q)
+{
+    double x[2][2], y[2][2];
+    double A[2], B[2], C[2];
+    double det;
+    x[0][0] = P0.x();
+    y[0][0] = P0.y();
+    x[1][0] = P1.x();
+    y[1][0] = P1.y();
+    x[0][1] = Q0.x();
+    y[0][1] = Q0.y();
+    x[1][1] = Q1.x();
+    y[1][1] = Q1.y();
+    A[0] = x[1][0] - x[0][0];
+    A[1] = y[1][0] - y[0][0];
+    B[0] = x[0][1] - x[1][1];
+    B[1] = y[0][1] - y[1][1];
+    C[0] = x[0][1] - x[0][0];
+    C[1] = y[0][1] - y[0][0];
+    det = A[0] * B[1] - B[0] * A[1];
+    if (fabs(det) < 1.0E-10)
+        return false;
+    p = (C[0] * B[1] - B[0] * C[1]) / det;
+    q = (A[0] * C[1] - C[0] * A[1]) / det;
+    return true;
+}
 }

@@ -79,7 +79,7 @@ void Point3D::setZ(const double &z)
     z_ = z;
 }
 
-void Point3D::print()
+void Point3D::print() const
 {
     std::cout << '(' << x() << "; " << y() << "; " << z() << ')';
 }

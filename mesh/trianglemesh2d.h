@@ -49,7 +49,7 @@ public:
      * @param func Функция области
      * @param charPoint Список характерных точек
      */
-    void functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint);
+    void functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, std::function<double(Point2D, Point2D)> distance = nullptr);
     /**
      * @brief Конструктор копирования
      * @param mesh Экземпляр объекта для копирования
