@@ -678,8 +678,56 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
             }
         }
     }
-//    SegmentMesh2D smesh;
-//    smesh.functionalDomain(uCount, vCount, 0.0, 0.0, 1.0, 1.0, func2d, charPoints2d, false, distance);
+    SegmentMesh2D smesh;
+    smesh.functionalDomain(uCount, vCount, 0.0, 0.0, 1.0, 1.0, func2d, charPoints2d, false, distance);
+
+    TriangleMesh2D::Triangulation triangulation = TriangleMesh2D::superDelaunay(&smesh, func2d);
+    TriangleMesh2D::superRuppert(triangulation, &smesh, func2d);
+    std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
+    UInteger niter = 0;
+    while (triangle != triangulation.triangles.end() && niter < 100000)
+    {
+        if (triangle->vertexNode(0) > 3 && triangle->vertexNode(1) > 3 && triangle->vertexNode(2) > 3)
+        {
+            Point2D A = triangulation.nodes[triangle->vertexNode(0)];
+            Point2D B = triangulation.nodes[triangle->vertexNode(1)];
+            Point2D C = triangulation.nodes[triangle->vertexNode(2)];
+            double a = distance(B, C);
+            double b = distance(A, C);
+            double c = distance(A, B);
+            if ((func2d(A.x(), A.y()) >= -epsilon_ && func2d(B.x(), B.y()) >= -epsilon_ && func2d(C.x(), C.y()) >= -epsilon_))
+            {
+                if ( b != 0.0 && c != 0 && (a / b > 2.0 || a / c > 2.0) )
+                {
+                    TriangleMesh2D::insertDelaunayNode(0.5 * (B + C), INNER, triangulation);
+                    triangle = triangulation.triangles.begin();
+                }
+                else if ( a != 0.0 && c != 0 && (b / a > 2.0 || b / c > 2.0) )
+                {
+                    TriangleMesh2D::insertDelaunayNode(0.5 * (A + C), INNER, triangulation);
+                    triangle = triangulation.triangles.begin();
+                }
+                else if ( a != 0.0 && b != 0 && (c / a > 2.0 || c / b > 2.0) )
+                {
+                    TriangleMesh2D::insertDelaunayNode(0.5 * (A + B), INNER, triangulation);
+                    triangle = triangulation.triangles.begin();
+                }
+                else
+                    ++triangle;
+            }
+            else
+            {
+                ++triangle;
+            }
+        }
+        else
+            ++triangle;
+
+        ++niter;
+//        ++progress;
+    }
+    std::cout << "Length's niter: " << niter << std::endl;
+
 //    Point2D super0(0.0, 0.0);
 //    Point2D super1(1.0, 0.0);
 //    Point2D super2(1.0, 1.0);
@@ -775,38 +823,44 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
 //        }
 //    }
 
-//    for (std::list<Triangle>::iterator triangle = triangulation.triangles.begin(); triangle != triangulation.triangles.end(); ++triangle)
-//    {
-//        Point2D A = triangulation.nodes[triangle->vertexNode(0)];
-//        Point2D B = triangulation.nodes[triangle->vertexNode(1)];
-//        Point2D C = triangulation.nodes[triangle->vertexNode(2)];
-//        addElement(addNode(domainFunction(A.x(), A.y()), BORDER), addNode(domainFunction(B.x(), B.y()), BORDER), addNode(domainFunction(C.x(), C.y()), BORDER));
-//    }
+    for (std::list<Triangle>::iterator triangle = triangulation.triangles.begin(); triangle != triangulation.triangles.end(); ++triangle)
+    {
+        Point2D A = triangulation.nodes[triangle->vertexNode(0)];
+        Point2D B = triangulation.nodes[triangle->vertexNode(1)];
+        Point2D C = triangulation.nodes[triangle->vertexNode(2)];
+        Point2D center = 1.0 / 3.0 * (A + B + C);
+        double val_a = func2d(A.x(), A.y());
+        double val_b = func2d(B.x(), B.y());
+        double val_c = func2d(C.x(), C.y());
+        double val_center = func2d(center.x(), center.y());
+        if (val_a > -epsilon_ && val_b > -epsilon_ && val_c > -epsilon_ && val_center > -epsilon_)
+            addElement(addNode(domainFunction(A.x(), A.y()), BORDER), addNode(domainFunction(B.x(), B.y()), BORDER), addNode(domainFunction(C.x(), C.y()), BORDER));
+    }
 //    mesh2d.ruppert(uCount, vCount, 0.0, 0.0, 1.0, 1.0, func2d, charPoints2d, true);
-    mesh2d.functionalDomain(uCount, vCount, 0.0, 0.0, 1.0, 1.0, func2d, charPoints2d, distance);
-    std::map<UInteger, UInteger> nodes_map;
-    Point3D zero = domainFunction(0.0, 0.0);
-    xMin_ = xMax_ = zero.x();
-    yMin_ = yMax_ = zero.y();
-    zMin_ = zMax_ = zero.z();
-    for (UInteger i = 0; i < mesh2d.nodesCount(); i++)
-    {
-        Point2D p = mesh2d.point2d(i);
-        Point3D p3 = domainFunction(p.x(), p.y());
-        NodeType nodeType = (fabs(func2d(p.x(), p.y())) < epsilon_ || mesh2d.nodeType(i) == CHARACTER) ? CHARACTER : BORDER;
-        nodes_map[i] = pushNode(p3, nodeType);
-        if (p3.x() < xMin_) xMin_ = p3.x();
-        if (p3.x() > xMax_) xMax_ = p3.x();
-        if (p3.y() < yMin_) yMin_ = p3.y();
-        if (p3.y() > yMax_) yMax_ = p3.y();
-        if (p3.z() < zMin_) zMin_ = p3.z();
-        if (p3.z() > zMax_) zMax_ = p3.z();
-    }
-    for (UInteger i = 0; i < mesh2d.elementsCount(); i++)
-    {
-        Triangle t = mesh2d.triangle(i);
-        addElement(nodes_map[t[0]], nodes_map[t[1]], nodes_map[t[2]]);
-    }
+//    mesh2d.functionalDomain(uCount, vCount, 0.0, 0.0, 1.0, 1.0, func2d, charPoints2d, distance);
+//    std::map<UInteger, UInteger> nodes_map;
+//    Point3D zero = domainFunction(0.0, 0.0);
+//    xMin_ = xMax_ = zero.x();
+//    yMin_ = yMax_ = zero.y();
+//    zMin_ = zMax_ = zero.z();
+//    for (UInteger i = 0; i < mesh2d.nodesCount(); i++)
+//    {
+//        Point2D p = mesh2d.point2d(i);
+//        Point3D p3 = domainFunction(p.x(), p.y());
+//        NodeType nodeType = (fabs(func2d(p.x(), p.y())) < epsilon_ || mesh2d.nodeType(i) == CHARACTER) ? CHARACTER : BORDER;
+//        nodes_map[i] = pushNode(p3, nodeType);
+//        if (p3.x() < xMin_) xMin_ = p3.x();
+//        if (p3.x() > xMax_) xMax_ = p3.x();
+//        if (p3.y() < yMin_) yMin_ = p3.y();
+//        if (p3.y() > yMax_) yMax_ = p3.y();
+//        if (p3.z() < zMin_) zMin_ = p3.z();
+//        if (p3.z() > zMax_) zMax_ = p3.z();
+//    }
+//    for (UInteger i = 0; i < mesh2d.elementsCount(); i++)
+//    {
+//        Triangle t = mesh2d.triangle(i);
+//        addElement(nodes_map[t[0]], nodes_map[t[1]], nodes_map[t[2]]);
+//    }
 }
 
 UInteger TriangleMesh3D::elementsCount() const

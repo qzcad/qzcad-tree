@@ -10,6 +10,8 @@
 #include <omp.h>
 #endif
 
+#include "consoleprogress.h"
+
 namespace msh
 {
 
@@ -1024,17 +1026,18 @@ TriangleMesh2D::Triangulation TriangleMesh2D::superDelaunay(SegmentMesh2D *mesh,
 
 void TriangleMesh2D::superRuppert(TriangleMesh2D::Triangulation &triangulation, SegmentMesh2D *mesh, std::function<double(double, double)> func)
 {
+    ConsoleProgress progress(4294967290UL);
     splitSegments(triangulation);
     UInteger niter = 0;
     std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
-    while (triangle != triangulation.triangles.end() && niter < 4294967294UL)
+    while (triangle != triangulation.triangles.end() && niter < 4294967290UL)
     {
         if (triangle->vertexNode(0) > 3 && triangle->vertexNode(1) > 3 && triangle->vertexNode(2) > 3)
         {
             Point2D A = triangulation.nodes[triangle->vertexNode(0)];
             Point2D B = triangulation.nodes[triangle->vertexNode(1)];
             Point2D C = triangulation.nodes[triangle->vertexNode(2)];
-            if (minAngle(A, B, C) < 0.35)
+            if (minAngle(A, B, C) < 0.5 && (func(A.x(), A.y()) >= -epsilon_ || func(B.x(), B.y()) >= -epsilon_ || func(C.x(), C.y()) >= -epsilon_))
             {
                 Point2D center;
                 UInteger seg_num = 0;
@@ -1067,7 +1070,9 @@ void TriangleMesh2D::superRuppert(TriangleMesh2D::Triangulation &triangulation, 
         }
         else
             ++triangle;
-        niter++;
+
+        ++niter;
+        ++progress;
     }
     std::cout << "Ruppert's niter: " << niter << std::endl;
 }
