@@ -980,47 +980,47 @@ TriangleMesh2D::Triangulation TriangleMesh2D::superDelaunay(SegmentMesh2D *mesh,
         NodeType type = mesh->nodeType(i);
         insertDelaunayNode(point, type, triangulation);
     }
-//    std::cout << "Delaunay edges refinement...";
-//    std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
-//    while (triangle != triangulation.triangles.end())
-//    {
-//        Point2D A = triangulation.nodes[triangle->vertexNode(0)];
-//        Point2D B = triangulation.nodes[triangle->vertexNode(1)];
-//        Point2D C = triangulation.nodes[triangle->vertexNode(2)];
-//        UInteger seg_num = 0;
-//        if (mesh->isCrossedElement(A, B, seg_num))
-//        {
-//            Point2D R = mesh->refineMidpoint(seg_num, func);
-//            if (insertDelaunayNode(R, INNER, triangulation.nodes, triangulation.types, triangulation.triangles))
-//                triangle = triangulation.triangles.begin();
-//            else
-//                ++triangle;
-//            std::cout << '+';
-//        }
-//        else if (mesh->isCrossedElement(A, C, seg_num))
-//        {
-//            Point2D R = mesh->refineMidpoint(seg_num, func);
-//            if (insertDelaunayNode(R, INNER, triangulation.nodes, triangulation.types, triangulation.triangles))
-//                triangle = triangulation.triangles.begin();
-//            else
-//                ++triangle;
-//            std::cout << '+';
-//        }
-//        else if (mesh->isCrossedElement(B, C, seg_num))
-//        {
-//            Point2D R = mesh->refineMidpoint(seg_num, func);
-//            if (insertDelaunayNode(R, INNER, triangulation.nodes, triangulation.types, triangulation.triangles))
-//                triangle = triangulation.triangles.begin();
-//            else
-//                ++triangle;
-//            std::cout << '+';
-//        }
-//        else
-//        {
-//            ++triangle;
-//        }
-//    }
-//    std::cout << std::endl;
+    std::cout << "Delaunay edges refinement...";
+    std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
+    while (triangle != triangulation.triangles.end())
+    {
+        Point2D A = triangulation.nodes[triangle->vertexNode(0)];
+        Point2D B = triangulation.nodes[triangle->vertexNode(1)];
+        Point2D C = triangulation.nodes[triangle->vertexNode(2)];
+        UInteger seg_num = 0;
+        if (mesh->isCrossedElement(A, B, seg_num))
+        {
+            Point2D R = mesh->refineMidpoint(seg_num, func);
+            if (insertDelaunayNode(R, INNER, triangulation))
+                triangle = triangulation.triangles.begin();
+            else
+                ++triangle;
+            std::cout << '+';
+        }
+        else if (mesh->isCrossedElement(A, C, seg_num))
+        {
+            Point2D R = mesh->refineMidpoint(seg_num, func);
+            if (insertDelaunayNode(R, INNER, triangulation))
+                triangle = triangulation.triangles.begin();
+            else
+                ++triangle;
+            std::cout << '+';
+        }
+        else if (mesh->isCrossedElement(B, C, seg_num))
+        {
+            Point2D R = mesh->refineMidpoint(seg_num, func);
+            if (insertDelaunayNode(R, INNER, triangulation))
+                triangle = triangulation.triangles.begin();
+            else
+                ++triangle;
+            std::cout << '+';
+        }
+        else
+        {
+            ++triangle;
+        }
+    }
+    std::cout << std::endl;
     return triangulation;
 }
 
