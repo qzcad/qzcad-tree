@@ -692,24 +692,31 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
             Point2D A = triangulation.nodes[triangle->vertexNode(0)];
             Point2D B = triangulation.nodes[triangle->vertexNode(1)];
             Point2D C = triangulation.nodes[triangle->vertexNode(2)];
-            double a = distance(B, C);
-            double b = distance(A, C);
-            double c = distance(A, B);
+            Point3D A3 = domainFunction(A.x(), A.y());
+            Point3D B3 = domainFunction(B.x(), B.y());
+            Point3D C3 = domainFunction(C.x(), C.y());
+            // 3d центры
+            Point3D AB3 = domainFunction(0.5 * (A.x() + B.x()), 0.5 * (A.y() + B.y()));
+            Point3D AC3 = domainFunction(0.5 * (A.x() + C.x()), 0.5 * (A.y() + C.y()));
+            Point3D BC3 = domainFunction(0.5 * (B.x() + C.x()), 0.5 * (B.y() + C.y()));
+            double bc = distance(B, C);
+            double ac = distance(A, C);
+            double ab = distance(A, B);
             if ((func2d(A.x(), A.y()) >= -epsilon_ && func2d(B.x(), B.y()) >= -epsilon_ && func2d(C.x(), C.y()) >= -epsilon_))
             {
-                if ( b != 0.0 && c != 0 && (a / b > 2.0 || a / c > 2.0) )
+                if ( AB3.distanceTo(0.5 * (A3 + B3)) / ab > 0.05 )
                 {
-                    TriangleMesh2D::insertDelaunayNode(0.5 * (B + C), INNER, triangulation);
+                    TriangleMesh2D::insertDelaunayNode(0.5 * (A + B), INNER, triangulation);
                     triangle = triangulation.triangles.begin();
                 }
-                else if ( a != 0.0 && c != 0 && (b / a > 2.0 || b / c > 2.0) )
+                else if ( AC3.distanceTo(0.5 * (A3 + C3)) / ac > 0.05 )
                 {
                     TriangleMesh2D::insertDelaunayNode(0.5 * (A + C), INNER, triangulation);
                     triangle = triangulation.triangles.begin();
                 }
-                else if ( a != 0.0 && b != 0 && (c / a > 2.0 || c / b > 2.0) )
+                else if ( BC3.distanceTo(0.5 * (B3 + C3)) / bc > 0.05 )
                 {
-                    TriangleMesh2D::insertDelaunayNode(0.5 * (A + B), INNER, triangulation);
+                    TriangleMesh2D::insertDelaunayNode(0.5 * (B + C), INNER, triangulation);
                     triangle = triangulation.triangles.begin();
                 }
                 else
@@ -727,7 +734,7 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
 //        ++progress;
     }
     std::cout << "Length's niter: " << niter << std::endl;
-
+    TriangleMesh2D::superRuppert(triangulation, &smesh, func2d);
 //    Point2D super0(0.0, 0.0);
 //    Point2D super1(1.0, 0.0);
 //    Point2D super2(1.0, 1.0);
