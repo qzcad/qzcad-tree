@@ -1,4 +1,5 @@
 #include <math.h>
+#include <iostream>
 #include "point2d.h"
 
 namespace msh
@@ -37,6 +38,16 @@ void Point2D::set(const double &x, const double &y)
 {
     Point1D::set(x);
     y_ = y;
+}
+
+void Point2D::print() const
+{
+    std::cout << '(' << x() << "; " << y() << ')';
+}
+
+void Point2D::println() const
+{
+    std::cout << '(' << x() << "; " << y() << ')' << std::endl;
 }
 
 void Point2D::setY(const double &y)

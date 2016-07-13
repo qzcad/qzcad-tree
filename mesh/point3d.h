@@ -96,6 +96,10 @@ public:
      */
     void print() const;
     /**
+     * @brief Напечатать на стандартную консоль координаты с переходом на новую строку
+     */
+    void println() const;
+    /**
      * @brief Получить координаты точки в новой ортогональной системе координат, определенной тройкой векторов
      * @param Vx Вектор первого направления
      * @param Vy Вектор второго напраления
@@ -122,6 +126,17 @@ public:
     /// Отношение вектора, занного точкой point, к числу dec
     friend const Point3D operator /(const Point3D &point, double dec);
     /// @}
+    /**
+     * @brief Проверка скрещиваются ли прямые P0P1 и Q0Q1
+     * @param P0 Первая точка прямой P
+     * @param P1 Вторая точка прямой P
+     * @param Q0 Первая точка прямой Q
+     * @param Q1 Вторая точка прямой Q
+     * @param p Коэффицент, соответсвующий точке пресечения на прямой P ( X = P0 + p * (P1 - P0) )
+     * @param q Коэффицент, соответсвующий точке пресечения на прямой q ( X = Q0 + q * (Q1 - Q0) )
+     * @return
+     */
+    friend bool isSkew(const Point3D &P0, const Point3D &P1, const Point3D &Q0, const Point3D &Q1, double &p, double &q);
 private:
     double z_; //!< Аппликата точки
 };

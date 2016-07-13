@@ -84,6 +84,11 @@ void Point3D::print() const
     std::cout << '(' << x() << "; " << y() << "; " << z() << ')';
 }
 
+void Point3D::println() const
+{
+    std::cout << '(' << x() << "; " << y() << "; " << z() << ')' << std::endl;
+}
+
 Point3D Point3D::inCoordSystem(const Point3D &Vx, const Point3D &Vy, const Point3D &Vz) const
 {
     Point3D p(Vx.x() * x() + Vx.y() * y() + Vx.z() * z(),
@@ -135,4 +140,22 @@ bool operator ==(const Point3D &leftPoint, const Point3D &rightPoint)
 {
     return (leftPoint.x() == rightPoint.x()) && (leftPoint.y() == rightPoint.y()) && (leftPoint.z() == rightPoint.z());
 }
+
+bool isSkew(const Point3D &P0, const Point3D &P1, const Point3D &Q0, const Point3D &Q1, double &p, double &q)
+{
+    Point3D AB = P1 - P0;
+    Point3D AC = Q1 - P0;
+    Point3D N = AB.product(AC);
+    Point3D Vx = AB.normalized();
+    Point3D Vz = N.normalized();
+    Point3D Vy = Vz.product(Vx);
+
+    Point3D p0 = (P0 - P0).inCoordSystem(Vx, Vy, Vz);
+    Point3D p1 = (P1 - P0).inCoordSystem(Vx, Vy, Vz);
+    Point3D q0 = (Q0 - P0).inCoordSystem(Vx, Vy, Vz);
+    Point3D q1 = (Q1 - P0).inCoordSystem(Vx, Vy, Vz);
+
+    return isCrossed(p0, p1, q0, q1, p, q);
+}
+
 }
