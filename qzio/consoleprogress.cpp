@@ -48,6 +48,11 @@ unsigned long ConsoleProgress::expectedCount() const
     return expectedCount_;
 }
 
+bool ConsoleProgress::isExpectedCount() const
+{
+    return count_ == expectedCount_;
+}
+
 void ConsoleProgress::displayTic()
 {
     // use of floating point ensures that both large and small counts

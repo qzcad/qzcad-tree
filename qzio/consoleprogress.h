@@ -63,6 +63,11 @@ public:
      * @return Максимальное количество итераций
      */
     unsigned long expectedCount() const;
+    /**
+     * @brief Проверить выполенено ли ожидаемое количество итераций
+     * @return true, если выполнено ожидаемое число итераций, false - иначе
+     */
+    bool isExpectedCount() const;
 protected:
     void displayTic();
 private:
