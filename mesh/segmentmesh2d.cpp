@@ -367,9 +367,9 @@ Point2D SegmentMesh2D::refineMidpoint(const UInteger &number, std::function<doub
     Point2D a = node_[seg[0]].point;
     Point2D b = node_[seg[1]].point;
     Point2D v(a, b);
+    double l = v.length();
     Point2D n = v.perpendicular().normalized();
     Point2D c = 0.5 * (a + b);
-    double l = v.length();
     Point2D p0 = ((-0.25 * l) * n) + c;
     Point2D p1 = ((0.25 * l) * n) + c;
     Point2D border = c;
@@ -379,9 +379,32 @@ Point2D SegmentMesh2D::refineMidpoint(const UInteger &number, std::function<doub
     }
     else if (func != nullptr)
     {
-        std::cout << "l = " << l << std::endl;
-        std::cout << "c: " << c.x() << " " << c.y() << std::endl;
-        std::cout << p0.x() << ", " << p0.y() << "; " << p1.x() << ", " << p1.y() << ": "<< func(p0.x(), p0.y()) << " * " << func(p1.x(), p1.y()) << std::endl;
+        p0 = ((-0.5 * l) * n) + c;
+        p1 = ((0.5 * l) * n) + c;
+        if (func(p0.x(), p0.y()) * func(p1.x(), p1.y()) < epsilon_)
+        {
+            border = binary(p0, p1, func);
+        }
+        else
+        {
+            p0 = ((-0.05 * l) * n) + c;
+            p1 = ((0.05 * l) * n) + c;
+            if (func(p0.x(), p0.y()) * func(p1.x(), p1.y()) < epsilon_)
+            {
+                border = binary(p0, p1, func);
+            }
+            else
+            {
+                p0 = (l * n) + c;
+                p1 = (l * n) + c;
+                if (func(p0.x(), p0.y()) * func(p1.x(), p1.y()) < epsilon_)
+                {
+                    border = binary(p0, p1, func);
+                }
+                else
+                    std::cout << "midpoint searching error" << std::endl;
+            }
+        }
     }
     UInteger ic = pushNode(border, BORDER);
     addElement(ic, seg[1]);
