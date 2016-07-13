@@ -880,6 +880,21 @@ QScriptValue QZScriptEngine::createParametricTriangles(QScriptContext *context, 
             tmo->parametricDomain(uCount, vCount, domain, nullptr);
             return engine->newQObject(tmo, QScriptEngine::ScriptOwnership);
         }
+        else
+        {
+            QScriptValue r_function = context->argument(3);
+            if (!r_function.isFunction())
+                return context->throwError(typeError.arg("rfunc"));
+            auto rfunc = [&](double x, double y, double z)
+            {
+                QScriptValueList args;
+                args << x << y << z;
+                return (r_function.call(QScriptValue(), args)).toNumber();
+            };
+            QTriangleMesh3D *tmo = new QTriangleMesh3D();
+            tmo->parametricDomain(uCount, vCount, domain, rfunc);
+            return engine->newQObject(tmo, QScriptEngine::ScriptOwnership);
+        }
 
     }
     return context->throwError(QObject::tr("ParametricTriangles(): arguments count error."));

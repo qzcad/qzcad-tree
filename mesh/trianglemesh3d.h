@@ -13,6 +13,7 @@
 
 #include "mesh3d.h"
 #include "triangle.h"
+#include "trianglemesh2d.h"
 
 namespace msh {
 /**
@@ -163,6 +164,10 @@ protected:
      * @return true, если точка попадает в сферу
      */
     bool inCircumSphere(const Point3D &P, const Point3D &A, const Point3D &B, const Point3D &C);
+    bool inCircumCylinder(const Point2D &P, const Point2D &A, const Point2D &B, const Point2D &C, std::function<Point3D(double, double)> domainFunction);
+    Point2D circumCylinderCenter(const Point2D &A, const Point2D &B, const Point2D &C, std::function<Point3D(double, double)> domainFunction);
+    bool insertDelaunayNode(const Point2D &point, const NodeType &type, TriangleMesh2D::Triangulation &triangulation, std::function<Point3D(double, double)> domainFunction);
+    void flip();
 protected:
     std::vector<Triangle> element_; //!< Массив элементов
 };
