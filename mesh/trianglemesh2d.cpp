@@ -745,9 +745,9 @@ void TriangleMesh2D::ruppert(const UInteger &xCount, const UInteger &yCount, con
     SegmentMesh2D mesh;
     mesh.functionalDomain(xCount, yCount, xMin, yMin, width, height, func_a, func_b, charPoint, delta);
 
-    Triangulation triangulation = superDelaunay(&mesh, NULL);
+    Triangulation triangulation = superDelaunay(&mesh, nullptr);
 
-    superRuppert(triangulation, &mesh, NULL);
+    superRuppert(triangulation, &mesh, nullptr);
 
     if (refineArea)
     {
@@ -835,66 +835,72 @@ void TriangleMesh2D::clearElements()
 
 void TriangleMesh2D::flip()
 {
-    for (UInteger t = 0; t < element_.size(); t++)
+    bool were_flips = true;
+    while (were_flips)
     {
-        Triangle triangle = element_[t];
-        for (int i = 0; i < 3; i++)
+        ConsoleProgress progress(element_.size());
+        were_flips = false;
+        for (UInteger t = 0; t < element_.size(); t++)
         {
-            UInteger index0 = triangle[i];
-            UInteger index1 = triangle[i + 1];
-            AdjacentSet a1 = node_[index0].adjacent;
-            AdjacentSet a2 = node_[index1].adjacent;
-            std::vector<UInteger> common;
-            set_intersection(a1.begin(), a1.end(), a2.begin(), a2.end(), std::back_inserter(common));
-            if (common.size() == 2)
+            ++progress;
+            Triangle triangle = element_[t];
+            for (int i = 0; i < 3; i++)
             {
-//                std::cout << common[0] << " " << common[1] << std::endl;
-                Point2D p0 = node_[index0].point;
-                Point2D p1 = node_[index1].point;
-                UInteger index2 = triangle[i - 1];
-                Point2D p2 = node_[index2].point;
-                UInteger indexf;
-                int subindex;
-                Point2D f;
-                UInteger t1;
-                if (common[0] != t)
+                UInteger index0 = triangle[i];
+                UInteger index1 = triangle[i + 1];
+                AdjacentSet a1 = node_[index0].adjacent;
+                AdjacentSet a2 = node_[index1].adjacent;
+                std::vector<UInteger> common;
+                set_intersection(a1.begin(), a1.end(), a2.begin(), a2.end(), std::back_inserter(common));
+                if (common.size() == 2)
                 {
-                    t1 = common[0];
-                }
-                else
-                {
-                    t1 = common[1];
-                }
+                    Point2D p0 = node_[index0].point;
+                    Point2D p1 = node_[index1].point;
+                    UInteger index2 = triangle[i - 1];
+                    Point2D p2 = node_[index2].point;
+                    UInteger indexf;
+                    int subindex;
+                    Point2D f;
+                    UInteger t1;
+                    if (common[0] != t)
+                    {
+                        t1 = common[0];
+                    }
+                    else
+                    {
+                        t1 = common[1];
+                    }
 
-                if (element_[t1][0] != index0 && element_[t1][0] != index1)
-                {
-                    indexf = element_[t1][0];
-                    subindex = 0;
-                }
-                else if (element_[t1][1] != index0 && element_[t1][1] != index1)
-                {
-                    indexf = element_[t1][1];
-                    subindex = 1;
-                }
-                else
-                {
-                    indexf = element_[t1][2];
-                    subindex = 2;
-                }
+                    if (element_[t1][0] != index0 && element_[t1][0] != index1)
+                    {
+                        indexf = element_[t1][0];
+                        subindex = 0;
+                    }
+                    else if (element_[t1][1] != index0 && element_[t1][1] != index1)
+                    {
+                        indexf = element_[t1][1];
+                        subindex = 1;
+                    }
+                    else
+                    {
+                        indexf = element_[t1][2];
+                        subindex = 2;
+                    }
 
-                f = node_[indexf].point;
-                double min_c = std::min(minAngle(p0, p1, p2), minAngle(p0, f, p1));
-                double min_n = std::min(minAngle(p0, f, p2), minAngle(p2, f, p1));
-                double tp = 0.0, tq = 0.0;
-                if (min_n > min_c && isCrossed(p0, p1, p2, f, tp, tq) && tp > epsilon_ && tp < 1.0 - epsilon_ && tq > epsilon_ && tq < 1.0 - epsilon_ )
-                {
-                    std::cout << " flip " << std::endl;
-                    node_[index0].adjacent.erase(t1);
-                    node_[index1].adjacent.erase(t);
-                    element_[t][i + 1] = indexf;
-                    node_[indexf].adjacent.insert(t);
-                    element_[t1][subindex - 1] = index2;
-                    node_[index2].adjacent.insert(t1);
+                    f = node_[indexf].point;
+                    double min_c = std::min(minAngle(p0, p1, p2), minAngle(p0, f, p1));
+                    double min_n = std::min(minAngle(p0, f, p2), minAngle(p2, f, p1));
+                    double tp = 0.0, tq = 0.0;
+                    if (min_n > min_c && isCrossed(p0, p1, p2, f, tp, tq) && tp > epsilon_ && tp < 1.0 - epsilon_ && tq > epsilon_ && tq < 1.0 - epsilon_ )
+                    {
+                        node_[index0].adjacent.erase(t1);
+                        node_[index1].adjacent.erase(t);
+                        element_[t][i + 1] = indexf;
+                        node_[indexf].adjacent.insert(t);
+                        element_[t1][subindex - 1] = index2;
+                        node_[index2].adjacent.insert(t1);
+                        break;
+                    }
                 }
             }
         }
@@ -913,7 +919,7 @@ bool TriangleMesh2D::angles(const Point2D &A, const Point2D &B, const Point2D &C
     const double a = B.distanceTo(C); // сторона, противолежащяя вершине A (BC)
     const double b = A.distanceTo(C); // сторона, противолежащяя вершине B (AC)
     const double c = A.distanceTo(B); // сторона, противолежащяя вершине C (AB)
-    if (a < epsilon_ || b < epsilon_ || c < epsilon_)
+    if (a < epsilon_ || b < epsilon_ || c < epsilon_ || fabs(a + b - c) < epsilon_ || fabs(a + c - b) < epsilon_ || fabs(b + c - a) < epsilon_)
     {
         alpha = beta = gamma = 0.0;
         return false;
@@ -974,13 +980,15 @@ TriangleMesh2D::Triangulation TriangleMesh2D::superDelaunay(SegmentMesh2D *mesh,
     triangulation.triangles.push_back(Triangle(1, 2, 4));
     triangulation.triangles.push_back(Triangle(2, 3, 4));
     triangulation.triangles.push_back(Triangle(3, 0, 4));
+    ConsoleProgress progress(mesh->nodesCount());
     for (UInteger i = 1; i < mesh->nodesCount(); i++)
     {
         Point2D point = mesh->point2d(i);
         NodeType type = mesh->nodeType(i);
         insertDelaunayNode(point, type, triangulation);
+        ++progress;
     }
-    std::cout << "Delaunay edges refinement...";
+    std::cout << std::endl << "Delaunay edges refinement...";
     std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
     while (triangle != triangulation.triangles.end())
     {
@@ -1026,18 +1034,23 @@ TriangleMesh2D::Triangulation TriangleMesh2D::superDelaunay(SegmentMesh2D *mesh,
 
 void TriangleMesh2D::superRuppert(TriangleMesh2D::Triangulation &triangulation, SegmentMesh2D *mesh, std::function<double(double, double)> func)
 {
-    ConsoleProgress progress(4294967290UL);
     splitSegments(triangulation);
-    UInteger niter = 0;
+    ConsoleProgress progress(4294967290UL);
     std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
-    while (triangle != triangulation.triangles.end() && niter < 4294967290UL)
+    while (triangle != triangulation.triangles.end() && !progress.isExpectedCount())
     {
+        ++progress;
         if (triangle->vertexNode(0) > 3 && triangle->vertexNode(1) > 3 && triangle->vertexNode(2) > 3)
         {
             Point2D A = triangulation.nodes[triangle->vertexNode(0)];
             Point2D B = triangulation.nodes[triangle->vertexNode(1)];
             Point2D C = triangulation.nodes[triangle->vertexNode(2)];
-            if (minAngle(A, B, C) < 0.5 && (func(A.x(), A.y()) >= -epsilon_ || func(B.x(), B.y()) >= -epsilon_ || func(C.x(), C.y()) >= -epsilon_))
+            bool func_val = false;
+            if (func == nullptr)
+                func_val = true;
+            else
+                func_val = (func(A.x(), A.y()) >= -epsilon_ || func(B.x(), B.y()) >= -epsilon_ || func(C.x(), C.y()) >= -epsilon_);
+            if (minAngle(A, B, C) < 0.5 && func_val)
             {
                 Point2D center;
                 UInteger seg_num = 0;
@@ -1051,7 +1064,6 @@ void TriangleMesh2D::superRuppert(TriangleMesh2D::Triangulation &triangulation, 
                         triangle = triangulation.triangles.begin();
                     else
                     {
-                        std::cout << R.x() << " " << R.y() << std::endl;
                         ++triangle;
                     }
                 }
@@ -1061,7 +1073,6 @@ void TriangleMesh2D::superRuppert(TriangleMesh2D::Triangulation &triangulation, 
                 }
                 else
                 {
-//                    std::cout << "!" << std::endl;
                     ++triangle;
                 }
             }
@@ -1070,18 +1081,15 @@ void TriangleMesh2D::superRuppert(TriangleMesh2D::Triangulation &triangulation, 
         }
         else
             ++triangle;
-
-        ++niter;
-        ++progress;
     }
-    std::cout << "Ruppert's niter: " << niter << std::endl;
+    std::cout << "Ruppert's niter: " << progress.count() << std::endl;
 }
 
 void TriangleMesh2D::splitSegments(TriangleMesh2D::Triangulation &triangulation)
 {
-    UInteger niter = 0;
+    ConsoleProgress progress(4294967290UL);
     std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
-    while (triangle != triangulation.triangles.end() && niter < 4294967294UL)
+    while (triangle != triangulation.triangles.end() && !progress.isExpectedCount())
     {
         bool divided = false;
         if (triangle->vertexNode(0) > 3 && triangle->vertexNode(1) > 3 && triangle->vertexNode(2) > 3)
@@ -1129,16 +1137,16 @@ void TriangleMesh2D::splitSegments(TriangleMesh2D::Triangulation &triangulation)
         {
             triangle = triangulation.triangles.begin();
         }
-        niter++;
+        ++progress;
     }
-//    std::cout << "Split Segment: " << niter << std::endl;
+    std::cout << "Split segments niter: " << progress.count() << std::endl;
 }
 
 void TriangleMesh2D::areaRefinement(double max_area, std::function<double (double, double)> func, TriangleMesh2D::Triangulation &triangulation)
 {
-    UInteger niter = 0;
+    ConsoleProgress progress(4294967290UL);
     std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
-    while (triangle != triangulation.triangles.end() && niter < 4294967294UL)
+    while (triangle != triangulation.triangles.end() && !progress.isExpectedCount())
     {
         if (triangle->vertexNode(0) > 3 && triangle->vertexNode(1) > 3 && triangle->vertexNode(2) > 3)
         {
@@ -1158,9 +1166,9 @@ void TriangleMesh2D::areaRefinement(double max_area, std::function<double (doubl
         }
         else
             ++triangle;
-        niter++;
+        ++progress;
     }
-    std::cout << "Area niter: " << niter << std::endl;
+    std::cout << "Area niter: " << progress.count() << std::endl;
 }
 
 bool TriangleMesh2D::insertDelaunayNode(const Point2D &point, const NodeType &type, Triangulation &triangulation)
