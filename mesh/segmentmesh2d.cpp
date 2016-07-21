@@ -148,7 +148,7 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
         }
     }
     // оптимизация по кривизне границы
-    for (int it = 0; (it < 4) && isOptimized; ++it)
+    for (int it = 0; (it < 10) && isOptimized; ++it)
     {
         std::cout << "Curvature it " << it << " ";
         isOptimized = false;
