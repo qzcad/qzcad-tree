@@ -164,7 +164,7 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
             double l = v.length();
             Point2D p0 = (-0.25 * l * n) + c;
             Point2D p1 = (0.25 * l * n) + c;
-            if (func(p0.x(), p0.y()) * func(p1.x(), p1.y()) < epsilon_)
+            if (signbit(func(p0.x(), p0.y())) != signbit(func(p1.x(), p1.y())))
             {
                 Point2D border = binary(p0, p1, func);
                 if (!border.isEqualTo(c, 0.08 * l))
@@ -180,7 +180,24 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
             }
             else
             {
-                std::cout << '-';
+                Point2D h = 0.01 * l * n;
+                p0 = -h + c;
+                p1 = h + c;
+                while (signbit(func(p0.x(), p0.y())) == signbit(func(p1.x(), p1.y()))) {
+                    p0 = p0 - h;
+                    p1 = p1 + h;
+                }
+                Point2D border = binary(p0, p1, func);
+                if (!border.isEqualTo(c, 0.08 * l))
+                {
+                    UInteger j = pushNode(border, BORDER);
+                    addElement(j, s[1]);
+                    node_[s[1]].adjacent.erase(i);
+                    element_[i][1] = j;
+                    node_[j].adjacent.insert(i);
+                    std::cout << '!';
+                    isOptimized = true;
+                }
             }
         }
         std::cout << std::endl;
@@ -373,7 +390,7 @@ Point2D SegmentMesh2D::refineMidpoint(const UInteger &number, std::function<doub
     Point2D p0 = ((-0.25 * l) * n) + c;
     Point2D p1 = ((0.25 * l) * n) + c;
     Point2D border = c;
-    if (func != nullptr && func(p0.x(), p0.y()) * func(p1.x(), p1.y()) < epsilon_)
+    if (func != nullptr && signbit(func(p0.x(), p0.y())) != signbit(func(p1.x(), p1.y())))
     {
         border = binary(p0, p1, func);
     }
@@ -381,7 +398,7 @@ Point2D SegmentMesh2D::refineMidpoint(const UInteger &number, std::function<doub
     {
         p0 = ((-0.5 * l) * n) + c;
         p1 = ((0.5 * l) * n) + c;
-        if (func(p0.x(), p0.y()) * func(p1.x(), p1.y()) < epsilon_)
+        if (signbit(func(p0.x(), p0.y())) != signbit(func(p1.x(), p1.y())))
         {
             border = binary(p0, p1, func);
         }
@@ -389,7 +406,7 @@ Point2D SegmentMesh2D::refineMidpoint(const UInteger &number, std::function<doub
         {
             p0 = ((-0.05 * l) * n) + c;
             p1 = ((0.05 * l) * n) + c;
-            if (func(p0.x(), p0.y()) * func(p1.x(), p1.y()) < epsilon_)
+            if (signbit(func(p0.x(), p0.y())) != signbit(func(p1.x(), p1.y())))
             {
                 border = binary(p0, p1, func);
             }
@@ -397,7 +414,7 @@ Point2D SegmentMesh2D::refineMidpoint(const UInteger &number, std::function<doub
             {
                 p0 = (l * n) + c;
                 p1 = (l * n) + c;
-                if (func(p0.x(), p0.y()) * func(p1.x(), p1.y()) < epsilon_)
+                if (signbit(func(p0.x(), p0.y())) != signbit(func(p1.x(), p1.y())))
                 {
                     border = binary(p0, p1, func);
                 }
