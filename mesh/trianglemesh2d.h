@@ -276,7 +276,17 @@ public:
      * @param r Радиус описанной окружности
      * @return true, если заданная точка попала в описанную окружность
      */
-    static bool circumCircle(double xp, double yp, double x1, double y1, double x2, double y2, double x3, double y3, double &xc, double &yc, double &r);
+    static bool circumCircle(const double &xp,
+                             const double &yp,
+                             const double &x1,
+                             const double &y1,
+                             const double &x2,
+                             const double &y2,
+                             const double &x3,
+                             const double &y3,
+                             double &xc,
+                             double &yc,
+                             double &r);
 protected:
     std::vector<Triangle> element_; //!< Массив элементов
     typedef std::vector<Triangle>::iterator ElementIterator;

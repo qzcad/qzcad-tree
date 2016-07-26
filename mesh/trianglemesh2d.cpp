@@ -566,92 +566,6 @@ void TriangleMesh2D::ruppert(const UInteger &xCount, const UInteger &yCount, con
         superRuppert(triangulation, &mesh, func);
     }
 
-//    UInteger niter = 0;
-//    std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
-//    while (triangle != triangulation.triangles.end() && niter < 4294967294UL)
-//    {
-//        if (triangle->vertexNode(0) > 3 && triangle->vertexNode(1) > 3 && triangle->vertexNode(2) > 3)
-//        {
-//            Point2D A = triangulation.nodes[triangle->vertexNode(0)];
-//            Point2D B = triangulation.nodes[triangle->vertexNode(1)];
-//            Point2D C = triangulation.nodes[triangle->vertexNode(2)];
-//            Point2D AB = 0.5 * (A + B);
-//            Point2D AC = 0.5 * (A + C);
-//            Point2D BC = 0.5 * (B + C);
-//            double val_a = func(A.x(), A.y());
-//            double val_b = func(B.x(), B.y());
-//            double val_c = func(C.x(), C.y());
-//            double val_ab = func(AB.x(), AB.y());
-//            double val_bc = func(BC.x(), BC.y());
-//            double val_ac = func(AC.x(), AC.y());
-
-//            if (fabs(val_a) > epsilon_ && fabs(val_ab) > epsilon_ && val_a * val_ab < 0.0)
-//            {
-//                Point2D p = binary(A, AB, func);
-//                if (insertDelaunayNode(p, BORDER, triangulation.nodes, triangulation.types, triangulation.triangles))
-//                {
-//                    triangle = triangulation.triangles.begin();
-//                    ++niter;
-//                    continue;
-//                }
-//            }
-//            else if (fabs(val_b) > epsilon_ && fabs(val_ab) > epsilon_ && val_b * val_ab < 0.0)
-//            {
-//                Point2D p = binary(B, AB, func);
-//                if (insertDelaunayNode(p, BORDER, triangulation.nodes, triangulation.types, triangulation.triangles))
-//                {
-//                    triangle = triangulation.triangles.begin();
-//                    ++niter;
-//                    continue;
-//                }
-//            }
-//            if (fabs(val_a) > epsilon_ && fabs(val_ac) > epsilon_ && val_a * val_ac < 0.0)
-//            {
-//                Point2D p = binary(A, AC, func);
-//                if (insertDelaunayNode(p, BORDER, triangulation.nodes, triangulation.types, triangulation.triangles))
-//                {
-//                    triangle = triangulation.triangles.begin();
-//                    ++niter;
-//                    continue;
-//                }
-//            }
-//            else if (fabs(val_c) > epsilon_ && fabs(val_ac) > epsilon_ && val_c * val_ac < 0.0)
-//            {
-//                Point2D p = binary(C, AC, func);
-//                if (insertDelaunayNode(p, BORDER, triangulation.nodes, triangulation.types, triangulation.triangles))
-//                {
-//                    triangle = triangulation.triangles.begin();
-//                    ++niter;
-//                    continue;
-//                }
-//            }
-//            if (fabs(val_b) > epsilon_ && fabs(val_bc) > epsilon_ && val_b * val_bc < 0.0)
-//            {
-//                Point2D p = binary(B, BC, func);
-//                if (insertDelaunayNode(p, BORDER, triangulation.nodes, triangulation.types, triangulation.triangles))
-//                {
-//                    triangle = triangulation.triangles.begin();
-//                    ++niter;
-//                    continue;
-//                }
-//            }
-//            else if (fabs(val_c) > epsilon_ && fabs(val_bc) > epsilon_ && val_c * val_bc < 0.0)
-//            {
-//                Point2D p = binary(C, BC, func);
-//                if (insertDelaunayNode(p, BORDER, triangulation.nodes, triangulation.types, triangulation.triangles))
-//                {
-//                    triangle = triangulation.triangles.begin();
-//                    ++niter;
-//                    continue;
-//                }
-//            }
-
-//        }
-//        ++triangle;
-
-//    }
-//    std::cout << "Edges niter: " << niter << std::endl;
-
     for (std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
              triangle != triangulation.triangles.end(); )
     {
@@ -672,8 +586,6 @@ void TriangleMesh2D::ruppert(const UInteger &xCount, const UInteger &yCount, con
              triangle++;
         }
     }
-
-//    superRuppert(triangulation);
 
     for (std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
              triangle != triangulation.triangles.end(); ++triangle)
@@ -835,76 +747,77 @@ void TriangleMesh2D::clearElements()
 
 void TriangleMesh2D::flip()
 {
-    bool were_flips = true;
-    while (were_flips)
+    std::cout << "Flip" << std::endl;
+    ConsoleProgress progress(element_.size());
+    UInteger fcount = 0;
+    for (UInteger t = 0; t < element_.size(); t++)
     {
-        ConsoleProgress progress(element_.size());
-        were_flips = false;
-        for (UInteger t = 0; t < element_.size(); t++)
+        ++progress;
+        Triangle triangle = element_[t];
+        for (int i = 0; i < 3; i++)
         {
-            ++progress;
-            Triangle triangle = element_[t];
-            for (int i = 0; i < 3; i++)
+            UInteger index0 = triangle[i];
+            UInteger index1 = triangle[i + 1];
+            AdjacentSet a1 = node_[index0].adjacent;
+            AdjacentSet a2 = node_[index1].adjacent;
+            std::vector<UInteger> common;
+            set_intersection(a1.begin(), a1.end(), a2.begin(), a2.end(), std::back_inserter(common));
+            if (common.size() == 2)
             {
-                UInteger index0 = triangle[i];
-                UInteger index1 = triangle[i + 1];
-                AdjacentSet a1 = node_[index0].adjacent;
-                AdjacentSet a2 = node_[index1].adjacent;
-                std::vector<UInteger> common;
-                set_intersection(a1.begin(), a1.end(), a2.begin(), a2.end(), std::back_inserter(common));
-                if (common.size() == 2)
+                Point2D p0 = node_[index0].point;
+                Point2D p1 = node_[index1].point;
+                UInteger index2 = triangle[i - 1];
+                Point2D p2 = node_[index2].point;
+                UInteger indexf;
+                int subindex;
+                Point2D f;
+                UInteger t1;
+                if (common[0] != t)
                 {
-                    Point2D p0 = node_[index0].point;
-                    Point2D p1 = node_[index1].point;
-                    UInteger index2 = triangle[i - 1];
-                    Point2D p2 = node_[index2].point;
-                    UInteger indexf;
-                    int subindex;
-                    Point2D f;
-                    UInteger t1;
-                    if (common[0] != t)
-                    {
-                        t1 = common[0];
-                    }
-                    else
-                    {
-                        t1 = common[1];
-                    }
+                    t1 = common[0];
+                }
+                else
+                {
+                    t1 = common[1];
+                }
 
-                    if (element_[t1][0] != index0 && element_[t1][0] != index1)
-                    {
-                        indexf = element_[t1][0];
-                        subindex = 0;
-                    }
-                    else if (element_[t1][1] != index0 && element_[t1][1] != index1)
-                    {
-                        indexf = element_[t1][1];
-                        subindex = 1;
-                    }
-                    else
-                    {
-                        indexf = element_[t1][2];
-                        subindex = 2;
-                    }
+                if (element_[t1][0] != index0 && element_[t1][0] != index1)
+                {
+                    indexf = element_[t1][0];
+                    subindex = 0;
+                }
+                else if (element_[t1][1] != index0 && element_[t1][1] != index1)
+                {
+                    indexf = element_[t1][1];
+                    subindex = 1;
+                }
+                else
+                {
+                    indexf = element_[t1][2];
+                    subindex = 2;
+                }
 
-                    f = node_[indexf].point;
-                    double min_c = std::min(minAngle(p0, p1, p2), minAngle(p0, f, p1));
-                    double min_n = std::min(minAngle(p0, f, p2), minAngle(p2, f, p1));
-                    double tp = 0.0, tq = 0.0;
-                    if (min_n > min_c && isCrossed(p0, p1, p2, f, tp, tq) && tp > epsilon_ && tp < 1.0 - epsilon_ && tq > epsilon_ && tq < 1.0 - epsilon_ )
-                    {
-                        node_[index0].adjacent.erase(t1);
-                        node_[index1].adjacent.erase(t);
-                        element_[t][i + 1] = indexf;
-                        node_[indexf].adjacent.insert(t);
-                        element_[t1][subindex - 1] = index2;
-                        node_[index2].adjacent.insert(t1);
-                        break;
-                    }
+                f = node_[indexf].point;
+                //                    double min_c = std::min(minAngle(p0, p1, p2), minAngle(p0, f, p1));
+                //                    double min_n = std::min(minAngle(p0, f, p2), minAngle(p2, f, p1));
+                double tp = 0.0, tq = 0.0, xc, yc, r;
+                //                    if (min_n > min_c && isCrossed(p0, p1, p2, f, tp, tq) && tp > epsilon_ && tp < 1.0 - epsilon_ && tq > epsilon_ && tq < 1.0 - epsilon_ )
+                if (circumCircle(f.x(), f.y(), p0.x(), p0.y(), p1.x(), p1.y(), p2.x(), p2.y(), xc, yc, r) &&
+                        isCrossed(p0, p1, p2, f, tp, tq) && tp > epsilon_ && tp < 1.0 - epsilon_ && tq > epsilon_ && tq < 1.0 - epsilon_ )
+                {
+                    node_[index0].adjacent.erase(t1);
+                    node_[index1].adjacent.erase(t);
+                    element_[t][i + 1] = indexf;
+                    node_[indexf].adjacent.insert(t);
+                    element_[t1][subindex - 1] = index2;
+                    node_[index2].adjacent.insert(t1);
+                    fcount++;
+                    break;
                 }
             }
         }
     }
+    std::cout << "Total flips: " << fcount << std::endl;
 }
 
 double TriangleMesh2D::minAngle(const Point2D &A, const Point2D &B, const Point2D &C)
@@ -1255,7 +1168,7 @@ double TriangleMesh2D::signedArea(const Point2D &A, const Point2D &B, const Poin
     return 0.5 * ( (B.x() - A.x()) * (C.y() - A.y()) - (C.x() - A.x()) * (B.y() - A.y()) );
 }
 
-bool TriangleMesh2D::circumCircle(double xp, double yp, double x1, double y1, double x2, double y2, double x3, double y3, double &xc, double &yc, double &r)
+bool TriangleMesh2D::circumCircle(const double &xp, const double &yp, const double &x1, const double &y1, const double &x2, const double &y2, const double &x3, const double &y3, double &xc, double &yc, double &r)
 {
     double m1, m2, mx1, mx2, my1, my2;
     double dx, dy, rsqr, drsqr;
@@ -1297,7 +1210,7 @@ bool TriangleMesh2D::circumCircle(double xp, double yp, double x1, double y1, do
     dx = xp - xc;
     dy = yp - yc;
     drsqr = dx * dx + dy * dy;
-    return (drsqr <= rsqr + 100.0 * epsilon_);
+    return (drsqr <= rsqr - epsilon_);
 }
 
 }
