@@ -69,11 +69,11 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
         1 | 8, // 14
         0 //15
     };
-    std::cout << "Character nodes: " << charPoint.size() << std::endl;
-    for (std::list<Point2D>::iterator cPoint = charPoint.begin(); cPoint != charPoint.end(); ++cPoint)
-    {
-        pushNode(*cPoint, CHARACTER);
-    }
+//    std::cout << "Character nodes: " << charPoint.size() << std::endl;
+//    for (std::list<Point2D>::iterator cPoint = charPoint.begin(); cPoint != charPoint.end(); ++cPoint)
+//    {
+//        pushNode(*cPoint, CHARACTER);
+//    }
     double x0 = xMin_;
     for (UInteger i = 0; i < xCount - 1; i++)
     {
@@ -116,36 +116,55 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
         x0 += hx;
     }
     // учет характерных точек, для которых не нашлось пары
-    for (UInteger i = 0; i < charPoint.size(); i++)
+//    for (UInteger i = 0; i < charPoint.size(); i++)
+//    {
+//        Node2D node = node_[i];
+//        if (node.adjacent.size() == 0)
+//        {
+//            Point2D point = node.point;
+//            UInteger min_el = 0;
+//            Point2D p0 = node_[element_[0][0]].point;
+//            Point2D p1 = node_[element_[0][1]].point;
+//            double dp0 = (distance == nullptr) ? point.distanceTo(p0) : distance(point, p0);
+//            double dp1 = (distance == nullptr) ? point.distanceTo(p1) : distance(point, p1);
+//            double min_d = dp0 * dp0 + dp1 * dp1;
+//            for (UInteger j = 1; j < elementsCount(); j++)
+//            {
+//                p0 = node_[element_[j][0]].point;
+//                p1 = node_[element_[j][1]].point;
+//                dp0 = (distance == nullptr) ? point.distanceTo(p0) : distance(point, p0);
+//                dp1 = (distance == nullptr) ? point.distanceTo(p1) : distance(point, p1);
+//                double d = dp0 * dp0 + dp1 * dp1;
+//                if (d < min_d)
+//                {
+//                    min_d = d;
+//                    min_el = j;
+//                }
+//            }
+//            addElement(i, element_[min_el][1]);
+//            node_[element_[min_el][1]].adjacent.erase(min_el);
+//            element_[min_el][1] = i;
+//            node_[i].adjacent.insert(min_el);
+//        }
+//    }
+    std::cout << "Character nodes: " << charPoint.size() << std::endl;
+    for (std::list<Point2D>::iterator cPoint = charPoint.begin(); cPoint != charPoint.end(); ++cPoint)
     {
-        Node2D node = node_[i];
-        if (node.adjacent.size() == 0)
+        Point2D character = *cPoint;
+        double d = (distance == nullptr) ? character.distanceTo(node_[0].point) : distance(character, node_[0].point);
+        UInteger num = 0;
+        character.print();
+        std::cout << "F = " << func(character.x(), character.y()) << std::endl;
+        for (UInteger i = 1; i < nodesCount(); i++)
         {
-            Point2D point = node.point;
-            UInteger min_el = 0;
-            Point2D p0 = node_[element_[0][0]].point;
-            Point2D p1 = node_[element_[0][1]].point;
-            double dp0 = (distance == nullptr) ? point.distanceTo(p0) : distance(point, p0);
-            double dp1 = (distance == nullptr) ? point.distanceTo(p1) : distance(point, p1);
-            double min_d = dp0 * dp0 + dp1 * dp1;
-            for (UInteger j = 1; j < elementsCount(); j++)
+            double c = ((distance == nullptr) ? character.distanceTo(node_[i].point) : distance(character, node_[i].point));
+            if (c < d)
             {
-                p0 = node_[element_[j][0]].point;
-                p1 = node_[element_[j][1]].point;
-                dp0 = (distance == nullptr) ? point.distanceTo(p0) : distance(point, p0);
-                dp1 = (distance == nullptr) ? point.distanceTo(p1) : distance(point, p1);
-                double d = dp0 * dp0 + dp1 * dp1;
-                if (d < min_d)
-                {
-                    min_d = d;
-                    min_el = j;
-                }
+                d = c;
+                num = i;
             }
-            addElement(i, element_[min_el][1]);
-            node_[element_[min_el][1]].adjacent.erase(min_el);
-            element_[min_el][1] = i;
-            node_[i].adjacent.insert(min_el);
         }
+        node_[num].point = character;
     }
     // оптимизация по кривизне границы
     for (int it = 0; (it < 10) && isOptimized; ++it)
