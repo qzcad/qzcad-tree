@@ -199,10 +199,10 @@ Point2D Mesh2D::binary(Point2D p0, Point2D p1, std::function<double (double, dou
     double val0 = func(p0.x(), p0.y());
     double val1 = func(p1.x(), p1.y());
 
-    if (fabs(val0) < epsilon_) return p0;
-    if (fabs(val1) < epsilon_) return p1;
+    if (0.0 <= val0 && val0 < epsilon_) return p0;
+    if (0.0 <= val1 && val1 < epsilon_) return p1;
 
-    if (val0 * val1 > 0)
+    if (signbit(val0) == signbit(val1))
     {
         return Point2D(); // значения в узлах отрезка одного знака => нет решения
     }
@@ -213,7 +213,7 @@ Point2D Mesh2D::binary(Point2D p0, Point2D p1, std::function<double (double, dou
     {
         center = 0.5 * (p0 + p1);
         val = func(center.x(), center.y());
-        if (val0 * val < 0)
+        if ( signbit(val0) != signbit(val) )
         {
             p1 = center;
             val1 = val;
@@ -223,7 +223,7 @@ Point2D Mesh2D::binary(Point2D p0, Point2D p1, std::function<double (double, dou
             p0 = center;
             val0 = val;
         }
-    } while (fabs(val) >= epsilon_);
+    } while (!(0.0 <= val && val < epsilon_));
     return center;
 }
 
