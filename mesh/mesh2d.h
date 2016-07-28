@@ -168,9 +168,10 @@ public:
      * @param p0 Первая точка отрезка, пересекающего границу
      * @param p1 Вторая точка отрезка, пересекающего границу
      * @param func Функция области
+     * @param level Линия уровня
      * @return Координаты пересечения отрезка и границы области
      */
-    static Point2D binary(Point2D p0, Point2D p1, std::function<double(double, double)> func);
+    static Point2D binary(Point2D p0, Point2D p1, std::function<double(double, double)> func, double level = 0.0);
 protected:
     std::vector<Node2D> node_; //!< массив узлов
     double xMin_; //!< минимальное значение ординаты

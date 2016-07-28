@@ -194,10 +194,10 @@ void Mesh2D::setPoint(const UInteger &number, const Point2D &p)
     node_[number].point = p;
 }
 
-Point2D Mesh2D::binary(Point2D p0, Point2D p1, std::function<double (double, double)> func)
+Point2D Mesh2D::binary(Point2D p0, Point2D p1, std::function<double (double, double)> func, double level)
 {
-    double val0 = func(p0.x(), p0.y());
-    double val1 = func(p1.x(), p1.y());
+    double val0 = func(p0.x(), p0.y()) - level;
+    double val1 = func(p1.x(), p1.y()) - level;
 
     if (0.0 <= val0 && val0 < epsilon_) return p0;
     if (0.0 <= val1 && val1 < epsilon_) return p1;
@@ -212,7 +212,7 @@ Point2D Mesh2D::binary(Point2D p0, Point2D p1, std::function<double (double, dou
     do
     {
         center = 0.5 * (p0 + p1);
-        val = func(center.x(), center.y());
+        val = func(center.x(), center.y()) - level;
         if ( signbit(val0) != signbit(val) )
         {
             p1 = center;
