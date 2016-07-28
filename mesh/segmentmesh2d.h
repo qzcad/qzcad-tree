@@ -64,6 +64,7 @@ public:
      * @param delta Параметр сгущения элементов в окрестности контакта (если меньше 0, то сгущение отсутствует)
      */
     void functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func_a, std::function<double(double, double)> func_b, std::list<Point2D> charPoint, double delta = -1.0);
+    void contourGraph(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, int contours = 5, bool isOptimized = true);
     /**
      * @brief elementsCount Количество элементов
      * @return Количество отрезков (граней), которые образуют контур
@@ -140,7 +141,7 @@ public:
      */
     bool isEncroached(const Point2D &point, UInteger &number);
 protected:
-
+    void cellContours(const Point2D &p0, const Point2D &p1, const Point2D &p2, const Point2D &p3, const double &v0, const double &v1, const double &v2, const double &v3, std::function<double(double, double)> func, double level = 0.0, std::function<double(Point2D, Point2D)> distance = nullptr);
 private:
     std::vector<Segment> element_; //!< Массив элементов
     typedef std::vector<Segment>::iterator ElementIterator;
