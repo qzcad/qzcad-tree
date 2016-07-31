@@ -22,7 +22,7 @@ SegmentMesh2D::SegmentMesh2D(const SegmentMesh2D *mesh) : Mesh2D(mesh)
     node_ = mesh->node_;
 }
 
-void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint, bool isOptimized, std::function<double(Point2D, Point2D)> distance)
+void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint, double level, bool isOptimized, std::function<double(Point2D, Point2D)> distance)
 {
     clear();
     xMin_ = xMin;
@@ -31,44 +31,6 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
     yMax_ = yMin + height;
     const double hx = width / (double)(xCount - 1);
     const double hy = height / (double)(yCount - 1);
-    double minDistance = 0.4 * sqrt(hx*hx + hy*hy);
-    Point2D border[4]; // массив координат пересечения с границей области
-    int edge_table[16][5] = {
-        { -1, -1, -1, -1, -1 }, // 0
-        {  3,  0, -1, -1, -1 }, // 1
-        {  0,  1, -1, -1, -1 }, // 2
-        {  3,  1, -1, -1, -1 }, // 3
-        {  1,  2, -1, -1, -1 }, // 4
-        {  1,  0,  3,  2, -1 }, // 5
-        {  0,  2, -1, -1, -1 }, // 6
-        {  3,  2, -1, -1, -1 }, // 7
-        {  2,  3, -1, -1, -1 }, // 8
-        {  2,  0, -1, -1, -1 }, // 9
-        {  0,  3,  2,  1, -1 }, // 10
-        {  2,  1, -1, -1, -1 }, // 11
-        {  1,  3, -1, -1, -1 }, // 12
-        {  1,  0, -1, -1, -1 }, // 13
-        {  0,  3, -1, -1, -1 }, // 14
-        { -1, -1, -1, -1, -1 }  // 15
-    };
-    int search_table[16] = {
-        0, // 0
-        1 | 8, // 1
-        1 | 2, // 2
-        2 | 8, // 3
-        2 | 4, // 4
-        1 | 2 | 4 | 8, // 5
-        1 | 4, // 6
-        4 | 8, // 7
-        4 | 8, // 8
-        1 | 4, // 9
-        1 | 2 | 4 | 8, // 10
-        2 | 4, // 11
-        2 | 8, // 12
-        1 | 2, // 13
-        1 | 8, // 14
-        0 //15
-    };
 
     double x0 = xMin_;
     for (UInteger i = 0; i < xCount - 1; i++)
@@ -76,39 +38,17 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
         double y0 = yMin_;
         for (UInteger j = 0; j < yCount - 1; j++)
         {
-            int index = 0;
             Point2D p0 (x0, y0);
             Point2D p1 ((i < xCount - 2) ? (x0 + hx) : xMax_, y0);
             Point2D p2 ((i < xCount - 2) ? (x0 + hx) : xMax_, (j < yCount - 2) ? (y0 + hy) : yMax_);
             Point2D p3 (x0, (j < yCount - 2) ? (y0 + hy) : yMax_);
 
-            if (distance != nullptr)
-                minDistance = 0.4 * distance(p0, p3);
-            else
-                minDistance = 0.4 * p0.distanceTo(p3);
-
-            if (func(p0.x(), p0.y()) < epsilon_) index |= 1;
-            if (func(p1.x(), p1.y()) < epsilon_) index |= 2;
-            if (func(p2.x(), p2.y()) < epsilon_) index |= 4;
-            if (func(p3.x(), p3.y()) < epsilon_) index |= 8;
-
-            if (search_table[index] & 1) border[0] = binary(p0, p1, func);
-            if (search_table[index] & 2) border[1] = binary(p1, p2, func);
-            if (search_table[index] & 4) border[2] = binary(p2, p3, func);
-            if (search_table[index] & 8) border[3] = binary(p3, p0, func);
-
-            for (int ii = 0; edge_table[index][ii] != -1; ii += 2)
-            {
-                Point2D prev = border[edge_table[index][ii]];
-                Point2D next = border[edge_table[index][ii + 1]];
-                // упорядоченное добавление узлов
-                UInteger ii0 = (prev.x() < next.x() || (prev.x() == next.x() && prev.y() < next.y())) ? addNode(prev, BORDER, minDistance, distance) : addNode(next, BORDER, minDistance, distance);
-                UInteger ii1 = (prev.x() < next.x() || (prev.x() == next.x() && prev.y() < next.y())) ? addNode(next, BORDER, minDistance, distance) : addNode(prev, BORDER, minDistance, distance);
-                if (ii0 != ii1)
-                {
-                    addElement(ii0, ii1);
-                }
-            }
+            cellContours(p0, p1, p2, p3,
+                         func(p0.x(), p0.y()),
+                         func(p1.x(), p1.y()),
+                         func(p2.x(), p2.y()),
+                         func(p3.x(), p3.y()),
+                         func, level, distance);
 
             y0 += hy;
         }
@@ -133,7 +73,9 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
             }
         }
         node_[num].point = character;
+        node_[num].type = CHARACTER;
     }
+
     // оптимизация по кривизне границы
     for (int it = 0; (it < 10) && isOptimized; ++it)
     {
@@ -151,9 +93,9 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
             double l = v.length();
             Point2D p0 = (-0.25 * l * n) + c;
             Point2D p1 = (0.25 * l * n) + c;
-            if (signbit(func(p0.x(), p0.y())) != signbit(func(p1.x(), p1.y())))
+            if (signbit(func(p0.x(), p0.y()) - level) != signbit(func(p1.x(), p1.y()) - level))
             {
-                Point2D border = binary(p0, p1, func);
+                Point2D border = binary(p0, p1, func, level);
                 if (!border.isEqualTo(c, 0.08 * l))
                 {
                     UInteger j = pushNode(border, BORDER);
@@ -170,11 +112,11 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
                 Point2D h = 0.01 * l * n;
                 p0 = -h + c;
                 p1 = h + c;
-                while (signbit(func(p0.x(), p0.y())) == signbit(func(p1.x(), p1.y()))) {
+                while (signbit(func(p0.x(), p0.y()) - level) == signbit(func(p1.x(), p1.y()) - level)) {
                     p0 = p0 - h;
                     p1 = p1 + h;
                 }
-                Point2D border = binary(p0, p1, func);
+                Point2D border = binary(p0, p1, func, level);
                 if (!border.isEqualTo(c, 0.08 * l))
                 {
                     UInteger j = pushNode(border, BORDER);
@@ -279,6 +221,7 @@ void SegmentMesh2D::contourGraph(const UInteger &xCount, const UInteger &yCount,
     const double hx = width / (double)(xCount - 1);
     const double hy = height / (double)(yCount - 1);
     double maxf = 0.0;
+    double h = 0.0;
 
     double x0 = xMin_;
     for (UInteger i = 0; i < xCount; i++)
@@ -294,7 +237,29 @@ void SegmentMesh2D::contourGraph(const UInteger &xCount, const UInteger &yCount,
         x0 += hx;
     }
 
-    // оптимизация по кривизне границы
+    h = maxf / (double)contours;
+
+    functionalDomain(xCount, yCount, xMin, yMin, width, height, func, charPoint, 0.0, isOptimized);
+
+    for (int i = 1; i < contours; i++)
+    {
+        SegmentMesh2D S;
+        std::list<Point2D> C;
+        S.functionalDomain(xCount, yCount, xMin, yMin, width, height, func, C, 0.0 + (double)i * h, false);
+        for (UInteger j = 0; j < S.elementsCount(); j++)
+        {
+            addElement(pushNode(S.node(S.element_[j][0]), S.nodeType(S.element_[j][0])), pushNode(S.node(S.element_[j][1]), S.nodeType(S.element_[j][1])));
+        }
+    }
+
+    std::vector<double> r(nodesCount());
+    for (UInteger i = 0; i < nodesCount(); i++)
+    {
+        Point2D p = node_[i].point;
+        r[i] = func(p.x(), p.y());
+    }
+    addDataVector("R", r);
+
     std::cout << "Segments mesh: nodes - " << nodesCount() << " elements - " << elementsCount() << std::endl;
 }
 
@@ -406,39 +371,47 @@ Point2D SegmentMesh2D::refineMidpoint(const UInteger &number, std::function<doub
     Point2D p0 = ((-0.25 * l) * n) + c;
     Point2D p1 = ((0.25 * l) * n) + c;
     Point2D border = c;
-    if (func != nullptr && signbit(func(p0.x(), p0.y())) != signbit(func(p1.x(), p1.y())))
+    if (func != nullptr)
     {
-        border = binary(p0, p1, func);
-    }
-    else if (func != nullptr)
-    {
-        p0 = ((-0.5 * l) * n) + c;
-        p1 = ((0.5 * l) * n) + c;
-        if (signbit(func(p0.x(), p0.y())) != signbit(func(p1.x(), p1.y())))
+        // R-function is defined
+        if (fabs(func(a.x(), a.y())) < epsilon_ && fabs(func(b.x(), b.y())) < epsilon_)
         {
-            border = binary(p0, p1, func);
-        }
-        else
-        {
-            p0 = ((-0.05 * l) * n) + c;
-            p1 = ((0.05 * l) * n) + c;
+            // zero-level segment
             if (signbit(func(p0.x(), p0.y())) != signbit(func(p1.x(), p1.y())))
             {
                 border = binary(p0, p1, func);
             }
             else
             {
-                p0 = (l * n) + c;
-                p1 = (l * n) + c;
+                p0 = ((-0.5 * l) * n) + c;
+                p1 = ((0.5 * l) * n) + c;
                 if (signbit(func(p0.x(), p0.y())) != signbit(func(p1.x(), p1.y())))
                 {
                     border = binary(p0, p1, func);
                 }
                 else
-                    std::cout << "midpoint searching error" << std::endl;
-            }
-        }
-    }
+                {
+                    p0 = ((-0.05 * l) * n) + c;
+                    p1 = ((0.05 * l) * n) + c;
+                    if (signbit(func(p0.x(), p0.y())) != signbit(func(p1.x(), p1.y())))
+                    {
+                        border = binary(p0, p1, func);
+                    }
+                    else
+                    {
+                        p0 = (l * n) + c;
+                        p1 = (l * n) + c;
+                        if (signbit(func(p0.x(), p0.y())) != signbit(func(p1.x(), p1.y())))
+                        {
+                            border = binary(p0, p1, func);
+                        }
+                        else
+                            std::cout << "midpoint searching error" << std::endl;
+                    } // else
+                } // else
+            } // else
+        } // if zero level
+    } // if func
     UInteger ic = pushNode(border, BORDER);
     addElement(ic, seg[1]);
     node_[seg[1]].adjacent.erase(number);
@@ -463,6 +436,75 @@ bool SegmentMesh2D::isEncroached(const Point2D &point, UInteger &number)
         }
     }
     return false;
+}
+
+void SegmentMesh2D::laplacianSmoothing(std::function<double(double, double)> func, int iter_num)
+{
+    if (func == nullptr)
+        return;
+
+    for (int iter = 0; iter < iter_num; iter++)
+    {
+        std::cout << "Laplacian smothing: " << iter << std::endl;
+        for (UInteger i = 0; i < nodesCount(); i++)
+        {
+            Node2D node = node_[i];
+            Point2D point = node.point;
+            AdjacentSet adjacent = node.adjacent;
+            if (node.type != CHARACTER && adjacent.size() == 2 && fabs(func(point.x(), point.y())) < epsilon_)
+            {
+                AdjacentSet::iterator it = adjacent.begin();
+                Segment s0 = element_[*(it)];
+                Segment s1 = element_[*(++it)];
+                Point2D a = ((s0[0] == i) ? node_[s0[1]].point : node_[s0[0]].point);
+                Point2D b = ((s1[0] == i) ? node_[s1[1]].point : node_[s1[0]].point);
+                Point2D c = 0.5 * (a + b);
+                Point2D v(a, b);
+                double l = v.length();
+                Point2D n = v.perpendicular().normalized();
+                Point2D p0 = ((-0.25 * l) * n) + c;
+                Point2D p1 = ((0.25 * l) * n) + c;
+                Point2D border;
+                if (signbit(func(p0.x(), p0.y())) != signbit(func(p1.x(), p1.y())))
+                {
+                    border = binary(p0, p1, func);
+                }
+                else
+                {
+                    p0 = ((-0.5 * l) * n) + c;
+                    p1 = ((0.5 * l) * n) + c;
+                    if (signbit(func(p0.x(), p0.y())) != signbit(func(p1.x(), p1.y())))
+                    {
+                        border = binary(p0, p1, func);
+                    }
+                    else
+                    {
+                        p0 = ((-0.05 * l) * n) + c;
+                        p1 = ((0.05 * l) * n) + c;
+                        if (signbit(func(p0.x(), p0.y())) != signbit(func(p1.x(), p1.y())))
+                        {
+                            border = binary(p0, p1, func);
+                        }
+                        else
+                        {
+                            p0 = (l * n) + c;
+                            p1 = (l * n) + c;
+                            if (signbit(func(p0.x(), p0.y())) != signbit(func(p1.x(), p1.y())))
+                            {
+                                border = binary(p0, p1, func);
+                            }
+                            else
+                            {
+                                // border is not found => contuine loop
+                                continue;
+                            }
+                        } // else
+                    } // else
+                } // else
+                node_[i].point = border;
+            }
+        }
+    }
 }
 
 void SegmentMesh2D::cellContours(const Point2D &p0, const Point2D &p1, const Point2D &p2, const Point2D &p3, const double &v0, const double &v1, const double &v2, const double &v3, std::function<double (double, double)> func, double level, std::function<double(Point2D, Point2D)> distance)
