@@ -39,7 +39,7 @@ public:
      */
     SegmentMesh2D(const SegmentMesh2D *mesh);
     /**
-     * @brief Метод создает равномерную секту области, определенной функционально
+     * @brief Метод создает равномерную дискретную модель заданной линии уровня на основе сегментов для области, определенной функционально
      * @param xCount Количество узлов вдоль оси абсцисс
      * @param yCount Количество узлов вдоль оси ординат
      * @param xMin Абсцисса нижнего левого угла прямоугольной области
@@ -48,10 +48,13 @@ public:
      * @param height Высота прямоугольной области
      * @param func Функция области
      * @param charPoint Список характерных точек
+     * @param level Линия уровня для дискретизации
+     * @param isOptimized Если true, то сетка сгущается на участках с наибольшей кривизной
+     * @param distance Указатель на фукнцию растояния (если дискретизация не в двумерной декартовой системе)
      */
     void functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, double level = 0.0, bool isOptimized = true, std::function<double(Point2D, Point2D)> distance = nullptr);
     /**
-     * @brief Метод создает равномерную секту области, определенной функционально (случай контакта двух тел)
+     * @brief Метод создает равномерную дискретную модель на основе сегментов для области, определенной функционально (случай контакта двух тел)
      * @param xCount Количество узлов вдоль оси абсцисс
      * @param yCount Количество узлов вдоль оси ординат
      * @param xMin Абсцисса нижнего левого угла прямоугольной области
@@ -64,7 +67,34 @@ public:
      * @param delta Параметр сгущения элементов в окрестности контакта (если меньше 0, то сгущение отсутствует)
      */
     void functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func_a, std::function<double(double, double)> func_b, std::list<Point2D> charPoint, double delta = -1.0);
+    /**
+     * @brief Метод создает дискретную модель заданного числа линий уровня R-функция
+     * @param xCount Количество узлов вдоль оси абсцисс
+     * @param yCount Количество узлов вдоль оси ординат
+     * @param xMin Абсцисса нижнего левого угла прямоугольной области
+     * @param yMin Ордината нижнего левого угла прямоугольной области
+     * @param width Ширина прямоугольной области
+     * @param height Высота прямоугольной области
+     * @param func Функция области
+     * @param charPoint Список характерных точек (уровня 0.0)
+     * @param contours Количество линий уровня
+     * @param isOptimized Если true, то сетка сгущается на участках с наибольшей кривизной
+     */
     void contourGraph(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, int contours = 4, bool isOptimized = true);
+    /**
+     * @brief Метод создает дискретную модель заданного числа внутренних фронтов границы R-функция
+     * @param xCount Количество узлов вдоль оси абсцисс
+     * @param yCount Количество узлов вдоль оси ординат
+     * @param xMin Абсцисса нижнего левого угла прямоугольной области
+     * @param yMin Ордината нижнего левого угла прямоугольной области
+     * @param width Ширина прямоугольной области
+     * @param height Высота прямоугольной области
+     * @param func Функция области
+     * @param charPoint Список характерных точек (уровня 0.0)
+     * @param contours Количество линий уровня
+     * @param isOptimized Если true, то сетка сгущается на участках с наибольшей кривизной
+     */
+    void frontGraph(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, int contours = 4, bool isOptimized = true);
     /**
      * @brief elementsCount Количество элементов
      * @return Количество отрезков (граней), которые образуют контур

@@ -2,7 +2,11 @@
 #include "segment.h"
 
 #include <iostream>
+#include <limits>
 #include <math.h>
+
+
+#include "consoleprogress.h"
 
 namespace msh
 {
@@ -25,12 +29,16 @@ SegmentMesh2D::SegmentMesh2D(const SegmentMesh2D *mesh) : Mesh2D(mesh)
 void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint, double level, bool isOptimized, std::function<double(Point2D, Point2D)> distance)
 {
     clear();
+    std::cout << "Mesh generation: level = " << level << std::endl;
     xMin_ = xMin;
     xMax_ = xMin + width;
     yMin_ = yMin;
     yMax_ = yMin + height;
+
     const double hx = width / (double)(xCount - 1);
     const double hy = height / (double)(yCount - 1);
+
+    ConsoleProgress progress(xCount - 1);
 
     double x0 = xMin_;
     for (UInteger i = 0; i < xCount - 1; i++)
@@ -53,6 +61,7 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
             y0 += hy;
         }
         x0 += hx;
+        ++progress;
     }
     // учет характерных точек
     std::cout << "Character nodes: " << charPoint.size() << std::endl;
@@ -223,6 +232,8 @@ void SegmentMesh2D::contourGraph(const UInteger &xCount, const UInteger &yCount,
     double maxf = 0.0;
     double h = 0.0;
 
+    functionalDomain(xCount, yCount, xMin, yMin, width, height, func, charPoint, 0.0, false);
+
     double x0 = xMin_;
     for (UInteger i = 0; i < xCount; i++)
     {
@@ -236,10 +247,9 @@ void SegmentMesh2D::contourGraph(const UInteger &xCount, const UInteger &yCount,
         }
         x0 += hx;
     }
+    std::cout << "max(f) = " << maxf << std::endl;
 
     h = maxf / (double)contours;
-
-    functionalDomain(xCount, yCount, xMin, yMin, width, height, func, charPoint, 0.0, isOptimized);
 
     for (int i = 1; i < contours; i++)
     {
@@ -257,6 +267,92 @@ void SegmentMesh2D::contourGraph(const UInteger &xCount, const UInteger &yCount,
     {
         Point2D p = node_[i].point;
         r[i] = func(p.x(), p.y());
+    }
+    addDataVector("R", r);
+
+    std::cout << "Segments mesh: nodes - " << nodesCount() << " elements - " << elementsCount() << std::endl;
+}
+
+void SegmentMesh2D::frontGraph(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint, int contours, bool isOptimized)
+{
+    clear();
+    xMin_ = xMin;
+    xMax_ = xMin + width;
+    yMin_ = yMin;
+    yMax_ = yMin + height;
+    const double hx = width / (double)(xCount - 1);
+    const double hy = height / (double)(yCount - 1);
+    double maxf = 0.0;
+    double h = 0.0;
+
+    functionalDomain(xCount, yCount, xMin, yMin, width, height, func, charPoint, 0.0, false);
+
+    UInteger border_elements_count = elementsCount();
+
+    auto contour_func = [&](double x, double y)
+    {
+        Point2D point(x, y);
+        double min_distance = std::numeric_limits<double>::max();
+        double f = func(x, y);
+        for (UInteger ie = 0; ie < border_elements_count; ie++)
+        {
+            Segment s = element_[ie];
+            Point2D p1 = node_[s[0]].point;
+            Point2D p2 = node_[s[1]].point;
+            double a = p2.y() - p1.y();
+            double b = p1.x() - p2.x();
+            double c = p2.x() * p1.y() - p2.y() * p1.x();
+            double xp = (b * (b * x - a * y) - a * c) / (a*a + b*b);
+            double yp = (a * (-b * x + a * y) - b * c) / (a*a + b*b);
+            double t = (fabs(p2.x() - p1.x()) > epsilon_) ? (xp - p1.x()) / (p2.x() - p1.x()) : (yp - p1.y()) / (p2.y() - p1.y());
+            double distance = 0.0;
+            if (t < 0.0 || t > 1.0)
+                distance = std::min(p1.distanceTo(point), p2.distanceTo(point));
+            else
+                distance = fabs(a * x + b * y + c) / sqrt(a*a + b*b);
+            if (min_distance > distance)
+                min_distance = distance;
+        }
+        if (f < 0.0)
+            return -1.0 * min_distance;
+        else if (f > 0.0)
+            return min_distance;
+        return 0.0;
+    };
+
+    double x0 = xMin_;
+    for (UInteger i = 0; i < xCount; i++)
+    {
+        double y0 = yMin_;
+        for (UInteger j = 0; j < yCount; j++)
+        {
+            double f = contour_func(x0, y0);
+            if (f > maxf)
+                maxf = f;
+            y0 += hy;
+        }
+        x0 += hx;
+    }
+    std::cout << "max(f) = " << maxf << std::endl;
+
+    h = maxf / (double)contours;
+
+//    for (int i = 1; i < contours; i++)
+    {
+        SegmentMesh2D S;
+        std::list<Point2D> C;
+        S.functionalDomain(xCount, yCount, xMin, yMin, width, height, contour_func, C, 0.5 * sqrt(hx*hx +hy*hy), false);
+        for (UInteger j = 0; j < S.elementsCount(); j++)
+        {
+            addElement(pushNode(S.node(S.element_[j][0]), S.nodeType(S.element_[j][0])), pushNode(S.node(S.element_[j][1]), S.nodeType(S.element_[j][1])));
+        }
+    }
+
+    std::vector<double> r(nodesCount());
+    for (UInteger i = 0; i < nodesCount(); i++)
+    {
+        Point2D p = node_[i].point;
+        r[i] = contour_func(p.x(), p.y());
     }
     addDataVector("R", r);
 
