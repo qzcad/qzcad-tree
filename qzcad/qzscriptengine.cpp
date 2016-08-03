@@ -60,6 +60,8 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     globalObject().setProperty("Quads2D", newFunction(createQuadrilateralMesh2D));
     // Двумерная сетка отрезков
     globalObject().setProperty("Segments2D", newFunction(createSegmentMesh2D));
+    // Двумерная картина линий уровня
+    globalObject().setProperty("ContourGraph", newFunction(createContourGraph));
     // Двумерная сетка треугольников
     globalObject().setProperty("Triangles2D", newFunction(createTriangleMesh2D));
     // Триангуляция Делоне
@@ -392,7 +394,64 @@ QScriptValue QZScriptEngine::createSegmentMesh2D(QScriptContext *context, QScrip
 
             return engine->newQObject(smo, QScriptEngine::ScriptOwnership);
         }
-        return context->throwError(QObject::tr("Segments2D(xCount: Integer, yCount: Integer, origin: Point, width: Floating, height: Floating): arguments count error."));
+    return context->throwError(QObject::tr("Segments2D(xCount: Integer, yCount: Integer, origin: Point, width: Floating, height: Floating): arguments count error."));
+}
+
+QScriptValue QZScriptEngine::createContourGraph(QScriptContext *context, QScriptEngine *engine)
+{
+    if (7 <= context->argumentCount() && context->argumentCount() <= 8)
+        {
+            QString typeError = QObject::tr("ContourGraph(xCount: Integer, yCount: Integer, origin: Point, width: Floating, height: Floating, function: Function, contours: Integer[, points: Array]): argument type error (%1).");
+            std::list<msh::Point2D> pointList;
+            if (!context->argument(0).isNumber())
+                return context->throwError(typeError.arg("xCount"));
+            if (!context->argument(1).isNumber())
+                return context->throwError(typeError.arg("yCount"));
+            if (!context->argument(2).isQObject() || qscriptvalue_cast<QPoint2D *>(context->argument(2)) == NULL)
+                return context->throwError(typeError.arg("origin"));
+            if (!context->argument(3).isNumber())
+                return context->throwError(typeError.arg("width"));
+            if (!context->argument(4).isNumber())
+                return context->throwError(typeError.arg("height"));
+            QScriptValue function = context->argument(5);
+            if (!function.isFunction())
+                return context->throwError(typeError.arg("function"));
+
+            UInteger xCount = context->argument(0).toUInt32();
+            UInteger yCount = context->argument(1).toUInt32();
+            QPoint2D *origin = qscriptvalue_cast<QPoint2D *>(context->argument(2));
+            double width = context->argument(3).toNumber();
+            double height = context->argument(4).toNumber();
+            // функция для вычисления квадрата числа (C++0x)
+            auto func = [&](double x, double y)
+            {
+                QScriptValueList args;
+                args << x << y;
+                return function.call(QScriptValue(), args).toNumber();
+            };
+
+            if (!context->argument(6).isNumber())
+                return context->throwError(typeError.arg("contours"));
+            int contours = context->argument(6).toInt32();
+
+            if (context->argumentCount() == 8)
+            {
+                if (!context->argument(7).isArray())
+                    return context->throwError(typeError.arg("points"));
+                QScriptValue array = context->argument(7);
+                for (int i = 0; i < array.property("length").toInteger(); i++)
+                {
+                    QPoint2D *point = qscriptvalue_cast<QPoint2D *>(array.property(i));
+                    pointList.push_back(Point2D(point->x(), point->y()));
+                }
+            }
+
+            QSegmentMesh2D *smo = new QSegmentMesh2D();
+            smo->contourGraph(xCount, yCount, origin->x(), origin->y(), width, height, func, pointList, contours, true);
+
+            return engine->newQObject(smo, QScriptEngine::ScriptOwnership);
+        }
+    return context->throwError(QObject::tr("ContourGraph(xCount: Integer, yCount: Integer, origin: Point, width: Floating, height: Floating, function: Function, contours: Integer[, points: Array]): arguments count error."));
 }
 
 QScriptValue QZScriptEngine::createTriangleMesh2D(QScriptContext *context, QScriptEngine *engine)

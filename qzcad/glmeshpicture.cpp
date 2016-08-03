@@ -25,9 +25,9 @@ GLMeshPicture::GLMeshPicture(QWidget *parent) :
     setFont(QFont("Monospace", 14, QFont::Bold));
 #endif
     setDefault();
-//#ifdef Q_OS_WIN
-//    setFormat(QGLFormat(QGL::SingleBuffer | QGL::DepthBuffer));
-//#endif
+#ifdef Q_OS_WIN
+    setFormat(QGLFormat(QGL::SingleBuffer | QGL::DepthBuffer));
+#endif
 }
 
 GLMeshPicture::~GLMeshPicture()

@@ -338,6 +338,15 @@ void SegmentMesh2D::frontGraph(const UInteger &xCount, const UInteger &yCount, c
     h = maxf / (double)contours;
 
 //    for (int i = 1; i < contours; i++)
+//    {
+//        SegmentMesh2D S;
+//        std::list<Point2D> C;
+//        S.functionalDomain(xCount, yCount, xMin, yMin, width, height, contour_func, C, (double)i * h, false);
+//        for (UInteger j = 0; j < S.elementsCount(); j++)
+//        {
+//            addElement(pushNode(S.node(S.element_[j][0]), S.nodeType(S.element_[j][0])), pushNode(S.node(S.element_[j][1]), S.nodeType(S.element_[j][1])));
+//        }
+//    }
     {
         SegmentMesh2D S;
         std::list<Point2D> C;

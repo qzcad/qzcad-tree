@@ -554,8 +554,8 @@ void TriangleMesh2D::ruppert(const UInteger &xCount, const UInteger &yCount, con
 {
     clear();
 
-    SegmentMesh2D mesh;
-    mesh.functionalDomain(xCount, yCount, xMin, yMin, width, height, func, charPoint);
+    SegmentMesh2D mesh;//, contour;
+    mesh.frontGraph(xCount, yCount, xMin, yMin, width, height, func, charPoint, 3);
 
     Triangulation triangulation = superDelaunay(&mesh, func);
 
@@ -590,27 +590,12 @@ void TriangleMesh2D::ruppert(const UInteger &xCount, const UInteger &yCount, con
     for (std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
              triangle != triangulation.triangles.end(); ++triangle)
     {
-        if (triangle->vertexNode(0) > 3 && triangle->vertexNode(1) > 3 && triangle->vertexNode(2) > 3)
-        {
-            Point2D A = triangulation.nodes[triangle->vertexNode(0)];
-            Point2D B = triangulation.nodes[triangle->vertexNode(1)];
-            Point2D C = triangulation.nodes[triangle->vertexNode(2)];
-            Point2D center = 1.0 / 3.0 * (A + B + C);
-            double val_a = func(A.x(), A.y());
-            double val_b = func(B.x(), B.y());
-            double val_c = func(C.x(), C.y());
-            double val_center = func(center.x(), center.y());
-            if (val_a > -epsilon_ && val_b > -epsilon_ && val_c > -epsilon_ && val_center > -epsilon_)
-            {
-                addElement(addNode(A, triangulation.types[triangle->vertexNode(0)]),
-                        addNode(B, triangulation.types[triangle->vertexNode(1)]),
-                        addNode(C, triangulation.types[triangle->vertexNode(2)]));
-            }
-            else
-            {
-                std::cout << "hmm" << std::endl;
-            }
-        }
+        Point2D A = triangulation.nodes[triangle->vertexNode(0)];
+        Point2D B = triangulation.nodes[triangle->vertexNode(1)];
+        Point2D C = triangulation.nodes[triangle->vertexNode(2)];
+        addElement(addNode(A, triangulation.types[triangle->vertexNode(0)]),
+                addNode(B, triangulation.types[triangle->vertexNode(1)]),
+                addNode(C, triangulation.types[triangle->vertexNode(2)]));
     }
     xMin_ = mesh.xMin(); xMax_ = mesh.xMax();
     yMin_ = mesh.yMin(); yMax_ = mesh.yMax();
@@ -948,7 +933,7 @@ TriangleMesh2D::Triangulation TriangleMesh2D::superDelaunay(SegmentMesh2D *mesh,
 void TriangleMesh2D::superRuppert(TriangleMesh2D::Triangulation &triangulation, SegmentMesh2D *mesh, std::function<double(double, double)> func)
 {
     splitSegments(triangulation);
-    ConsoleProgress progress(4294967290UL);
+    ConsoleProgress progress(4000000UL);
     std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
     while (triangle != triangulation.triangles.end() && !progress.isExpectedCount())
     {
@@ -958,15 +943,41 @@ void TriangleMesh2D::superRuppert(TriangleMesh2D::Triangulation &triangulation, 
             Point2D A = triangulation.nodes[triangle->vertexNode(0)];
             Point2D B = triangulation.nodes[triangle->vertexNode(1)];
             Point2D C = triangulation.nodes[triangle->vertexNode(2)];
+            UInteger seg_num = 0;
             bool func_val = false;
             if (func == nullptr)
                 func_val = true;
             else
                 func_val = (func(A.x(), A.y()) >= -epsilon_ || func(B.x(), B.y()) >= -epsilon_ || func(C.x(), C.y()) >= -epsilon_);
-            if (minAngle(A, B, C) < 0.5 && func_val)
+
+            if (mesh->isCrossedElement(A, B, seg_num))
+            {
+                Point2D R = mesh->refineMidpoint(seg_num, func);
+                if (insertDelaunayNode(R, INNER, triangulation))
+                    triangle = triangulation.triangles.begin();
+                else
+                    ++triangle;
+            }
+            else if (mesh->isCrossedElement(A, C, seg_num))
+            {
+                Point2D R = mesh->refineMidpoint(seg_num, func);
+                if (insertDelaunayNode(R, INNER, triangulation))
+                    triangle = triangulation.triangles.begin();
+                else
+                    ++triangle;
+            }
+            else if (mesh->isCrossedElement(B, C, seg_num))
+            {
+                Point2D R = mesh->refineMidpoint(seg_num, func);
+                if (insertDelaunayNode(R, INNER, triangulation))
+                    triangle = triangulation.triangles.begin();
+                else
+                    ++triangle;
+            }
+            else if (minAngle(A, B, C) < 0.436332 && func_val) // 25gr
             {
                 Point2D center;
-                UInteger seg_num = 0;
+
                 double xc = 0.0, yc = 0.0, r = 0.0;
                 circumCircle(0.0, 0.0, A.x(), A.y(), B.x(), B.y(), C.x(), C.y(), xc, yc, r);
                 center.set(xc, yc);

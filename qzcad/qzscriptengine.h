@@ -87,6 +87,13 @@ private:
      */
     static QScriptValue createSegmentMesh2D(QScriptContext *context, QScriptEngine *engine);
     /**
+     * @brief "Конструктор" двумерных картин линий уровня
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Объект для использования в скриптах
+     */
+    static QScriptValue createContourGraph(QScriptContext *context, QScriptEngine *engine);
+    /**
      * @brief "Конструктор" сеток треугольных элементов на плоскости
      * @param context Контекст скрипта
      * @param engine Двигатель скрипта
