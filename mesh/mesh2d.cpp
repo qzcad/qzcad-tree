@@ -194,6 +194,20 @@ void Mesh2D::setPoint(const UInteger &number, const Point2D &p)
     node_[number].point = p;
 }
 
+void Mesh2D::evalNodalValues(std::function<double (double, double)> func)
+{
+    if (func != nullptr)
+    {
+        std::vector<double> r(nodesCount());
+        for (UInteger i = 0; i < nodesCount(); i++)
+        {
+            Point2D p = node_[i].point;
+            r[i] = func(p.x(), p.y());
+        }
+        addDataVector("F(x,y)", r);
+    }
+}
+
 Point2D Mesh2D::binary(Point2D p0, Point2D p1, std::function<double (double, double)> func, double level)
 {
     double val0 = func(p0.x(), p0.y()) - level;

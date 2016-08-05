@@ -262,13 +262,7 @@ void SegmentMesh2D::contourGraph(const UInteger &xCount, const UInteger &yCount,
         }
     }
 
-    std::vector<double> r(nodesCount());
-    for (UInteger i = 0; i < nodesCount(); i++)
-    {
-        Point2D p = node_[i].point;
-        r[i] = func(p.x(), p.y());
-    }
-    addDataVector("R", r);
+    evalNodalValues(func);
 
     std::cout << "Segments mesh: nodes - " << nodesCount() << " elements - " << elementsCount() << std::endl;
 }

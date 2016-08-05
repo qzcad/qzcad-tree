@@ -358,6 +358,7 @@ void TriangleMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yC
         }
     }
     flip();
+    evalNodalValues(func);
     // the end.
     std::cout << "Создана сетка треугольных элементов для функционального объекта: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
@@ -546,6 +547,7 @@ void TriangleMesh2D::delaunay(const UInteger &xCount, const UInteger &yCount, co
                 addElement(triangle->vertexNode(0) - 4UL, triangle->vertexNode(1) - 4UL, triangle->vertexNode(2) - 4UL);
         }
     }
+    evalNodalValues(func);
     xMin_ = mesh.xMin(); xMax_ = mesh.xMax();
     yMin_ = mesh.yMin(); yMax_ = mesh.yMax();
 }
@@ -597,6 +599,7 @@ void TriangleMesh2D::ruppert(const UInteger &xCount, const UInteger &yCount, con
                 addNode(B, triangulation.types[triangle->vertexNode(1)]),
                 addNode(C, triangulation.types[triangle->vertexNode(2)]));
     }
+    evalNodalValues(func);
     xMin_ = mesh.xMin(); xMax_ = mesh.xMax();
     yMin_ = mesh.yMin(); yMax_ = mesh.yMax();
 }

@@ -164,6 +164,11 @@ public:
      */
     void setPoint(const UInteger &number, const Point2D &p);
     /**
+     * @brief Метод для построения вектора значений заданной функции в узлах сетки
+     * @param func Указатель функции двух переменных
+     */
+    void evalNodalValues(std::function<double(double, double)> func);
+    /**
      * @brief Двоичный поиск границы функции, пересекаемой отрезком
      * @param p0 Первая точка отрезка, пересекающего границу
      * @param p1 Вторая точка отрезка, пересекающего границу
