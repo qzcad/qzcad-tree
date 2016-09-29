@@ -682,7 +682,6 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
     SegmentMesh2D smesh;
     smesh.functionalDomain(uCount, vCount, 0.0, 0.0, 1.0, 1.0, func2d, charPoints2d, 0.0, false, distance);
 
-    TriangleMesh2D::Triangulation triangulation = TriangleMesh2D::superDelaunay(&smesh, func2d);
     TriangleMesh2D::superRuppert(triangulation, &smesh, func2d);
     std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
     UInteger niter = 0;
@@ -869,16 +868,16 @@ bool TriangleMesh3D::inCircumSphere(const Point3D &P, const Point3D &A, const Po
     Point3D Vz = N.normalized();
     Point3D Vy = Vz.product(Vx);
 
-    Point3D p = P.inCoordSystem(Vx, Vy, Vz);
-    Point3D a = A.inCoordSystem(Vx, Vy, Vz);
-    Point3D b = B.inCoordSystem(Vx, Vy, Vz);
-    Point3D c = C.inCoordSystem(Vx, Vy, Vz);
-    Point3D center;
+    Point3D p = (P - A).inCoordSystem(Vx, Vy, Vz);
+    Point3D a = (A - A).inCoordSystem(Vx, Vy, Vz);
+    Point3D b = (B - A).inCoordSystem(Vx, Vy, Vz);
+    Point3D c = (C - A).inCoordSystem(Vx, Vy, Vz);
+
     double xc = 0.0, yc = 0.0, r = 0.0;
-//    a.print(); b.print(); c.print();
-    return TriangleMesh2D::circumCircle(p.x(), p.y(), a.x(), a.y(), b.x(), b.y(), c.x(), c.y(), xc, yc, r);
-//    center.set(xc, yc, 0.0);
-    //    return p.distanceTo(center) < r;
+
+    TriangleMesh2D::circumCircle(0, 0, a.x(), a.y(), b.x(), b.y(), c.x(), c.y(), xc, yc, r);
+
+    return p.distanceTo(Point3D(xc, yc, 0.0)) < r - epsilon_;
 }
 
 bool TriangleMesh3D::inCircumCylinder(const Point2D &P, const Point2D &A, const Point2D &B, const Point2D &C, std::function<Point3D (double, double)> domainFunction)
@@ -1107,20 +1106,35 @@ void TriangleMesh3D::flip()
                     }
 
                     f = node_[indexf].point;
-                    double min_c = std::min(minAngle(p0, p1, p2), minAngle(p0, f, p1));
-                    double min_n = std::min(minAngle(p0, f, p2), minAngle(p2, f, p1));
+//                    double min_c = std::min(minAngle(p0, p1, p2), minAngle(p0, f, p1));
+//                    double min_n = std::min(minAngle(p0, f, p2), minAngle(p2, f, p1));
                     double tp = 0.0, tq = 0.0;
-                    if (min_n > min_c && isSkew(p0, p1, p2, f, tp, tq) && tp > epsilon_ && tp < (1.0 - epsilon_) && tq > epsilon_ && tq < (1.0 - epsilon_))
+//                    if (min_n > min_c && isSkew(p0, p1, p2, f, tp, tq) && tp > epsilon_ && tp < (1.0 - epsilon_) && tq > epsilon_ && tq < (1.0 - epsilon_))
+//                    {
+//                        std::cout << " flip " << std::endl;
+//                        node_[index0].adjacent.erase(t1);
+//                        node_[index1].adjacent.erase(t);
+//                        element_[t][i + 1] = indexf;
+//                        node_[indexf].adjacent.insert(t);
+//                        element_[t1][subindex - 1] = index2;
+//                        node_[index2].adjacent.insert(t1);
+//                        were_flips = true;
+//                        break;
+//                    }
+                    if (isSkew(p0, p1, p2, f, tp, tq) && tp > epsilon_ && tp < (1.0 - epsilon_) && tq > epsilon_ && tq < (1.0 - epsilon_))
                     {
-                        std::cout << " flip " << std::endl;
-                        node_[index0].adjacent.erase(t1);
-                        node_[index1].adjacent.erase(t);
-                        element_[t][i + 1] = indexf;
-                        node_[indexf].adjacent.insert(t);
-                        element_[t1][subindex - 1] = index2;
-                        node_[index2].adjacent.insert(t1);
-                        were_flips = true;
-                        break;
+                        if (inCircumSphere(f, p0, p1, p2))
+                        {
+                            std::cout << " flip " << std::endl;
+                            node_[index0].adjacent.erase(t1);
+                            node_[index1].adjacent.erase(t);
+                            element_[t][i + 1] = indexf;
+                            node_[indexf].adjacent.insert(t);
+                            element_[t1][subindex - 1] = index2;
+                            node_[index2].adjacent.insert(t1);
+                            were_flips = true;
+                            break;
+                        }
                     }
                 }
             }
