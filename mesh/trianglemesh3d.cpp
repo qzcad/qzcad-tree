@@ -681,7 +681,7 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
     }
     SegmentMesh2D smesh;
     smesh.functionalDomain(uCount, vCount, 0.0, 0.0, 1.0, 1.0, func2d, charPoints2d, 0.0, false, distance);
-
+    TriangleMesh2D::Triangulation triangulation = TriangleMesh2D::superDelaunay(&smesh, func2d);
     TriangleMesh2D::superRuppert(triangulation, &smesh, func2d);
     std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
     UInteger niter = 0;
