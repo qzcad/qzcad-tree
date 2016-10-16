@@ -1,4 +1,5 @@
 #include "colorvaluemap.h"
+#include <math.h>
 
 ColorValueMap::ColorValueMap(double min, double max, ColorMapName colorMapName)
 {
