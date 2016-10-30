@@ -52,6 +52,8 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     globalObject().setProperty("line", newFunction(line));
     // rectangle
     globalObject().setProperty("rectangle", newFunction(rectangle));
+    // convex
+    globalObject().setProperty("convex", newFunction(convex));
 
     // Точка (плоскость или пространство)
     globalObject().setProperty("Point", newFunction(createPoint));
@@ -1194,7 +1196,7 @@ QScriptValue QZScriptEngine::rectangle(QScriptContext *context, QScriptEngine *e
     Q_UNUSED(engine);
     QString typeError = QObject::tr("rectangle(x, y, w, h [, r]): all arguments must have type Number. Argument # %1.");
     if (context->argumentCount() != 4 && context->argumentCount() != 5)
-        return context->throwError(tr("Function circle has at least six arguments."));
+        return context->throwError(tr("Function rectangle has at least four arguments."));
     for (int i = 0; i < context->argumentCount(); i++)
         if (!context->argument(i).isNumber())
             return context->throwError(typeError.arg(i + 1));
@@ -1208,6 +1210,48 @@ QScriptValue QZScriptEngine::rectangle(QScriptContext *context, QScriptEngine *e
     if (r < 0.0)
         return context->throwError(typeError.arg("r < 0"));
     return msh::rectangle(x, y, w, h, r);
+}
+
+QScriptValue QZScriptEngine::convex(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(engine);
+    QString typeError = QObject::tr("convex(x, y, P: Points): argument type error (%1).");
+    if (context->argumentCount() < 3)
+        context->throwError(QObject::tr("convex(x, y, P: Points): arguments count error."));
+    if (!context->argument(0).isNumber())
+        return context->throwError(typeError.arg("x: Float"));
+    if (!context->argument(0).isNumber())
+        return context->throwError(typeError.arg("y: Float"));
+    double x = context->argument(0).toNumber();
+    double y = context->argument(1).toNumber();
+    if (context->argument(2).isArray())
+    {
+        QScriptValue array = context->argument(2);
+        double r = 0.0;
+        int pcount = array.property("length").toInteger();
+        if (pcount < 3)
+            return context->throwError(typeError.arg("P is array of at least 3 points."));
+        for (int i = 0; i < pcount; i++)
+        {
+            if (qscriptvalue_cast<QPoint2D *>(array.property(i)) == NULL)
+                return context->throwError(typeError.arg(QString("Broken point value # ") + QString::number(i)));
+        }
+        QPoint2D *p1 = qscriptvalue_cast<QPoint2D*>(array.property(0));
+        QPoint2D *p2 = qscriptvalue_cast<QPoint2D*>(array.property(1));
+        r = msh::line(x, y, p1->x(), p1->y(), p2->x(), p2->y());
+        for (int i = 2; i < pcount; i++)
+        {
+            p1 = p2;
+            p2 = qscriptvalue_cast<QPoint2D*>(array.property(i));
+            r = msh::con(r, msh::line(x, y, p1->x(), p1->y(), p2->x(), p2->y()));
+        }
+        p1 = qscriptvalue_cast<QPoint2D*>(array.property(pcount - 1));
+        p2 = qscriptvalue_cast<QPoint2D*>(array.property(0));
+        r = msh::con(r, msh::line(x, y, p1->x(), p1->y(), p2->x(), p2->y()));
+        return r;
+    }
+    return context->throwError(typeError.arg("p: Points"));
+
 }
 
 QScriptValue QZScriptEngine::planeStress(QScriptContext *context, QScriptEngine *engine)

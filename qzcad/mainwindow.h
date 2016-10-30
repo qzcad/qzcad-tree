@@ -152,6 +152,8 @@ private slots:
 
     void on_actionChangeElementColor_triggered();
 
+    void on_actionConvexScript_triggered();
+
 private:
     Ui::MainWindow *ui; //!< Контейнер элементов графического интерфейса
     QStdRedirector<> *stdRedirector; //!< Перехватчик сообщений стандартного потока

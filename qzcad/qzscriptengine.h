@@ -248,6 +248,13 @@ private:
      */
     static QScriptValue rectangle(QScriptContext *context, QScriptEngine *engine);
     /**
+     * @brief Функция области, ограниченной выпуклым многоугольником (многогранником в 3d)
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны (тип Number), то значение соответствующей функциий, иначе engine->undefinedValue()
+     */
+    static QScriptValue convex(QScriptContext *context, QScriptEngine *engine);
+    /**
      * @brief МКЭ: плоское напряжение
      * @param context Контекст скрипта
      * @param engine Двигатель скрипта

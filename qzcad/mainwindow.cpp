@@ -1248,3 +1248,9 @@ void MainWindow::on_actionChangeElementColor_triggered()
     if (color.isValid())
         ui->pictureControl->getGlMeshPicture()->setElementColor(color);
 }
+
+void MainWindow::on_actionConvexScript_triggered()
+{
+    QString command = "convex(x, y, P = new Array(...))";
+    ui->codeEditor->insertPlainText(command);
+}
