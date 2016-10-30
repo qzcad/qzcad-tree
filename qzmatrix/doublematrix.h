@@ -73,7 +73,7 @@ public:
      */
     void setRow(size_type i, const_reference value);
     /**
-     * @brief Метод для присвоения всем элементам заданного солбца матрицы указанного значения
+     * @brief Метод для присвоения всем элементам заданного столбца матрицы указанного значения
      * @param j Номер столбца
      * @param value Значение присваемое столбцу матрицы
      */
@@ -137,19 +137,19 @@ public:
      */
     friend DoubleMatrix operator *(const double &d, const DoubleMatrix &dm);
     /**
-     * @brief print Метод для печати матрицы на консоль (стандартный вывод)
+     * @brief Метод для печати матрицы на консоль (стандартный вывод)
      * @param separator Разделитель столбцов
      */
     void print(char separator = '\t') const;
     /**
-     * @brief Метод для получения траспонированной копии матрицы
+     * @brief Метод для получения транспонированной копии матрицы
      * @return Транспонированная копия матрицы
      */
     DoubleMatrix transpose();
     /**
      * @brief Оператор сложения матриц
-     * @param a Первое слогаемое
-     * @param b Второе слогаемое
+     * @param a Первое слагаемое
+     * @param b Второе слагаемое
      * @return Матрица c = a + b
      */
     friend DoubleMatrix operator + (const DoubleMatrix &a, const DoubleMatrix &b);
@@ -175,12 +175,12 @@ public:
      */
     friend DoubleVector operator * (const DoubleMatrix &a, const DoubleVector &b);
     /**
-     * @brief Метод для вычисления определеителя в частном случае матриц 2x2
+     * @brief Метод для вычисления определителя в частном случае матриц 2x2
      * @return Значение определителя
      */
     double det2x2() const;
     /**
-     * @brief Метод для вычисления определеителя в частном случае матриц 3x3
+     * @brief Метод для вычисления определителя в частном случае матриц 3x3
      * @return Значение определителя
      */
     double det3x3() const;
