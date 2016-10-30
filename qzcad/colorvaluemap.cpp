@@ -48,6 +48,16 @@ QColor ColorValueMap::color(const double &value, int colors)
                        scaleOn(value, 0.0, 1.0, colors),
                        scaleOn(value, 1.0, 0.5, colors));
         break;
+    case HOT:
+        result.setRgbF(scaleOn(value, min_, min_ + (max_ - min_) / 3.0, 0.0, 1.0, colors / 2),
+                       scaleOn(value, min_ + (max_ - min_) / 3.0, min_ + 2.0 * (max_ - min_) / 3.0, 0.0, 1.0, colors / 2),
+                       scaleOn(value, min_ + 2.0 * (max_ - min_) / 3.0, max_, 0.0, 1.0, colors / 2));
+        break;
+    case COOL:
+        result.setRgbF(scaleOn(value, 0.0, 1.0, colors),
+                       scaleOn(value, 1.0, 0.0, colors),
+                       1.0);
+        break;
     default:
         break;
     }
@@ -57,7 +67,16 @@ QColor ColorValueMap::color(const double &value, int colors)
 double ColorValueMap::scaleOn(const double &value, const double &a, const double &b, int colors)
 {
     double h = (b - a) / (double)colors;
-    int j = (int)round(((b - a) * (max_ - value) / (max_ - min_)) / h);
+    int j = (int)round(((b - a) * (value - min_) / (max_ - min_)) / h);
+    return a + (double)j * h;
+}
+
+double ColorValueMap::scaleOn(const double &value, const double &min, const double &max, const double &a, const double &b, int colors)
+{
+    if (value < min) return a;
+    if (value > max) return b;
+    double h = (b - a) / (double)colors;
+    int j = (int)round(((b - a) * (value - min) / (max - min)) / h);
     return a + (double)j * h;
 }
 

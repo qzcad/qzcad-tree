@@ -473,27 +473,37 @@
         <widget class="QComboBox" name="colorMap">
          <item>
           <property name="text">
-           <string>зима</string>
+           <string>winter</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>весна</string>
+           <string>spring</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>лето</string>
+           <string>summer</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>осень</string>
+           <string>autumn</string>
           </property>
          </item>
          <item>
           <property name="text">
-           <string>серость</string>
+           <string>grey</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>hot</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>cool</string>
           </property>
          </item>
         </widget>

@@ -286,22 +286,42 @@ void GLMeshPicture::drawColorBar()
     // отрисовка котрольной полосы
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
+    if (isLighting_) glDisable(GL_LIGHTING);
+
+    int nc = 9;
+    double bar_step = length / (double)nc;
+    double value_step = (max - min) / (double)nc;
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    glPolygonOffset(1.0, 1.0);
+    for (int i = 0; i < nc; i++)
+    {
+        qglColor(map_.color(min + (double)(i+1) * value_step));
+        glBegin(GL_POLYGON);
+        glVertex3d(right - width, top - length + (double)i * bar_step, maxVal);
+        glVertex3d(right, top - length + (double)i * bar_step, maxVal);
+        glVertex3d(right, top - length + (double)(i+1) * bar_step, maxVal);
+        glVertex3d(right - width, top - length + (double)(i+1) * bar_step, maxVal);
+        glEnd();
+    }
+    glDisable(GL_POLYGON_OFFSET_FILL);
+    qglColor(meshColor_);
+    for (int i = 0; i < nc; i++)
+    {
+        glBegin(GL_LINE_LOOP);
+        glVertex3d(right - width, top - length + (double)i * bar_step, maxVal);
+        glVertex3d(right, top - length + (double)i * bar_step, maxVal);
+        glVertex3d(right, top - length + (double)(i+1) * bar_step, maxVal);
+        glVertex3d(right - width, top - length + (double)(i+1) * bar_step, maxVal);
+        glEnd();
+    }
     qglColor (textColor_);
     glDisable(GL_DEPTH_TEST);
-    renderText (right, top - length, maxVal, QString::number(min));
-    renderText (right, top, maxVal, QString::number(max));
+    for (int i = 0; i < nc; i++)
+        renderText (right+0.01, top - length + (double)i * bar_step - 0.4 * bar_step, maxVal, QString::number(min + (double)(i) * value_step));
+    renderText (right+0.01, top - 0.4 * bar_step, maxVal, QString::number(max));
     if (mesh_ && valueIndex_ < mesh_->dataVectorsCount())
-        renderText (right, top + 0.07, maxVal, QString::fromStdString(mesh_->data(valueIndex_).name()));
+        renderText (right + 0.01, top + 0.6 * bar_step, maxVal, QString::fromStdString(mesh_->data(valueIndex_).name()));
     glEnable(GL_DEPTH_TEST);
-    if (isLighting_) glDisable(GL_LIGHTING);
-    glBegin(GL_POLYGON);
-    qglColor(map_.color(min));
-    glVertex3d(right - width, top - length, maxVal);
-    glVertex3d(right, top - length, maxVal);
-    qglColor(map_.color(max));
-    glVertex3d(right, top, maxVal);
-    glVertex3d(right - width, top, maxVal);
-    glEnd();
     if (isLighting_) glEnable(GL_LIGHTING);
     // востановление исходного режима проекции
     resetProjectionMatrix();
