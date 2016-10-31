@@ -16,13 +16,12 @@ double dis(const double &x, const double &y)
 
 double circle(const double &x, const double &y, const double &r)
 {
-    return r*r - x*x - y*y;
+    return 1.0 - (x*x + y*y) / (r*r);
 }
 
 double band(const double &x, const double &w)
 {
-    double w_2 = 0.5 * w;
-    return w_2*w_2 - x*x;
+    return 1.0 - 4.0 * x*x / (w*w);
 }
 
 double rectangle(const double &x, const double &y, const double &w, const double &h)

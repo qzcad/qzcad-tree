@@ -179,54 +179,24 @@ void GLMeshPicture::drawRegionBorders()
     if (mesh_)
     {
         glDisable(GL_DEPTH_TEST);
-        renderText (xmin, ymin, zmin,
-                    QString::number(mesh_->xMin()) +
-                    "; " +
-                    QString::number(mesh_->yMin()) +
-                    "; " +
-                    QString::number(mesh_->zMin()));
-        renderText (xmax, ymin, zmin,
-                    QString::number(mesh_->xMax()) +
-                    "; " +
-                    QString::number(mesh_->yMin()) +
-                    "; " +
-                    QString::number(mesh_->zMin()));
-        renderText (xmin, ymax, zmin,
-                    QString::number(mesh_->xMin()) +
-                    "; " +
-                    QString::number(mesh_->yMax()) +
-                    "; " +
-                    QString::number(mesh_->zMin()));
-        renderText (xmin, ymin, zmax,
-                    QString::number(mesh_->xMin()) +
-                    "; " +
-                    QString::number(mesh_->yMin()) +
-                    "; " +
-                    QString::number(mesh_->zMax()));
-        renderText (xmax, ymax, zmin,
-                    QString::number(mesh_->xMax()) +
-                    "; " +
-                    QString::number(mesh_->yMax()) +
-                    "; " +
-                    QString::number(mesh_->zMin()));
-        renderText (xmax, ymin, zmax,
-                    QString::number(mesh_->xMax()) +
-                    "; " +
-                    QString::number(mesh_->yMin()) +
-                    "; " +
-                    QString::number(mesh_->zMax()));
-        renderText (xmin, ymax, zmax,
-                    QString::number(mesh_->xMin()) +
-                    "; " +
-                    QString::number(mesh_->yMax()) +
-                    "; " +
-                    QString::number(mesh_->zMax()));
-        renderText (xmax, ymax, zmax,
-                    QString::number(mesh_->xMax()) +
-                    "; " +
-                    QString::number(mesh_->yMax()) +
-                    "; " +
-                    QString::number(mesh_->zMax()));
+        if (mesh_->dimesion() == 2)
+        {
+            renderText (xmin, ymin, 0, QString::number(mesh_->xMin()) + "; " + QString::number(mesh_->yMin()) );
+            renderText (xmax, ymin, 0, QString::number(mesh_->xMax()) + "; " + QString::number(mesh_->yMin()) );
+            renderText (xmax, ymax, 0, QString::number(mesh_->xMax()) + "; " + QString::number(mesh_->yMax()) );
+            renderText (xmin, ymax, 0, QString::number(mesh_->xMin()) + "; " + QString::number(mesh_->yMax()) );
+        }
+        else
+        {
+            renderText (xmin, ymin, zmin, QString::number(mesh_->xMin()) + "; " + QString::number(mesh_->yMin()) + "; " + QString::number(mesh_->zMin()));
+            renderText (xmax, ymin, zmin, QString::number(mesh_->xMax()) + "; " + QString::number(mesh_->yMin()) + "; " + QString::number(mesh_->zMin()));
+            renderText (xmin, ymax, zmin, QString::number(mesh_->xMin()) + "; " + QString::number(mesh_->yMax()) + "; " + QString::number(mesh_->zMin()));
+            renderText (xmin, ymin, zmax, QString::number(mesh_->xMin()) + "; " + QString::number(mesh_->yMin()) + "; " + QString::number(mesh_->zMax()));
+            renderText (xmax, ymax, zmin, QString::number(mesh_->xMax()) + "; " + QString::number(mesh_->yMax()) + "; " + QString::number(mesh_->zMin()));
+            renderText (xmax, ymin, zmax, QString::number(mesh_->xMax()) + "; " + QString::number(mesh_->yMin()) + "; " + QString::number(mesh_->zMax()));
+            renderText (xmin, ymax, zmax, QString::number(mesh_->xMin()) + "; " + QString::number(mesh_->yMax()) + "; " + QString::number(mesh_->zMax()));
+            renderText (xmax, ymax, zmax, QString::number(mesh_->xMax()) + "; " + QString::number(mesh_->yMax()) + "; " + QString::number(mesh_->zMax()));
+        }
         glEnable(GL_DEPTH_TEST);
     }
 }
@@ -270,7 +240,7 @@ void GLMeshPicture::drawColorBar()
     const double width = 0.04 * (maxVal - minVal);
     const double length = 0.2 * (maxVal - minVal);
     const double top = -1.0 + length + 0.1;
-    const double right = minVal + width;
+    const double right = 0.01 + minVal + width;
     // изменение режима проекции для отрисовки контрольной полосы
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
