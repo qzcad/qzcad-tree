@@ -54,6 +54,8 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     globalObject().setProperty("rectangle", newFunction(rectangle));
     // convex
     globalObject().setProperty("convex", newFunction(convex));
+    // regular
+    globalObject().setProperty("regular", newFunction(regular));
 
     // Точка (плоскость или пространство)
     globalObject().setProperty("Point", newFunction(createPoint));
@@ -1220,7 +1222,7 @@ QScriptValue QZScriptEngine::convex(QScriptContext *context, QScriptEngine *engi
         context->throwError(QObject::tr("convex(x, y, P: Points): arguments count error."));
     if (!context->argument(0).isNumber())
         return context->throwError(typeError.arg("x: Float"));
-    if (!context->argument(0).isNumber())
+    if (!context->argument(1).isNumber())
         return context->throwError(typeError.arg("y: Float"));
     double x = context->argument(0).toNumber();
     double y = context->argument(1).toNumber();
@@ -1252,6 +1254,27 @@ QScriptValue QZScriptEngine::convex(QScriptContext *context, QScriptEngine *engi
     }
     return context->throwError(typeError.arg("p: Points"));
 
+}
+
+QScriptValue QZScriptEngine::regular(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(engine);
+    QString typeError = QObject::tr("regular(x, y, r: Float, n: Integer): argument type error (%1).");
+    if (context->argumentCount() != 4)
+        context->throwError(QObject::tr("regular(x, y, r: Float, n: Integer): arguments count error."));
+    if (!context->argument(0).isNumber())
+        return context->throwError(typeError.arg("x: Floating number"));
+    if (!context->argument(1).isNumber())
+        return context->throwError(typeError.arg("y: Floating number"));
+    if (!context->argument(2).isNumber())
+        return context->throwError(typeError.arg("r: Floating number"));
+    if (!context->argument(3).isNumber())
+        return context->throwError(typeError.arg("n: Integer number"));
+    double x = context->argument(0).toNumber();
+    double y = context->argument(1).toNumber();
+    double r = context->argument(2).toNumber();
+    int n = context->argument(3).toInt32();
+    return msh::regular(x, y, r, n);
 }
 
 QScriptValue QZScriptEngine::planeStress(QScriptContext *context, QScriptEngine *engine)

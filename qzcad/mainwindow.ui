@@ -134,7 +134,7 @@
      <x>0</x>
      <y>0</y>
      <width>943</width>
-     <height>24</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -272,6 +272,7 @@
      <addaction name="actionRoundRectangleScript"/>
      <addaction name="separator"/>
      <addaction name="actionConvexScript"/>
+     <addaction name="actionRegularScript"/>
     </widget>
     <widget class="QMenu" name="menuMeshScripts">
      <property name="title">
@@ -901,6 +902,11 @@
   <action name="actionConvexScript">
    <property name="text">
     <string>Выпуклый многоугольник: convex(x, y, P)</string>
+   </property>
+  </action>
+  <action name="actionRegularScript">
+   <property name="text">
+    <string>Правильный многоугольник: regular(x, y, r, n)</string>
    </property>
   </action>
  </widget>

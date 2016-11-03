@@ -154,6 +154,8 @@ private slots:
 
     void on_actionConvexScript_triggered();
 
+    void on_actionRegularScript_triggered();
+
 private:
     Ui::MainWindow *ui; //!< Контейнер элементов графического интерфейса
     QStdRedirector<> *stdRedirector; //!< Перехватчик сообщений стандартного потока

@@ -1254,3 +1254,9 @@ void MainWindow::on_actionConvexScript_triggered()
     QString command = "convex(x, y, P = new Array(...))";
     ui->codeEditor->insertPlainText(command);
 }
+
+void MainWindow::on_actionRegularScript_triggered()
+{
+    QString command = "regular(x, y, r, n)";
+    ui->codeEditor->insertPlainText(command);
+}

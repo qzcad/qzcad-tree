@@ -31,7 +31,9 @@ double rectangle(const double &x, const double &y, const double &w, const double
 
 double line(const double &x, const double &y, const double &x1, const double &y1, const double &x2, const double &y2)
 {
-    return (y - y1) * (x2 - x1) - (x - x1) * (y2 - y1);
+    double dx = x2 - x1;
+    double dy = y2 - y1;
+    return ((y - y1) * dx - (x - x1) * dy) / sqrt(dx*dx + dy*dy); // нормальное уравнение прямой
 }
 
 double regular(const double &x, const double &y, const double &r, const int &n)
