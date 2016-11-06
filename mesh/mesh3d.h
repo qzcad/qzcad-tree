@@ -9,6 +9,7 @@
 #define MESH3D_H
 
 #include <vector>
+#include <functional>
 
 #include "mesh.h"
 #include "node3d.h"
@@ -123,6 +124,15 @@ public:
      * @return Количество элементов, смежных в узле
      */
     UInteger adjacentCount(const UInteger &nodeNumber) const;
+    /**
+     * @brief Двоичный поиск границы функции, пересекаемой отрезком
+     * @param p0 Первая точка отрезка, пересекающего границу
+     * @param p1 Вторая точка отрезка, пересекающего границу
+     * @param func Функция области
+     * @param level Линия уровня
+     * @return Координаты пересечения отрезка и границы области
+     */
+    static Point3D binary(Point3D p0, Point3D p1, std::function<double(double, double, double)> func, double level = 0.0);
 protected:
     std::vector<Node3D> node_; //!< массив узлов
     double xMin_; //!< минимальное значение ординаты

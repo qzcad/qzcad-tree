@@ -1,4 +1,5 @@
 #include "mesh3d.h"
+#include <math.h>
 
 namespace msh {
 Mesh3D::Mesh3D(const Mesh3D *mesh) : Mesh(mesh)
@@ -132,6 +133,39 @@ void Mesh3D::updateDomain()
 UInteger Mesh3D::adjacentCount(const UInteger &nodeNumber) const
 {
     return node_[nodeNumber].adjacent.size();
+}
+
+Point3D Mesh3D::binary(Point3D p0, Point3D p1, std::function<double (double, double, double)> func, double level)
+{
+    double val0 = func(p0.x(), p0.y(), p0.z()) - level;
+    double val1 = func(p1.x(), p1.y(), p1.z()) - level;
+
+    if (0.0 <= val0 && val0 < epsilon_) return p0;
+    if (0.0 <= val1 && val1 < epsilon_) return p1;
+
+    if (signbit(val0) == signbit(val1))
+    {
+        return Point3D(); // значения в узлах отрезка одного знака => нет решения
+    }
+
+    Point3D center;
+    double val;
+    do
+    {
+        center = 0.5 * (p0 + p1);
+        val = func(center.x(), center.y(), center.z()) - level;
+        if ( signbit(val0) != signbit(val) )
+        {
+            p1 = center;
+            val1 = val;
+        }
+        else
+        {
+            p0 = center;
+            val0 = val;
+        }
+    } while (!(0.0 <= val && val < epsilon_));
+    return center;
 }
 }
 

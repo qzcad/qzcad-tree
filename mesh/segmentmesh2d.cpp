@@ -279,7 +279,7 @@ void SegmentMesh2D::frontGraph(const UInteger &xCount, const UInteger &yCount, c
     double maxf = 0.0;
     double h = 0.0;
 
-    functionalDomain(xCount, yCount, xMin, yMin, width, height, func, charPoint, 0.0, false);
+    functionalDomain(xCount, yCount, xMin, yMin, width, height, func, charPoint, 0.0, isOptimized);
 
     UInteger border_elements_count = elementsCount();
 

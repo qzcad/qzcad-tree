@@ -74,6 +74,21 @@ public:
     void coneDomain(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length, std::function<double(double, double, double)> func);
     void parametricDomain(const UInteger &uCount, const UInteger &vCount, std::function<Point3D(double, double)> domainFunction, std::function<double(double, double, double)> rfunc);
     /**
+     * @brief Метод марширующих кубиков
+     * @param xCount Количество точек дискретизации по оси абсцисс
+     * @param yCount Количество точек дискретизации по оси ординат
+     * @param zCount Количество точек дискретизации по оси аппликат
+     * @param xMin Абсцисса минимального угла
+     * @param yMin Ордината минимального угла
+     * @param zMin Аппликата минимального угла
+     * @param width Ширина
+     * @param height Высота
+     * @param depth Глубина
+     * @param func Функция, положительная во внутренних точка и отрицательная во внешних
+     * @param level Уровень поверхности
+     */
+    void marchingCubes(const UInteger &xCount, const UInteger &yCount, const UInteger &zCount, const double &xMin, const double &yMin, const double &zMin, const double &width, const double &height, const double &depth, std::function<double (double, double, double)> func, double level = 0.0);
+    /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
      */

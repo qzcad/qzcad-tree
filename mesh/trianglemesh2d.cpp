@@ -557,7 +557,8 @@ void TriangleMesh2D::ruppert(const UInteger &xCount, const UInteger &yCount, con
     clear();
 
     SegmentMesh2D mesh;//, contour;
-    mesh.frontGraph(xCount, yCount, xMin, yMin, width, height, func, charPoint, 3);
+    mesh.functionalDomain(xCount, yCount, xMin, yMin, width, height, func, charPoint);
+//    mesh.frontGraph(xCount, yCount, xMin, yMin, width, height, func, charPoint, 3);
 
     Triangulation triangulation = superDelaunay(&mesh, func);
 
