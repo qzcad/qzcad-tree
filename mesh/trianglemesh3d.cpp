@@ -7,6 +7,7 @@
 #include <algorithm>
 #include "funcopt.h"
 #include "rfunctions.h"
+#include "consoleprogress.h"
 
 #include "trianglemesh2d.h"
 
@@ -759,7 +760,7 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
     flip();
 }
 
-void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCount, const UInteger &zCount, const double &xMin, const double &yMin, const double &zMin, const double &width, const double &height, const double &depth, std::function<double (double, double, double)> func, double level)
+void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCount, const UInteger &zCount, const double &xMin, const double &yMin, const double &zMin, const double &width, const double &height, const double &depth, std::function<double (double, double, double)> func, double level, bool slice_x, bool slice_y, bool slice_z)
 {
     clear();
 
@@ -1054,10 +1055,25 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
     double hx = width / (double)(xCount - 1);
     double hy = height / (double)(yCount - 1);
     double hz = depth / (double)(zCount - 1);
+    double xc = xMin + width / 2.0;
+    double yc = yMin + height / 2.0;
+    double zc = zMin + depth / 2.0;
+    ConsoleProgress progress(xCount - 1);
+
+
+    auto func_slice = [&](double x, double y, double z)
+    {
+        double r = func(x, y, z);
+        if (slice_x) r = con(r, xc - x);
+        if (slice_y) r = con(r, yc - y);
+        if (slice_z) r = con(r, zc - z);
+        return r;
+    };
 
     for (UInteger i = 0; i < xCount - 1; i++)
     {
         double x = xMin + (double) i * hx;
+        ++progress;
         for (UInteger j = 0; j < yCount - 1; j++)
         {
             double y = yMin + (double) j * hy;
@@ -1075,27 +1091,27 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
                 p[5].set(x, y + hy, z + hz);
                 p[6].set(x + hx, y + hy, z + hz);
                 p[7].set(x + hx, y, z + hz);
-                if (func(p[0].x(), p[0].y(), p[0].z()) - level < epsilon_) index |= 1;
-                if (func(p[1].x(), p[1].y(), p[1].z()) - level < epsilon_) index |= 2;
-                if (func(p[2].x(), p[2].y(), p[2].z()) - level < epsilon_) index |= 4;
-                if (func(p[3].x(), p[3].y(), p[3].z()) - level < epsilon_) index |= 8;
-                if (func(p[4].x(), p[4].y(), p[4].z()) - level < epsilon_) index |= 16;
-                if (func(p[5].x(), p[5].y(), p[5].z()) - level < epsilon_) index |= 32;
-                if (func(p[6].x(), p[6].y(), p[6].z()) - level < epsilon_) index |= 64;
-                if (func(p[7].x(), p[7].y(), p[7].z()) - level < epsilon_) index |= 128;
+                if (func_slice(p[0].x(), p[0].y(), p[0].z()) - level < epsilon_) index |= 1;
+                if (func_slice(p[1].x(), p[1].y(), p[1].z()) - level < epsilon_) index |= 2;
+                if (func_slice(p[2].x(), p[2].y(), p[2].z()) - level < epsilon_) index |= 4;
+                if (func_slice(p[3].x(), p[3].y(), p[3].z()) - level < epsilon_) index |= 8;
+                if (func_slice(p[4].x(), p[4].y(), p[4].z()) - level < epsilon_) index |= 16;
+                if (func_slice(p[5].x(), p[5].y(), p[5].z()) - level < epsilon_) index |= 32;
+                if (func_slice(p[6].x(), p[6].y(), p[6].z()) - level < epsilon_) index |= 64;
+                if (func_slice(p[7].x(), p[7].y(), p[7].z()) - level < epsilon_) index |= 128;
                 if (index == 0) continue;
-                if (edges[index] & 1) border[0] = binary(p[0], p[1], func, level);
-                if (edges[index] & 2) border[1] = binary(p[1], p[2], func, level);
-                if (edges[index] & 4) border[2] = binary(p[2], p[3], func, level);
-                if (edges[index] & 8) border[3] = binary(p[3], p[0], func, level);
-                if (edges[index] & 16) border[4] = binary(p[4], p[5], func, level);
-                if (edges[index] & 32) border[5] = binary(p[5], p[6], func, level);
-                if (edges[index] & 64) border[6] = binary(p[6], p[7], func, level);
-                if (edges[index] & 128) border[7] = binary(p[7], p[4], func, level);
-                if (edges[index] & 256) border[8] = binary(p[0], p[4], func, level);
-                if (edges[index] & 512) border[9] = binary(p[1], p[5], func, level);
-                if (edges[index] & 1024) border[10] = binary(p[2], p[6], func, level);
-                if (edges[index] & 2048) border[11] = binary(p[3], p[7], func, level);
+                if (edges[index] & 1) border[0] = binary(p[0], p[1], func_slice, level);
+                if (edges[index] & 2) border[1] = binary(p[1], p[2], func_slice, level);
+                if (edges[index] & 4) border[2] = binary(p[2], p[3], func_slice, level);
+                if (edges[index] & 8) border[3] = binary(p[3], p[0], func_slice, level);
+                if (edges[index] & 16) border[4] = binary(p[4], p[5], func_slice, level);
+                if (edges[index] & 32) border[5] = binary(p[5], p[6], func_slice, level);
+                if (edges[index] & 64) border[6] = binary(p[6], p[7], func_slice, level);
+                if (edges[index] & 128) border[7] = binary(p[7], p[4], func_slice, level);
+                if (edges[index] & 256) border[8] = binary(p[0], p[4], func_slice, level);
+                if (edges[index] & 512) border[9] = binary(p[1], p[5], func_slice, level);
+                if (edges[index] & 1024) border[10] = binary(p[2], p[6], func_slice, level);
+                if (edges[index] & 2048) border[11] = binary(p[3], p[7], func_slice, level);
                 for (int t = 0; triangles[index][t] != -1; t += 3)
                 {
                     UInteger p0 = addNode(border[triangles[index][t + 2]], BORDER);
@@ -1112,6 +1128,7 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
     yMax_ = yMin + height;
     zMin_ = zMin;
     zMax_ = xMin + depth;
+    evalNodalValues(func);
     std::cout << "Марширующие кубы: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 

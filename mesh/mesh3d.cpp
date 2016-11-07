@@ -167,6 +167,20 @@ Point3D Mesh3D::binary(Point3D p0, Point3D p1, std::function<double (double, dou
     } while (!(0.0 <= val && val < epsilon_));
     return center;
 }
+
+void Mesh3D::evalNodalValues(std::function<double (double, double, double)> func)
+{
+    if (func != nullptr)
+    {
+        std::vector<double> r(nodesCount());
+        for (UInteger i = 0; i < nodesCount(); i++)
+        {
+            Point3D p = node_[i].point;
+            r[i] = func(p.x(), p.y(), p.z());
+        }
+        addDataVector("F(x,y,z)", r);
+    }
+}
 }
 
 

@@ -133,6 +133,11 @@ public:
      * @return Координаты пересечения отрезка и границы области
      */
     static Point3D binary(Point3D p0, Point3D p1, std::function<double(double, double, double)> func, double level = 0.0);
+    /**
+     * @brief Метод для построения вектора значений заданной функции в узлах сетки
+     * @param func Указатель функции трех переменных
+     */
+    void evalNodalValues(std::function<double (double, double, double)> func);
 protected:
     std::vector<Node3D> node_; //!< массив узлов
     double xMin_; //!< минимальное значение ординаты

@@ -87,7 +87,7 @@ public:
      * @param func Функция, положительная во внутренних точка и отрицательная во внешних
      * @param level Уровень поверхности
      */
-    void marchingCubes(const UInteger &xCount, const UInteger &yCount, const UInteger &zCount, const double &xMin, const double &yMin, const double &zMin, const double &width, const double &height, const double &depth, std::function<double (double, double, double)> func, double level = 0.0);
+    void marchingCubes(const UInteger &xCount, const UInteger &yCount, const UInteger &zCount, const double &xMin, const double &yMin, const double &zMin, const double &width, const double &height, const double &depth, std::function<double (double, double, double)> func, double level = 0.0, bool slice_x = false, bool slice_y = false, bool slice_z = false);
     /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
