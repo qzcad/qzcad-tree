@@ -37,6 +37,7 @@ public:
      * Метод доступен в скриптах
      */
     Q_INVOKABLE QString toString() const;
+    Q_INVOKABLE double cfunction(const double &x, const double &y);
 signals:
 
 public slots:

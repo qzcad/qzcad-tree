@@ -277,7 +277,7 @@ void SegmentMesh2D::frontGraph(const UInteger &xCount, const UInteger &yCount, c
     const double hx = width / (double)(xCount - 1);
     const double hy = height / (double)(yCount - 1);
     double maxf = 0.0;
-    double h = 0.0;
+//    double h = 0.0;
 
     functionalDomain(xCount, yCount, xMin, yMin, width, height, func, charPoint, 0.0, isOptimized);
 
@@ -329,7 +329,7 @@ void SegmentMesh2D::frontGraph(const UInteger &xCount, const UInteger &yCount, c
     }
     std::cout << "max(f) = " << maxf << std::endl;
 
-    h = maxf / (double)contours;
+//    h = maxf / (double)contours;
 
 //    for (int i = 1; i < contours; i++)
 //    {
@@ -604,6 +604,67 @@ void SegmentMesh2D::laplacianSmoothing(std::function<double(double, double)> fun
             }
         }
     }
+}
+
+double SegmentMesh2D::cfunction(const double &x, const double &y)
+{
+    Point2D point(x, y);
+    double min_distance = std::numeric_limits<double>::max();
+    double sign = +1.0;
+    for (UInteger ie = 0; ie < elementsCount(); ie++)
+    {
+        Segment s = element_[ie];
+        Point2D p1 = node_[s[0]].point;
+        Point2D p2 = node_[s[1]].point;
+        double a = p2.y() - p1.y();
+        double b = p1.x() - p2.x();
+        double c = p2.x() * p1.y() - p2.y() * p1.x();
+        double xp = (b * (b * x - a * y) - a * c) / (a*a + b*b);
+        double yp = (a * (-b * x + a * y) - b * c) / (a*a + b*b);
+        double t = (fabs(p2.x() - p1.x()) > epsilon_) ? (xp - p1.x()) / (p2.x() - p1.x()) : (yp - p1.y()) / (p2.y() - p1.y());
+        double distance = 0.0;
+        if (t < 0.0 || t > 1.0)
+            distance = std::min(p1.distanceTo(point), p2.distanceTo(point));
+        else
+            distance = fabs(a * x + b * y + c) / sqrt(a*a + b*b);
+        if (min_distance > distance)
+            min_distance = distance;
+    }
+    // определение знака
+    double alpha = 0.0;
+    for (UInteger i = 0; i < 3000; i++)
+    {
+        Point2D next = point + Point2D(cos(alpha), sin(alpha));
+        int count = 0;
+        bool isTouch = false;
+        for (UInteger je = 0; je < elementsCount() && !isTouch; je++)
+        {
+            Segment sj = element_[je];
+            Point2D q1 = node_[sj[0]].point;
+            Point2D q2 = node_[sj[1]].point;
+            double tp = -1.0, tq = -1.0;
+            if (isCrossed(point, next, q1, q2, tp, tq) && tp > 0.0)
+            {
+                if (epsilon_ < tq && tq < 1.0 - epsilon_)
+                {
+                    count += 1;
+                }
+                else if (fabs(tq) < epsilon_ || fabs(tq - 1.0) < epsilon_)
+                {
+                    isTouch = true;
+                    break;
+                }
+            }
+        }
+        if (!isTouch)
+        {
+            sign = (count % 2 == 0 ) ? -1.0 : 1.0;
+            break;
+        }
+        alpha += 0.001;
+
+    }
+    return min_distance * sign;
 }
 
 void SegmentMesh2D::cellContours(const Point2D &p0, const Point2D &p1, const Point2D &p2, const Point2D &p3, const double &v0, const double &v1, const double &v2, const double &v3, std::function<double (double, double)> func, double level, std::function<double(Point2D, Point2D)> distance)
