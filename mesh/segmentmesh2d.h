@@ -95,6 +95,7 @@ public:
      * @param isOptimized Если true, то сетка сгущается на участках с наибольшей кривизной
      */
     void frontGraph(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, int contours = 4, bool isOptimized = true);
+    void parametricDomain(const UInteger &count, const double &tmin, const double &tmax, std::function<Point2D (double)> domainFunction);
     /**
      * @brief elementsCount Количество элементов
      * @return Количество отрезков (граней), которые образуют контур

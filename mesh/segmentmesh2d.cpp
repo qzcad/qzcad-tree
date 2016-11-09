@@ -362,6 +362,24 @@ void SegmentMesh2D::frontGraph(const UInteger &xCount, const UInteger &yCount, c
     std::cout << "Segments mesh: nodes - " << nodesCount() << " elements - " << elementsCount() << std::endl;
 }
 
+void SegmentMesh2D::parametricDomain(const UInteger &count, const double &tmin, const double &tmax, std::function<Point2D (double)> domainFunction)
+{
+    double h = (tmax - tmin) / (double)(count - 1);
+    double t = tmin;
+    for (UInteger i = 0; i < count - 1; i++)
+    {
+        pushNode(domainFunction(t), BORDER);
+        t += h;
+    }
+    for (UInteger i = 0; i < nodesCount() - 1; i++)
+    {
+        addElement(i, i + 1);
+    }
+    addElement(nodesCount() - 1, 0);
+    std::cout << "Segments mesh: nodes - " << nodesCount() << " elements - " << elementsCount() << std::endl;
+    updateDomain();
+}
+
 UInteger SegmentMesh2D::elementsCount() const
 {
     return element_.size();
