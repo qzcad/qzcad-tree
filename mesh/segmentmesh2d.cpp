@@ -366,16 +366,42 @@ void SegmentMesh2D::parametricDomain(const UInteger &count, const double &tmin, 
 {
     double h = (tmax - tmin) / (double)(count - 1);
     double t = tmin;
+    std::vector<double> parametric_nodes;
+    bool isClosed = (domainFunction(tmin)).isEqualTo(domainFunction(tmax), epsilon_);
+
+    clear();
+
     for (UInteger i = 0; i < count - 1; i++)
     {
-        pushNode(domainFunction(t), BORDER);
+        parametric_nodes.push_back(t);
         t += h;
+    }
+    if (isClosed) parametric_nodes.push_back(tmax);
+    for (std::vector<double>::iterator it = parametric_nodes.begin(); it != parametric_nodes.end(); )
+    {
+        double t0 = *it;
+        double t1 = ((it + 1) != parametric_nodes.end()) ? *(it + 1) : tmax;
+        Point2D p0 = domainFunction(t0);
+        Point2D p1 = domainFunction(t1);
+        Point2D c = 0.5 * (p0 + p1);
+        Point2D s = domainFunction(0.5 * (t0 + t1));
+        if (c.distanceTo(s) / p0.distanceTo(p1) > 0.02)
+        {
+            parametric_nodes.insert(it + 1, 0.5 * (t0 + t1));
+            it = parametric_nodes.begin();
+            std::cout << c.distanceTo(s) / p0.distanceTo(p1) << std::endl;
+        }
+        else ++it;
+    }
+    for (std::vector<double>::iterator it = parametric_nodes.begin(); it != parametric_nodes.end(); ++it)
+    {
+        pushNode(domainFunction(*it), BORDER);
     }
     for (UInteger i = 0; i < nodesCount() - 1; i++)
     {
         addElement(i, i + 1);
     }
-    addElement(nodesCount() - 1, 0);
+    if (isClosed) addElement(nodesCount() - 1, 0);
     std::cout << "Segments mesh: nodes - " << nodesCount() << " elements - " << elementsCount() << std::endl;
     updateDomain();
 }
