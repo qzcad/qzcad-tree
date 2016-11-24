@@ -56,6 +56,38 @@ double Point3D::distanceTo(const Point3D &point) const
     return sqrt(dx * dx + dy * dy + dz * dz);
 }
 
+double Point3D::distanceTo(const Point3D &segment0, const Point3D &segment1) const
+{
+    Point3D v(segment0, segment1);
+    Point3D w(segment0, *this);
+    double c1 = w * v;
+    if (c1 <= 0.0)
+        return distanceTo(segment0);
+    double c2 = v * v;
+    if (c2 <= c1)
+        return distanceTo(segment1);
+    Point3D b = segment0 + (c1 / c2) * v;
+    return distanceTo(b);
+}
+
+double Point3D::distanceTo(const Point3D &triangle0, const Point3D &triangle1, const Point3D &triangle2) const
+{
+    Point3D edge0(triangle0, triangle1); // edge0 = triangle1 - triangle0
+    Point3D edge1(triangle1, triangle2); // edge1 = triangle2 - triangle1
+    Point3D edge2(triangle2, triangle0); // edge2 = triangle0 - triangle2
+    Point3D n = edge0.product(-edge2); // the normal to the triangle
+    Point3D q(triangle0, *this); // q = this - triangle0
+    double l = (q * n) / n.length(); // the distance to the plane of the tiangle
+    Point3D b(l * n.normalized(), *this); // this - l * n / |n|
+    Point3D c0(triangle1, b); // q = b - triangle1
+    Point3D c1(triangle1, b); // q = b - triangle1
+    Point3D c2(triangle2, b); // q = b - triangle2
+    if ((n * edge0.product(c0)) >= 0.0 && (n * edge1.product(c1)) >= 0.0 && (n * edge2.product(c2)) >= 0.0)
+        return fabs(l); // if b in the triangle
+    // otherwise
+    return std::min(distanceTo(triangle0, triangle1), std::min(distanceTo(triangle1, triangle2), distanceTo(triangle2, triangle0)));
+}
+
 bool Point3D::isEqualTo(const Point3D &point, double epsilon) const
 {
     return distanceTo(point) < epsilon;

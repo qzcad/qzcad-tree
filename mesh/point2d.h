@@ -105,6 +105,13 @@ public:
      */
     double distanceTo(const Point2D &point) const;
     /**
+     * @brief Метод для вычисления расстояние от точки до отрезка
+     * @param segment0 Начало отрезка
+     * @param segment1 Конец отрезка
+     * @return Расстояние до ближайшей точки отрезка
+     */
+    double distanceTo(const Point2D &segment0, const Point2D &segment1) const;
+    /**
      * @brief Проверка на приблизительное равенство
      * @param point Точка, с которой производится сравнение
      * @param epsilon Точность

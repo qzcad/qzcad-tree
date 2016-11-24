@@ -61,11 +61,27 @@ public:
      */
     Point3D normalized() const;
     /**
-     * @brief Расстояние до точки
+     * @brief Метод для вычисления расстояния до точки
      * @param point Точка, до которой необходимо определить расстояние
      * @return Расстояние до точки point
      */
     double distanceTo(const Point3D &point) const;
+    /**
+     * @brief Метод для вычисления расстояния от точки до отрезка
+     * @param segment0 Начало отрезка
+     * @param segment1 Конец отрезка
+     * @return Расстояние до ближайшей точки отрезка
+     */
+    double distanceTo(const Point3D &segment0, const Point3D &segment1) const;
+    /**
+     * @brief Метод для вычисления расстояние от точки до треугольника
+     * Вершины треугольника должны быть переданы в порядке обхода против часовой стрелки
+     * @param triangle0 Первая вершина треугольника
+     * @param triangle1 Вторая вершина треугольника
+     * @param triangle2 Третья вершина треугольника
+     * @return Расстояние до ближайшей точки треугольника
+     */
+    double distanceTo(const Point3D &triangle0, const Point3D &triangle1, const Point3D &triangle2) const;
     /**
      * @brief Проверка на приблизительное равенство
      * @param point Точка, с которой производится сравнение

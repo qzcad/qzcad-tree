@@ -660,17 +660,7 @@ double SegmentMesh2D::cfunction(const double &x, const double &y)
         Segment s = element_[ie];
         Point2D p1 = node_[s[0]].point;
         Point2D p2 = node_[s[1]].point;
-        double a = p2.y() - p1.y();
-        double b = p1.x() - p2.x();
-        double c = p2.x() * p1.y() - p2.y() * p1.x();
-        double xp = (b * (b * x - a * y) - a * c) / (a*a + b*b);
-        double yp = (a * (-b * x + a * y) - b * c) / (a*a + b*b);
-        double t = (fabs(p2.x() - p1.x()) > epsilon_) ? (xp - p1.x()) / (p2.x() - p1.x()) : (yp - p1.y()) / (p2.y() - p1.y());
-        double distance = 0.0;
-        if (t < 0.0 || t > 1.0)
-            distance = std::min(p1.distanceTo(point), p2.distanceTo(point));
-        else
-            distance = fabs(a * x + b * y + c) / sqrt(a*a + b*b);
+        double distance = point.distanceTo(p1, p2);
         if (min_distance > distance)
             min_distance = distance;
     }

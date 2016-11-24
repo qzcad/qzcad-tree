@@ -121,6 +121,20 @@ double Point2D::distanceTo(const Point2D &point) const
     return sqrt(dx * dx + dy * dy);
 }
 
+double Point2D::distanceTo(const Point2D &segment0, const Point2D &segment1) const
+{
+    Point2D v(segment0, segment1);
+    Point2D w(segment0, *this);
+    double c1 = w * v;
+    if (c1 <= 0.0)
+        return distanceTo(segment0);
+    double c2 = v * v;
+    if (c2 <= c1)
+        return distanceTo(segment1);
+    Point2D b = segment0 + (c1 / c2) * v;
+    return distanceTo(b);
+}
+
 bool Point2D::isEqualTo(const Point2D &point, double epsilon) const
 {
     return distanceTo(point) < epsilon;
