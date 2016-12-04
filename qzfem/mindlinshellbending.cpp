@@ -733,8 +733,7 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const s
     UInteger nodesCount = mesh->nodesCount(); // количество узлов сетки
     UInteger elementsCount = mesh->elementsCount(); // количество элементов
 
-    MappedDoubleMatrix global (dimension_); // глобальная матрица жесткости
-    DoubleVector force = evalForces(mesh, conditions);
+    DoubleVector force = evalForces(mesh, conditions); // Сила
 
     bool isBreak = false;
 
@@ -762,6 +761,7 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const s
     {
         // построение глобальной матрицы жесткости
         std::cout << "Stiffness Matrix...";
+        MappedDoubleMatrix global (dimension_); // глобальная матрица жесткости
         ConsoleProgress progressBar(elementsCount);
 
         for (UInteger elNum = 0; elNum < elementsCount; elNum++)
