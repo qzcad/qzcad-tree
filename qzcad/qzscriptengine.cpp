@@ -1709,7 +1709,7 @@ QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine
     if (context->argumentCount() > 4)
     {
         Mesh3D *mesh = NULL;
-        QString typeError = QObject::tr("MindlinShell(mesh: Mesh, h: Floating, E: Floating, nu: Floating, [, G: Floating, {boundary conditions, forces}]...): argument type error (%1).");
+        QString typeError = QObject::tr("MindlinShell(mesh: Mesh, h: Floating, {E: Floating, nu: Floating[, G: Floating]} | {strain: Array, stress: Array, nu: Floating}, [, {boundary conditions, forces}]...): argument type error (%1).");
         if (!context->argument(0).isQObject())
             return context->throwError(typeError.arg("mesh"));
         if (qscriptvalue_cast<QQuadrilateralMesh3D *>(context->argument(0)) != NULL)
@@ -1815,6 +1815,30 @@ QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine
                                             h,
                                             elasticMatrix,
                                             conditions);
+            setMesh(mesh);
+        }
+        else if (context->argument(1).isNumber() && context->argument(2).isArray() && context->argument(3).isArray() && context->argument(4).isNumber())
+        {
+            double h = context->argument(1).toNumber();
+            QScriptValue strain_array = context->argument(2);
+            QScriptValue stress_array = context->argument(3);
+            double nu = context->argument(4).toNumber();
+            std::vector<double> strain;
+            std::vector<double> stress;
+            if (strain_array.property("length").toInteger() != stress_array.property("length").toInteger())
+            {
+                return context->throwError(typeError.arg("stress, strain: all the input arrays must have same length"));
+            }
+            for (int i = 0; i < strain_array.property("length").toInteger(); i++)
+            {
+                strain.push_back(strain_array.property(i).toNumber());
+                stress.push_back(stress_array.property(i).toNumber());
+            }
+
+            if (fem_ != NULL) delete fem_;
+
+            fem_ = new MindlinShellBending (mesh, h, strain, stress, nu, conditions);
+
             setMesh(mesh);
         }
         else
