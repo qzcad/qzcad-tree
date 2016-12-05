@@ -586,6 +586,27 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
 {
     clear();
 
+    if (rfunc == nullptr)
+    {
+        double du = 1.0 / (double)(uCount - 1);
+        double dv = 1.0 / (double)(vCount - 1);
+        for (UInteger i = 0; i < uCount; i++)
+        {
+            double u = (double)i * du;
+            for (UInteger j = 0; j < vCount; j++)
+            {
+                double v = (double)j * dv;
+                UInteger p0 = addNode(domainFunction(u, v), BORDER);
+                UInteger p1 = addNode(domainFunction(u + du, v), BORDER);
+                UInteger p2 = addNode(domainFunction(u + du, v + dv), BORDER);
+                UInteger p3 = addNode(domainFunction(u, v + dv), BORDER);
+                if (p0 != p1 && p1 != p2 && p0 != p2) addElement(p0, p1, p2);
+                if (p0 != p2 && p2 != p3 && p0 != p3) addElement(p0, p2, p3);
+            }
+        }
+        return;
+    }
+
     auto distance = [&](Point2D p0, Point2D p1)
     {
         Point3D pp0 = domainFunction(p0.x(), p0.y());
