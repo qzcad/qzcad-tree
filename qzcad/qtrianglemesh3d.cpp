@@ -15,6 +15,11 @@ QTriangleMesh3D::QTriangleMesh3D(TriangleMesh3D *mesh, QObject *parent) :
 {
 }
 
+void QTriangleMesh3D::add(const TriangleMesh3D *mesh)
+{
+    TriangleMesh3D::add(mesh);
+}
+
 QString QTriangleMesh3D::toString() const
 {
     return tr("Сетка треугольных элементов (оболочка). Узлов: %1; элементов: %2.").arg(nodesCount()).arg(elementsCount());

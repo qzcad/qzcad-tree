@@ -5,7 +5,7 @@
 #include "rowdoublematrix.h"
 #include <math.h>
 
-MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const ElasticMatrix &elasticMatrix, std::list<FemCondition *> conditions) :
+MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const ElasticMatrix &elasticMatrix, std::list<FemCondition *> conditions, double alphaT) :
     Fem2D(mesh, 6)
 {
     const double kappa = 5.0 / 6.0;
@@ -58,7 +58,11 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
     UInteger elementsCount = mesh->elementsCount(); // количество элементов
 
     MappedDoubleMatrix global (dimension_); // глобальная матрица жесткости
-    DoubleVector force(dimension_, 0.0); // вектор сил
+    DoubleVector force = evalForces(mesh, conditions); // вектор сил
+    // температурные деформации
+    DoubleVector epsilon0(3, 0.0);
+    epsilon0(0) = alphaT;
+    epsilon0(1) = alphaT;
 
     // построение глобальной матрицы жесткости
     std::cout << "Stiffness Matrix...";
@@ -75,6 +79,7 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
         Point3D C = *(dynamic_cast<const Point3D *>(mesh->node(element->vertexNode(2))));
         DoubleMatrix lambda = cosinuses(A, B, C);
         DoubleMatrix T(freedom_ * elementNodes, freedom_ * elementNodes, 0.0);
+        DoubleVector epsilonForce(freedom_ * elementNodes, 0.0);
         for (UInteger i = 0; i <= (freedom_ * elementNodes - 3); i += 3)
         {
             for (UInteger ii = 0; ii < 3; ii++)
@@ -136,14 +141,22 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
             local += jacobian * w * thickness * (Bm.transpose() * D * Bm);
             local += jacobian * w * thickness*thickness*thickness / 12.0 * (Bf.transpose() * D * Bf);
             local += jacobian * w * kappa * thickness * (Bc.transpose() * Dc * Bc);
+
+            epsilonForce += jacobian * w * thickness * ((Bm.transpose() * D) * epsilon0);
         } // ig
 
         DoubleMatrix surf = T.transpose() * local * T;
         // Ансамблирование
         assembly(element, surf, global);
+        DoubleVector localForce = T.transpose() * epsilonForce;
+        for (UInteger i = 0; i < freedom_ * elementNodes; i++)
+        {
+            UInteger index = freedom_ * element->vertexNode(i / freedom_) + (i % freedom_);
+            force(index) += localForce(i);
+        }
     } //for elNum
 
-    force = evalForces(mesh, conditions);
+    std::cout << "force norm: " << force.norm_2() << std::endl;
 
     processInitialValues(mesh, conditions, global, force);
 

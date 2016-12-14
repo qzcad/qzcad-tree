@@ -590,20 +590,23 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
     {
         double du = 1.0 / (double)(uCount - 1);
         double dv = 1.0 / (double)(vCount - 1);
-        for (UInteger i = 0; i < uCount; i++)
+        double u = 0.0;
+        for (UInteger i = 0; i < uCount - 1; i++)
         {
-            double u = (double)i * du;
-            for (UInteger j = 0; j < vCount; j++)
+            double v = 0.0;
+            for (UInteger j = 0; j < vCount - 1; j++)
             {
-                double v = (double)j * dv;
                 UInteger p0 = addNode(domainFunction(u, v), BORDER);
-                UInteger p1 = addNode(domainFunction(u + du, v), BORDER);
-                UInteger p2 = addNode(domainFunction(u + du, v + dv), BORDER);
-                UInteger p3 = addNode(domainFunction(u, v + dv), BORDER);
+                UInteger p1 = addNode(domainFunction((i == uCount - 2) ? 1.0 : u + du, v), BORDER);
+                UInteger p2 = addNode(domainFunction((i == uCount - 2) ? 1.0 : u + du, (j == vCount - 2) ? 1.0 : v + dv), BORDER);
+                UInteger p3 = addNode(domainFunction(u, (j == vCount - 2) ? 1.0 : v + dv), BORDER);
                 if (p0 != p1 && p1 != p2 && p0 != p2) addElement(p0, p1, p2);
                 if (p0 != p2 && p2 != p3 && p0 != p3) addElement(p0, p2, p3);
+                v += dv;
             }
+            u += du;
         }
+        updateDomain();
         return;
     }
 
@@ -1228,6 +1231,21 @@ double TriangleMesh3D::minAngle(const UInteger &elNum)
 void TriangleMesh3D::clearElements()
 {
     element_.clear();
+}
+
+void TriangleMesh3D::add(const TriangleMesh3D *mesh)
+{
+    std::vector<UInteger> nodesPointers(mesh->nodesCount());
+    for (UInteger i = 0; i < mesh->nodesCount(); i++)
+    {
+        nodesPointers[i] = addNode(mesh->node_[i]);
+    }
+    for (UInteger i = 0; i < mesh->elementsCount(); i++)
+    {
+        Triangle triangle = mesh->element_[i];
+        addElement(nodesPointers[triangle[0]], nodesPointers[triangle[1]], nodesPointers[triangle[2]]);
+    }
+    updateDomain();
 }
 
 bool TriangleMesh3D::angles(const Point3D &A, const Point3D &B, const Point3D &C, double &alpha, double &beta, double &gamma)

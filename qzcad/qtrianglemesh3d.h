@@ -38,6 +38,11 @@ public:
      */
     QTriangleMesh3D(TriangleMesh3D *mesh, QObject *parent = 0);
     /**
+     * @brief Операция добавления сетки к существующей на основе элементарного объединения
+     * @param mesh Указатель на сетку для добавления
+     */
+    Q_INVOKABLE void add(const TriangleMesh3D *mesh);
+    /**
      * @brief Метод формирует строку с информацией о сетке
      * @return Строка с информацией о сетке
      * Метод доступен в скриптах

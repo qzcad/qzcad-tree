@@ -26,7 +26,7 @@ public:
      * @param elasticMatrix Матрица упругих констант
      * @param conditions Список условий (нагрузок и граничных условий)
      */
-    MindlinShellBending(Mesh3D *mesh, double thickness, const ElasticMatrix &elasticMatrix, std::list<FemCondition *> conditions);
+    MindlinShellBending(Mesh3D *mesh, double thickness, const ElasticMatrix &elasticMatrix, std::list<FemCondition *> conditions, double alphaT = 0.0);
     /**
      * @brief Конструктор для КЭ анаилза многослойных оболочек Миндлина
      * @param mesh Указатель на сетку элементов
