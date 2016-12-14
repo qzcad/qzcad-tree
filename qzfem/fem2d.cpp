@@ -6,6 +6,38 @@ Fem2D::Fem2D(Mesh *mesh, UInteger freedom_value) : Fem(mesh, freedom_value)
 {
 }
 
+DoubleMatrix Fem2D::evalPlaneStrainMatrix(const double &E, const double &nu)
+{
+    DoubleMatrix d(3);
+    d(0, 0) = 1.0 - nu; d(0, 1) = nu;       d(0, 2) = 0.0;
+    d(1, 0) = nu;       d(1, 1) = 1.0 - nu; d(1, 2) = 0.0;
+    d(2, 0) = 0.0;      d(2, 1) = 0.0;      d(2, 2) = (1.0 - 2.0 * nu) / 2.0;
+    return (E / ((1.0 + nu) * (1.0 - 2.0 * nu))) * d;
+}
+
+DoubleMatrix Fem2D::evalPlaneStrainMatrix(const double &E, const double &nu, const double &G)
+{
+    DoubleMatrix d = evalPlaneStrainMatrix(E, nu);
+    d(2, 2) = G;
+    return d;
+}
+
+DoubleMatrix Fem2D::evalPlaneStressMatrix(const double &E, const double &nu)
+{
+    DoubleMatrix d(3);
+    d(0, 0) = 1.0;  d(0, 1) = nu;   d(0, 2) = 0.0;
+    d(1, 0) = nu;   d(1, 1) = 1.0;  d(1, 2) = 0.0;
+    d(2, 0) = 0.0;  d(2, 1) = 0.0;  d(2, 2) = (1 - nu) / 2.0;
+    return (E / (1.0 - nu*nu)) * d;
+}
+
+DoubleMatrix Fem2D::evalPlaneStressMatrix(const double &E, const double &nu, const double &G)
+{
+    DoubleMatrix d = evalPlaneStressMatrix(E, nu);
+    d(2, 2) = G;
+    return d;
+}
+
 double Fem2D::isoQuad4(const double &xi, const double &eta, double x[], double y[], DoubleVector &N, DoubleVector &dNdX, DoubleVector &dNdY)
 {
     const unsigned int elementNodes = 4;

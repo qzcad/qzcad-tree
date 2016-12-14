@@ -22,13 +22,36 @@ public:
      */
     Fem2D(Mesh *mesh, UInteger freedom_value = 2);
     /**
-     * @brief Сигнатура функции, описывающей направление действия начального условия: -1 - словие не применять; 0 - применять во всех направления свободы; 1 - только первое направление и т.д.
+     * @brief Метод вычисляет матрицу плоского деформирвоанного состояния
+     * @param E Модуль Юнга
+     * @param nu Коэффициент Пуассона
+     * @return Матрица 3x3 - матрица плоского деформированного состояния
      */
-    typedef std::function<int(double, double)> BoundaryConditionFunction;
+    static DoubleMatrix evalPlaneStrainMatrix(const double &E, const double &nu);
     /**
-     * @brief Сигнатура функции, описывающей действие вектора в точке
+     * @brief Метод вычисляет матрицу плоского деформирвоанного состояния (случай независимого модуля сдвига)
+     * @param E Модуль Юнга
+     * @param nu Коэффициент Пуассона
+     * @param G Модуль сдвига
+     * @return Матрица 3x3 - матрица плоского деформированного состояния
      */
-    typedef std::function<Point2D(double, double)> VectorFunction2D;
+    static DoubleMatrix evalPlaneStrainMatrix(const double &E, const double &nu, const double &G);
+    /**
+     * @brief Метод вычисляет матрицу плоского напряженного состояния
+     * @param E Модуль Юнга
+     * @param nu Коэффициент Пуассона
+     * @return Матрица 3x3 - матрица плоского напряженного состояния
+     */
+    static DoubleMatrix evalPlaneStressMatrix(const double &E, const double &nu);
+    /**
+     * @brief Метод вычисляет матрицу плоского напряженного состояния (случай независимого модуля сдвига)
+     * @param E Модуль Юнга
+     * @param nu Коэффициент Пуассона
+     * @param G Модуль сдвига
+     * @return Матрица 3x3 - матрица плоского напряженного состояния
+     */
+    static DoubleMatrix evalPlaneStressMatrix(const double &E, const double &nu, const double &G);
+
 protected:
     /**
      * @brief Метод для построения значений функций формы билинейного четырехугольного элемента

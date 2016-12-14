@@ -7,7 +7,7 @@
 
 MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
                                          double thickness,
-                                         const ElasticMatrix &elasticMatrix,
+                                         const DoubleMatrix &planeStressMatrix,
                                          std::list<FemCondition *> conditions) : Fem2D(mesh, 3)
 {
     const double kappa = 5.0 / 6.0;
@@ -46,7 +46,7 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
         }
     }
 
-    DoubleMatrix D = elasticMatrix.D(); // матрица упругости
+    DoubleMatrix D = planeStressMatrix; // матрица упругости
     DoubleMatrix Dc(2, 0.0);
     Dc(0, 0) = D(2, 2); Dc(1, 1) = D(2, 2);
     std::cout << "D" << std::endl;
@@ -279,30 +279,7 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
     } // iterator
 
     //учет условий закрепления
-    for (std::list<FemCondition *>::iterator condition = conditions.begin(); condition != conditions.end(); condition++)
-    {
-        if ((*condition)->type() == FemCondition::INITIAL_VALUE)
-        {
-            // учет граничных условий
-            std::cout << "Boundary Conditions...";
-            progressBar.restart(nodesCount);
-            for (UInteger i = 0; i < nodesCount; i++)
-            {
-                PointPointer point = mesh->node(i);
-                if ((*condition)->isApplied(point))
-                {
-                    FemCondition::FemDirection dir = (*condition)->direction();
-                    if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
-                        setInitialNodalValue(global, force, freedom_ * i, (*condition)->value(point));
-                    if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
-                        setInitialNodalValue(global, force, freedom_ * i + 1, (*condition)->value(point));
-                    if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
-                        setInitialNodalValue(global, force, freedom_ * i + 2, (*condition)->value(point));
-                }
-                ++progressBar;
-            } // for i
-        }
-    } // iterator
+    processInitialValues(conditions, global, force);
 
     DoubleVector displacement = solve(global, force);
     std::vector<double> w(nodesCount);
@@ -433,7 +410,7 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
     mesh_->addDataVector("von Mises", mises);
 }
 
-MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh, const std::vector<double> &thickness, const std::vector<ElasticMatrix> &elasticMatrix, std::list<FemCondition *> conditions) :
+MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh, const std::vector<double> &thickness, const std::vector<DoubleMatrix> &planeStressMatrix, std::list<FemCondition *> conditions) :
     Fem2D(mesh, 5)
 {
     const double kappa = 5.0 / 6.0;
@@ -478,7 +455,7 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh, const std::vector<double>
 
     for (unsigned i = 0; i < layers_count; i++)
     {
-        D[i] = elasticMatrix[i].D();
+        D[i] = planeStressMatrix[i];
         Dc[i].resize(2, 2);
         Dc[i] (0, 1) = Dc[i] (1, 0) = 0.0;
         Dc[i] (0, 0) = D[i] (2, 2);     Dc[i] (1, 1) = D[i] (2, 2);
@@ -748,34 +725,7 @@ MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh, const std::vector<double>
     } // iterator
 
     //учет условий закрепления
-    for (std::list<FemCondition *>::iterator condition = conditions.begin(); condition != conditions.end(); condition++)
-    {
-        if ((*condition)->type() == FemCondition::INITIAL_VALUE)
-        {
-            // учет граничных условий
-            std::cout << "Boundary Conditions...";
-            progressBar.restart(nodesCount);
-            for (UInteger i = 0; i < nodesCount; i++)
-            {
-                PointPointer point = mesh->node(i);
-                if ((*condition)->isApplied(point))
-                {
-                    FemCondition::FemDirection dir = (*condition)->direction();
-                    if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
-                        setInitialNodalValue(global, force, freedom_ * i, (*condition)->value(point));
-                    if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
-                        setInitialNodalValue(global, force, freedom_ * i + 1, (*condition)->value(point));
-                    if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
-                        setInitialNodalValue(global, force, freedom_ * i + 2, (*condition)->value(point));
-                    if (dir == FemCondition::ALL || dir == FemCondition::FOURTH)
-                        setInitialNodalValue(global, force, freedom_ * i + 3, (*condition)->value(point));
-                    if (dir == FemCondition::ALL || dir == FemCondition::FIFTH)
-                        setInitialNodalValue(global, force, freedom_ * i + 4, (*condition)->value(point));
-                }
-                ++progressBar;
-            } // for i
-        }
-    } // iterator
+    processInitialValues(conditions, global, force);
 
     DoubleVector displacement = solve(global, force);
     std::vector<double> u(nodesCount);

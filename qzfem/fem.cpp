@@ -3,6 +3,7 @@
 #include <iostream>
 #include <math.h>
 #include "rowdoublematrix.h"
+#include "consoleprogress.h"
 
 Fem::Fem(Mesh *mesh, UInteger freedom_value)
 {
@@ -162,6 +163,46 @@ void Fem::setInitialNodalValue(MappedDoubleMatrix &global, DoubleVector &force, 
     global.zeroSym(rowNumber);
     force(rowNumber) = value;
     global(rowNumber, rowNumber) = 1.0;
+}
+
+void Fem::processInitialValues(std::list<FemCondition *> conditions, MappedDoubleMatrix &global, DoubleVector &force)
+{
+    //учет учет граничных условий
+    std::cout << "Boundary Conditions...";
+    for (std::list<FemCondition *>::iterator condition = conditions.begin(); condition != conditions.end(); condition++)
+    {
+        if ((*condition)->type() == FemCondition::INITIAL_VALUE)
+        {
+            ConsoleProgress progressBar(mesh_->nodesCount());
+            for (UInteger i = 0; i < mesh_->nodesCount(); i++)
+            {
+                PointPointer point = mesh_->node(i);
+                if ((*condition)->isApplied(point))
+                {
+                    FemCondition::FemDirection dir = (*condition)->direction();
+
+                    if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
+                        setInitialNodalValue(global, force, freedom_ * i, (*condition)->value(point));
+
+                    if ((dir == FemCondition::ALL || dir == FemCondition::SECOND) && freedom_ >= 2)
+                        setInitialNodalValue(global, force, freedom_ * i + 1UL, (*condition)->value(point));
+
+                    if ((dir == FemCondition::ALL || dir == FemCondition::THIRD) && freedom_ >= 3)
+                        setInitialNodalValue(global, force, freedom_ * i + 2UL, (*condition)->value(point));
+
+                    if ((dir == FemCondition::ALL || dir == FemCondition::FOURTH) && freedom_ >= 4)
+                        setInitialNodalValue(global, force, freedom_ * i + 3UL, (*condition)->value(point));
+
+                    if ((dir == FemCondition::ALL || dir == FemCondition::FIFTH) && freedom_ >= 5)
+                        setInitialNodalValue(global, force, freedom_ * i + 4UL, (*condition)->value(point));
+
+                    if ((dir == FemCondition::ALL || dir == FemCondition::SIXTH) && freedom_ >= 6)
+                        setInitialNodalValue(global, force, freedom_ * i + 5UL, (*condition)->value(point));
+                }
+                ++progressBar;
+            } // for i
+        } // if
+    } // iterator
 }
 
 DoubleVector Fem::solve(MappedDoubleMatrix &global, DoubleVector &force, bool cg)

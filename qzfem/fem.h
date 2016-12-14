@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 #include <functional>
+#include <list>
 
 #include "mesh.h"
 using namespace msh;
@@ -18,6 +19,7 @@ using namespace msh;
 #include "doublevector.h"
 #include "doublematrix.h"
 #include "mappeddoublematrix.h"
+#include "femcondition.h"
 using namespace mtx;
 
 /**
@@ -86,6 +88,13 @@ protected:
      * @param value Начальное значение
      */
     void setInitialNodalValue(MappedDoubleMatrix &global, DoubleVector &force, const UInteger &rowNumber, const double value);
+    /**
+     * @brief Метод обработки граничных условий
+     * @param conditions Список граничных условий
+     * @param global Ссылка на глобальную матрицу жесткости
+     * @param force Ссылка на вектор-столбец (сила, температура и т.п.)
+     */
+    void processInitialValues(std::list<FemCondition *> conditions, MappedDoubleMatrix &global, DoubleVector &force);
     /**
      * @brief Метод для решения СЛАУ в МКЭ
      * @param global Ссылка на глобальную матрицу жесткости

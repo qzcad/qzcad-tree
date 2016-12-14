@@ -12,7 +12,6 @@
 #include <list>
 
 #include "fem2d.h"
-#include "elasticmatrix.h"
 
 #include "femcondition.h"
 
@@ -39,7 +38,7 @@ public:
      */
     PlaneStressStrain(Mesh2D *mesh,
                       double thickness,
-                      const ElasticMatrix &elasticMatrix,
+                      const DoubleMatrix &elasticMatrix,
                       std::list<FemCondition *> conditions);
 };
 

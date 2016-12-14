@@ -10,7 +10,7 @@
 
 PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
                                      double thickness,
-                                     const ElasticMatrix &elasticMatrix,
+                                     const DoubleMatrix &elasticMatrix,
                                      std::list<FemCondition *> conditions) :
     Fem2D(mesh, 2)
 {
@@ -47,8 +47,6 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
             }
         }
     }
-
-    DoubleMatrix D = elasticMatrix.D(); // матрица упругости
 
     UInteger nodesCount = mesh->nodesCount(); // количество узлов сетки
     UInteger elementsCount = mesh->elementsCount(); // количество элементов
@@ -104,7 +102,7 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
                 B(2, i * freedom_) = dNdY(i);   B(2, i * freedom_ + 1) = dNdX(i);
             }
 
-            local += jacobian * w * thickness * (B.transpose() * D * B);
+            local += jacobian * w * thickness * (B.transpose() * elasticMatrix * B);
         } // ig
         // Ансамблирование
         assembly(element, local, global);
@@ -260,28 +258,7 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
     } // iterator
 
     //учет условий закрепления
-    for (std::list<FemCondition *>::iterator condition = conditions.begin(); condition != conditions.end(); condition++)
-    {
-        if ((*condition)->type() == FemCondition::INITIAL_VALUE)
-        {
-            // учет граничных условий
-            std::cout << "Boundary Conditions...";
-            progressBar.restart(nodesCount);
-            for (UInteger i = 0; i < nodesCount; i++)
-            {
-                PointPointer point = mesh->node(i);
-                if ((*condition)->isApplied(point))
-                {
-                    FemCondition::FemDirection dir = (*condition)->direction();
-                    if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
-                        setInitialNodalValue(global, force, freedom_ * i, (*condition)->value(point));
-                    if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
-                        setInitialNodalValue(global, force, freedom_ * i + 1, (*condition)->value(point));
-                }
-                ++progressBar;
-            } // for i
-        }
-    } // iterator
+    processInitialValues(conditions, global, force);
 
     // решение СЛАУ
     DoubleVector displacement = solve(global, force);
@@ -366,7 +343,7 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
                 dis(i * freedom_ + 1, 0) = displacement[freedom_ * element->vertexNode(i) + 1];
             }
 
-            sigma = (D * B) * dis;
+            sigma = (elasticMatrix * B) * dis;
             SigmaX[element->vertexNode(inode)] += sigma(0, 0);
             SigmaY[element->vertexNode(inode)] += sigma(1, 0);
             TauXY[element->vertexNode(inode)] += sigma(2, 0);

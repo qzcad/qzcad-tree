@@ -1406,7 +1406,7 @@ QScriptValue QZScriptEngine::planeStress(QScriptContext *context, QScriptEngine 
         double E = context->argument(2).toNumber();
         double nu = context->argument(3).toNumber();
 
-        ElasticMatrix D(E, nu, true); //!
+        DoubleMatrix D = Fem2D::evalPlaneStressMatrix(E, nu);
 
         if (fem_ != NULL) delete fem_;
 
@@ -1470,7 +1470,7 @@ QScriptValue QZScriptEngine::planeStrain(QScriptContext *context, QScriptEngine 
         double E = context->argument(2).toNumber();
         double nu = context->argument(3).toNumber();
 
-        ElasticMatrix D(E, nu, false); //!
+        DoubleMatrix D = Fem2D::evalPlaneStrainMatrix(E, nu); //!
 
         if (fem_ != NULL) delete fem_;
 
@@ -1655,7 +1655,7 @@ QScriptValue QZScriptEngine::mindlinPlate(QScriptContext *context, QScriptEngine
             double E = context->argument(2).toNumber();
             double nu = context->argument(3).toNumber();
 
-            ElasticMatrix D(E, nu, true); //!
+            DoubleMatrix D = Fem2D::evalPlaneStressMatrix(E, nu); //!
 
             if (fem_ != NULL) delete fem_;
 
@@ -1671,7 +1671,7 @@ QScriptValue QZScriptEngine::mindlinPlate(QScriptContext *context, QScriptEngine
             QScriptValue e_array = context->argument(2);
             QScriptValue nu_array = context->argument(3);
             std::vector<double> h;
-            std::vector<ElasticMatrix> elasticMatrix;
+            std::vector<DoubleMatrix> elasticMatrix;
 
             if (h_array.property("length").toInteger() != e_array.property("length").toInteger() || h_array.property("length").toInteger() != nu_array.property("length").toInteger())
             {
@@ -1681,7 +1681,7 @@ QScriptValue QZScriptEngine::mindlinPlate(QScriptContext *context, QScriptEngine
             for (int i = 0; i < h_array.property("length").toInteger(); i++)
             {
                 h.push_back(h_array.property(i).toNumber());
-                elasticMatrix.push_back(ElasticMatrix(e_array.property(i).toNumber(), nu_array.property(i).toNumber(), true));
+                elasticMatrix.push_back(Fem2D::evalPlaneStressMatrix(e_array.property(i).toNumber(), nu_array.property(i).toNumber()));
             }
 
             if (fem_ != NULL) delete fem_;
@@ -1757,21 +1757,20 @@ QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine
             double E = context->argument(2).toNumber();
             double nu = context->argument(3).toNumber();
 
-            ElasticMatrix *D;
+            DoubleMatrix D;
 
             if (context->argument(4).isNumber())
-                D = new ElasticMatrix(E, nu, context->argument(4).toNumber(), true);
+                D = Fem2D::evalPlaneStressMatrix(E, nu, context->argument(4).toNumber());
             else
-                D = new ElasticMatrix(E, nu, true);
+                D = Fem2D::evalPlaneStressMatrix(E, nu);
 
             if (fem_ != NULL) delete fem_;
 
             fem_ = new MindlinShellBending (mesh, //!
                                             h,
-                                            *D,
+                                            D,
                                             conditions);
             setMesh(mesh);
-            delete D;
         }
         else if (context->argument(1).isArray() && context->argument(2).isArray() && context->argument(3).isArray())
         {
@@ -1779,7 +1778,7 @@ QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine
             QScriptValue e_array = context->argument(2);
             QScriptValue nu_array = context->argument(3);
             std::vector<double> h;
-            std::vector<ElasticMatrix> elasticMatrix;
+            std::vector<DoubleMatrix> elasticMatrix;
 
             if (h_array.property("length").toInteger() != e_array.property("length").toInteger() || h_array.property("length").toInteger() != nu_array.property("length").toInteger())
             {
@@ -1794,7 +1793,7 @@ QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine
                 }
                 for (int i = 0; i < h_array.property("length").toInteger(); i++)
                 {
-                    ElasticMatrix D(e_array.property(i).toNumber(), nu_array.property(i).toNumber(), g_array.property(i).toNumber(), true);
+                    DoubleMatrix D = Fem2D::evalPlaneStressMatrix(e_array.property(i).toNumber(), nu_array.property(i).toNumber(), g_array.property(i).toNumber());
                     h.push_back(h_array.property(i).toNumber());
                     elasticMatrix.push_back(D);
                 }
@@ -1803,7 +1802,7 @@ QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine
             {
                 for (int i = 0; i < h_array.property("length").toInteger(); i++)
                 {
-                    ElasticMatrix D(e_array.property(i).toNumber(), nu_array.property(i).toNumber(), true);
+                    DoubleMatrix D = Fem2D::evalPlaneStressMatrix(e_array.property(i).toNumber(), nu_array.property(i).toNumber());
                     h.push_back(h_array.property(i).toNumber());
                     elasticMatrix.push_back(D);
                 }

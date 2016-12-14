@@ -5,7 +5,6 @@
 #include <list>
 
 #include "fem2d.h"
-#include "elasticmatrix.h"
 #include "femcondition.h"
 
 #include "quadrilateralmesh3d.h"
@@ -26,7 +25,7 @@ public:
      * @param elasticMatrix Матрица упругих констант
      * @param conditions Список условий (нагрузок и граничных условий)
      */
-    MindlinShellBending(Mesh3D *mesh, double thickness, const ElasticMatrix &elasticMatrix, std::list<FemCondition *> conditions, double alphaT = 0.0);
+    MindlinShellBending(Mesh3D *mesh, double thickness, const DoubleMatrix &planeStressMatrix, std::list<FemCondition *> conditions, double alphaT = 0.0);
     /**
      * @brief Конструктор для КЭ анаилза многослойных оболочек Миндлина
      * @param mesh Указатель на сетку элементов
@@ -34,7 +33,7 @@ public:
      * @param elasticMatrix Массив матриц упругих констант (для каждого слоя)
      * @param conditions Список условий (нагрузок и граничных условий)
      */
-    MindlinShellBending(Mesh3D *mesh, const std::vector<double> &thickness, const std::vector<ElasticMatrix> &elasticMatrix, std::list<FemCondition *> conditions);
+    MindlinShellBending(Mesh3D *mesh, const std::vector<double> &thickness, const std::vector<DoubleMatrix> &planeStressMatrix, std::list<FemCondition *> conditions);
     /**
      * @brief Конструктор КЭ анализа разуршающих нагрузок для оболочки с использованием теории Миндлина и метода переменной жесткости
      * @param mesh Указатель на сетку элементов
@@ -48,7 +47,6 @@ public:
 private:
     DoubleMatrix cosinuses(const Point3D &A, const Point3D &B, const Point3D &C);
     DoubleVector evalForces(Mesh3D *mesh, std::list<FemCondition *> conditions);
-    void processInitialValues(Mesh3D *mesh, std::list<FemCondition *> conditions, MappedDoubleMatrix &global, DoubleVector &force);
 };
 
 #endif // MINDLINSHELLBENDING_H

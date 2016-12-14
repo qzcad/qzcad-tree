@@ -4,7 +4,6 @@
 #include <functional>
 
 #include "fem2d.h"
-#include "elasticmatrix.h"
 #include "femcondition.h"
 
 #include "quadrilateralmesh2d.h"
@@ -20,11 +19,11 @@ class MindlinPlateBending : public Fem2D
 public:
     MindlinPlateBending(Mesh2D *mesh,
                         double thickness,
-                        const ElasticMatrix &elasticMatrix,
+                        const DoubleMatrix &planeStressMatrix,
                         std::list<FemCondition *> conditions);
     MindlinPlateBending(Mesh2D *mesh,
                         const std::vector<double> &thickness,
-                        const std::vector<ElasticMatrix> &elasticMatrix,
+                        const std::vector<DoubleMatrix> &planeStressMatrix,
                         std::list<FemCondition *> conditions);
 };
 

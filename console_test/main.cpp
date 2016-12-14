@@ -674,7 +674,7 @@ int main()
         double P = 100.0;
         msh::QuadrilateralMesh2D beam;
         beam.rectangleDomain(41, 17, 0.0, -c, l, 2.0 * c);
-        ElasticMatrix D(E, nu, false);
+        DoubleMatrix D = Fem2D::evalPlaneStrainMatrix(E, nu);
         // TODO FEM
         return 0;
     }
@@ -687,7 +687,7 @@ int main()
         double q = 200.0;
         msh::QuadrilateralMesh2D beam;
         beam.rectangleDomain(51, 11, -l, -c, 2.0 * l, 2.0 * c);
-        ElasticMatrix D(E, nu, false);
+        DoubleMatrix D = Fem2D::evalPlaneStrainMatrix(E, nu);
         // TODO FEM
         return 0;
     }
@@ -700,7 +700,7 @@ int main()
         double gamma = 10.0;
         msh::QuadrilateralMesh2D beam;
         beam.rectangleDomain(11, 101, -c, -l, 2.0 * c, 2.0 * l);
-        ElasticMatrix D(E, nu, false);
+        DoubleMatrix D = Fem2D::evalPlaneStrainMatrix(E, nu);
         // TODO FEM
         cout << "Сопромат: dL = " << 2.0 * l * gamma * l / E << endl;
         return 0;

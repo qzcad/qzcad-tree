@@ -5,7 +5,7 @@
 #include "rowdoublematrix.h"
 #include <math.h>
 
-MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const ElasticMatrix &elasticMatrix, std::list<FemCondition *> conditions, double alphaT) :
+MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const DoubleMatrix &planeStressMatrix, std::list<FemCondition *> conditions, double alphaT) :
     Fem2D(mesh, 6)
 {
     const double kappa = 5.0 / 6.0;
@@ -44,7 +44,7 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
         }
     }
 
-    DoubleMatrix D = elasticMatrix.D(); // матрица упругости
+    DoubleMatrix D = planeStressMatrix; // матрица упругости
     DoubleMatrix Dc(2, 0.0);
     Dc(0, 0) = D(2, 2); Dc(1, 1) = D(2, 2);
 
@@ -158,7 +158,7 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
 
     std::cout << "force norm: " << force.norm_2() << std::endl;
 
-    processInitialValues(mesh, conditions, global, force);
+    processInitialValues(conditions, global, force);
 
     DoubleVector displacement = solve(global, force);
 
@@ -341,7 +341,7 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const E
     mesh_->addDataVector("von Mises", mises);
 }
 
-MindlinShellBending::MindlinShellBending(Mesh3D *mesh, const std::vector<double> &thickness, const std::vector<ElasticMatrix> &elasticMatrix, std::list<FemCondition *> conditions) :
+MindlinShellBending::MindlinShellBending(Mesh3D *mesh, const std::vector<double> &thickness, const std::vector<DoubleMatrix> &planeStressMatrix, std::list<FemCondition *> conditions) :
     Fem2D(mesh, 6)
 {
     const double kappa = 5.0 / 6.0;
@@ -387,7 +387,7 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, const std::vector<double>
 
     for (unsigned i = 0; i < layers_count; i++)
     {
-        D[i] = elasticMatrix[i].D();
+        D[i] = planeStressMatrix[i];
         Dc[i].resize(2, 2);
         Dc[i] (0, 1) = Dc[i] (1, 0) = 0.0;
         Dc[i] (0, 0) = D[i] (2, 2);     Dc[i] (1, 1) = D[i] (2, 2);
@@ -499,7 +499,7 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, const std::vector<double>
 
     force = evalForces(mesh, conditions);
 
-    processInitialValues(mesh, conditions, global, force);
+    processInitialValues(conditions, global, force);
 
     DoubleVector displacement = solve(global, force);
 
@@ -728,8 +728,7 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const s
     for (std::vector<double>::size_type i = 0; i < zones_count; i++)
     {
         double E = stress[i] / strain[i];
-        ElasticMatrix em (E, nu, true);
-        DoubleMatrix d = em.D();
+        DoubleMatrix d = evalPlaneStressMatrix(E, nu);
         DoubleMatrix dc(2, 0.0);
         dc(0, 0) = d(2, 2); dc(1, 1) = d(2, 2);
         D[i] = d;
@@ -859,7 +858,7 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, double thickness, const s
             assembly(element, surf, global);
         } //for elNum
 
-        processInitialValues(mesh, conditions, global, force);
+        processInitialValues(conditions, global, force);
 
         DoubleVector displacement = solve(global, force);
 
@@ -1363,38 +1362,4 @@ DoubleVector MindlinShellBending::evalForces(Mesh3D *mesh, std::list<FemConditio
         }
     } // iterator
     return force;
-}
-
-void MindlinShellBending::processInitialValues(Mesh3D *mesh, std::list<FemCondition *> conditions, MappedDoubleMatrix &global, DoubleVector &force)
-{
-    //учет учет граничных условий
-    std::cout << "Boundary Conditions...";
-    for (std::list<FemCondition *>::iterator condition = conditions.begin(); condition != conditions.end(); condition++)
-    {
-        if ((*condition)->type() == FemCondition::INITIAL_VALUE)
-        {
-            ConsoleProgress progressBar(mesh->nodesCount());
-            for (UInteger i = 0; i < mesh->nodesCount(); i++)
-            {
-                PointPointer point = mesh->node(i);
-                if ((*condition)->isApplied(point))
-                {
-                    FemCondition::FemDirection dir = (*condition)->direction();
-                    if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
-                        setInitialNodalValue(global, force, freedom_ * i, (*condition)->value(point));
-                    if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
-                        setInitialNodalValue(global, force, freedom_ * i + 1UL, (*condition)->value(point));
-                    if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
-                        setInitialNodalValue(global, force, freedom_ * i + 2UL, (*condition)->value(point));
-                    if (dir == FemCondition::ALL || dir == FemCondition::FOURTH)
-                        setInitialNodalValue(global, force, freedom_ * i + 3UL, (*condition)->value(point));
-                    if (dir == FemCondition::ALL || dir == FemCondition::FIFTH)
-                        setInitialNodalValue(global, force, freedom_ * i + 4UL, (*condition)->value(point));
-                    if (dir == FemCondition::ALL || dir == FemCondition::SIXTH)
-                        setInitialNodalValue(global, force, freedom_ * i + 5UL, (*condition)->value(point));
-                }
-                ++progressBar;
-            } // for i
-        } // if
-    } // iterator
 }

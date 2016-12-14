@@ -24,7 +24,6 @@ SOURCES += hexahedralfem.cpp \
     plasticfem.cpp \
     forcecondition3d.cpp \
     femforce.cpp \
-    elasticmatrix.cpp \
     gaussquadrature.cpp \
     fem.cpp \
     planestressstrain.cpp \
@@ -42,7 +41,6 @@ HEADERS += hexahedralfem.h \
     plasticfem.h \
     forcecondition3d.h \
     femforce.h \
-    elasticmatrix.h \
     gaussquadrature.h \
     fem.h \
     planestressstrain.h \
