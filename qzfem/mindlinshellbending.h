@@ -25,7 +25,7 @@ public:
      * @param elasticMatrix Матрица упругих констант
      * @param conditions Список условий (нагрузок и граничных условий)
      */
-    MindlinShellBending(Mesh3D *mesh, double thickness, const DoubleMatrix &planeStressMatrix, std::list<FemCondition *> conditions, double alphaT = 0.0);
+    MindlinShellBending(Mesh3D *mesh, double thickness, const DoubleMatrix &planeStressMatrix, const std::list<FemCondition *> &conditions, double alphaT = 0.0);
     /**
      * @brief Конструктор для КЭ анаилза многослойных оболочек Миндлина
      * @param mesh Указатель на сетку элементов
@@ -33,7 +33,7 @@ public:
      * @param elasticMatrix Массив матриц упругих констант (для каждого слоя)
      * @param conditions Список условий (нагрузок и граничных условий)
      */
-    MindlinShellBending(Mesh3D *mesh, const std::vector<double> &thickness, const std::vector<DoubleMatrix> &planeStressMatrix, std::list<FemCondition *> conditions);
+    //MindlinShellBending(Mesh3D *mesh, const std::vector<double> &thickness, const std::vector<DoubleMatrix> &planeStressMatrix, const std::list<FemCondition *> &conditions);
     /**
      * @brief Конструктор КЭ анализа разуршающих нагрузок для оболочки с использованием теории Миндлина и метода переменной жесткости
      * @param mesh Указатель на сетку элементов
@@ -43,10 +43,26 @@ public:
      * @param nu Коэффициент Пуассона
      * @param conditions Список условий (нагрузок и граничных условий)
      */
-    MindlinShellBending(Mesh3D *mesh, double thickness, const std::vector<double> &strain, const std::vector<double> &stress, double nu, std::list<FemCondition *> conditions);
-private:
+   // MindlinShellBending(Mesh3D *mesh, double thickness, const std::vector<double> &strain, const std::vector<double> &stress, double nu, const std::list<FemCondition *> &conditions);
+protected:
+    /**
+     * @brief Метод для построения глобальной матрицы системы
+     */
+    virtual void buildGlobalMatrix();
+    /**
+     * @brief Метод для построения вектора системы
+     */
+    virtual void buildGlobalVector();
+    /**
+     * @brief Метод для обработки результтов решения
+     * @param nodalValues
+     */
+    virtual void processSolution(const DoubleVector &displacement);
     DoubleMatrix cosinuses(const Point3D &A, const Point3D &B, const Point3D &C);
-    DoubleVector evalForces(Mesh3D *mesh, std::list<FemCondition *> conditions);
+protected:
+    double thickness_; //!< Толщина объекта
+    DoubleMatrix D_; //!< Матрица упругости
+    double alpha_; //!< Коэффициент температурного напряжения
 };
 
 #endif // MINDLINSHELLBENDING_H

@@ -20,7 +20,7 @@ public:
      * @brief Конструктор
      * @param mesh Указатель на сетку конечных элементов
      */
-    Fem2D(Mesh *mesh, UInteger freedom_value = 2);
+    Fem2D(Mesh *mesh, UInteger freedom, const std::list<FemCondition *> &conditions);
     /**
      * @brief Метод вычисляет матрицу плоского деформирвоанного состояния
      * @param E Модуль Юнга

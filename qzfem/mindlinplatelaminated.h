@@ -1,7 +1,5 @@
-#ifndef MINDLINPLATEBENDING_H
-#define MINDLINPLATEBENDING_H
-
-#include <functional>
+#ifndef MINDLINPLATELAMINATED_H
+#define MINDLINPLATELAMINATED_H
 
 #include "fem2d.h"
 #include "femcondition.h"
@@ -14,13 +12,14 @@ using namespace msh;
 #include "doublevector.h"
 using namespace mtx;
 
-class MindlinPlateBending : public Fem2D
+
+class MindlinPlateLaminated : public Fem2D
 {
 public:
-    MindlinPlateBending(Mesh2D *mesh,
-                        double thickness,
-                        const DoubleMatrix &planeStressMatrix,
-                        const std::list<FemCondition *> &conditions);
+    MindlinPlateLaminated(Mesh2D *mesh,
+                          const std::vector<double> &thickness,
+                          const std::vector<DoubleMatrix> &planeStressMatrix,
+                          const std::list<FemCondition *> &conditions);
 protected:
     /**
      * @brief Метод для построения глобальной матрицы системы
@@ -36,8 +35,8 @@ protected:
      */
     virtual void processSolution(const DoubleVector &displacement);
 protected:
-    double thickness_; //!< Толщина объекта
-    DoubleMatrix D_; //!< Матрица упругости
+    std::vector<double> thickness_; //!< Толщина объекта
+    std::vector<DoubleMatrix> D_; //!< Матрица упругости
 };
 
-#endif // MINDLINPLATEBENDING_H
+#endif // MINDLINPLATELAMINATED_H

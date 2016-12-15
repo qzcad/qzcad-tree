@@ -2,7 +2,8 @@
 
 #include "doublematrix.h"
 
-Fem2D::Fem2D(Mesh *mesh, UInteger freedom_value) : Fem(mesh, freedom_value)
+Fem2D::Fem2D(Mesh *mesh, UInteger freedom, const std::list<FemCondition *> &conditions) :
+    Fem(mesh, freedom, conditions)
 {
 }
 

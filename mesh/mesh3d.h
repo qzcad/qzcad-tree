@@ -123,7 +123,7 @@ public:
      * @param nodeNumber Номер узла
      * @return Количество элементов, смежных в узле
      */
-    UInteger adjacentCount(const UInteger &nodeNumber) const;
+    virtual UInteger adjacentCount(const UInteger &nodeNumber) const;
     /**
      * @brief Двоичный поиск границы функции, пересекаемой отрезком
      * @param p0 Первая точка отрезка, пересекающего границу

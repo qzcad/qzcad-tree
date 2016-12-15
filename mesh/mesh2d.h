@@ -144,7 +144,7 @@ public:
      * @param nodeNumber Номер узла
      * @return Количество элементов, смежных в узле
      */
-    UInteger adjacentCount(const UInteger &nodeNumber) const;
+    virtual UInteger adjacentCount(const UInteger &nodeNumber) const;
     /**
      * @brief Метод возвращает множество номеров смежных в узле элементов
      * @param nodeNumber Номер узла

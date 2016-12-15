@@ -5,11 +5,14 @@
 #include "rowdoublematrix.h"
 #include "consoleprogress.h"
 
-Fem::Fem(Mesh *mesh, UInteger freedom_value)
+Fem::Fem(Mesh *mesh, UInteger freedom, const std::list<FemCondition *> &conditions) :
+    mesh_(mesh),
+    freedom_ (freedom),
+    dimension_ (mesh->nodesCount() * freedom),
+    global_(mesh->nodesCount() * freedom),
+    force_(mesh->nodesCount() * freedom, 0.0),
+    conditions_(conditions)
 {
-    mesh_ = mesh;
-    freedom_ = freedom_value;
-    dimension_ = mesh->nodesCount() * freedom_;
     std::cout << "<== The Finite Element Analysis Engine ==>" << std::endl;
     std::cout << "Mesh: " << mesh->nodesCount() << " nodes, " << mesh->elementsCount() << " elements." << std::endl;
     std::cout << "Freedom: " << freedom_ << std::endl;
@@ -24,6 +27,15 @@ Mesh *Fem::mesh()
 UInteger Fem::freedom() const
 {
     return freedom_;
+}
+
+void Fem::solve()
+{
+    buildGlobalMatrix();
+    buildGlobalVector();
+    processInitialValues();
+    DoubleVector solution = solveLinearSystem();
+    processSolution(solution);
 }
 
 void Fem::reportNodeValues(Fem::PointFilterFunc func)
@@ -134,7 +146,7 @@ void Fem::quadrature(int count, DoubleVector &xi, DoubleVector &eta, DoubleVecto
     weight.scale(0.5); // площадь единичного треугольника равна 0,5
 }
 
-void Fem::assembly(ElementPointer element, const DoubleMatrix &local, MappedDoubleMatrix &global)
+void Fem::assembly(ElementPointer element, const DoubleMatrix &local)
 {
     UInteger index_i = 0;
     UInteger index_j = 0;
@@ -145,31 +157,31 @@ void Fem::assembly(ElementPointer element, const DoubleMatrix &local, MappedDoub
         for (UInteger j = i; j < local.colCount(); j++)
         {
             index_j = freedom_ * element->vertexNode(j / freedom_) + (j % freedom_);
-            global(index_i, index_j) += local(i, j);
-            if (index_i != index_j) global(index_j, index_i) = global(index_i, index_j);
+            global_(index_i, index_j) += local(i, j);
+            if (index_i != index_j) global_(index_j, index_i) = global_(index_i, index_j);
         } // for j
     } // for i
 }
 
-void Fem::setInitialNodalValue(MappedDoubleMatrix &global, DoubleVector &force, const UInteger &rowNumber, const double value)
+void Fem::setInitialNodalValue(const UInteger &rowNumber, const double &value)
 {
-    for (UInteger j = 0; j < global.size(); j++)
+    for (UInteger j = 0; j < global_.size(); j++)
     {
-        if (rowNumber != j && global.data(rowNumber, j) != 0)
+        if (rowNumber != j && global_.data(rowNumber, j) != 0)
         { // см. Зенкевич, стр. 485
-            force(j) = force(j) - global.data(rowNumber, j) * value;
+            force_(j) = force_(j) - global_.data(rowNumber, j) * value;
         }
     } // for j
-    global.zeroSym(rowNumber);
-    force(rowNumber) = value;
-    global(rowNumber, rowNumber) = 1.0;
+    global_.zeroSym(rowNumber);
+    force_(rowNumber) = value;
+    global_(rowNumber, rowNumber) = 1.0;
 }
 
-void Fem::processInitialValues(std::list<FemCondition *> conditions, MappedDoubleMatrix &global, DoubleVector &force)
+void Fem::processInitialValues()
 {
     //учет учет граничных условий
     std::cout << "Boundary Conditions...";
-    for (std::list<FemCondition *>::iterator condition = conditions.begin(); condition != conditions.end(); condition++)
+    for (std::list<FemCondition *>::iterator condition = conditions_.begin(); condition != conditions_.end(); condition++)
     {
         if ((*condition)->type() == FemCondition::INITIAL_VALUE)
         {
@@ -182,22 +194,22 @@ void Fem::processInitialValues(std::list<FemCondition *> conditions, MappedDoubl
                     FemCondition::FemDirection dir = (*condition)->direction();
 
                     if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
-                        setInitialNodalValue(global, force, freedom_ * i, (*condition)->value(point));
+                        setInitialNodalValue(freedom_ * i, (*condition)->value(point));
 
                     if ((dir == FemCondition::ALL || dir == FemCondition::SECOND) && freedom_ >= 2)
-                        setInitialNodalValue(global, force, freedom_ * i + 1UL, (*condition)->value(point));
+                        setInitialNodalValue(freedom_ * i + 1UL, (*condition)->value(point));
 
                     if ((dir == FemCondition::ALL || dir == FemCondition::THIRD) && freedom_ >= 3)
-                        setInitialNodalValue(global, force, freedom_ * i + 2UL, (*condition)->value(point));
+                        setInitialNodalValue(freedom_ * i + 2UL, (*condition)->value(point));
 
                     if ((dir == FemCondition::ALL || dir == FemCondition::FOURTH) && freedom_ >= 4)
-                        setInitialNodalValue(global, force, freedom_ * i + 3UL, (*condition)->value(point));
+                        setInitialNodalValue(freedom_ * i + 3UL, (*condition)->value(point));
 
                     if ((dir == FemCondition::ALL || dir == FemCondition::FIFTH) && freedom_ >= 5)
-                        setInitialNodalValue(global, force, freedom_ * i + 4UL, (*condition)->value(point));
+                        setInitialNodalValue(freedom_ * i + 4UL, (*condition)->value(point));
 
                     if ((dir == FemCondition::ALL || dir == FemCondition::SIXTH) && freedom_ >= 6)
-                        setInitialNodalValue(global, force, freedom_ * i + 5UL, (*condition)->value(point));
+                        setInitialNodalValue(freedom_ * i + 5UL, (*condition)->value(point));
                 }
                 ++progressBar;
             } // for i
@@ -205,14 +217,14 @@ void Fem::processInitialValues(std::list<FemCondition *> conditions, MappedDoubl
     } // iterator
 }
 
-DoubleVector Fem::solve(MappedDoubleMatrix &global, DoubleVector &force, bool cg)
+DoubleVector Fem::solveLinearSystem(bool cg)
 {
     // решение СЛАУ
     std::cout << "Linear Equations (СЛАУ)..." << std::endl;
     if(cg)
     {
-        RowDoubleMatrix rdm(global);
-        return rdm.preconditionedConjugateGradient(force);
+        RowDoubleMatrix rdm(global_);
+        return rdm.preconditionedConjugateGradient(force_);
     }
-    return global.cholesky(force);
+    return global_.cholesky(force_);
 }

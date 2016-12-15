@@ -1,21 +1,19 @@
-#include "mindlinplatebending.h"
-
-#include "consoleprogress.h"
-#include "rowdoublematrix.h"
-
+#include "mindlinplatelaminated.h"
+#include <iostream>
 #include <math.h>
+#include "consoleprogress.h"
 
-MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
-                                         double thickness,
-                                         const DoubleMatrix &planeStressMatrix,
-                                         const std::list<FemCondition *> &conditions) :
-    Fem2D(mesh, 3, conditions)
+MindlinPlateLaminated::MindlinPlateLaminated(Mesh2D *mesh,
+                                             const std::vector<double> &thickness,
+                                             const std::vector<DoubleMatrix> &planeStressMatrix,
+                                             const std::list<FemCondition *> &conditions) :
+    Fem2D(mesh, 5, conditions)
 {
     thickness_ = thickness;
     D_ = planeStressMatrix;
 }
 
-void MindlinPlateBending::buildGlobalMatrix()
+void MindlinPlateLaminated::buildGlobalMatrix()
 {
     const double kappa = 5.0 / 6.0;
     UInteger nodesCount = mesh_->nodesCount(); // количество узлов сетки
@@ -53,13 +51,26 @@ void MindlinPlateBending::buildGlobalMatrix()
             }
         }
     }
-    DoubleMatrix D = D_; // матрица упругости
-    DoubleMatrix Dc(2, 0.0);
-    Dc(0, 0) = D(2, 2); Dc(1, 1) = D(2, 2);
-    std::cout << "D" << std::endl;
-    D.print();
-    std::cout << "Dc:" << std::endl;
-    Dc.print();
+    unsigned layers_count = thickness_.size();
+    std::vector<DoubleMatrix> D(layers_count); // матрица упругости
+    std::vector<DoubleMatrix> Dc(layers_count);
+    double H = 0.0; // толщина пластинки
+
+    for (unsigned i = 0; i < layers_count; i++)
+    {
+        D[i] = D_[i];
+        Dc[i].resize(2, 2);
+        Dc[i] (0, 1) = Dc[i] (1, 0) = 0.0;
+        Dc[i] (0, 0) = D_[i] (2, 2);
+        Dc[i] (1, 1) = D_[i] (2, 2);
+        std::cout << "D[" << i << "]:" << std::endl;
+        D[i].print();
+        std::cout << "Dc["<< i << "]:" << std::endl;
+        Dc[i].print();
+        H += thickness_[i];
+    }
+    std::cout << "Thickness: " << H << std::endl;
+
     // построение глобальной матрицы жесткости
     std::cout << "Stiffness Matrix...";
     ConsoleProgress progressBar(elementsCount);
@@ -100,28 +111,43 @@ void MindlinPlateBending::buildGlobalMatrix()
                 jacobian = isoQuad4(xi, eta, x, y, N, dNdX, dNdY);
             }
             //
+            DoubleMatrix Bm(3, freedom_ * elementNodes, 0.0);
             DoubleMatrix Bf(3, freedom_ * elementNodes, 0.0);
             DoubleMatrix Bc(2, freedom_ * elementNodes, 0.0);
 
             for (UInteger i = 0; i < elementNodes; i++)
             {
-                Bf(0, i * freedom_ + 1) = dNdX(i);
-                Bf(1, i * freedom_ + 2) = dNdY(i);
-                Bf(2, i * freedom_ + 1) = dNdY(i);  Bf(2, i * freedom_ + 2) = dNdX(i);
+                Bm(0, i * freedom_) = dNdX(i);
+                                                    Bm(1, i * freedom_ + 1) = dNdY(i);
+                Bm(2, i * freedom_) = dNdY(i);      Bm(2, i * freedom_ + 1) = dNdX(i);
 
-                Bc(0, i * freedom_) = dNdX(i);  Bc(0, i * freedom_ + 1) = N(i);
-                Bc(1, i * freedom_) = dNdY(i);  Bc(1, i * freedom_ + 2) = N(i);
+                Bf(0, i * freedom_ + 3) = dNdX(i);
+                                                    Bf(1, i * freedom_ + 4) = dNdY(i);
+                Bf(2, i * freedom_ + 3) = dNdY(i);  Bf(2, i * freedom_ + 4) = dNdX(i);
+
+                Bc(0, i * freedom_ + 2) = dNdX(i);  Bc(0, i * freedom_ + 3) = N(i);
+                Bc(1, i * freedom_ + 2) = dNdY(i);  Bc(1, i * freedom_ + 4) = N(i);
             }
 
-            local += jacobian * w * thickness_*thickness_*thickness_ / 12.0 * (Bf.transpose() * D * Bf);
-            local += jacobian * w * kappa * thickness_ * (Bc.transpose() * Dc * Bc);
+            double z0 = -H / 2.0;
+            double z1 = 0.0;
+            for (unsigned i = 0; i < layers_count; i++)
+            {
+                z1 = z0 + thickness_[i];
+                local += jacobian * w * (z1 - z0) * (Bm.transpose() * D[i] * Bm);
+                local += jacobian * w * (z1*z1 - z0*z0) / 2.0 * (Bm.transpose() * D[i] * Bf);
+                local += jacobian * w * (z1*z1 - z0*z0) / 2.0 * (Bf.transpose() * D[i] * Bm);
+                local += jacobian * w * (z1*z1*z1 - z0*z0*z0) / 3.0 * (Bf.transpose() * D[i] * Bf);
+                local += jacobian * w * kappa * (z1 - z0) * (Bc.transpose() * Dc[i] * Bc);
+                z0 = z1;
+            }
         } // ig
         // Ансамблирование
         assembly(element, local);
     } //for elNum
 }
 
-void MindlinPlateBending::buildGlobalVector()
+void MindlinPlateLaminated::buildGlobalVector()
 {
     UInteger nodesCount = mesh_->nodesCount(); // количество узлов сетки
     UInteger elementsCount = mesh_->elementsCount(); // количество элементов
@@ -176,9 +202,13 @@ void MindlinPlateBending::buildGlobalVector()
                     if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
                         force_(freedom_ * i) += f;
                     if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
-                        force_(freedom_ * i + 1) += f;
+                        force_(freedom_ * i + 1UL) += f;
                     if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
-                        force_(freedom_ * i + 2) += f;
+                        force_(freedom_ * i + 2UL) += f;
+                    if (dir == FemCondition::ALL || dir == FemCondition::FOURTH)
+                        force_(freedom_ * i + 3UL) += f;
+                    if (dir == FemCondition::ALL || dir == FemCondition::FIFTH)
+                        force_(freedom_ * i + 4UL) += f;
                 }
                 ++progressBar;
             } // for i
@@ -231,13 +261,23 @@ void MindlinPlateBending::buildGlobalVector()
                                 }
                                 if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
                                 {
-                                    force_(freedom_ * element->vertexNode(i) + 1) += f0;
-                                    force_(freedom_ * element->vertexNode(i + 1) + 1) += f1;
+                                    force_(freedom_ * element->vertexNode(i) + 1UL) += f0;
+                                    force_(freedom_ * element->vertexNode(i + 1) + 1UL) += f1;
                                 }
                                 if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
                                 {
-                                    force_(freedom_ * element->vertexNode(i) + 2) += f0;
-                                    force_(freedom_ * element->vertexNode(i + 1) + 2) += f1;
+                                    force_(freedom_ * element->vertexNode(i) + 2UL) += f0;
+                                    force_(freedom_ * element->vertexNode(i + 1) + 2UL) += f1;
+                                }
+                                if (dir == FemCondition::ALL || dir == FemCondition::FOURTH)
+                                {
+                                    force_(freedom_ * element->vertexNode(i) + 3UL) += f0;
+                                    force_(freedom_ * element->vertexNode(i + 1) + 3UL) += f1;
+                                }
+                                if (dir == FemCondition::ALL || dir == FemCondition::FIFTH)
+                                {
+                                    force_(freedom_ * element->vertexNode(i) + 4UL) += f0;
+                                    force_(freedom_ * element->vertexNode(i + 1) + 4UL) += f1;
                                 }
                             }
                         } // if
@@ -308,16 +348,20 @@ void MindlinPlateBending::buildGlobalVector()
                     if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
                         force_(freedom_ * element->vertexNode(i)) += vForce[i];
                     if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
-                        force_(freedom_ * element->vertexNode(i) + 1) += vForce[i];
+                        force_(freedom_ * element->vertexNode(i) + 1UL) += vForce[i];
                     if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
-                        force_(freedom_ * element->vertexNode(i) + 2) += vForce[i];
+                        force_(freedom_ * element->vertexNode(i) + 2UL) += vForce[i];
+                    if (dir == FemCondition::ALL || dir == FemCondition::FOURTH)
+                        force_(freedom_ * element->vertexNode(i) + 3UL) += vForce[i];
+                    if (dir == FemCondition::ALL || dir == FemCondition::FIFTH)
+                        force_(freedom_ * element->vertexNode(i) + 4UL) += vForce[i];
                 }
             } //for elNum
         }
     } // iterator
 }
 
-void MindlinPlateBending::processSolution(const DoubleVector &displacement)
+void MindlinPlateLaminated::processSolution(const DoubleVector &displacement)
 {
     UInteger nodesCount = mesh_->nodesCount(); // количество узлов сетки
     UInteger elementsCount = mesh_->elementsCount(); // количество элементов
@@ -330,24 +374,40 @@ void MindlinPlateBending::processSolution(const DoubleVector &displacement)
     {
         elementNodes = 4;
     }
-    DoubleMatrix D = D_; // матрица упругости
-    DoubleMatrix Dc(2, 0.0);
-    Dc(0, 0) = D(2, 2); Dc(1, 1) = D(2, 2);
-    std::cout << "D" << std::endl;
-    D.print();
-    std::cout << "Dc:" << std::endl;
-    Dc.print();
+    unsigned layers_count = thickness_.size();
+    std::vector<DoubleMatrix> D(layers_count); // матрица упругости
+    std::vector<DoubleMatrix> Dc(layers_count);
+    double H = 0.0; // толщина пластинки
+
+    for (unsigned i = 0; i < layers_count; i++)
+    {
+        D[i] = D_[i];
+        Dc[i].resize(2, 2);
+        Dc[i] (0, 1) = Dc[i] (1, 0) = 0.0;
+        Dc[i] (0, 0) = D_[i] (2, 2);
+        Dc[i] (1, 1) = D_[i] (2, 2);
+        std::cout << "D[" << i << "]:" << std::endl;
+        D[i].print();
+        std::cout << "Dc["<< i << "]:" << std::endl;
+        Dc[i].print();
+        H += thickness_[i];
+    }
+    std::vector<double> u(nodesCount);
+    std::vector<double> v(nodesCount);
     std::vector<double> w(nodesCount);
     std::vector<double> theta_x(nodesCount);
     std::vector<double> theta_y(nodesCount);
     for (UInteger i = 0; i < nodesCount; i++)
     {
-        w[i] = displacement[freedom_ * i];
-        theta_x[i] = displacement[freedom_ * i + 1];
-        theta_y[i] = displacement[freedom_ * i + 2];
+        u[i] = displacement[freedom_ * i];
+        v[i] = displacement[freedom_ * i + 1];
+        w[i] = displacement[freedom_ * i + 2];
+        theta_x[i] = displacement[freedom_ * i + 3];
+        theta_y[i] = displacement[freedom_ * i + 4];
     }
-
-    mesh_->addDataVector("W", w);
+    mesh_->addDataVector("X", u);
+    mesh_->addDataVector("Y", v);
+    mesh_->addDataVector("Z", w);
     mesh_->addDataVector("Theta X", theta_x);
     mesh_->addDataVector("Theta Y", theta_y);
 
@@ -374,7 +434,6 @@ void MindlinPlateBending::processSolution(const DoubleVector &displacement)
         xi[2] =  1.0; eta[2] =  1.0;
         xi[3] = -1.0; eta[3] =  1.0;
     }
-
     std::cout << "Stresses Recovery...";
     ConsoleProgress progressBar(elementsCount);
     for (UInteger elNum = 0; elNum < elementsCount; elNum++)
@@ -412,17 +471,21 @@ void MindlinPlateBending::processSolution(const DoubleVector &displacement)
                 isoQuad4(xi[inode], eta[inode], x, y, N, dNdX, dNdY);
             }
             //
+            DoubleMatrix Bm(3, freedom_ * elementNodes, 0.0);
             DoubleMatrix Bf(3, freedom_ * elementNodes, 0.0);
             DoubleMatrix Bc(2, freedom_ * elementNodes, 0.0);
-
             for (UInteger i = 0; i < elementNodes; i++)
             {
-                Bf(0, i * freedom_ + 1) = dNdX(i);
-                Bf(1, i * freedom_ + 2) = dNdY(i);
-                Bf(2, i * freedom_ + 1) = dNdY(i);  Bf(2, i * freedom_ + 2) = dNdX(i);
+                Bm(0, i * freedom_) = dNdX(i);
+                                                    Bm(1, i * freedom_ + 1) = dNdY(i);
+                Bm(2, i * freedom_) = dNdY(i);      Bm(2, i * freedom_ + 1) = dNdX(i);
 
-                Bc(0, i * freedom_) = dNdX(i);  Bc(0, i * freedom_ + 1) = N(i);
-                Bc(1, i * freedom_) = dNdY(i);  Bc(1, i * freedom_ + 2) = N(i);
+                Bf(0, i * freedom_ + 3) = dNdX(i);
+                                                    Bf(1, i * freedom_ + 4) = dNdY(i);
+                Bf(2, i * freedom_ + 3) = dNdY(i);  Bf(2, i * freedom_ + 4) = dNdX(i);
+
+                Bc(0, i * freedom_ + 2) = dNdX(i);  Bc(0, i * freedom_ + 3) = N(i);
+                Bc(1, i * freedom_ + 2) = dNdY(i);  Bc(1, i * freedom_ + 4) = N(i);
             }
 
             for (UInteger i = 0; i < elementNodes; i++)
@@ -430,10 +493,12 @@ void MindlinPlateBending::processSolution(const DoubleVector &displacement)
                 dis(freedom_ * i, 0) = displacement[freedom_ * element->vertexNode(i)];
                 dis(freedom_ * i + 1, 0) = displacement[freedom_ * element->vertexNode(i) + 1];
                 dis(freedom_ * i + 2, 0) = displacement[freedom_ * element->vertexNode(i) + 2];
+                dis(freedom_ * i + 3, 0) = displacement[freedom_ * element->vertexNode(i) + 3];
+                dis(freedom_ * i + 4, 0) = displacement[freedom_ * element->vertexNode(i) + 4];
             }
 
-            sigma = (thickness_ / 2.0) * ((D * Bf) * dis);
-            tau = ((Dc * Bc) * dis);
+            sigma = ((D[layers_count - 1] * Bm) * dis) + (H / 2.0 * ((D[layers_count - 1] * Bf) * dis));
+            tau = ((Dc[layers_count - 1] * Bc) * dis);
             double von = sqrt(sigma(0,0)*sigma(0,0) - sigma(0,0)*sigma(1,0) + sigma(1,0)*sigma(1,0) + 3.0 * sigma(2,0)*sigma(2,0));
 
             SigmaX[element->vertexNode(inode)] += sigma(0, 0);
@@ -453,10 +518,11 @@ void MindlinPlateBending::processSolution(const DoubleVector &displacement)
         TauYZ[i] /= (double)mesh_->adjacentCount(i);
         mises[i] /= (double)mesh_->adjacentCount(i);
     }
-    mesh_->addDataVector("Sigma X", SigmaX);
-    mesh_->addDataVector("Sigma Y", SigmaY);
-    mesh_->addDataVector("Tau XY", TauXY);
-    mesh_->addDataVector("Tau XZ", TauXZ);
-    mesh_->addDataVector("Tau YZ", TauYZ);
-    mesh_->addDataVector("von Mises", mises);
+    mesh_->addDataVector("Sigma X (z = h / 2)", SigmaX);
+    mesh_->addDataVector("Sigma Y (z = h / 2)", SigmaY);
+    mesh_->addDataVector("Tau XY (z = h / 2)", TauXY);
+    mesh_->addDataVector("Tau XZ (z = h / 2)", TauXZ);
+    mesh_->addDataVector("Tau YZ (z = h / 2)", TauYZ);
+    mesh_->addDataVector("von Mises (z = h / 2)", mises);
 }
+

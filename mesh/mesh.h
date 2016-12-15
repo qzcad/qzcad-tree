@@ -106,6 +106,12 @@ public:
      */
     virtual void updateDomain() = 0;
     /**
+     * @brief Количество элементов, смежных в узле с заданным номером
+     * @param nodeNumber Номер узла
+     * @return Количество элементов, смежных в узле
+     */
+    virtual UInteger adjacentCount(const UInteger &nodeNumber) const = 0;
+    /**
      * @brief Добавить узел в сетку
      * @param point Указатель на координаты
      * @param type Тип узла

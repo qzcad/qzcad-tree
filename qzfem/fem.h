@@ -32,7 +32,7 @@ public:
      * @brief Конструктор
      * @param mesh Указатель на сетку конечных элементов
      */
-    Fem(Mesh *mesh, UInteger freedom_value);
+    Fem(Mesh *mesh, UInteger freedom, const std::list<FemCondition *> &conditions);
     /**
      * @brief Деструктор
      */
@@ -48,6 +48,10 @@ public:
      * @return Количество степеней свободы
      */
     UInteger freedom() const;
+    /**
+     * @brief Метод строит конечно-элементное решение (линейное по умолчанию)
+     */
+    virtual void solve();
     /**
      * @brief Сигнатура функции для фильтрации узлов при формировании отчета
      */
@@ -79,32 +83,42 @@ protected:
      * @param local Локальная матрица
      * @param global Ссылка на глобальную матрицу
      */
-    void assembly(ElementPointer element, const DoubleMatrix &local, MappedDoubleMatrix &global);
+    void assembly(ElementPointer element, const DoubleMatrix &local);
     /**
      * @brief Метод для учета граничных условий (начальных перемещений, температур и т.п.)
-     * @param global Ссылка на глобальную матрицу жесткости
-     * @param force Ссылка на вектор-столбец (сила, температура и т.п.)
      * @param rowNumber Номер строки, которой соответствует начальное значение
      * @param value Начальное значение
      */
-    void setInitialNodalValue(MappedDoubleMatrix &global, DoubleVector &force, const UInteger &rowNumber, const double value);
+    void setInitialNodalValue(const UInteger &rowNumber, const double &value);
     /**
-     * @brief Метод обработки граничных условий
-     * @param conditions Список граничных условий
-     * @param global Ссылка на глобальную матрицу жесткости
-     * @param force Ссылка на вектор-столбец (сила, температура и т.п.)
+     * @brief Метод обработки списка граничных условий
      */
-    void processInitialValues(std::list<FemCondition *> conditions, MappedDoubleMatrix &global, DoubleVector &force);
+    void processInitialValues();
     /**
      * @brief Метод для решения СЛАУ в МКЭ
-     * @param global Ссылка на глобальную матрицу жесткости
-     * @param force Ссылка на вектор-столбец
      */
-    DoubleVector solve(MappedDoubleMatrix &global, DoubleVector &force, bool cg=true);
+    DoubleVector solveLinearSystem(bool cg=true);
+    /**
+     * @brief Метод для построения глобальной матрицы системы
+     */
+    virtual void buildGlobalMatrix() = 0;
+    /**
+     * @brief Метод для построения вектора системы
+     */
+    virtual void buildGlobalVector() = 0;
+    /**
+     * @brief Метод для обработки результтов решения
+     * @param nodalValues
+     */
+    virtual void processSolution(const DoubleVector &nodalValues) = 0;
+
 protected:
     Mesh *mesh_; //!< Указатель на сетку конечных элементов
     UInteger freedom_; //!< Количество степеней свободы
     UInteger dimension_; //!< Размерность задачи
+    MappedDoubleMatrix global_; //!< Глобальная матрица жесткости в сжатом виде
+    DoubleVector force_; //!< Вектор сил
+    std::list<FemCondition *> conditions_; //!< Список граничныйх условий
 };
 
 #endif // FEM_H

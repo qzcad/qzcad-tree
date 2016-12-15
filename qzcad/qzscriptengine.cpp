@@ -15,6 +15,7 @@
 
 #include "planestressstrain.h"
 #include "mindlinplatebending.h"
+#include "mindlinplatelaminated.h"
 #include "mindlinshellbending.h"
 
 #include "qzscriptengine.h"
@@ -1414,7 +1415,7 @@ QScriptValue QZScriptEngine::planeStress(QScriptContext *context, QScriptEngine 
                                       h,
                                       D,
                                       conditions);
-
+        fem_->solve();
         mesh->printDataExtremums();
 
         setMesh(mesh);
@@ -1478,7 +1479,7 @@ QScriptValue QZScriptEngine::planeStrain(QScriptContext *context, QScriptEngine 
                                       h,
                                       D,
                                       conditions);
-
+        fem_->solve();
         mesh->printDataExtremums();
 
         setMesh(mesh);
@@ -1663,6 +1664,7 @@ QScriptValue QZScriptEngine::mindlinPlate(QScriptContext *context, QScriptEngine
                                             h,
                                             D,
                                             conditions);
+            fem_->solve();
             setMesh(mesh);
         }
         else if (context->argument(1).isArray() && context->argument(2).isArray() && context->argument(3).isArray())
@@ -1686,10 +1688,11 @@ QScriptValue QZScriptEngine::mindlinPlate(QScriptContext *context, QScriptEngine
 
             if (fem_ != NULL) delete fem_;
 
-            fem_ = new MindlinPlateBending (mesh, //!
+            fem_ = new MindlinPlateLaminated (mesh, //!
                                             h,
                                             elasticMatrix,
                                             conditions);
+            fem_->solve();
             setMesh(mesh);
         }
         else
@@ -1770,6 +1773,7 @@ QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine
                                             h,
                                             D,
                                             conditions);
+            fem_->solve();
             setMesh(mesh);
         }
         else if (context->argument(1).isArray() && context->argument(2).isArray() && context->argument(3).isArray())
@@ -1810,10 +1814,10 @@ QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine
 
             if (fem_ != NULL) delete fem_;
 
-            fem_ = new MindlinShellBending (mesh, //!
-                                            h,
-                                            elasticMatrix,
-                                            conditions);
+//            fem_ = new MindlinShellBending (mesh, //!
+//                                            h,
+//                                            elasticMatrix,
+//                                            conditions);
             setMesh(mesh);
         }
         else if (context->argument(1).isNumber() && context->argument(2).isArray() && context->argument(3).isArray() && context->argument(4).isNumber())
@@ -1836,7 +1840,7 @@ QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine
 
             if (fem_ != NULL) delete fem_;
 
-            fem_ = new MindlinShellBending (mesh, h, strain, stress, nu, conditions);
+//            fem_ = new MindlinShellBending (mesh, h, strain, stress, nu, conditions);
 
             setMesh(mesh);
         }

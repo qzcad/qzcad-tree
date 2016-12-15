@@ -11,9 +11,16 @@
 PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
                                      double thickness,
                                      const DoubleMatrix &elasticMatrix,
-                                     std::list<FemCondition *> conditions) :
-    Fem2D(mesh, 2)
+                                     const std::list<FemCondition *> &conditions) :
+    Fem2D(mesh, 2, conditions)
 {
+    thickness_ = thickness;
+    D_ = elasticMatrix;
+}
+
+void PlaneStressStrain::buildGlobalMatrix()
+{
+    UInteger elementsCount = mesh_->elementsCount(); // количество элементов
     DoubleVector gxi; // координаты квадратур Гаусса
     DoubleVector geta;
     DoubleVector gweight; // весовые коэффициенты квадратур
@@ -24,13 +31,13 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
     quadrature(line_count, line_points, line_weights);
 
     UInteger elementNodes = 0; // количество узлов в элементе
-    if (dynamic_cast<TriangleMesh2D*>(mesh) != NULL)
+    if (dynamic_cast<TriangleMesh2D*>(mesh_) != NULL)
     {
         elementNodes = 3;
         gaussPoints = 3;
         quadrature(gaussPoints, gxi, geta, gweight);
     }
-    else if (dynamic_cast<QuadrilateralMesh2D*>(mesh) != NULL)
+    else if (dynamic_cast<QuadrilateralMesh2D*>(mesh_) != NULL)
     {
         gaussPoints = line_count * line_count;
         gxi.resize(gaussPoints);
@@ -48,12 +55,6 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
         }
     }
 
-    UInteger nodesCount = mesh->nodesCount(); // количество узлов сетки
-    UInteger elementsCount = mesh->elementsCount(); // количество элементов
-
-    MappedDoubleMatrix global (dimension_); // глобальная матрица жесткости
-    DoubleVector force(dimension_, 0.0); // вектор сил
-
     // построение глобальной матрицы жесткости
     std::cout << "Stiffness Matrix...";
     ConsoleProgress progressBar(elementsCount);
@@ -66,10 +67,10 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
         double x[elementNodes];
         double y[elementNodes];
         // извлечение координат узлов
-        ElementPointer element = mesh->element(elNum);
+        ElementPointer element = mesh_->element(elNum);
         for (UInteger i = 0; i < elementNodes; i++)
         {
-            PointPointer point = mesh->node(element->vertexNode(i));
+            PointPointer point = mesh_->node(element->vertexNode(i));
             x[i] = point->x();
             y[i] = point->y();
         }
@@ -85,11 +86,11 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
             DoubleVector dNdY(elementNodes);
             // якобиан
             double jacobian = 1.0;
-            if (dynamic_cast<TriangleMesh2D*>(mesh) != NULL)
+            if (dynamic_cast<TriangleMesh2D*>(mesh_) != NULL)
             {
                 jacobian = isoTriangle3(xi, eta, x, y, N, dNdX, dNdY);
             }
-            else if (dynamic_cast<QuadrilateralMesh2D*>(mesh) != NULL)
+            else if (dynamic_cast<QuadrilateralMesh2D*>(mesh_) != NULL)
             {
                 jacobian = isoQuad4(xi, eta, x, y, N, dNdX, dNdY);
             }
@@ -102,31 +103,70 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
                 B(2, i * freedom_) = dNdY(i);   B(2, i * freedom_ + 1) = dNdX(i);
             }
 
-            local += jacobian * w * thickness * (B.transpose() * elasticMatrix * B);
+            local += jacobian * w * thickness_ * (B.transpose() * D_ * B);
         } // ig
         // Ансамблирование
-        assembly(element, local, global);
+        assembly(element, local);
     } //for elNum
+}
 
+void PlaneStressStrain::buildGlobalVector()
+{
     // Учет сил
-    for (std::list<FemCondition *>::iterator condition = conditions.begin(); condition != conditions.end(); condition++)
+    UInteger nodesCount = mesh_->nodesCount(); // количество узлов сетки
+    UInteger elementsCount = mesh_->elementsCount(); // количество элементов
+    DoubleVector gxi; // координаты квадратур Гаусса
+    DoubleVector geta;
+    DoubleVector gweight; // весовые коэффициенты квадратур
+    int gaussPoints = 0; // количество точек квадратур
+    int line_count = 2; // количество точек квадратур при интегрировании вдоль линии
+    DoubleVector line_points;
+    DoubleVector line_weights;
+    quadrature(line_count, line_points, line_weights);
+
+    UInteger elementNodes = 0; // количество узлов в элементе
+    if (dynamic_cast<TriangleMesh2D*>(mesh_) != NULL)
+    {
+        elementNodes = 3;
+        gaussPoints = 3;
+        quadrature(gaussPoints, gxi, geta, gweight);
+    }
+    else if (dynamic_cast<QuadrilateralMesh2D*>(mesh_) != NULL)
+    {
+        gaussPoints = line_count * line_count;
+        gxi.resize(gaussPoints);
+        geta.resize(gaussPoints);
+        gweight.resize(gaussPoints);
+        elementNodes = 4;
+        for (int i = 0; i < line_count; i++)
+        {
+            for (int j = 0; j < line_count; j++)
+            {
+                gxi[i * line_count + j] = line_points[i];
+                geta[i * line_count + j] = line_points[j];
+                gweight[i * line_count + j] = line_weights[i] * line_weights[j];
+            }
+        }
+    }
+
+    for (std::list<FemCondition *>::iterator condition = conditions_.begin(); condition != conditions_.end(); condition++)
     {
         if ((*condition)->type() == FemCondition::NODAL_FORCE)
         {
             // узловые нагрузки
             std::cout << "Nodal Forces...";
-            progressBar.restart(nodesCount);
+            ConsoleProgress progressBar(nodesCount);
             for (UInteger i = 0; i < nodesCount; i++)
             {
-                PointPointer point = mesh->node(i);
+                PointPointer point = mesh_->node(i);
                 if ((*condition)->isApplied(point))
                 {
                     double f = (*condition)->value(point);
                     FemCondition::FemDirection dir = (*condition)->direction();
                     if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
-                        force(freedom_ * i) += f;
+                        force_(freedom_ * i) += f;
                     if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
-                        force(freedom_ * i + 1) += f;
+                        force_(freedom_ * i + 1) += f;
                 }
                 ++progressBar;
             } // for i
@@ -136,21 +176,21 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
         {
             // поверхностные нагрузки
             std::cout << "Surface Forces...";
-            progressBar.restart(elementsCount);
+            ConsoleProgress progressBar(elementsCount);
             for (UInteger elNum = 0; elNum < elementsCount; elNum++)
             {
                 ++progressBar;
 
-                if (mesh->isBorderElement(elNum))
+                if (mesh_->isBorderElement(elNum))
                 {
-                    ElementPointer element = mesh->element(elNum);
+                    ElementPointer element = mesh_->element(elNum);
                     for (UInteger i = 0; i < elementNodes; i++)
                     {
-                        if ((mesh->nodeType(element->vertexNode(i)) == BORDER || mesh->nodeType(element->vertexNode(i)) == CHARACTER) &&
-                                (mesh->nodeType(element->vertexNode(i + 1)) == BORDER || mesh->nodeType(element->vertexNode(i + 1)) == CHARACTER))
+                        if ((mesh_->nodeType(element->vertexNode(i)) == BORDER || mesh_->nodeType(element->vertexNode(i)) == CHARACTER) &&
+                                (mesh_->nodeType(element->vertexNode(i + 1)) == BORDER || mesh_->nodeType(element->vertexNode(i + 1)) == CHARACTER))
                         {
-                            PointPointer point0 = mesh->node(element->vertexNode(i));
-                            PointPointer point1 = mesh->node(element->vertexNode(i + 1));
+                            PointPointer point0 = mesh_->node(element->vertexNode(i));
+                            PointPointer point1 = mesh_->node(element->vertexNode(i + 1));
                             FemCondition::FemDirection dir = (*condition)->direction();
                             if ((*condition)->isApplied(point0) && (*condition)->isApplied(point1))
                             {
@@ -174,13 +214,13 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
                                 } // for ixi
                                 if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
                                 {
-                                    force(freedom_ * element->vertexNode(i)) += f0;
-                                    force(freedom_ * element->vertexNode(i + 1)) += f1;
+                                    force_(freedom_ * element->vertexNode(i)) += f0;
+                                    force_(freedom_ * element->vertexNode(i + 1)) += f1;
                                 }
                                 if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
                                 {
-                                    force(freedom_ * element->vertexNode(i) + 1) += f0;
-                                    force(freedom_ * element->vertexNode(i + 1) + 1) += f1;
+                                    force_(freedom_ * element->vertexNode(i) + 1) += f0;
+                                    force_(freedom_ * element->vertexNode(i + 1) + 1) += f1;
                                 }
                             }
                         } // if
@@ -192,7 +232,7 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
         {
             // объемные силы
             std::cout << "Volume Forces...";
-            progressBar.restart(elementsCount);
+            ConsoleProgress progressBar(elementsCount);
             for (UInteger elNum = 0; elNum < elementsCount; elNum++)
             {
 
@@ -201,10 +241,10 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
                 double y[elementNodes];
                 double vForce[elementNodes]; // значения объемных сил в узлах
                 // извлечение координат узлов
-                ElementPointer element = mesh->element(elNum);
+                ElementPointer element = mesh_->element(elNum);
                 for (unsigned int i = 0; i < elementNodes; i++)
                 {
-                    PointPointer point = mesh->node(element->vertexNode(i));
+                    PointPointer point = mesh_->node(element->vertexNode(i));
                     x[i] = point->x();
                     y[i] = point->y();
                     vForce[i] = 0.0;
@@ -223,11 +263,11 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
                     double yLocal = 0.0;
                     // якобиан
                     double jacobian = 1.0;
-                    if (dynamic_cast<TriangleMesh2D*>(mesh) != NULL)
+                    if (dynamic_cast<TriangleMesh2D*>(mesh_) != NULL)
                     {
                         jacobian = isoTriangle3(xi, eta, x, y, N, dNdX, dNdY);
                     }
-                    else if (dynamic_cast<QuadrilateralMesh2D*>(mesh) != NULL)
+                    else if (dynamic_cast<QuadrilateralMesh2D*>(mesh_) != NULL)
                     {
                         jacobian = isoQuad4(xi, eta, x, y, N, dNdX, dNdY);
                     }
@@ -249,19 +289,29 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
                 for (UInteger i = 0 ; i < elementNodes; i++)
                 {
                     if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
-                        force(freedom_ * element->vertexNode(i)) += vForce[i];
+                        force_(freedom_ * element->vertexNode(i)) += vForce[i];
                     if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
-                        force(freedom_ * element->vertexNode(i) + 1) += vForce[i];
+                        force_(freedom_ * element->vertexNode(i) + 1) += vForce[i];
                 }
             } //for elNum
         }
     } // iterator
+}
 
-    //учет условий закрепления
-    processInitialValues(conditions, global, force);
+void PlaneStressStrain::processSolution(const DoubleVector &displacement)
+{
+    UInteger nodesCount = mesh_->nodesCount(); // количество узлов сетки
+    UInteger elementsCount = mesh_->elementsCount(); // количество элементов
+    UInteger elementNodes = 0; // количество узлов в элементе
+    if (dynamic_cast<TriangleMesh2D*>(mesh_) != NULL)
+    {
+        elementNodes = 3;
+    }
+    else if (dynamic_cast<QuadrilateralMesh2D*>(mesh_) != NULL)
+    {
+        elementNodes = 4;
+    }
 
-    // решение СЛАУ
-    DoubleVector displacement = solve(global, force);
     std::vector<double> u(nodesCount);
     std::vector<double> v(nodesCount);
     for (UInteger i = 0; i < nodesCount; i++)
@@ -281,13 +331,13 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
 
     double xi[elementNodes];
     double eta[elementNodes];
-    if (dynamic_cast<TriangleMesh2D*>(mesh) != NULL)
+    if (dynamic_cast<TriangleMesh2D*>(mesh_) != NULL)
     {
         xi[0] = 0.0; eta[0] = 0.0;
         xi[1] = 1.0; eta[1] = 0.0;
         xi[2] = 0.0; eta[2] = 1.0;
     }
-    else if (dynamic_cast<QuadrilateralMesh2D*>(mesh) !=NULL)
+    else if (dynamic_cast<QuadrilateralMesh2D*>(mesh_) !=NULL)
     {
         xi[0] = -1.0; eta[0] = -1.0;
         xi[1] =  1.0; eta[1] = -1.0;
@@ -296,7 +346,7 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
     }
 
     std::cout << "Stresses Recovery...";
-    progressBar.restart(elementsCount);
+    ConsoleProgress progressBar(elementsCount);
     for (UInteger elNum = 0; elNum < elementsCount; elNum++)
     {
 
@@ -305,10 +355,10 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
         double x[elementNodes];
         double y[elementNodes];
         // извлечение координат узлов
-        ElementPointer element = mesh->element(elNum);
+        ElementPointer element = mesh_->element(elNum);
         for (UInteger i = 0; i < elementNodes; i++)
         {
-            PointPointer point = mesh->node(element->vertexNode(i));
+            PointPointer point = mesh_->node(element->vertexNode(i));
             x[i] = point->x();
             y[i] = point->y();
         }
@@ -320,11 +370,11 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
             DoubleVector dNdY(elementNodes);
             DoubleMatrix dis((size_type)(freedom_ * elementNodes), (size_type)1);
             DoubleMatrix sigma((size_type)3, (size_type)1);
-            if (dynamic_cast<TriangleMesh2D*>(mesh) != NULL)
+            if (dynamic_cast<TriangleMesh2D*>(mesh_) != NULL)
             {
                 isoTriangle3(x[inode], eta[inode], x, y, N, dNdX, dNdY);
             }
-            else if (dynamic_cast<QuadrilateralMesh2D*>(mesh) != NULL)
+            else if (dynamic_cast<QuadrilateralMesh2D*>(mesh_) != NULL)
             {
                 isoQuad4(xi[inode], eta[inode], x, y, N, dNdX, dNdY);
             }
@@ -343,7 +393,7 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
                 dis(i * freedom_ + 1, 0) = displacement[freedom_ * element->vertexNode(i) + 1];
             }
 
-            sigma = (elasticMatrix * B) * dis;
+            sigma = (D_ * B) * dis;
             SigmaX[element->vertexNode(inode)] += sigma(0, 0);
             SigmaY[element->vertexNode(inode)] += sigma(1, 0);
             TauXY[element->vertexNode(inode)] += sigma(2, 0);
@@ -352,10 +402,10 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
     } //for elNum
     for (UInteger i = 0; i < nodesCount; i++)
     {
-        SigmaX[i] /= (double)mesh->adjacentCount(i);
-        SigmaY[i] /= (double)mesh->adjacentCount(i);
-        TauXY[i] /= (double)mesh->adjacentCount(i);
-        mises[i] /= (double)mesh->adjacentCount(i);
+        SigmaX[i] /= (double)mesh_->adjacentCount(i);
+        SigmaY[i] /= (double)mesh_->adjacentCount(i);
+        TauXY[i] /= (double)mesh_->adjacentCount(i);
+        mises[i] /= (double)mesh_->adjacentCount(i);
     }
 
     mesh_->addDataVector("Sigma X", SigmaX);
