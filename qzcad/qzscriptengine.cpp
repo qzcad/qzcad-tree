@@ -17,6 +17,7 @@
 #include "mindlinplatebending.h"
 #include "mindlinplatelaminated.h"
 #include "mindlinshellbending.h"
+#include "mindlinshelllaminated.h"
 
 #include "qzscriptengine.h"
 
@@ -1814,10 +1815,11 @@ QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine
 
             if (fem_ != NULL) delete fem_;
 
-//            fem_ = new MindlinShellBending (mesh, //!
-//                                            h,
-//                                            elasticMatrix,
-//                                            conditions);
+            fem_ = new MindlinShellLaminated (mesh, //!
+                                            h,
+                                            elasticMatrix,
+                                            conditions);
+            fem_->solve();
             setMesh(mesh);
         }
         else if (context->argument(1).isNumber() && context->argument(2).isArray() && context->argument(3).isArray() && context->argument(4).isNumber())
