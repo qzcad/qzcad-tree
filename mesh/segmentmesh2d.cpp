@@ -376,7 +376,7 @@ void SegmentMesh2D::parametricDomain(const UInteger &count, const double &tmin, 
         parametric_nodes.push_back(t);
         t += h;
     }
-    if (isClosed) parametric_nodes.push_back(tmax);
+    if (!isClosed) parametric_nodes.push_back(tmax);
     for (std::vector<double>::iterator it = parametric_nodes.begin(); it != parametric_nodes.end(); )
     {
         double t0 = *it;
@@ -665,39 +665,51 @@ double SegmentMesh2D::cfunction(const double &x, const double &y)
             min_distance = distance;
     }
     // определение знака
-    double alpha = 0.0;
-    for (UInteger i = 0; i < 3000; i++)
+    UInteger count = 0;
+    Point2D next = point + Point2D(1.0, 0.0);
+    for (UInteger je = 0; je < elementsCount(); je++)
     {
-        Point2D next = point + Point2D(cos(alpha), sin(alpha));
-        int count = 0;
-        bool isTouch = false;
-        for (UInteger je = 0; je < elementsCount() && !isTouch; je++)
-        {
-            Segment sj = element_[je];
-            Point2D q1 = node_[sj[0]].point;
-            Point2D q2 = node_[sj[1]].point;
-            double tp = -1.0, tq = -1.0;
-            if (isCrossed(point, next, q1, q2, tp, tq) && tp > 0.0)
-            {
-                if (epsilon_ < tq && tq < 1.0 - epsilon_)
-                {
-                    count += 1;
-                }
-                else if (fabs(tq) < epsilon_ || fabs(tq - 1.0) < epsilon_)
-                {
-                    isTouch = true;
-                    break;
-                }
-            }
-        }
-        if (!isTouch)
-        {
-            sign = (count % 2 == 0 ) ? -1.0 : 1.0;
-            break;
-        }
-        alpha += 0.001;
-
+        Segment sj = element_[je];
+        Point2D q1 = node_[sj[0]].point;
+        Point2D q2 = node_[sj[1]].point;
+        double tp = -1.0, tq = -1.0;
+        if ( isCrossed(point, next, q1, q2, tp, tq) && tp > 0.0 && ((q1.y() < y && y <= q2.y()) || (q2.y() < y && y <= q1.y())) )
+            count++;
     }
+    sign = (count % 2 == 0 ) ? -1.0 : 1.0;
+//    double alpha = 0.0;
+//    for (UInteger i = 0; i < 3000; i++)
+//    {
+//        Point2D next = point + Point2D(cos(alpha), sin(alpha));
+//        int count = 0;
+//        bool isTouch = false;
+//        for (UInteger je = 0; je < elementsCount() && !isTouch; je++)
+//        {
+//            Segment sj = element_[je];
+//            Point2D q1 = node_[sj[0]].point;
+//            Point2D q2 = node_[sj[1]].point;
+//            double tp = -1.0, tq = -1.0;
+//            if (isCrossed(point, next, q1, q2, tp, tq) && tp > 0.0)
+//            {
+//                if (epsilon_ < tq && tq < 1.0 - epsilon_)
+//                {
+//                    count += 1;
+//                }
+//                else if (fabs(tq) < epsilon_ || fabs(tq - 1.0) < epsilon_)
+//                {
+//                    isTouch = true;
+//                    break;
+//                }
+//            }
+//        }
+//        if (!isTouch)
+//        {
+//            sign = (count % 2 == 0 ) ? -1.0 : 1.0;
+//            break;
+//        }
+//        alpha += 0.001;
+
+//    }
     return min_distance * sign;
 }
 
