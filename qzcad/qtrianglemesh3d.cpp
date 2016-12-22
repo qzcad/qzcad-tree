@@ -24,3 +24,8 @@ QString QTriangleMesh3D::toString() const
 {
     return tr("Сетка треугольных элементов (оболочка). Узлов: %1; элементов: %2.").arg(nodesCount()).arg(elementsCount());
 }
+
+double QTriangleMesh3D::cfunction(const double &x, const double &y, const double &z)
+{
+    return TriangleMesh3D::cfunction(x, y, z);
+}

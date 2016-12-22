@@ -1151,7 +1151,7 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
     yMin_ = yMin;
     yMax_ = yMin + height;
     zMin_ = zMin;
-    zMax_ = xMin + depth;
+    zMax_ = zMin + depth;
     evalNodalValues(func);
     std::cout << "Марширующие кубы: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
@@ -1246,6 +1246,63 @@ void TriangleMesh3D::add(const TriangleMesh3D *mesh)
         addElement(nodesPointers[triangle[0]], nodesPointers[triangle[1]], nodesPointers[triangle[2]]);
     }
     updateDomain();
+}
+
+double TriangleMesh3D::cfunction(const double &x, const double &y, const double &z)
+{
+    double min_distance = std::numeric_limits<double>::max();
+    double sign = +1.0;
+    UInteger count = 0;
+    Point3D point(x, y, z);
+    for (UInteger i = 0; i < elementsCount(); i++)
+    {
+        Triangle triangle = element_[i];
+        Point3D p0 = node_[triangle[0]].point;
+        Point3D p1 = node_[triangle[1]].point;
+        Point3D p2 = node_[triangle[2]].point;
+        double d = point.distanceTo(p0, p1, p2);
+        if (d < min_distance) min_distance = d;
+
+        if ((p0.z() < z && (z <= p1.z() || z <= p2.z())) || (p1.z() < z && (z <= p2.z() || z <= p0.z())) || (p2.z() < z && (z <= p0.z() || z <= p1.z())))
+        {
+            std::vector<Point3D> plane;
+            if (fabs(z - p0.z()) < epsilon_) plane.push_back(p0);
+            if (fabs(z - p1.z()) < epsilon_) plane.push_back(p1);
+            if (fabs(z - p2.z()) < epsilon_) plane.push_back(p2);
+            if (plane.size() < 2)
+            {
+                // треугольник не лежит в плоскости Z = z
+                if (signbit(z - p0.z()) != signbit(z - p1.z()) && !(fabs(z - p0.z()) < epsilon_) && !(fabs(z - p1.z()) < epsilon_))
+                {
+                    double t = (z - p0.z()) / (p1.z() - p0.z());
+                    Point3D cross = p0 + t * (p1 - p0);
+                    plane.push_back(cross);
+                }
+                if (signbit(z - p1.z()) != signbit(z - p2.z()) && !(fabs(z - p1.z()) < epsilon_) && !(fabs(z - p2.z()) < epsilon_))
+                {
+                    double t = (z - p1.z()) / (p2.z() - p1.z());
+                    Point3D cross = p1 + t * (p2 - p1);
+                    plane.push_back(cross);
+                }
+                if (signbit(z - p2.z()) != signbit(z - p0.z()) && !(fabs(z - p2.z()) < epsilon_) && !(fabs(z - p0.z()) < epsilon_))
+                {
+                    double t = (z - p2.z()) / (p0.z() - p2.z());
+                    Point3D cross = p2 + t * (p0 - p2);
+                    plane.push_back(cross);
+                }
+            }
+            if (plane.size() == 2)
+            {
+                Point2D q1(plane[0].x(), plane[0].y());
+                Point2D q2(plane[1].x(), plane[1].y());
+                double tp = -1.0, tq = -1.0;
+                if ( isCrossed(Point2D(x, y), Point2D(x + 1.0, y), q1, q2, tp, tq) && tp > 0.0 && ((q1.y() < y && y <= q2.y()) || (q2.y() < y && y <= q1.y())) )
+                    count++;
+            }
+        }
+    }
+    sign = (count % 2 == 0 ) ? -1.0 : 1.0;
+    return sign * min_distance;
 }
 
 bool TriangleMesh3D::angles(const Point3D &A, const Point3D &B, const Point3D &C, double &alpha, double &beta, double &gamma)

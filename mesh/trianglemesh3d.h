@@ -150,6 +150,14 @@ public:
      * @param mesh Указатель на сетку для добавления
      */
     void add(const TriangleMesh3D *mesh);
+    /**
+     * @brief Функция принадлежности точки контуру
+     * @param x Абсцисса точки
+     * @param y Ордината точки
+     * @param z Аппликата точки
+     * @return Расстояние до ближайшей точки границы со знаком "+" для внутренних точек
+     */
+    double cfunction(const double &x, const double &y, const double &z);
 protected:
     /**
      * @brief Функция для подсчета значений углов треугольника

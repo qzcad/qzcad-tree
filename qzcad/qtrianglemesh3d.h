@@ -48,6 +48,14 @@ public:
      * Метод доступен в скриптах
      */
     Q_INVOKABLE QString toString() const;
+    /**
+     * @brief Функция принадлежности точки контуру
+     * @param x Абсцисса точки
+     * @param y Ордината точки
+     * @param z Аппликата точки
+     * @return Расстояние до ближайшей точки границы со знаком "+" для внутренних точек
+     */
+    Q_INVOKABLE double cfunction(const double &x, const double &y, const double &z);
 signals:
 
 public slots:
