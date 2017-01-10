@@ -79,7 +79,7 @@ double Point3D::distanceTo(const Point3D &triangle0, const Point3D &triangle1, c
     Point3D q(triangle0, *this); // q = this - triangle0
     double l = (q * n) / n.length(); // the distance to the plane of the tiangle
     Point3D b(l * n.normalized(), *this); // this - l * n / |n|
-    Point3D c0(triangle1, b); // q = b - triangle1
+    Point3D c0(triangle0, b); // q = b - triangle0
     Point3D c1(triangle1, b); // q = b - triangle1
     Point3D c2(triangle2, b); // q = b - triangle2
     if ((n * edge0.product(c0)) >= 0.0 && (n * edge1.product(c1)) >= 0.0 && (n * edge2.product(c2)) >= 0.0)

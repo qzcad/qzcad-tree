@@ -1093,17 +1093,16 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
         if (slice_z) r = con(r, zc - z);
         return r;
     };
-
+    double x = xMin;
     for (UInteger i = 0; i < xCount - 1; i++)
     {
-        double x = xMin + (double) i * hx;
+        double y = yMin;
         ++progress;
         for (UInteger j = 0; j < yCount - 1; j++)
         {
-            double y = yMin + (double) j * hy;
+            double z = zMin;
             for (UInteger k = 0; k < zCount - 1; k++)
             {
-                double z = zMin + (double)k * hz;
                 int index = 0;
                 Point3D border[12];
                 Point3D p[8];
@@ -1123,28 +1122,33 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
                 if (func_slice(p[5].x(), p[5].y(), p[5].z()) - level < epsilon_) index |= 32;
                 if (func_slice(p[6].x(), p[6].y(), p[6].z()) - level < epsilon_) index |= 64;
                 if (func_slice(p[7].x(), p[7].y(), p[7].z()) - level < epsilon_) index |= 128;
-                if (index == 0) continue;
-                if (edges[index] & 1) border[0] = binary(p[0], p[1], func_slice, level);
-                if (edges[index] & 2) border[1] = binary(p[1], p[2], func_slice, level);
-                if (edges[index] & 4) border[2] = binary(p[2], p[3], func_slice, level);
-                if (edges[index] & 8) border[3] = binary(p[3], p[0], func_slice, level);
-                if (edges[index] & 16) border[4] = binary(p[4], p[5], func_slice, level);
-                if (edges[index] & 32) border[5] = binary(p[5], p[6], func_slice, level);
-                if (edges[index] & 64) border[6] = binary(p[6], p[7], func_slice, level);
-                if (edges[index] & 128) border[7] = binary(p[7], p[4], func_slice, level);
-                if (edges[index] & 256) border[8] = binary(p[0], p[4], func_slice, level);
-                if (edges[index] & 512) border[9] = binary(p[1], p[5], func_slice, level);
-                if (edges[index] & 1024) border[10] = binary(p[2], p[6], func_slice, level);
-                if (edges[index] & 2048) border[11] = binary(p[3], p[7], func_slice, level);
-                for (int t = 0; triangles[index][t] != -1; t += 3)
+                if (index != 0)
                 {
-                    UInteger p0 = addNode(border[triangles[index][t + 2]], BORDER);
-                    UInteger p1 = addNode(border[triangles[index][t + 1]], BORDER);
-                    UInteger p2 = addNode(border[triangles[index][t]], BORDER);
-                    addElement(p0, p1, p2);
+                    if (edges[index] & 1) border[0] = binary(p[0], p[1], func_slice, level);
+                    if (edges[index] & 2) border[1] = binary(p[1], p[2], func_slice, level);
+                    if (edges[index] & 4) border[2] = binary(p[2], p[3], func_slice, level);
+                    if (edges[index] & 8) border[3] = binary(p[3], p[0], func_slice, level);
+                    if (edges[index] & 16) border[4] = binary(p[4], p[5], func_slice, level);
+                    if (edges[index] & 32) border[5] = binary(p[5], p[6], func_slice, level);
+                    if (edges[index] & 64) border[6] = binary(p[6], p[7], func_slice, level);
+                    if (edges[index] & 128) border[7] = binary(p[7], p[4], func_slice, level);
+                    if (edges[index] & 256) border[8] = binary(p[0], p[4], func_slice, level);
+                    if (edges[index] & 512) border[9] = binary(p[1], p[5], func_slice, level);
+                    if (edges[index] & 1024) border[10] = binary(p[2], p[6], func_slice, level);
+                    if (edges[index] & 2048) border[11] = binary(p[3], p[7], func_slice, level);
+                    for (int t = 0; triangles[index][t] != -1; t += 3)
+                    {
+                        UInteger p0 = addNode(border[triangles[index][t + 2]], BORDER);
+                        UInteger p1 = addNode(border[triangles[index][t + 1]], BORDER);
+                        UInteger p2 = addNode(border[triangles[index][t]], BORDER);
+                        addElement(p0, p1, p2);
+                    }
                 }
+                z += hz;
             }
+            y += hy;
         }
+        x += hx;
     }
     xMin_ = xMin;
     xMax_ = xMin + width;
@@ -1254,9 +1258,9 @@ double TriangleMesh3D::cfunction(const double &x, const double &y, const double 
     double sign = +1.0;
     UInteger count = 0;
     Point3D point(x, y, z);
-    for (UInteger i = 0; i < elementsCount(); i++)
+    for (std::vector<Triangle>::iterator t = element_.begin(); t != element_.end(); ++t)
     {
-        Triangle triangle = element_[i];
+        Triangle triangle = *t;
         Point3D p0 = node_[triangle[0]].point;
         Point3D p1 = node_[triangle[1]].point;
         Point3D p2 = node_[triangle[2]].point;
