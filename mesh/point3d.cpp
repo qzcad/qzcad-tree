@@ -82,9 +82,24 @@ double Point3D::distanceTo(const Point3D &triangle0, const Point3D &triangle1, c
     Point3D c0(triangle0, b); // q = b - triangle0
     Point3D c1(triangle1, b); // q = b - triangle1
     Point3D c2(triangle2, b); // q = b - triangle2
-    if ((n * edge0.product(c0)) >= 0.0 && (n * edge1.product(c1)) >= 0.0 && (n * edge2.product(c2)) >= 0.0)
+    double v0 = (n * edge0.product(c0));
+    double v1 = (n * edge1.product(c1));
+    double v2 = (n * edge2.product(c2));
+    if (v0 >= 0.0 && v1 >= 0.0 && v2 >= 0.0)
         return fabs(l); // if b in the triangle
-    // otherwise
+    if (v2 < 0 && v0 < 0)
+        return distanceTo(triangle0);
+    if (v0 < 0 && v1 < 0)
+        return distanceTo(triangle1);
+    if (v1 < 0 && v2 < 0)
+        return distanceTo(triangle2);
+    if (v0 < 0)
+        return distanceTo(triangle0, triangle1);
+    if (v1 < 0)
+        return distanceTo(triangle1, triangle2);
+    if (v2 < 0)
+        return distanceTo(triangle2, triangle0);
+    // otherwise (absolutely theoretical now)
     return std::min(distanceTo(triangle0, triangle1), std::min(distanceTo(triangle1, triangle2), distanceTo(triangle2, triangle0)));
 }
 
