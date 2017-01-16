@@ -588,6 +588,12 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
 
     if (rfunc == nullptr)
     {
+        typedef struct{
+            Point2D p0;
+            Point2D p1;
+            Point2D p2;
+        } ParametricTriangle;
+        std::list<ParametricTriangle> triangles;
         double du = 1.0 / (double)(uCount - 1);
         double dv = 1.0 / (double)(vCount - 1);
         double u = 0.0;
@@ -596,15 +602,88 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
             double v = 0.0;
             for (UInteger j = 0; j < vCount - 1; j++)
             {
-                UInteger p0 = addNode(domainFunction(u, v), BORDER);
-                UInteger p1 = addNode(domainFunction((i == uCount - 2) ? 1.0 : u + du, v), BORDER);
-                UInteger p2 = addNode(domainFunction((i == uCount - 2) ? 1.0 : u + du, (j == vCount - 2) ? 1.0 : v + dv), BORDER);
-                UInteger p3 = addNode(domainFunction(u, (j == vCount - 2) ? 1.0 : v + dv), BORDER);
-                if (p0 != p1 && p1 != p2 && p0 != p2) addElement(p0, p1, p2);
-                if (p0 != p2 && p2 != p3 && p0 != p3) addElement(p0, p2, p3);
+//                UInteger p0 = addNode(domainFunction(u, v), BORDER);
+//                UInteger p1 = addNode(domainFunction((i == uCount - 2) ? 1.0 : u + du, v), BORDER);
+//                UInteger p2 = addNode(domainFunction((i == uCount - 2) ? 1.0 : u + du, (j == vCount - 2) ? 1.0 : v + dv), BORDER);
+//                UInteger p3 = addNode(domainFunction(u, (j == vCount - 2) ? 1.0 : v + dv), BORDER);
+//                if (p0 != p1 && p1 != p2 && p0 != p2) addElement(p0, p1, p2);
+//                if (p0 != p2 && p2 != p3 && p0 != p3) addElement(p0, p2, p3);
+                double un = (i == uCount - 2) ? 1.0 : u + du;
+                double vn = (j == vCount - 2) ? 1.0 : v + dv;
+                ParametricTriangle t0 = {Point2D(u, v), Point2D(un, v), Point2D(un, vn)};
+                ParametricTriangle t1 = {Point2D(u, v), Point2D(un, vn), Point2D(u, vn)};
+                triangles.push_back(t0);
+                triangles.push_back(t1);
                 v += dv;
             }
             u += du;
+        }
+        int count = 0;
+        std::list<ParametricTriangle>::iterator t = triangles.begin();
+        while ( t != triangles.end() && count < 10000)
+        {
+            ParametricTriangle tri = *t;
+            Point3D v0 = domainFunction(tri.p0.x(), tri.p0.y());
+            Point3D v1 = domainFunction(tri.p1.x(), tri.p1.y());
+            Point3D v2 = domainFunction(tri.p2.x(), tri.p2.y());
+            if (!v0.isEqualTo(v1) && !v1.isEqualTo(v2) && !v2.isEqualTo(v0))
+            {
+                Point3D c01 = 0.5 * (v0 + v1);
+                Point3D b01 = domainFunction(0.5 * (tri.p0.x() + tri.p1.x()), 0.5 * (tri.p0.y() + tri.p1.y()));
+                Point3D c12 = 0.5 * (v1 + v2);
+                Point3D b12 = domainFunction(0.5 * (tri.p1.x() + tri.p2.x()), 0.5 * (tri.p1.y() + tri.p2.y()));
+                Point3D c20 = 0.5 * (v2 + v0);
+                Point3D b20 = domainFunction(0.5 * (tri.p2.x() + tri.p0.x()), 0.5 * (tri.p2.y() + tri.p0.y()));
+                if ((c01.distanceTo(b01) / v0.distanceTo(v1)) >= 0.05)
+                {
+                    Point2D c = 0.5 * (tri.p0 + tri.p1);
+                    ParametricTriangle t0 = {tri.p0, c, tri.p2}; //
+                    ParametricTriangle t1 = {tri.p2, c, tri.p1};
+                    triangles.erase(t);
+                    triangles.push_back(t0); //
+                    triangles.push_back(t1);
+                    t = triangles.begin();
+                } else if ((c12.distanceTo(b12) / v1.distanceTo(v0)) >= 0.05)
+                {
+                    Point2D c = 0.5 * (tri.p1 + tri.p2);
+                    ParametricTriangle t0 = {tri.p1, c, tri.p0};
+                    ParametricTriangle t1 = {tri.p0, c, tri.p2};  //
+                    triangles.erase(t);
+                    triangles.push_back(t0);
+                    triangles.push_back(t1);//
+                    t = triangles.begin();
+                } else if ((c20.distanceTo(b20) / v2.distanceTo(v0)) >= 0.05)
+                {
+                    Point2D c = 0.5 * (tri.p2 + tri.p0);
+                    ParametricTriangle t0 = {tri.p2, c, tri.p1};
+                    ParametricTriangle t1 = {tri.p1, c, tri.p0};
+                    triangles.erase(t);
+                    triangles.push_back(t0);
+                    triangles.push_back(t1);
+                    t = triangles.begin();
+                }
+                else
+                {
+                    ++t;
+                }
+            }
+            else
+            {
+                ++t;
+            }
+            count++;
+        }
+        std::cout << count << std::endl;
+        for (std::list<ParametricTriangle>::iterator t = triangles.begin(); t != triangles.end(); ++t)
+        {
+            ParametricTriangle tri = *t;
+            UInteger p0 = addNode(domainFunction(tri.p0.x(), tri.p0.y()), BORDER);
+            UInteger p1 = addNode(domainFunction(tri.p1.x(), tri.p1.y()), BORDER);
+            UInteger p2 = addNode(domainFunction(tri.p2.x(), tri.p2.y()), BORDER);
+//            UInteger p0 = addNode(Point3D(tri.p0.x(), tri.p0.y(), 0.), BORDER);
+//            UInteger p1 = addNode(Point3D(tri.p1.x(), tri.p1.y(), 0.), BORDER);
+//            UInteger p2 = addNode(Point3D(tri.p2.x(), tri.p2.y(), 0.), BORDER);
+            if (p0 != p1 && p1 != p2 && p0 != p2) addElement(p0, p1, p2);
         }
         updateDomain();
         return;
