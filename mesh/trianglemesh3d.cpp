@@ -611,7 +611,7 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
                 double un = (i == uCount - 2) ? 1.0 : u + du;
                 double vn = (j == vCount - 2) ? 1.0 : v + dv;
                 ParametricTriangle t0 = {Point2D(u, v), Point2D(un, v), Point2D(un, vn)};
-                ParametricTriangle t1 = {Point2D(u, v), Point2D(un, vn), Point2D(u, vn)};
+                ParametricTriangle t1 = {Point2D(un, vn), Point2D(u, vn), Point2D(u, v)};
                 triangles.push_back(t0);
                 triangles.push_back(t1);
                 v += dv;
@@ -620,7 +620,7 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
         }
         int count = 0;
         std::list<ParametricTriangle>::iterator t = triangles.begin();
-        while ( t != triangles.end() && count < 10000)
+        while ( t != triangles.end() && count < 50000)
         {
             ParametricTriangle tri = *t;
             Point3D v0 = domainFunction(tri.p0.x(), tri.p0.y());
@@ -638,15 +638,15 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
                 {
                     Point2D c = 0.5 * (tri.p0 + tri.p1);
                     ParametricTriangle t0 = {tri.p0, c, tri.p2}; //
-                    ParametricTriangle t1 = {tri.p2, c, tri.p1};
+                    ParametricTriangle t1 = {c, tri.p1, tri.p2};
                     triangles.erase(t);
                     triangles.push_back(t0); //
                     triangles.push_back(t1);
                     t = triangles.begin();
-                } else if ((c12.distanceTo(b12) / v1.distanceTo(v0)) >= 0.05)
+                } else if ((c12.distanceTo(b12) / v1.distanceTo(v2)) >= 0.05)
                 {
                     Point2D c = 0.5 * (tri.p1 + tri.p2);
-                    ParametricTriangle t0 = {tri.p1, c, tri.p0};
+                    ParametricTriangle t0 = {tri.p0, tri.p1, c};
                     ParametricTriangle t1 = {tri.p0, c, tri.p2};  //
                     triangles.erase(t);
                     triangles.push_back(t0);
