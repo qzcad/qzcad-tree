@@ -602,12 +602,6 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
             double v = 0.0;
             for (UInteger j = 0; j < vCount - 1; j++)
             {
-//                UInteger p0 = addNode(domainFunction(u, v), BORDER);
-//                UInteger p1 = addNode(domainFunction((i == uCount - 2) ? 1.0 : u + du, v), BORDER);
-//                UInteger p2 = addNode(domainFunction((i == uCount - 2) ? 1.0 : u + du, (j == vCount - 2) ? 1.0 : v + dv), BORDER);
-//                UInteger p3 = addNode(domainFunction(u, (j == vCount - 2) ? 1.0 : v + dv), BORDER);
-//                if (p0 != p1 && p1 != p2 && p0 != p2) addElement(p0, p1, p2);
-//                if (p0 != p2 && p2 != p3 && p0 != p3) addElement(p0, p2, p3);
                 double un = (i == uCount - 2) ? 1.0 : u + du;
                 double vn = (j == vCount - 2) ? 1.0 : v + dv;
                 ParametricTriangle t0 = {Point2D(u, v), Point2D(un, v), Point2D(un, vn)};
@@ -620,7 +614,7 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
         }
         int count = 0;
         std::list<ParametricTriangle>::iterator t = triangles.begin();
-        while ( t != triangles.end() && count < 50000)
+        while ( t != triangles.end() && count < 500000)
         {
             ParametricTriangle tri = *t;
             Point3D v0 = domainFunction(tri.p0.x(), tri.p0.y());
@@ -634,7 +628,16 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
                 Point3D b12 = domainFunction(0.5 * (tri.p1.x() + tri.p2.x()), 0.5 * (tri.p1.y() + tri.p2.y()));
                 Point3D c20 = 0.5 * (v2 + v0);
                 Point3D b20 = domainFunction(0.5 * (tri.p2.x() + tri.p0.x()), 0.5 * (tri.p2.y() + tri.p0.y()));
-                if ((c01.distanceTo(b01) / v0.distanceTo(v1)) >= 0.05)
+                bool e01 = (c01.distanceTo(b01) / v0.distanceTo(v1)) >= 0.05;
+                bool e12 = (c12.distanceTo(b12) / v1.distanceTo(v2)) >= 0.05;
+                bool e20 = (c20.distanceTo(b20) / v2.distanceTo(v0)) >= 0.05;
+                double l01 = v0.distanceTo(v1);
+                double l12 = v1.distanceTo(v2);
+                double l20 = v2.distanceTo(v0);
+                if ((e01 && !e12 && !e20) ||
+                        (e01 && e12 && !e20 && l01 >= l12) ||
+                        (e01 && !e12 && e20 && l01 >= l20) ||
+                        (e01 && e12 && e20 && l01 >= l12 && l01 >= l20))
                 {
                     Point2D c = 0.5 * (tri.p0 + tri.p1);
                     ParametricTriangle t0 = {tri.p0, c, tri.p2}; //
@@ -643,7 +646,12 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
                     triangles.push_back(t0); //
                     triangles.push_back(t1);
                     t = triangles.begin();
-                } else if ((c12.distanceTo(b12) / v1.distanceTo(v2)) >= 0.05)
+                    continue;
+                }
+                if ((!e01 && e12 && !e20) ||
+                        (e01 && e12 && !e20 && l12 >= l01) ||
+                        (!e01 && e12 && e20 && l12 >= l20) ||
+                        (e01 && e12 && e20 && l12 >= l01 && l12 >= l20))
                 {
                     Point2D c = 0.5 * (tri.p1 + tri.p2);
                     ParametricTriangle t0 = {tri.p0, tri.p1, c};
@@ -652,7 +660,12 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
                     triangles.push_back(t0);
                     triangles.push_back(t1);//
                     t = triangles.begin();
-                } else if ((c20.distanceTo(b20) / v2.distanceTo(v0)) >= 0.05)
+                    continue;
+                }
+                if ((!e01 && !e12 && e20) ||
+                        (e01 && !e12 && e20 && l20 >= l01) ||
+                        (!e01 && e12 && e20 && l20 >= l12) ||
+                        (e01 && e12 && e20 && l20 >= l01 && l20 >= l12))
                 {
                     Point2D c = 0.5 * (tri.p2 + tri.p0);
                     ParametricTriangle t0 = {tri.p2, c, tri.p1};
@@ -661,16 +674,10 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
                     triangles.push_back(t0);
                     triangles.push_back(t1);
                     t = triangles.begin();
-                }
-                else
-                {
-                    ++t;
+                    continue;
                 }
             }
-            else
-            {
-                ++t;
-            }
+            ++t;
             count++;
         }
         std::cout << count << std::endl;
@@ -680,9 +687,6 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
             UInteger p0 = addNode(domainFunction(tri.p0.x(), tri.p0.y()), BORDER);
             UInteger p1 = addNode(domainFunction(tri.p1.x(), tri.p1.y()), BORDER);
             UInteger p2 = addNode(domainFunction(tri.p2.x(), tri.p2.y()), BORDER);
-//            UInteger p0 = addNode(Point3D(tri.p0.x(), tri.p0.y(), 0.), BORDER);
-//            UInteger p1 = addNode(Point3D(tri.p1.x(), tri.p1.y(), 0.), BORDER);
-//            UInteger p2 = addNode(Point3D(tri.p2.x(), tri.p2.y(), 0.), BORDER);
             if (p0 != p1 && p1 != p2 && p0 != p2) addElement(p0, p1, p2);
         }
         updateDomain();
@@ -861,6 +865,7 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
             addElement(addNode(domainFunction(A.x(), A.y()), BORDER), addNode(domainFunction(B.x(), B.y()), BORDER), addNode(domainFunction(C.x(), C.y()), BORDER));
     }
     flip();
+    updateDomain();
 }
 
 void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCount, const UInteger &zCount, const double &xMin, const double &yMin, const double &zMin, const double &width, const double &height, const double &depth, std::function<double (double, double, double)> func, double level, bool slice_x, bool slice_y, bool slice_z)
