@@ -58,6 +58,8 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     globalObject().setProperty("convex", newFunction(convex));
     // regular
     globalObject().setProperty("regular", newFunction(regular));
+    // plane
+    globalObject().setProperty("plane", newFunction(plane));
 
     // Точка (плоскость или пространство)
     globalObject().setProperty("Point", newFunction(createPoint));
@@ -1360,6 +1362,33 @@ QScriptValue QZScriptEngine::regular(QScriptContext *context, QScriptEngine *eng
     double r = context->argument(2).toNumber();
     int n = context->argument(3).toInt32();
     return msh::regular(x, y, r, n);
+}
+
+QScriptValue QZScriptEngine::plane(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(engine);
+    QString typeError = QObject::tr("plane(x, y, z: Float, P1, P2, P3: Point): argument type error (%1).");
+    if (context->argumentCount() != 6)
+        context->throwError(QObject::tr("plane(x, y, z, P1, P2, P3): arguments count error."));
+    if (!context->argument(0).isNumber())
+        return context->throwError(typeError.arg("x: Floating number"));
+    if (!context->argument(1).isNumber())
+        return context->throwError(typeError.arg("y: Floating number"));
+    if (!context->argument(2).isNumber())
+        return context->throwError(typeError.arg("z: Floating number"));
+    QPoint3D *p1 = qscriptvalue_cast<QPoint3D*>(context->argument(3));
+    QPoint3D *p2 = qscriptvalue_cast<QPoint3D*>(context->argument(4));
+    QPoint3D *p3 = qscriptvalue_cast<QPoint3D*>(context->argument(5));
+    if (p1 == NULL)
+        return context->throwError(typeError.arg("p1: 3d point (Point)"));
+    if (p2 == NULL)
+        return context->throwError(typeError.arg("p2: 3d point (Point)"));
+    if (p3 == NULL)
+        return context->throwError(typeError.arg("p3: 3d point (Point)"));
+    double x = context->argument(0).toNumber();
+    double y = context->argument(1).toNumber();
+    double z = context->argument(2).toNumber();
+    return msh::plane(x, y, z, p1->x(), p1->y(), p1->z(), p2->x(), p2->y(), p2->z(), p3->x(), p3->y(), p3->z());
 }
 
 QScriptValue QZScriptEngine::planeStress(QScriptContext *context, QScriptEngine *engine)

@@ -134,7 +134,7 @@
      <x>0</x>
      <y>0</y>
      <width>943</width>
-     <height>21</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -273,6 +273,8 @@
      <addaction name="separator"/>
      <addaction name="actionConvexScript"/>
      <addaction name="actionRegularScript"/>
+     <addaction name="separator"/>
+     <addaction name="actionPlaneScript"/>
     </widget>
     <widget class="QMenu" name="menuMeshScripts">
      <property name="title">
@@ -907,6 +909,11 @@
   <action name="actionRegularScript">
    <property name="text">
     <string>Правильный многоугольник: regular(x, y, r, n)</string>
+   </property>
+  </action>
+  <action name="actionPlaneScript">
+   <property name="text">
+    <string>Полупространство, ограниченное плоскостью (три точки): plane(x, y, z, P1, P2, P3)</string>
    </property>
   </action>
  </widget>

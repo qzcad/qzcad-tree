@@ -269,6 +269,13 @@ private:
      */
     static QScriptValue regular(QScriptContext *context, QScriptEngine *engine);
     /**
+     * @brief Функция области, ограниченной плоскостью, заданной тремя точками
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны, то значение соответствующей функциий, иначе engine->undefinedValue()
+     */
+    static QScriptValue plane(QScriptContext *context, QScriptEngine *engine);
+    /**
      * @brief МКЭ: плоское напряжение
      * @param context Контекст скрипта
      * @param engine Двигатель скрипта

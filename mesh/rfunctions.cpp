@@ -72,4 +72,12 @@ double rectangle(const double &x, const double &y, const double &w, const double
     return dis(rr, cc);
 }
 
+double plane(const double &x, const double &y, const double &z, const double &x1, const double &y1, const double &z1, const double &x2, const double &y2, const double &z2, const double &x3, const double &y3, const double &z3)
+{
+    double a = (y2 - y1) * (z3 - z1) - (z2 - z1) * (y3 - y1);
+    double b = (z2 - z1) * (x3 - x1) - (x2 - x1) * (z3 - z1);
+    double c = (x2 - x1) * (y3 - y1) - (y2 - y1) * (x3 - x1);
+    return (a * (x - x1) + b * (y - y1) + c * (z - z1)) / sqrt(a*a + b*b + c*c);
+}
+
 }

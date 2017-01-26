@@ -80,6 +80,26 @@ double line(const double &x, const double &y, const double &x1, const double &y1
  * @return Значение соответствующей функции
  */
 double regular(const double &x, const double &y, const double &r, const int &n);
+/**
+ * @brief Область, огранинченная плоскостью (ориентированное уравнение плоскости), заданной тремя точками
+ * @param x Абсцисса
+ * @param y Ордината
+ * @param z Аппликата
+ * @param x1 Абсцисса первой точки
+ * @param y1 Ордината первой точки
+ * @param z1 Аппликата первой точки
+ * @param x2 Абсцисса второй точки
+ * @param y2 Ордината второй точки
+ * @param z2 Аппликата второй точки
+ * @param x3 Абсцисса третей точки
+ * @param y3 Ордината третей точки
+ * @param z3 Аппликата третей точки
+ * @return
+ */
+double plane(const double &x, const double &y, const double &z,
+             const double &x1, const double &y1, const double &z1,
+             const double &x2, const double &y2, const double &z2,
+             const double &x3, const double &y3, const double &z3);
 }
 
 #endif // RFUNCTIONS_H

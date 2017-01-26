@@ -1260,3 +1260,9 @@ void MainWindow::on_actionRegularScript_triggered()
     QString command = "regular(x, y, r, n)";
     ui->codeEditor->insertPlainText(command);
 }
+
+void MainWindow::on_actionPlaneScript_triggered()
+{
+    QString command = "plane(x, y, z, new Point(), new Point(), new Point())";
+    ui->codeEditor->insertPlainText(command);
+}
