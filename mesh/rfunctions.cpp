@@ -90,4 +90,9 @@ double sphere(const double &x, const double &y, const double &z, const double &r
     return 1.0 - (x*x + y*y + z*z) / (r*r);
 }
 
+double cuboid(const double &x, const double &y, const double &z, const double &w, const double &h, const double &d)
+{
+    return con(rectangle(x, y, w, h), band(z, d));
+}
+
 }

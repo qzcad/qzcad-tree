@@ -277,6 +277,7 @@
      <addaction name="actionPlaneScript"/>
      <addaction name="actionEllipsoidScript"/>
      <addaction name="actionSphereScript"/>
+     <addaction name="actionCuboidScript"/>
     </widget>
     <widget class="QMenu" name="menuMeshScripts">
      <property name="title">
@@ -926,6 +927,11 @@
   <action name="actionSphereScript">
    <property name="text">
     <string>Область, ограниченная сферой: sphere(x, y, z, r)</string>
+   </property>
+  </action>
+  <action name="actionCuboidScript">
+   <property name="text">
+    <string>Область ограниченная прямоугольным параллелипипедом: cuboid(x, y, z, w, h, d)</string>
    </property>
   </action>
  </widget>

@@ -1278,3 +1278,9 @@ void MainWindow::on_actionSphereScript_triggered()
     QString command = "sphere(x, y, z, r)";
     ui->codeEditor->insertPlainText(command);
 }
+
+void MainWindow::on_actionCuboidScript_triggered()
+{
+    QString command = "cuboid(x, y, z, width, height, depth)";
+    ui->codeEditor->insertPlainText(command);
+}

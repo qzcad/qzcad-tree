@@ -64,6 +64,8 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     globalObject().setProperty("sphere", newFunction(sphere));
     // plane
     globalObject().setProperty("plane", newFunction(plane));
+    // cuboid
+    globalObject().setProperty("cuboid", newFunction(cuboid));
 
     // Точка (плоскость или пространство)
     globalObject().setProperty("Point", newFunction(createPoint));
@@ -1441,6 +1443,33 @@ QScriptValue QZScriptEngine::plane(QScriptContext *context, QScriptEngine *engin
     double y = context->argument(1).toNumber();
     double z = context->argument(2).toNumber();
     return msh::plane(x, y, z, p1->x(), p1->y(), p1->z(), p2->x(), p2->y(), p2->z(), p3->x(), p3->y(), p3->z());
+}
+
+QScriptValue QZScriptEngine::cuboid(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(engine);
+    QString typeError = QObject::tr("cuboid(x, y, z, width, height, depth: Float): argument type error (%1).");
+    if (context->argumentCount() != 6)
+        context->throwError(QObject::tr("cuboid(x, y, z, width, height, depth): arguments count error."));
+    if (!context->argument(0).isNumber())
+        return context->throwError(typeError.arg("x: Floating number"));
+    if (!context->argument(1).isNumber())
+        return context->throwError(typeError.arg("y: Floating number"));
+    if (!context->argument(2).isNumber())
+        return context->throwError(typeError.arg("z: Floating number"));
+    if (!context->argument(3).isNumber())
+        return context->throwError(typeError.arg("width: Floating number"));
+    if (!context->argument(4).isNumber())
+        return context->throwError(typeError.arg("height: Floating number"));
+    if (!context->argument(5).isNumber())
+        return context->throwError(typeError.arg("delpth: Floating number"));
+    double x = context->argument(0).toNumber();
+    double y = context->argument(1).toNumber();
+    double z = context->argument(2).toNumber();
+    double w = context->argument(3).toNumber();
+    double h = context->argument(4).toNumber();
+    double d = context->argument(5).toNumber();
+    return msh::cuboid(x, y, z, w, h, d);
 }
 
 QScriptValue QZScriptEngine::planeStress(QScriptContext *context, QScriptEngine *engine)

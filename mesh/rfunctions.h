@@ -120,6 +120,17 @@ double plane(const double &x, const double &y, const double &z,
              const double &x1, const double &y1, const double &z1,
              const double &x2, const double &y2, const double &z2,
              const double &x3, const double &y3, const double &z3);
+/**
+ * @brief Область, ограниченная прямоугольным парарллелипипедом
+ * @param x Абсцисса
+ * @param y Ордината
+ * @param z Аппликата
+ * @param w Ширина
+ * @param h Высота
+ * @param d Глубина
+ * @return Значение соответствующей функции
+ */
+double cuboid(const double &x, const double &y, const double &z, const double &w, const double &h, const double &d);
 }
 
 #endif // RFUNCTIONS_H
