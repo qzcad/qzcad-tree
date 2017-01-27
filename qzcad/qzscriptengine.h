@@ -269,6 +269,20 @@ private:
      */
     static QScriptValue regular(QScriptContext *context, QScriptEngine *engine);
     /**
+     * @brief Функция области, ограниченной эллипсоидом
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны, то значение соответствующей функциий, иначе engine->undefinedValue()
+     */
+    static QScriptValue ellipsoid(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief Функция области, ограниченной сферой
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны, то значение соответствующей функциий, иначе engine->undefinedValue()
+     */
+    static QScriptValue sphere(QScriptContext *context, QScriptEngine *engine);
+    /**
      * @brief Функция области, ограниченной плоскостью, заданной тремя точками
      * @param context Контекст скрипта
      * @param engine Двигатель скрипта

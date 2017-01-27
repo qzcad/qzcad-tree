@@ -81,6 +81,26 @@ double line(const double &x, const double &y, const double &x1, const double &y1
  */
 double regular(const double &x, const double &y, const double &r, const int &n);
 /**
+ * @brief Область, ограниченная эллипсоидом
+ * @param x Абсцисса
+ * @param y Ордината
+ * @param z Аппликата
+ * @param a Первая полуось
+ * @param b Вторая полуось
+ * @param c Третья полуось
+ * @return Значение соответствующей функции
+ */
+double ellipsoid(const double &x, const double &y, const double &z, const double &a, const double &b, const double &c);
+/**
+ * @brief Область, ограниченная сферой
+ * @param x Абсцисса
+ * @param y Ордината
+ * @param z Аппликата
+ * @param r Радиус
+ * @return Значение соответствующей функции
+ */
+double sphere(const double &x, const double &y, const double &z, const double &r);
+/**
  * @brief Область, огранинченная плоскостью (ориентированное уравнение плоскости), заданной тремя точками
  * @param x Абсцисса
  * @param y Ордината
@@ -94,7 +114,7 @@ double regular(const double &x, const double &y, const double &r, const int &n);
  * @param x3 Абсцисса третей точки
  * @param y3 Ордината третей точки
  * @param z3 Аппликата третей точки
- * @return
+ * @return Значение соответствующей функции
  */
 double plane(const double &x, const double &y, const double &z,
              const double &x1, const double &y1, const double &z1,

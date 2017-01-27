@@ -80,4 +80,14 @@ double plane(const double &x, const double &y, const double &z, const double &x1
     return (a * (x - x1) + b * (y - y1) + c * (z - z1)) / sqrt(a*a + b*b + c*c);
 }
 
+double ellipsoid(const double &x, const double &y, const double &z, const double &a, const double &b, const double &c)
+{
+    return 1.0 - x*x / (a*a) - y*y / (b*b) - z*z / (c*c);
+}
+
+double sphere(const double &x, const double &y, const double &z, const double &r)
+{
+    return 1.0 - (x*x + y*y + z*z) / (r*r);
+}
+
 }

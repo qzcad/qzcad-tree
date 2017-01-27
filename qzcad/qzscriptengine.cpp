@@ -58,6 +58,10 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     globalObject().setProperty("convex", newFunction(convex));
     // regular
     globalObject().setProperty("regular", newFunction(regular));
+    // ellipsoid
+    globalObject().setProperty("ellipsoid", newFunction(ellipsoid));
+    // sphere
+    globalObject().setProperty("sphere", newFunction(sphere));
     // plane
     globalObject().setProperty("plane", newFunction(plane));
 
@@ -1362,6 +1366,54 @@ QScriptValue QZScriptEngine::regular(QScriptContext *context, QScriptEngine *eng
     double r = context->argument(2).toNumber();
     int n = context->argument(3).toInt32();
     return msh::regular(x, y, r, n);
+}
+
+QScriptValue QZScriptEngine::ellipsoid(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(engine);
+    QString typeError = QObject::tr("ellipsoid(x, y, z, a, b, c: Float): argument type error (%1).");
+    if (context->argumentCount() != 6)
+        context->throwError(QObject::tr("ellipsoid(x, y, z, a, b, c): arguments count error."));
+    if (!context->argument(0).isNumber())
+        return context->throwError(typeError.arg("x: Floating number"));
+    if (!context->argument(1).isNumber())
+        return context->throwError(typeError.arg("y: Floating number"));
+    if (!context->argument(2).isNumber())
+        return context->throwError(typeError.arg("z: Floating number"));
+    if (!context->argument(3).isNumber())
+        return context->throwError(typeError.arg("a: Floating number"));
+    if (!context->argument(4).isNumber())
+        return context->throwError(typeError.arg("b: Floating number"));
+    if (!context->argument(5).isNumber())
+        return context->throwError(typeError.arg("c: Floating number"));
+    double x = context->argument(0).toNumber();
+    double y = context->argument(1).toNumber();
+    double z = context->argument(2).toNumber();
+    double a = context->argument(3).toNumber();
+    double b = context->argument(4).toNumber();
+    double c = context->argument(5).toNumber();
+    return msh::ellipsoid(x, y, z, a, b, c);
+}
+
+QScriptValue QZScriptEngine::sphere(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(engine);
+    QString typeError = QObject::tr("sphere(x, y, z, r: Float): argument type error (%1).");
+    if (context->argumentCount() != 4)
+        context->throwError(QObject::tr("sphere(x, y, z, r): arguments count error."));
+    if (!context->argument(0).isNumber())
+        return context->throwError(typeError.arg("x: Floating number"));
+    if (!context->argument(1).isNumber())
+        return context->throwError(typeError.arg("y: Floating number"));
+    if (!context->argument(2).isNumber())
+        return context->throwError(typeError.arg("z: Floating number"));
+    if (!context->argument(3).isNumber())
+        return context->throwError(typeError.arg("r: Floating number"));
+    double x = context->argument(0).toNumber();
+    double y = context->argument(1).toNumber();
+    double z = context->argument(2).toNumber();
+    double r = context->argument(3).toNumber();
+    return msh::sphere(x, y, z, r);
 }
 
 QScriptValue QZScriptEngine::plane(QScriptContext *context, QScriptEngine *engine)

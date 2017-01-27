@@ -158,6 +158,10 @@ private slots:
 
     void on_actionPlaneScript_triggered();
 
+    void on_actionEllipsoidScript_triggered();
+
+    void on_actionSphereScript_triggered();
+
 private:
     Ui::MainWindow *ui; //!< Контейнер элементов графического интерфейса
     QStdRedirector<> *stdRedirector; //!< Перехватчик сообщений стандартного потока

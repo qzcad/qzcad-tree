@@ -1266,3 +1266,15 @@ void MainWindow::on_actionPlaneScript_triggered()
     QString command = "plane(x, y, z, new Point(), new Point(), new Point())";
     ui->codeEditor->insertPlainText(command);
 }
+
+void MainWindow::on_actionEllipsoidScript_triggered()
+{
+    QString command = "ellipsoid(x, y, z, a, b, c)";
+    ui->codeEditor->insertPlainText(command);
+}
+
+void MainWindow::on_actionSphereScript_triggered()
+{
+    QString command = "sphere(x, y, z, r)";
+    ui->codeEditor->insertPlainText(command);
+}

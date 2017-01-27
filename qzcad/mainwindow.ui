@@ -134,7 +134,7 @@
      <x>0</x>
      <y>0</y>
      <width>943</width>
-     <height>24</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -275,6 +275,8 @@
      <addaction name="actionRegularScript"/>
      <addaction name="separator"/>
      <addaction name="actionPlaneScript"/>
+     <addaction name="actionEllipsoidScript"/>
+     <addaction name="actionSphereScript"/>
     </widget>
     <widget class="QMenu" name="menuMeshScripts">
      <property name="title">
@@ -914,6 +916,16 @@
   <action name="actionPlaneScript">
    <property name="text">
     <string>Полупространство, ограниченное плоскостью (три точки): plane(x, y, z, P1, P2, P3)</string>
+   </property>
+  </action>
+  <action name="actionEllipsoidScript">
+   <property name="text">
+    <string>Область, ограниченная эллипсоидом: ellipsoid(x, y, z, a, b, c)</string>
+   </property>
+  </action>
+  <action name="actionSphereScript">
+   <property name="text">
+    <string>Область, ограниченная сферой: sphere(x, y, z, r)</string>
    </property>
   </action>
  </widget>
