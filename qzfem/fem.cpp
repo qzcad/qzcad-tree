@@ -31,6 +31,7 @@ UInteger Fem::freedom() const
 
 void Fem::solve()
 {
+    mesh_->clearDataVectors();
     buildGlobalMatrix();
     buildGlobalVector();
     processInitialValues();

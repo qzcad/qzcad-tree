@@ -19,3 +19,8 @@ QString QPoint3D::toString() const
 {
     return QString("(%1; %2; %3)").arg(x()).arg(y()).arg(z());
 }
+
+Point3D QPoint3D::product(const QPoint3D &point) const
+{
+    return Point3D::product(point);
+}

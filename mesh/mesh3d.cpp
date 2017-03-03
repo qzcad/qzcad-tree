@@ -164,7 +164,7 @@ Point3D Mesh3D::binary(Point3D p0, Point3D p1, std::function<double (double, dou
             p0 = center;
             val0 = val;
         }
-    } while (!(0.0 <= val && val < epsilon_));
+    } while (!(0.0 <= val && val < epsilon_) && !p0.isEqualTo(p1, epsilon_ / 10.0));
     return center;
 }
 

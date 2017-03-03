@@ -44,6 +44,12 @@ public:
      * @return Строка с координатами точки
      */
     Q_INVOKABLE QString toString() const;
+    /**
+     * @brief Векторное произведение векторов, определенных текущей точкой и заданной
+     * @param point Координаты ветора, с которым необходимо найти векторное произведение
+     * @return Значение векторного произведения
+     */
+    Q_INVOKABLE Point3D product(const QPoint3D &point) const;
     /// Объявление полей, доступных в скриптах
     Q_PROPERTY(double x READ x WRITE setX) //!< Абсцисса
     Q_PROPERTY(double y READ y WRITE setY) //!< Ордината
