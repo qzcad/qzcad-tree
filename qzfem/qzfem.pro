@@ -14,8 +14,20 @@ QMAKE_CXXFLAGS += -std=c++0x
 
 # OpenMP section ####################################
 QMAKE_CXXFLAGS += -DWITH_OPENMP # global definition for macro
-QMAKE_CXXFLAGS += -fopenmp
-QMAKE_LFLAGS += -fopenmp
+
+msvc {
+  QMAKE_CXXFLAGS += -openmp
+}
+
+gcc {
+  QMAKE_CXXFLAGS += -fopenmp
+  QMAKE_LFLAGS += -fopenmp
+}
+
+win32-g++ {
+  QMAKE_CXXFLAGS += -fopenmp
+  QMAKE_LFLAGS += -fopenmp
+}
 #####################################################
 
 

@@ -17,7 +17,6 @@ MindlinShellLaminated::MindlinShellLaminated(Mesh3D *mesh,
 void MindlinShellLaminated::buildGlobalMatrix()
 {
     const double kappa = 5.0 / 6.0;
-    UInteger nodesCount = mesh_->nodesCount(); // количество узлов сетки
     UInteger elementsCount = mesh_->elementsCount(); // количество элементов
     DoubleVector gxi; // координаты квадратур Гаусса
     DoubleVector geta;
