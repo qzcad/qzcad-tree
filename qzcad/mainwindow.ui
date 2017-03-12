@@ -149,6 +149,7 @@
     <addaction name="separator"/>
     <addaction name="actionLoadMesh"/>
     <addaction name="actionSaveMesh"/>
+    <addaction name="actionExportSTL"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -380,6 +381,7 @@
    <addaction name="separator"/>
    <addaction name="actionLoadMesh"/>
    <addaction name="actionSaveMesh"/>
+   <addaction name="actionExportSTL"/>
    <addaction name="separator"/>
    <addaction name="actionRotationBodyMesh"/>
    <addaction name="separator"/>
@@ -932,6 +934,15 @@
   <action name="actionCuboidScript">
    <property name="text">
     <string>Область ограниченная прямоугольным параллелипипедом: cuboid(x, y, z, w, h, d)</string>
+   </property>
+  </action>
+  <action name="actionExportSTL">
+   <property name="icon">
+    <iconset resource="qzresources.qrc">
+     <normaloff>:/icons/qzicons/24x24/stl.png</normaloff>:/icons/qzicons/24x24/stl.png</iconset>
+   </property>
+   <property name="text">
+    <string>Экспорт в STL...</string>
    </property>
   </action>
  </widget>

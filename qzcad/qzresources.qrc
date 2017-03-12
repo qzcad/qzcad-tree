@@ -65,5 +65,7 @@
         <file>qzicons/mirror_vertically.png</file>
         <file>qzicons/area.png</file>
         <file>qzicons/splash.png</file>
+        <file>qzicons/16x16/stl.png</file>
+        <file>qzicons/24x24/stl.png</file>
     </qresource>
 </RCC>
