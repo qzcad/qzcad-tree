@@ -20,7 +20,7 @@ msvc {
   QMAKE_CXXFLAGS += -openmp
 }
 
-gcc {
+unix {
   QMAKE_CXXFLAGS += -fopenmp
   QMAKE_LFLAGS += -fopenmp
 }
