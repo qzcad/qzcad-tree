@@ -49,7 +49,7 @@ public:
     Hexahedral(const Hexahedral &hexahedral);
     /**
      * @brief Оператор доступа к вершине по индексу
-     * @param i Индекс вершины четырехугольника
+     * @param i Индекс вершины шестигранника
      * @return Номер узла, на который ссылается вершина
      */
     UInteger &operator [] (int i);
@@ -82,7 +82,7 @@ public:
      */
     virtual UIntegerVector face(const int &i) const;
 private:
-    UInteger vertex_[8]; //!< Вершины четырехугольника
+    UInteger vertex_[8]; //!< Вершины шестигранника
 };
 }
 

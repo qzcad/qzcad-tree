@@ -28,14 +28,12 @@ Hexahedral::Hexahedral(const Hexahedral &hexahedral)
 
 UInteger &Hexahedral::operator [](int i)
 {
-    if (i <= -1)
-        return vertex_[i + 8];
-    if (0 <= i && i <= 7)
-        return vertex_[i];
-    if (i >= 8)
-        return vertex_[i - 8];
-    //
-    return vertex_[0];
+    int d = i % 8;
+
+    if (i < 0)
+        return vertex_[(d == 0) ? d : d + 8];
+
+    return vertex_[d];
 }
 
 Hexahedral &Hexahedral::operator =(const Hexahedral &hexahedral)
@@ -61,14 +59,12 @@ int Hexahedral::verticesCount() const
 
 UInteger Hexahedral::vertexNode(int i) const
 {
-    if (i <= -1)
-        return vertex_[i + 8];
-    if (0 <= i && i <= 7)
-        return vertex_[i];
-    if (i >= 8)
-        return vertex_[i - 8];
-    //
-    return vertex_[0];
+    int d = i % 8;
+
+    if (i < 0)
+        return vertex_[(d == 0) ? d : d + 8];
+
+    return vertex_[d];
 }
 
 int Hexahedral::facesCount() const
