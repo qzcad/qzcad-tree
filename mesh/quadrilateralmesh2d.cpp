@@ -655,16 +655,6 @@ void QuadrilateralMesh2D::minimizeFunctional()
     }
 }
 
-bool QuadrilateralMesh2D::isBorderElement(const UInteger &number) const
-{
-    for (int i = 0; i < 4; i++)
-    {
-        if (node_[element_[number].vertexNode(i)].type == BORDER || node_[element_[number].vertexNode(i)].type == CHARACTER)
-            return true;
-    }
-    return false;
-}
-
 Quadrilateral QuadrilateralMesh2D::quadrilateral(const UInteger &number) const
 {
     return element_[number];

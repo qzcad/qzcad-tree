@@ -760,24 +760,14 @@ void GLMeshPicture::paintGL()
                 drawFace(face, GL_LINES, 2.0, 1.0);
                 drawFace(face, GL_POINTS, 1.0, 6.0);
             }
-            else if (mesh_->dimesion() == 2 || mesh_->isBorderElement(i))
+            else if (mesh_->dimesion() == 2 || mesh_->isBorderElement(element))
             {
                 for (int p = 0; p < element->facesCount(); p++)
                 {
                     msh::UIntegerVector face = element->face(p);
-                    if (mesh_->dimesion() == 3)
+                    if (mesh_->dimesion() == 3 && !mesh_->isBorderFace(face))
                     {
-                        bool isInnerFace = false;
-                        for (msh::UInteger j = 0; j < face.size(); j++)
-                        {
-                            if (mesh_->nodeType(face[j]) == msh::INNER)
-                            {
-                                isInnerFace = true;
-                                break;
-                            }
-                        }
-                        if (isInnerFace)
-                            continue; // для трехмерных объектов рисуются только наружные грани
+                        continue; // для трехмерных объектов рисуются только наружные грани
                     }
                     msh::PointPointer a = mesh_->node(face[1]);
                     msh::PointPointer b = mesh_->node(face[0]);

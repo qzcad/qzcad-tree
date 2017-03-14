@@ -221,10 +221,9 @@ void MindlinPlateLaminated::buildGlobalVector()
             for (UInteger elNum = 0; elNum < elementsCount; elNum++)
             {
                 ++progressBar;
-
-                if (mesh_->isBorderElement(elNum))
+                ElementPointer element = mesh_->element(elNum);
+                if (mesh_->isBorderElement(element))
                 {
-                    ElementPointer element = mesh_->element(elNum);
                     for (unsigned int i = 0; i < elementNodes; i++)
                     {
                         if ((mesh_->nodeType(element->vertexNode(i)) == BORDER || mesh_->nodeType(element->vertexNode(i)) == CHARACTER) &&

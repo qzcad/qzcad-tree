@@ -97,12 +97,6 @@ public:
     virtual ElementPointer element(const UInteger &number) const;
     void minimizeFunctional();
     /**
-     * @brief Определить принадлежность элемента границе
-     * @param number Номер элемента
-     * @return true - граничный элемент; false - внутренний
-     */
-    virtual bool isBorderElement(const UInteger &number) const;
-    /**
      * @brief Четырехугольник, соответсвующий заданному номеру
      * @param number Номер четырехугольника
      * @return Четырехугольник с номером number

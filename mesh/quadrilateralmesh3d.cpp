@@ -189,16 +189,6 @@ ElementPointer QuadrilateralMesh3D::element(const UInteger &number) const
     return elementPtr;
 }
 
-bool QuadrilateralMesh3D::isBorderElement(const UInteger &number) const
-{
-    for (int i = 0; i < 4; i++)
-    {
-        if (node_[element_[number].vertexNode(i)].type == BORDER || node_[element_[number].vertexNode(i)].type == CHARACTER)
-            return true;
-    }
-    return false;
-}
-
 double QuadrilateralMesh3D::surfaceArea() const
 {
     double s = 0.0;

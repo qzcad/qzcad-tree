@@ -281,16 +281,6 @@ ElementPointer HexahedralMesh3D::element(const UInteger &number) const
     return elementPtr;
 }
 
-bool HexahedralMesh3D::isBorderElement(const UInteger &number) const
-{
-    for (int i = 0; i < 8; i++)
-    {
-        if (node_[element_[number].vertexNode(i)].type == BORDER || node_[element_[number].vertexNode(i)].type == CHARACTER)
-            return true;
-    }
-    return false;
-}
-
 double HexahedralMesh3D::faceArea(const UIntegerVector &face) const
 {
     Point3D p0 = node_[face[0]].point;
@@ -319,19 +309,7 @@ double HexahedralMesh3D::surfaceArea() const
         for (int j = 0; j < hex.facesCount(); j++)
         {
             UIntegerVector face = hex.face(j);
-            bool isBorderFace = true;
-            for (int k = 0; k < 4; k++)
-            {
-                if (node_[face[k]].type == INNER)
-                {
-                    isBorderFace = false;
-//                    break;
-                }
-            }
-            if (isBorderFace)
-            {
-                area += faceArea(face);
-            }
+            if (isBorderFace(face)) area += faceArea(face);
         }
     }
     return area;

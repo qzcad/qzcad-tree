@@ -97,10 +97,16 @@ public:
     virtual int dimesion() const = 0;
     /**
      * @brief Определить принадлежность элемента границе
-     * @param number Номер элемента
+     * @param element Константная ссылка на элемент
      * @return true - граничный элемент; false - внутренний
      */
-    virtual bool isBorderElement(const UInteger &number) const = 0;
+    virtual bool isBorderElement(ElementPointer element) const;
+    /**
+     * @brief Определить принадлежность грани элемента границе
+     * @param face Масив, представляющий грань
+     * @return true - граничная грань; false - внутреняя
+     */
+    virtual bool isBorderFace(const UIntegerVector &face) const;
     /**
      * @brief Обновить параметры области определения сетки (xMin, xMax, yMin, yMax, zMin, zMax)
      */

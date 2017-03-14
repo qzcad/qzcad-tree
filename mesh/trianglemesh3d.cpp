@@ -1255,16 +1255,6 @@ ElementPointer TriangleMesh3D::element(const UInteger &number) const
     return elementPtr;
 }
 
-bool TriangleMesh3D::isBorderElement(const UInteger &number) const
-{
-    for (int i = 0; i < 3; i++)
-    {
-        if (node_[element_[number].vertexNode(i)].type == BORDER || node_[element_[number].vertexNode(i)].type == CHARACTER)
-            return true;
-    }
-    return false;
-}
-
 double TriangleMesh3D::surfaceArea() const
 {
     double s = 0.0;

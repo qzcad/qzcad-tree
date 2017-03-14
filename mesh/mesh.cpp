@@ -14,6 +14,24 @@ Mesh::Mesh(const Mesh *mesh)
     }
 }
 
+bool Mesh::isBorderElement(ElementPointer element) const
+{
+    for (int i = 0; i < element->verticesCount(); i++)
+    {
+        NodeType t = nodeType(element->vertexNode(i));
+        if (t == BORDER || t == CHARACTER) return true;
+    }
+    return false;
+}
+
+bool Mesh::isBorderFace(const UIntegerVector &face) const
+{
+    for (int k = 0; k < face.size(); k++)
+        if (nodeType(face[k]) == INNER)
+            return false;
+    return true;
+}
+
 int Mesh::layer(const msh::UInteger &number) const
 {
     return layer_[number];

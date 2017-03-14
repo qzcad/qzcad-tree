@@ -410,16 +410,6 @@ ElementPointer TriangleMesh2D::element(const UInteger &number) const
     return elementPtr;
 }
 
-bool TriangleMesh2D::isBorderElement(const UInteger &number) const
-{
-    for (int i = 0; i < 3; i++)
-    {
-        if (node_[element_[number].vertexNode(i)].type == BORDER || node_[element_[number].vertexNode(i)].type == CHARACTER)
-            return true;
-    }
-    return false;
-}
-
 void TriangleMesh2D::directionChange()
 {
     for (UInteger i = 0; i < elementsCount(); i++)
