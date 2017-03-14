@@ -61,6 +61,7 @@ public:
      * @brief Метод очищает информацию об елементах
      */
     virtual void clearElements();
+    void sweepBaseMesh(TriangleMesh2D *baseMesh, const double &z0, const double &z1, const double &phi0, const double &phi1, const double &k0, const double &k1, const int &zLayersCount);
 private:
     std::vector<Tetrahedron> element_; //!< Массив шестигранных элементов
 };
