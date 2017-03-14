@@ -1,5 +1,7 @@
 #include "tetrahedralmesh3d.h"
 
+#include <math.h>
+
 namespace msh {
 
 TetrahedralMesh3D::TetrahedralMesh3D() : Mesh3D(NULL)
@@ -70,6 +72,52 @@ void TetrahedralMesh3D::addElement(const std::vector<UInteger> &nodes_ref)
 void TetrahedralMesh3D::clearElements()
 {
     element_.clear();
+}
+
+void TetrahedralMesh3D::sweepBaseMesh(TriangleMesh2D *baseMesh, const double &z0, const double &z1, const double &phi0, const double &phi1, const double &k0, const double &k1, const int &zLayersCount)
+{
+    clear();
+    double hz = (z1 - z0) / (double)zLayersCount;
+    double hphi = (phi1 - phi0) / (double)zLayersCount;
+    double hk = (k1 - k0) / (double)zLayersCount;
+    double z = z0;
+    double phi = phi0;
+    double k = k0;
+    for (int i = 0; i <= zLayersCount; i++)
+    {
+        for (UInteger j = 0; j < baseMesh->nodesCount(); j++)
+        {
+            Point2D plane_point = baseMesh->point2d(j);
+            Point3D space_point (k * plane_point.x() * cos(phi) + k * plane_point.y() * sin(phi),
+                                 k * plane_point.y() * cos(phi) - k * plane_point.x() * sin(phi),
+                                 z);
+            NodeType type = baseMesh->nodeType(j);
+            if (i == 0 || i == zLayersCount) type = BORDER;
+            pushNode(space_point, type);
+        }
+        z += hz;
+        phi += hphi;
+        k += hk;
+    }
+    // формирование тетраэдров
+    for(int i = 0; i < zLayersCount; i++)
+    {
+        for(UInteger j = 0; j < baseMesh->elementsCount(); j++)
+        {
+            Triangle triangle = baseMesh->triangle(j);
+            std::vector<UInteger> nodes_ref;
+//            Quadrangle current_quad = baseMesh->getQuad(i);
+//            nodes_pointers[0] = current_quad.p0 + iz * baseMesh->getNodesCount();
+//            nodes_pointers[1] = current_quad.p1 + iz * baseMesh->getNodesCount();
+//            nodes_pointers[2] = current_quad.p2 + iz * baseMesh->getNodesCount();
+//            nodes_pointers[3] = current_quad.p3 + iz * baseMesh->getNodesCount();
+//            nodes_pointers[4] = current_quad.p0 + (iz + 1) * baseMesh->getNodesCount();
+//            nodes_pointers[5] = current_quad.p1 + (iz + 1) * baseMesh->getNodesCount();
+//            nodes_pointers[6] = current_quad.p2 + (iz + 1) * baseMesh->getNodesCount();
+//            nodes_pointers[7] = current_quad.p3 + (iz + 1) * baseMesh->getNodesCount();
+            addElement(nodes_ref);
+        }
+    }
 }
 
 }
