@@ -62,8 +62,7 @@ SOURCES += main.cpp\
     qfemcondition.cpp \
     qquadrilateralmesh3d.cpp \
     qtrianglemesh3d.cpp \
-    qsegmentmesh2d.cpp \
-    tetrahedron.cpp
+    qsegmentmesh2d.cpp
 
 HEADERS  += mainwindow.h \
     globalconsts.h \
@@ -95,8 +94,7 @@ HEADERS  += mainwindow.h \
     qfemcondition.h \
     qquadrilateralmesh3d.h \
     qtrianglemesh3d.h \
-    qsegmentmesh2d.h \
-    tetrahedron.h
+    qsegmentmesh2d.h
 
 FORMS    += mainwindow.ui \
     glcontrolwidget.ui \

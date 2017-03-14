@@ -38,7 +38,9 @@ SOURCES += mesh.cpp \
     segmentmesh2d.cpp \
     funcopt.cpp \
     rfunctions.cpp \
-    nameddoublevector.cpp
+    nameddoublevector.cpp \
+    tetrahedralmesh3d.cpp \
+    tetrahedron.cpp
 
 HEADERS += mesh.h \
     point.h \
@@ -70,7 +72,9 @@ HEADERS += mesh.h \
     segmentmesh2d.h \
     funcopt.h \
     rfunctions.h \
-    nameddoublevector.h
+    nameddoublevector.h \
+    tetrahedralmesh3d.h \
+    tetrahedron.h
 unix:!symbian {
     maemo5 {
         target.path = /opt/usr/lib
