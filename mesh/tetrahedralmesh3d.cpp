@@ -105,16 +105,18 @@ void TetrahedralMesh3D::sweepBaseMesh(TriangleMesh2D *baseMesh, const double &z0
         for(UInteger j = 0; j < baseMesh->elementsCount(); j++)
         {
             Triangle triangle = baseMesh->triangle(j);
-            std::vector<UInteger> nodes_ref;
-//            Quadrangle current_quad = baseMesh->getQuad(i);
-//            nodes_pointers[0] = current_quad.p0 + iz * baseMesh->getNodesCount();
-//            nodes_pointers[1] = current_quad.p1 + iz * baseMesh->getNodesCount();
-//            nodes_pointers[2] = current_quad.p2 + iz * baseMesh->getNodesCount();
-//            nodes_pointers[3] = current_quad.p3 + iz * baseMesh->getNodesCount();
-//            nodes_pointers[4] = current_quad.p0 + (iz + 1) * baseMesh->getNodesCount();
-//            nodes_pointers[5] = current_quad.p1 + (iz + 1) * baseMesh->getNodesCount();
-//            nodes_pointers[6] = current_quad.p2 + (iz + 1) * baseMesh->getNodesCount();
-//            nodes_pointers[7] = current_quad.p3 + (iz + 1) * baseMesh->getNodesCount();
+            std::vector<UInteger> nodes_ref(4);
+            UInteger node0 = triangle[0] + (UInteger)i * baseMesh->nodesCount();
+            UInteger node1 = triangle[1] + (UInteger)i * baseMesh->nodesCount();
+            UInteger node2 = triangle[2] + (UInteger)i * baseMesh->nodesCount();
+            UInteger node0__ = triangle[0] + (UInteger)(i + 1) * baseMesh->nodesCount();
+            UInteger node1__ = triangle[1] + (UInteger)(i + 1) * baseMesh->nodesCount();
+            UInteger node2__ = triangle[2] + (UInteger)(i + 1) * baseMesh->nodesCount();
+            nodes_ref[0] = node0; nodes_ref[1] = node1; nodes_ref[2] = node2; nodes_ref[3] = node0__;
+            addElement(nodes_ref);
+            nodes_ref[0] = node0__; nodes_ref[1] = node1; nodes_ref[2] = node2; nodes_ref[3] = node1__;
+            addElement(nodes_ref);
+            nodes_ref[0] = node0__; nodes_ref[1] = node1__; nodes_ref[2] = node2; nodes_ref[3] = node2__;
             addElement(nodes_ref);
         }
     }
