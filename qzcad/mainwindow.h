@@ -164,6 +164,8 @@ private slots:
 
     void on_actionCuboidScript_triggered();
 
+    void on_actionExportSTL_triggered();
+
 private:
     Ui::MainWindow *ui; //!< Контейнер элементов графического интерфейса
     QStdRedirector<> *stdRedirector; //!< Перехватчик сообщений стандартного потока

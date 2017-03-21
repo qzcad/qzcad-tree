@@ -1284,3 +1284,67 @@ void MainWindow::on_actionCuboidScript_triggered()
     QString command = "cuboid(x, y, z, width, height, depth)";
     ui->codeEditor->insertPlainText(command);
 }
+
+void MainWindow::on_actionExportSTL_triggered()
+{
+    msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
+    if (mesh != NULL)
+    {
+        QString fileName = QFileDialog::getSaveFileName(this, "qMesher: Экспорт в STL", "", tr("STL-файлы (*.stl);;Любой файл (*)"));
+        if (fileName.isEmpty())
+            return;
+        QFile file(fileName);
+        if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
+            return;
+        QTextStream out(&file);
+        out.setRealNumberPrecision(FLT_DIG);
+        out << tr("solid qzCAD") << '\n';
+        ui->pictureControl->getGlMeshPicture()->setMesh(mesh);
+        for (msh::UInteger i = 0; i < mesh->elementsCount(); i++)
+        {
+            msh::ElementPointer element = mesh->element(i);
+            if (dynamic_cast<const msh::Segment *>(element) == NULL && (mesh->dimesion() == 2 || mesh->isBorderElement(element)))
+            {
+                for (int p = 0; p < element->facesCount(); p++)
+                {
+                    msh::UIntegerVector face = element->face(p);
+                    if (mesh->dimesion() == 3 && !mesh->isBorderFace(face))
+                    {
+                        continue; // для трехмерных объектов экспортируются только наружные грани
+                    }
+                    msh::PointPointer a = mesh->node(face[1]);
+                    msh::PointPointer b = mesh->node(face[0]);
+                    msh::PointPointer c = mesh->node(face[2]);
+                    // вычисление нормали к грани
+                    double nx = (b->y() - a->y()) * (c->z() - a->z()) - (b->z() - a->z()) * (c->y() - a->y());
+                    double ny = (b->z() - a->z()) * (c->x() - a->x()) - (b->x() - a->x()) * (c->z() - a->z());
+                    double nz = (b->x() - a->x()) * (c->y() - a->y()) - (b->y() - a->y()) * (c->x() - a->x());
+                    double nn = sqrt(nx * nx + ny * ny + nz * nz);
+                    // нормализация
+                    nx = nx / nn;
+                    ny = ny / nn;
+                    nz = nz / nn;
+                    out << "facet normal " << -nx << ' ' << -ny << ' ' << -nz << '\n';
+                    out << "outer loop" << '\n';
+                    out << "vertex " << b->x() << ' ' << b->y() << ' ' << b->z() << '\n';
+                    out << "vertex " << a->x() << ' ' << a->y() << ' ' << a->z() << '\n';
+                    out << "vertex " << c->x() << ' ' << c->y() << ' ' << c->z() << '\n';
+                    out << "endloop" << '\n';
+                    out << "endfacet" << '\n';
+                    if (face.size() == 4)
+                    {
+                        msh::PointPointer d = mesh->node(face[3]);
+                        out << "facet normal " << -nx << ' ' << -ny << ' ' << -nz << '\n';
+                        out << "outer loop" << '\n';
+                        out << "vertex " << b->x() << ' ' << b->y() << ' ' << b->z() << '\n';
+                        out << "vertex " << c->x() << ' ' << c->y() << ' ' << c->z() << '\n';
+                        out << "vertex " << d->x() << ' ' << d->y() << ' ' << d->z() << '\n';
+                        out << "endloop" << '\n';
+                        out << "endfacet" << '\n';
+                    }
+                }
+            }
+        }
+        out << tr("endsolid qzCAD") << '\n';
+    }
+}
