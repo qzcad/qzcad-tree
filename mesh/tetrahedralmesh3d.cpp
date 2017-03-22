@@ -15,6 +15,12 @@ TetrahedralMesh3D::TetrahedralMesh3D(const TetrahedralMesh3D &mesh) : Mesh3D(&me
     node_ = mesh.node_;
 }
 
+TetrahedralMesh3D::TetrahedralMesh3D(const TetrahedralMesh3D *mesh) : Mesh3D(mesh)
+{
+    element_ = mesh->element_;
+    node_ = mesh->node_;
+}
+
 UInteger TetrahedralMesh3D::elementsCount() const
 {
     return element_.size();
@@ -120,6 +126,7 @@ void TetrahedralMesh3D::sweepBaseMesh(TriangleMesh2D *baseMesh, const double &z0
             addElement(nodes_ref);
         }
     }
+    updateDomain();
 }
 
 }

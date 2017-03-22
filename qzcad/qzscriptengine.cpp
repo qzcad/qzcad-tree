@@ -8,6 +8,7 @@
 #include "qquadrilateralmesh3d.h"
 #include "qsegmentmesh2d.h"
 #include "qtrianglemesh3d.h"
+#include "qtetrahedralmesh3d.h"
 
 #include "rfunctions.h"
 
@@ -98,6 +99,8 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     globalObject().setProperty("ParametricTriangles", newFunction(createParametricTriangles));
     // Марширующие кубики
     globalObject().setProperty("MarchingCubes", newFunction(createMarchingCubes));
+    // "Вытягивание" тела движением
+    globalObject().setProperty("SweepMesh", newFunction(createSweptMesh));
 
     // setMesh
     globalObject().setProperty("setMesh", newFunction(setMesh));
@@ -1053,7 +1056,47 @@ QScriptValue QZScriptEngine::createMarchingCubes(QScriptContext *context, QScrip
 
             return engine->newQObject(tmo, QScriptEngine::ScriptOwnership);
         }
-        return context->throwError(QObject::tr("MarchingCubes(xCount: Integer, yCount: Integer, zCount:Integer, origin: Point, width: Floating, height: Floating, depth: Floating, function: Function): arguments count error."));
+    return context->throwError(QObject::tr("MarchingCubes(xCount: Integer, yCount: Integer, zCount:Integer, origin: Point, width: Floating, height: Floating, depth: Floating, function: Function): arguments count error."));
+}
+
+QScriptValue QZScriptEngine::createSweptMesh(QScriptContext *context, QScriptEngine *engine)
+{
+    if (4 <= context->argumentCount() && context->argumentCount() <= 8)
+    {
+        QString typeError = QObject::tr("SweepMesh(mesh: Mesh, lCount: Integer, z0: Floating, z1: Floating[, phi0=0: Floating, phi1=0: Floating, k0=1: Floating, k1=1: Floating]): argument type error (%1).");
+        if (!context->argument(1).isNumber())
+            return context->throwError(typeError.arg("lCount"));
+        if (!context->argument(2).isNumber())
+            return context->throwError(typeError.arg("z0"));
+        if (!context->argument(3).isNumber())
+            return context->throwError(typeError.arg("z1"));
+        if (context->argumentCount() >= 5 && !context->argument(4).isNumber())
+            return context->throwError(typeError.arg("phi0"));
+        if (context->argumentCount() >= 6 && !context->argument(5).isNumber())
+            return context->throwError(typeError.arg("phi1"));
+        if (context->argumentCount() >= 7 && !context->argument(6).isNumber())
+            return context->throwError(typeError.arg("k0"));
+        if (context->argumentCount() >= 8 && !context->argument(7).isNumber())
+            return context->throwError(typeError.arg("k1"));
+        int lCount = context->argument(1).toInt32();
+        double z0 = context->argument(2).toNumber();
+        double z1 = context->argument(3).toNumber();
+        double phi0 = (context->argumentCount() >= 5) ? context->argument(4).toNumber() : 0.0;
+        double phi1 = (context->argumentCount() >= 6) ? context->argument(5).toNumber() : 0.0;
+        double k0 = (context->argumentCount() >= 7) ? context->argument(6).toNumber() : 1.0;
+        double k1 = (context->argumentCount() >= 8) ? context->argument(7).toNumber() : 1.0;
+        if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != NULL)
+        {
+            QTriangleMesh2D *mesh = qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0));
+            QTetrahedralMesh3D *tetra = new QTetrahedralMesh3D();
+            tetra->sweepBaseMesh(mesh, z0, z1, phi0, phi1, k0, k1, lCount);
+            return engine->newQObject(tetra, QScriptEngine::ScriptOwnership);
+        }
+        else
+        {
+            return context->throwError(typeError.arg("mesh"));
+        }
+    }
 }
 
 QScriptValue QZScriptEngine::printStd(QScriptContext *context, QScriptEngine *engine)
@@ -1101,6 +1144,10 @@ QScriptValue QZScriptEngine::setMesh(QScriptContext *context, QScriptEngine *eng
     else if (qscriptvalue_cast<QTriangleMesh3D *>(context->argument(0)) != NULL)
     {
         mesh_ = new TriangleMesh3D(qscriptvalue_cast<QTriangleMesh3D *>(context->argument(0)));
+    }
+    else if (qscriptvalue_cast<QTetrahedralMesh3D *>(context->argument(0)) != NULL)
+    {
+        mesh_ = new TetrahedralMesh3D(qscriptvalue_cast<QTetrahedralMesh3D *>(context->argument(0)));
     }
     else
     {

@@ -891,7 +891,7 @@ TriangleMesh2D::Triangulation TriangleMesh2D::superDelaunay(SegmentMesh2D *mesh,
         if (mesh->isCrossedElement(A, B, seg_num))
         {
             Point2D R = mesh->refineMidpoint(seg_num, func);
-            if (insertDelaunayNode(R, INNER, triangulation))
+            if (insertDelaunayNode(R, BORDER, triangulation))
                 triangle = triangulation.triangles.begin();
             else
                 ++triangle;
@@ -900,7 +900,7 @@ TriangleMesh2D::Triangulation TriangleMesh2D::superDelaunay(SegmentMesh2D *mesh,
         else if (mesh->isCrossedElement(A, C, seg_num))
         {
             Point2D R = mesh->refineMidpoint(seg_num, func);
-            if (insertDelaunayNode(R, INNER, triangulation))
+            if (insertDelaunayNode(R, BORDER, triangulation))
                 triangle = triangulation.triangles.begin();
             else
                 ++triangle;
@@ -909,7 +909,7 @@ TriangleMesh2D::Triangulation TriangleMesh2D::superDelaunay(SegmentMesh2D *mesh,
         else if (mesh->isCrossedElement(B, C, seg_num))
         {
             Point2D R = mesh->refineMidpoint(seg_num, func);
-            if (insertDelaunayNode(R, INNER, triangulation))
+            if (insertDelaunayNode(R, BORDER, triangulation))
                 triangle = triangulation.triangles.begin();
             else
                 ++triangle;
@@ -947,7 +947,7 @@ void TriangleMesh2D::superRuppert(TriangleMesh2D::Triangulation &triangulation, 
             if (mesh->isCrossedElement(A, B, seg_num))
             {
                 Point2D R = mesh->refineMidpoint(seg_num, func);
-                if (insertDelaunayNode(R, INNER, triangulation))
+                if (insertDelaunayNode(R, BORDER, triangulation))
                     triangle = triangulation.triangles.begin();
                 else
                     ++triangle;
@@ -955,7 +955,7 @@ void TriangleMesh2D::superRuppert(TriangleMesh2D::Triangulation &triangulation, 
             else if (mesh->isCrossedElement(A, C, seg_num))
             {
                 Point2D R = mesh->refineMidpoint(seg_num, func);
-                if (insertDelaunayNode(R, INNER, triangulation))
+                if (insertDelaunayNode(R, BORDER, triangulation))
                     triangle = triangulation.triangles.begin();
                 else
                     ++triangle;
@@ -963,7 +963,7 @@ void TriangleMesh2D::superRuppert(TriangleMesh2D::Triangulation &triangulation, 
             else if (mesh->isCrossedElement(B, C, seg_num))
             {
                 Point2D R = mesh->refineMidpoint(seg_num, func);
-                if (insertDelaunayNode(R, INNER, triangulation))
+                if (insertDelaunayNode(R, BORDER, triangulation))
                     triangle = triangulation.triangles.begin();
                 else
                     ++triangle;
@@ -978,7 +978,7 @@ void TriangleMesh2D::superRuppert(TriangleMesh2D::Triangulation &triangulation, 
                 if (mesh->isEncroached(center, seg_num))
                 {
                     Point2D R = mesh->refineMidpoint(seg_num, func);
-                    if (insertDelaunayNode(R, INNER, triangulation))
+                    if (insertDelaunayNode(R, BORDER, triangulation))
                         triangle = triangulation.triangles.begin();
                     else
                     {

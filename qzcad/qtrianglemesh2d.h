@@ -16,7 +16,7 @@ using namespace msh;
 
 /**
  * @brief Прокси-класс для создания сеток в скриптах моделей
- * @see QObject, QuadrilateralMesh2D
+ * @see QObject, TriangleMesh2D
  */
 class QTriangleMesh2D : public QObject, public TriangleMesh2D
 {

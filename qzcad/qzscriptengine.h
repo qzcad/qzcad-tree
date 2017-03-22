@@ -171,6 +171,13 @@ private:
      */
     static QScriptValue createMarchingCubes(QScriptContext *context, QScriptEngine *engine);
     /**
+     * @brief "Конструктор" сеток движением дискретной модели профиля
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Объект для использования в скриптах
+     */
+    static QScriptValue createSweptMesh(QScriptContext *context, QScriptEngine *engine);
+    /**
      * @brief Qt Script реализация операции печати на консоль через std::cout
      * @param context Контекст скрипта
      * @param engine Двигатель скрипта

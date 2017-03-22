@@ -29,6 +29,11 @@ public:
      */
     TetrahedralMesh3D(const TetrahedralMesh3D &mesh);
     /**
+     * @brief Конструктор создает копию объекта, переданого по ссылке
+     * @param mesh Ссылка на объект для копирования
+     */
+    TetrahedralMesh3D(const TetrahedralMesh3D *mesh);
+    /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
      */
