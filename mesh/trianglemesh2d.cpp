@@ -927,7 +927,7 @@ TriangleMesh2D::Triangulation TriangleMesh2D::superDelaunay(SegmentMesh2D *mesh,
 void TriangleMesh2D::superRuppert(TriangleMesh2D::Triangulation &triangulation, SegmentMesh2D *mesh, std::function<double(double, double)> func)
 {
     splitSegments(triangulation);
-    ConsoleProgress progress(4000000UL);
+    ConsoleProgress progress(7000000UL);
     std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
     while (triangle != triangulation.triangles.end() && !progress.isExpectedCount())
     {

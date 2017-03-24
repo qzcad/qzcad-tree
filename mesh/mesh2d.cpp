@@ -237,7 +237,7 @@ Point2D Mesh2D::binary(Point2D p0, Point2D p1, std::function<double (double, dou
             p0 = center;
             val0 = val;
         }
-    } while (!(0.0 <= val && val < epsilon_) && !p0.isEqualTo(p1, epsilon_ / 10.0));
+    } while (!(0.0 <= val && val < epsilon_) && !p0.isEqualTo(p1, epsilon_ / 100000.0));
     return center;
 }
 

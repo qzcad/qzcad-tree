@@ -37,6 +37,7 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
 
     const double hx = width / (double)(xCount - 1);
     const double hy = height / (double)(yCount - 1);
+    const double tolerance = 0.2;
 
     ConsoleProgress progress(xCount - 1);
 
@@ -105,7 +106,7 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
             if (signbit(func(p0.x(), p0.y()) - level) != signbit(func(p1.x(), p1.y()) - level))
             {
                 Point2D border = binary(p0, p1, func, level);
-                if (!border.isEqualTo(c, 0.08 * l))
+                if (!border.isEqualTo(c, tolerance * l))
                 {
                     UInteger j = pushNode(border, BORDER);
                     addElement(j, s[1]);
@@ -126,7 +127,7 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
                     p1 = p1 + h;
                 }
                 Point2D border = binary(p0, p1, func, level);
-                if (!border.isEqualTo(c, 0.08 * l))
+                if (!border.isEqualTo(c, tolerance * l))
                 {
                     UInteger j = pushNode(border, BORDER);
                     addElement(j, s[1]);
