@@ -130,6 +130,11 @@ void Mesh3D::updateDomain()
     }
 }
 
+AdjacentSet Mesh3D::adjacent(const UInteger &nodeNumber) const
+{
+    return node_[nodeNumber].adjacent;
+}
+
 UInteger Mesh3D::adjacentCount(const UInteger &nodeNumber) const
 {
     return node_[nodeNumber].adjacent.size();

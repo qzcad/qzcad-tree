@@ -119,6 +119,12 @@ public:
      */
     virtual void updateDomain();
     /**
+     * @brief Метод возвращает множество номеров смежных в узле элементов
+     * @param nodeNumber Номер узла
+     * @return Множество смежных элементов (их номера)
+     */
+    virtual AdjacentSet adjacent(const UInteger &nodeNumber) const;
+    /**
      * @brief Количество элементов, смежных в узле с заданным номером
      * @param nodeNumber Номер узла
      * @return Количество элементов, смежных в узле

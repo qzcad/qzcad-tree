@@ -150,7 +150,7 @@ public:
      * @param nodeNumber Номер узла
      * @return Множество смежных элементов (их номера)
      */
-    AdjacentSet adjacent(const UInteger &nodeNumber) const;
+    virtual AdjacentSet adjacent(const UInteger &nodeNumber) const;
     /**
      * @brief Метод возвращает двумерные координаты узла
      * @param number Номер узла
