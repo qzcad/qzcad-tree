@@ -15,6 +15,7 @@
 #include "elementpointer.h"
 #include "nodetype.h"
 #include "nameddoublevector.h"
+#include "adjacentset.h"
 
 namespace msh
 {
@@ -111,6 +112,12 @@ public:
      * @brief Обновить параметры области определения сетки (xMin, xMax, yMin, yMax, zMin, zMax)
      */
     virtual void updateDomain() = 0;
+    /**
+     * @brief Метод возвращает множество номеров смежных в узле элементов
+     * @param nodeNumber Номер узла
+     * @return Множество смежных элементов (их номера)
+     */
+    virtual AdjacentSet adjacent(const UInteger &nodeNumber) const = 0;
     /**
      * @brief Количество элементов, смежных в узле с заданным номером
      * @param nodeNumber Номер узла
@@ -210,6 +217,12 @@ public:
      * @brief Напечатать в стандартный вывод экстремальные значения векторов данных
      */
     void printDataExtremums();
+    /**
+     * @brief Определить степень грани
+     * @param face Масив, представляющий грань
+     * @return Степень грани (число смежных элементов)
+     */
+    virtual int facePower(const UIntegerVector &face) const;
 
 protected:
     std::vector<int> layer_; //!< Массив с номером слоя для каждого элемента

@@ -1,5 +1,6 @@
 #include "mesh.h"
 #include <iostream>
+#include <algorithm>
 
 namespace msh {
 
@@ -26,7 +27,7 @@ bool Mesh::isBorderElement(ElementPointer element) const
 
 bool Mesh::isBorderFace(const UIntegerVector &face) const
 {
-    for (int k = 0; k < face.size(); k++)
+    for (UIntegerVector::size_type k = 0; k < face.size(); k++)
         if (nodeType(face[k]) == INNER)
             return false;
     return true;
@@ -107,6 +108,22 @@ void Mesh::printDataExtremums()
         NamedDoubleVector ndv = data_[i];
         std::cout << ndv.min() << "\t<=\t" << ndv.name() << "\t<=\t" << ndv.max() << std::endl;
     }
+}
+
+int Mesh::facePower(const UIntegerVector &face) const
+{
+    AdjacentSet s0 = adjacent(face[0]);
+    AdjacentSet s1 = adjacent(face[1]);
+    AdjacentSet intersect;
+    std::set_intersection(s0.begin(), s0.end(), s1.begin(), s1.end(), std::inserter(intersect, intersect.begin()));
+    for (UIntegerVector::size_type i = 2; i < face.size(); i++)
+    {
+        AdjacentSet current = adjacent(face[i]);
+        AdjacentSet local_intersect;
+        std::set_intersection(intersect.begin(), intersect.end(), current.begin(), current.end(), std::inserter(local_intersect, local_intersect.begin()));
+        intersect = local_intersect;
+    }
+    return intersect.size();
 }
 
 }
