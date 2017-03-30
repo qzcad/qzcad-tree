@@ -432,7 +432,23 @@ double TriangleMesh2D::area(const UInteger &number) const
 
 void TriangleMesh2D::addElement(const Triangle &triangle)
 {
-    element_.push_back(triangle);
+    Point2D p0 = node_[triangle[0]].point;
+    Point2D p1 = node_[triangle[1]].point;
+    Point2D p2 = node_[triangle[2]].point;
+    if ((p1.x() < p0.x() || (p1.x() == p0.x() && p1.y() < p0.y())) &&
+        (p1.x() < p2.x() || (p1.x() == p2.x() && p1.y() < p2.y())))
+    {
+        element_.push_back(Triangle(triangle[1], triangle[2], triangle[0]));
+    }
+    else if ((p2.x() < p0.x() || (p2.x() == p0.x() && p2.y() < p0.y())) &&
+             (p2.x() < p1.x() || (p2.x() == p1.x() && p2.y() < p1.y())))
+    {
+        element_.push_back(Triangle(triangle[2], triangle[0], triangle[1]));
+    }
+    else
+    {
+        element_.push_back(triangle);
+    }
     // обновление списка смежных узлов
     node_[triangle[0]].adjacent.insert(element_.size() - 1);
     node_[triangle[1]].adjacent.insert(element_.size() - 1);
