@@ -111,19 +111,26 @@ void TetrahedralMesh3D::sweepBaseMesh(TriangleMesh2D *baseMesh, const double &z0
         for(UInteger j = 0; j < baseMesh->elementsCount(); j++)
         {
             Triangle triangle = baseMesh->triangle(j);
-            std::vector<UInteger> nodes_ref(4);
-            UInteger node0 = triangle[0] + (UInteger)i * baseMesh->nodesCount();
-            UInteger node1 = triangle[1] + (UInteger)i * baseMesh->nodesCount();
-            UInteger node2 = triangle[2] + (UInteger)i * baseMesh->nodesCount();
-            UInteger node0__ = triangle[0] + (UInteger)(i + 1) * baseMesh->nodesCount();
-            UInteger node1__ = triangle[1] + (UInteger)(i + 1) * baseMesh->nodesCount();
-            UInteger node2__ = triangle[2] + (UInteger)(i + 1) * baseMesh->nodesCount();
-            nodes_ref[0] = node0; nodes_ref[1] = node1; nodes_ref[2] = node2; nodes_ref[3] = node0__;
-            addElement(nodes_ref);
-            nodes_ref[0] = node0__; nodes_ref[1] = node1; nodes_ref[2] = node2; nodes_ref[3] = node1__;
-            addElement(nodes_ref);
-            nodes_ref[0] = node0__; nodes_ref[1] = node1__; nodes_ref[2] = node2; nodes_ref[3] = node2__;
-            addElement(nodes_ref);
+            UInteger node1 = triangle[0] + (UInteger)i * baseMesh->nodesCount();
+            UInteger node2 = triangle[1] + (UInteger)i * baseMesh->nodesCount();
+            UInteger node3 = triangle[2] + (UInteger)i * baseMesh->nodesCount();
+            UInteger node4 = triangle[0] + (UInteger)(i + 1) * baseMesh->nodesCount();
+            UInteger node5 = triangle[1] + (UInteger)(i + 1) * baseMesh->nodesCount();
+            UInteger node6 = triangle[2] + (UInteger)(i + 1) * baseMesh->nodesCount();
+            Point3D p2 = node_[triangle[1]].point;
+            Point3D p3 = node_[triangle[2]].point;
+            if (p2.x() < p3.x() || (p2.x() == p3.y() && p2.y() < p3.y()))
+            {
+                addElement(node1, node2, node3, node6);
+                addElement(node1, node2, node6, node5);
+                addElement(node1, node5, node6, node4);
+            }
+            else
+            {
+                addElement(node1, node2, node3, node5);
+                addElement(node1, node5, node3, node6);
+                addElement(node1, node5, node6, node4);
+            }
         }
     }
     updateDomain();

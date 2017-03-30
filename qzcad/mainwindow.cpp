@@ -1308,7 +1308,7 @@ void MainWindow::on_actionExportSTL_triggered()
                 for (int p = 0; p < element->facesCount(); p++)
                 {
                     msh::UIntegerVector face = element->face(p);
-                    if (mesh->dimesion() == 3 && !mesh->isBorderFace(face))
+                    if (mesh->dimesion() == 3 && (!mesh->isBorderFace(face) || mesh->facePower(face) != 1))
                     {
                         continue; // для трехмерных объектов экспортируются только наружные грани
                     }
