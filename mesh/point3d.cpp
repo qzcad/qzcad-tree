@@ -158,6 +158,13 @@ double Point3D::operator *(const Point3D &point) const
     return x() * point.x() + y() * point.y() + z() * point.z();
 }
 
+bool operator <(const Point3D &leftPoint, const Point3D &rightPoint)
+{
+    return  (leftPoint.x() < rightPoint.x()) ||
+            (leftPoint.x() == rightPoint.x() && leftPoint.y() < rightPoint.y()) ||
+            (leftPoint.x() == rightPoint.x() && leftPoint.y() == rightPoint.y() && leftPoint.z() < rightPoint.z());
+}
+
 const Point3D operator /(const Point3D &point, double dec)
 {
     return Point3D(point.x() / dec, point.y() / dec, point.z() / dec);

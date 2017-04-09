@@ -141,6 +141,13 @@ public:
     friend const Point3D operator *(double dec, const Point3D &point);
     /// Отношение вектора, занного точкой point, к числу dec
     friend const Point3D operator /(const Point3D &point, double dec);
+    /**
+     * @brief Оператор сравнения "меньше" с использованием лексикографического порядка
+     * @param leftPoint Левая точка
+     * @param rightPoint Правая точка
+     * @return leftPoint < rightPoint
+     */
+    friend bool operator <(const Point3D &leftPoint, const Point3D &rightPoint);
     /// @}
     /**
      * @brief Проверка скрещиваются ли прямые P0P1 и Q0Q1

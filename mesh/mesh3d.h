@@ -107,7 +107,7 @@ public:
      * @param type Тип узла
      * @return Номер узла в массиве узлов
      */
-    UInteger addNode(const Point3D &point, const NodeType &type);
+    UInteger addNode(const Point3D &point, const NodeType &type, double epsilon = epsilon_);
     /**
      * @brief Добавить узел с проверкой на наличие в массиве узлов
      * @param node Коордианты и тип узла

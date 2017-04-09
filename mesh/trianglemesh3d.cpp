@@ -1166,6 +1166,7 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
     double xc = xMin + width / 2.0;
     double yc = yMin + height / 2.0;
     double zc = zMin + depth / 2.0;
+    double delta = 0.4 * sqrt(hx*hx + hy*hy + hz*hz);
     ConsoleProgress progress(xCount - 1);
 
 
@@ -1222,10 +1223,58 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
                     if (edges[index] & 2048) border[11] = binary(p[3], p[7], func_slice, level);
                     for (int t = 0; triangles[index][t] != -1; t += 3)
                     {
-                        UInteger p0 = addNode(border[triangles[index][t + 2]], BORDER);
-                        UInteger p1 = addNode(border[triangles[index][t + 1]], BORDER);
-                        UInteger p2 = addNode(border[triangles[index][t]], BORDER);
-                        addElement(p0, p1, p2);
+                        Point3D t0 = border[triangles[index][t + 2]];
+                        Point3D t1 = border[triangles[index][t + 1]];
+                        Point3D t2 = border[triangles[index][t]];
+                        UInteger p0;
+                        UInteger p1;
+                        UInteger p2;
+//                        if (!t0.isEqualTo(t1, delta) && !t0.isEqualTo(t2, delta) && !t1.isEqualTo(t2, delta))
+                        {
+                            if (t0 < t1 && t0 < t2)
+                            {
+                                p0 = addNode(t0, BORDER, delta);
+                                if (t1 < t2)
+                                {
+                                    p1 = addNode(t1, BORDER, delta);
+                                    p2 = addNode(t2, BORDER, delta);
+                                }
+                                else
+                                {
+                                    p2 = addNode(t2, BORDER, delta);
+                                    p1 = addNode(t1, BORDER, delta);
+                                }
+                            }
+                            else if (t1 < t0 && t1 < t2)
+                            {
+                                p1 = addNode(t1, BORDER, delta);
+                                if (t0 < t2)
+                                {
+                                    p0 = addNode(t0, BORDER, delta);
+                                    p2 = addNode(t2, BORDER, delta);
+                                }
+                                else
+                                {
+                                    p2 = addNode(t2, BORDER, delta);
+                                    p0 = addNode(t0, BORDER, delta);
+                                }
+                            }
+                            else
+                            {
+                                p2 = addNode(t2, BORDER, delta);
+                                if (t1 < t0)
+                                {
+                                    p1 = addNode(t1, BORDER, delta);
+                                    p0 = addNode(t0, BORDER, delta);
+                                }
+                                else
+                                {
+                                    p0 = addNode(t0, BORDER, delta);
+                                    p1 = addNode(t1, BORDER, delta);
+                                }
+                            }
+                            if(p0!=p1 && p0!=p2 && p1!=p2)addElement(p0, p1, p2);
+                        }
                     }
                 }
                 z += hz;

@@ -90,11 +90,11 @@ UInteger Mesh3D::pushNode(PointPointer point, const NodeType &type)
     return pushNode(Point3D(point->x(), point->y(), point->z()), type);
 }
 
-UInteger Mesh3D::addNode(const Point3D &point, const NodeType &type)
+UInteger Mesh3D::addNode(const Point3D &point, const NodeType &type, double epsilon)
 {
     for (UInteger i = 0; i < node_.size(); i++)
     {
-        if ( point.isEqualTo(node_[i].point, epsilon_) )
+        if ( point.isEqualTo(node_[i].point, epsilon) )
         {
             if (node_[i].type != type) // обновление типа узла
                 node_[i].type = type;
@@ -169,7 +169,7 @@ Point3D Mesh3D::binary(Point3D p0, Point3D p1, std::function<double (double, dou
             p0 = center;
             val0 = val;
         }
-    } while (!(0.0 <= val && val < epsilon_) && !p0.isEqualTo(p1, epsilon_ / 10.0));
+    } while (!(0.0 <= val && val < epsilon_) && !p0.isEqualTo(p1, epsilon_ / 100000.0));
     return center;
 }
 
