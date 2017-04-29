@@ -113,7 +113,7 @@ public:
      * @param node Коордианты и тип узла
      * @return Номер узла в массиве узлов
      */
-    UInteger addNode(const Node3D &node);
+    UInteger addNode(const Node3D &node, double epsilon = epsilon_);
     /**
      * @brief Обновить параметры области определения сетки (xMin, xMax, yMin, yMax, zMin, zMax)
      */

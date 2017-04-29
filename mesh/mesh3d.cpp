@@ -104,9 +104,9 @@ UInteger Mesh3D::addNode(const Point3D &point, const NodeType &type, double epsi
     return pushNode(point, type);
 }
 
-UInteger Mesh3D::addNode(const Node3D &node)
+UInteger Mesh3D::addNode(const Node3D &node, double epsilon)
 {
-    return addNode(node.point, node.type);
+    return addNode(node.point, node.type, epsilon);
 }
 
 void Mesh3D::updateDomain()
