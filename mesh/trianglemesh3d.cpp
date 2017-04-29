@@ -1166,7 +1166,6 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
     double xc = xMin + width / 2.0;
     double yc = yMin + height / 2.0;
     double zc = zMin + depth / 2.0;
-    double delta = 0.4 * sqrt(hx*hx + hy*hy + hz*hz);
     ConsoleProgress progress(xCount - 1);
 
 
@@ -1229,51 +1228,50 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
                         UInteger p0;
                         UInteger p1;
                         UInteger p2;
-//                        if (!t0.isEqualTo(t1, delta) && !t0.isEqualTo(t2, delta) && !t1.isEqualTo(t2, delta))
                         {
                             if (t0 < t1 && t0 < t2)
                             {
-                                p0 = addNode(t0, BORDER, delta);
+                                p0 = addNode(t0, BORDER);
                                 if (t1 < t2)
                                 {
-                                    p1 = addNode(t1, BORDER, delta);
-                                    p2 = addNode(t2, BORDER, delta);
+                                    p1 = addNode(t1, BORDER);
+                                    p2 = addNode(t2, BORDER);
                                 }
                                 else
                                 {
-                                    p2 = addNode(t2, BORDER, delta);
-                                    p1 = addNode(t1, BORDER, delta);
+                                    p2 = addNode(t2, BORDER);
+                                    p1 = addNode(t1, BORDER);
                                 }
                             }
                             else if (t1 < t0 && t1 < t2)
                             {
-                                p1 = addNode(t1, BORDER, delta);
+                                p1 = addNode(t1, BORDER);
                                 if (t0 < t2)
                                 {
-                                    p0 = addNode(t0, BORDER, delta);
-                                    p2 = addNode(t2, BORDER, delta);
+                                    p0 = addNode(t0, BORDER);
+                                    p2 = addNode(t2, BORDER);
                                 }
                                 else
                                 {
-                                    p2 = addNode(t2, BORDER, delta);
-                                    p0 = addNode(t0, BORDER, delta);
+                                    p2 = addNode(t2, BORDER);
+                                    p0 = addNode(t0, BORDER);
                                 }
                             }
                             else
                             {
-                                p2 = addNode(t2, BORDER, delta);
+                                p2 = addNode(t2, BORDER);
                                 if (t1 < t0)
                                 {
-                                    p1 = addNode(t1, BORDER, delta);
-                                    p0 = addNode(t0, BORDER, delta);
+                                    p1 = addNode(t1, BORDER);
+                                    p0 = addNode(t0, BORDER);
                                 }
                                 else
                                 {
-                                    p0 = addNode(t0, BORDER, delta);
-                                    p1 = addNode(t1, BORDER, delta);
+                                    p0 = addNode(t0, BORDER);
+                                    p1 = addNode(t1, BORDER);
                                 }
                             }
-                            if(p0!=p1 && p0!=p2 && p1!=p2)addElement(p0, p1, p2);
+                            if (p0 != p1 && p0 != p2 && p1 != p2) addElement(p0, p1, p2);
                         }
                     }
                 }
@@ -1282,6 +1280,226 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
             y += hy;
         }
         x += hx;
+    }
+//    std::vector<Triangle> elements = element_;
+//    std::vector<Node3D> nodes = node_;
+//    clear();
+//    for (std::vector<Triangle>::iterator t = elements.begin(); t != elements.end(); ++t)
+//    {
+//        Triangle triangle = *t;
+//        UInteger p0 = addNode(nodes[triangle[0]], delta);
+//        UInteger p1 = addNode(nodes[triangle[1]], delta);
+//        UInteger p2 = addNode(nodes[triangle[2]], delta);
+//        if (p0 != p1 && p0 != p2 && p1 != p2) addElement(p0, p1, p2);
+//    }
+    for (short iit = 0; iit < 4; iit++)
+    {
+        progress.restart(nodesCount());
+        for (std::vector<Node3D>::iterator n = node_.begin(); n != node_.end(); ++n)
+        {
+            Node3D node = *n;
+            AdjacentSet adjasent = node.adjacent;
+            Point3D point(0.0, 0.0, 0.0);
+            Point3D normal(0.0, 0.0, 0.0);
+            AdjacentSet neighbours;
+            double avr_len = 0.0; // средняя длина ребра
+            for (auto epointer: adjasent)
+            {
+                Triangle t = element_[epointer];
+                Point3D a(node_[t[0]].point, node_[t[1]].point);
+                Point3D b(node_[t[0]].point, node_[t[2]].point);
+                Point3D n = a.product(b);
+                neighbours.insert(t[0]);
+                neighbours.insert(t[1]);
+                neighbours.insert(t[2]);
+                normal = normal + n.normalized();
+                avr_len += a.length() + b.length();
+            }
+            normal = normal.normalized();
+            avr_len /= (2.0 * (double)adjasent.size());
+            for (auto npointer: neighbours)
+            {
+                point = point + node_[npointer].point;
+            }
+            point.scale(1.0 / (double)neighbours.size());
+            Point3D h = 0.001 * avr_len * normal;
+            Point3D p0 = point - h;
+            Point3D p1 = point + h;
+            while (signbit(func_slice(p0.x(), p0.y(), p0.z()) - level) == signbit(func_slice(p1.x(), p1.y(), p1.z()) - level))
+            {
+                p0 = p0 - h;
+                p1 = p1 + h;
+            }
+            (*n).point = binary(p0, p1, func_slice, level);
+            ++progress;
+        }
+    }
+    flip();
+//    return;
+    auto functor = [&](const AdjacentSet &adjasentset)
+    {
+        double F = 0.0; // функционал
+//        double m = 0.0;
+        for (std::set<UInteger>::iterator it = adjasentset.begin(); it != adjasentset.end(); ++it)
+        {
+//            double a = area(*it);
+            Triangle t = element_[*it];
+            Point3D A = node_[t[0]].point;
+            Point3D B = node_[t[1]].point;
+            Point3D C = node_[t[2]].point;
+            double d2b = distToBorder(A, B, C, func_slice, 0.33333, 0.33333, level);
+//            F += 0.4 * a*a + 0.6 * d2b;
+            Point3D AB = 0.5 * (A + B);
+            Point3D BC = 0.5 * (B + C);
+            Point3D CA = 0.5 * (C + A);
+            double ab = C.distanceTo(AB);
+            double bc = A.distanceTo(BC);
+            double ca = B.distanceTo(CA);
+            F += 0.3 * (ab*ab + bc*bc + ca*ca) + 0.7 * d2b;
+//            if (d2b > m) m = d2b;
+        }
+        return F;
+//        return 0.2*F + 0.8*(double)adjasentset.size() * m*m;
+    };
+
+//    auto local_normal = [&](const AdjacentSet &adjasent)
+//    {
+//        Point3D normal(0.0, 0.0, 0.0);
+//        for (auto epointer: adjasent)
+//        {
+//            Triangle t = element_[epointer];
+//            Point3D a(node_[t[0]].point, node_[t[1]].point);
+//            Point3D b(node_[t[0]].point, node_[t[2]].point);
+//            Point3D n = a.product(b);
+//            normal = normal + n.normalized();
+//        }
+//        return normal.normalized();
+//    };
+
+    std::cout << "Length functional optimization..." << std::endl;
+    bool optimized = true;
+    for (short iit = 0; iit < 10 && optimized; iit++)
+    {
+//        optimized = false;
+        progress.restart(nodesCount());
+        for (UInteger i = 0; i < nodesCount(); i++)
+        {
+            Node3D node = node_[i];
+            AdjacentSet adjasent = node.adjacent;
+            Point3D point = node.point;
+            double f_current = functor(adjasent);
+
+            for (std::set<UInteger>::iterator it = adjasent.begin(); it != adjasent.end(); ++it)
+            {
+                Triangle t = element_[*it];
+                int index = t.index(i);
+                Point3D A = node_[t[index]].point;
+                Point3D B = node_[t[index + 1]].point;
+                Point3D C = node_[t[index + 2]].point;
+                const double step = 0.01;
+                double l = step;
+                bool isOptimizedTriangle = false;
+//                double f00;
+//                double f1;
+//                double f2;
+//                double nabla1;
+//                double nabla2;
+//                double lnabla;
+//                double f_dir = f_current;
+//                node_[i].point = findBorder(A, B, C, func_slice, 0.0, 0.0, level);
+//                f00 = functor(adjasent);
+//                node_[i].point = findBorder(A, B, C, func_slice, step, 0.0, level);
+//                f1 = functor(adjasent);
+//                node_[i].point = findBorder(A, B, C, func_slice, 0.0, step, level);
+//                f2 = functor(adjasent);
+//                node_[i].point = point;
+//                nabla1 = (f1 - f00) / step;
+//                nabla2 = (f2 - f00) / step;
+//                lnabla = sqrt(nabla1*nabla1 + nabla2*nabla2);
+//                if (lnabla < epsilon_ || nabla1 > 0.0 || nabla2 > 0.0) continue;
+//                nabla1 /= lnabla;
+//                nabla2 /= lnabla;
+//                do {
+//                    f_current = f_dir;
+//                    point = node_[i].point;
+//                    l1 -= step * nabla1;
+//                    l2 -= step * nabla2;
+//                    node_[i].point = findBorder(A, B, C, func_slice, l1, l2, level);
+//                    f_dir = functor(adjasent);
+//                } while (0.0 <= l1 && 0.0 <= l2 && (l1 + l2) < 1.0 && f_dir < f_current);
+//                node_[i].point = point;
+                l = step;
+                double f_dir = 0.0;
+                node_[i].point = findBorder(A, B, C, func_slice, l, l, level);
+                f_dir = functor(adjasent);
+                if (f_dir > f_current)
+                {
+                    node_[i].point = point; // revert changes
+                }
+                else
+                {
+                    while (f_dir < f_current && l < 0.4)
+                    {
+                        point = node_[i].point;
+                        f_current = f_dir;
+                        l += step;
+                        node_[i].point = findBorder(A, B, C, func_slice, l, l, level);
+                        f_dir = functor(adjasent);
+                    }
+                    node_[i].point = point;
+                    optimized = isOptimizedTriangle = true;
+                }
+                if (!isOptimizedTriangle)
+                {
+                    l = step;
+                    node_[i].point = findBorder(A, B, C, func_slice, l, 0.0, level);
+                    f_dir = functor(adjasent);
+                    if (f_dir > f_current)
+                    {
+                        node_[i].point = point; // revert changes
+                    }
+                    else
+                    {
+                        while (f_dir < f_current && l < 0.4)
+                        {
+                            point = node_[i].point;
+                            f_current = f_dir;
+                            l += step;
+                            node_[i].point = findBorder(A, B, C, func_slice, l, 0.0, level);
+                            f_dir = functor(adjasent);
+                        }
+                        node_[i].point = point;
+                        optimized = isOptimizedTriangle = true;
+                    }
+                }
+                if (!isOptimizedTriangle)
+                {
+                    l =step;
+                    node_[i].point = findBorder(A, B, C, func_slice, 0, l, level);
+                    f_dir = functor(adjasent);
+                    if (f_dir > f_current)
+                    {
+                        node_[i].point = point; // revert changes
+                    }
+                    else
+                    {
+                        while (f_dir < f_current && l < 0.4)
+                        {
+                            point = node_[i].point;
+                            f_current = f_dir;
+                            l += step;
+                            node_[i].point = findBorder(A, B, C, func_slice, 0.0, l, level);
+                            f_dir = functor(adjasent);
+                        }
+                        node_[i].point = point;
+                        optimized =true;
+                    }
+                }
+            }
+            ++progress;
+        }
+        flip();
+        if (!optimized) std::cout << "Optimization done in " << iit << " iterations." << std::endl;
     }
     xMin_ = xMin;
     xMax_ = xMin + width;
@@ -1335,9 +1553,11 @@ void TriangleMesh3D::addElement(const std::vector<UInteger> &nodes_ref)
 double TriangleMesh3D::area(const UInteger &number) const
 {
     Triangle triangle = element_[number];
-    Point3D p0 = node_[triangle[0]].point;
-    Point3D p1 = node_[triangle[1]].point;
-    Point3D p2 = node_[triangle[2]].point;
+    return area(node_[triangle[0]].point, node_[triangle[1]].point, node_[triangle[2]].point);
+}
+
+double TriangleMesh3D::area(const Point3D &p0, const Point3D &p1, const Point3D &p2) const
+{
     double a = p0.distanceTo(p1);
     double b = p1.distanceTo(p2);
     double c = p2.distanceTo(p0);
@@ -1430,6 +1650,47 @@ double TriangleMesh3D::cfunction(const double &x, const double &y, const double 
     }
     sign = (count % 2 == 0 ) ? -1.0 : 1.0;
     return sign * min_distance;
+}
+
+Point3D TriangleMesh3D::findBorder(const Point3D &a, const Point3D &b, const Point3D &c, std::function<double (double, double, double)> func, double lb, double lc, double level)
+{
+
+    Point3D ab(a, b);
+    Point3D ac(a, c);
+    double lab = ab.length();
+    double lac = ac.length();
+    if (lab < epsilon_ || lac < epsilon_) return a;
+    Point3D normal = ab.product(ac);
+    if (normal.length() < epsilon_) return a;
+
+    Point3D point = ((1.0 - lb - lc) * a) + (lb * b) + (lc * c);
+    if (fabs(func(point.x(), point.y(), point.z()) - level) < epsilon_) return point;
+
+    double avr_len = 0.5 * (lab + lac);
+    Point3D h = 0.01 * avr_len * normal.normalized();
+    Point3D p0 = point - h;
+    Point3D p1 = point + h;
+    double val0 = func(p0.x(), p0.y(), p0.z()) - level;
+    double val1 = func(p1.x(), p1.y(), p1.z()) - level;
+    short iic = 0;
+    while (signbit(val0) == signbit(val1)
+           && fabs(val0) >= epsilon_ && fabs(val1) >= epsilon_ && iic < 10000)
+    {
+        p0 = p0 - h;
+        p1 = p1 + h;
+        val0 = func(p0.x(), p0.y(), p0.z()) - level;
+        val1 = func(p1.x(), p1.y(), p1.z()) - level;
+        ++iic;
+    }
+    if (signbit(func(p0.x(), p0.y(), p0.z()) - level) == signbit(func(p1.x(), p1.y(), p1.z()) - level))
+        return a;
+    return binary(p0, p1, func, level);
+}
+
+double TriangleMesh3D::distToBorder(const Point3D &a, const Point3D &b, const Point3D &c, std::function<double (double, double, double)> func, double lb, double lc, double level)
+{
+    Point3D border = findBorder(a, b, c, func, lb, lc, level);
+    return border.distanceTo(a, b, c);
 }
 
 bool TriangleMesh3D::angles(const Point3D &A, const Point3D &B, const Point3D &C, double &alpha, double &beta, double &gamma)
@@ -1649,6 +1910,7 @@ bool TriangleMesh3D::insertDelaunayNode(const Point2D &point, const NodeType &ty
 
 void TriangleMesh3D::flip()
 {
+    std::cout << "Flip routine...";
     bool were_flips = true;
     while (were_flips)
     {
@@ -1660,22 +1922,23 @@ void TriangleMesh3D::flip()
             {
                 UInteger index0 = triangle[i];
                 UInteger index1 = triangle[i + 1];
-                AdjacentSet a1 = node_[index0].adjacent;
-                AdjacentSet a2 = node_[index1].adjacent;
+                UInteger index2 = triangle[i - 1];
+                AdjacentSet a0 = node_[index0].adjacent;
+                AdjacentSet a1 = node_[index1].adjacent;
+                AdjacentSet a2 = node_[index2].adjacent;
                 std::vector<UInteger> common;
-                set_intersection(a1.begin(), a1.end(), a2.begin(), a2.end(), std::back_inserter(common));
-                if (common.size() > 2)std::cout << ">";
+                set_intersection(a0.begin(), a0.end(), a1.begin(), a1.end(), std::back_inserter(common));
+                if (common.size() > 2)std::cout << t << ": " << common[0] << ' ' << common[1] << ' ' << common[2] << ' ' << common[3] << "; ";
                 if (common.size() == 2)
                 {
-                    //                std::cout << common[0] << " " << common[1] << std::endl;
                     Point3D p0 = node_[index0].point;
                     Point3D p1 = node_[index1].point;
-                    UInteger index2 = triangle[i - 1];
                     Point3D p2 = node_[index2].point;
                     UInteger indexf;
                     int subindex;
                     Point3D f;
                     UInteger t1;
+                    AdjacentSet af;
                     if (common[0] != t)
                     {
                         t1 = common[0];
@@ -1700,28 +1963,16 @@ void TriangleMesh3D::flip()
                         indexf = element_[t1][2];
                         subindex = 2;
                     }
-
                     f = node_[indexf].point;
-                    //                    double min_c = std::min(minAngle(p0, p1, p2), minAngle(p0, f, p1));
-                    //                    double min_n = std::min(minAngle(p0, f, p2), minAngle(p2, f, p1));
+                    af = node_[indexf].adjacent;
+                    std::vector<UInteger> a2_af_common;
+                    set_intersection(a2.begin(), a2.end(), af.begin(), af.end(), std::back_inserter(a2_af_common));
                     double tp = 0.0, tq = 0.0;
-                    //                    if (min_n > min_c && isSkew(p0, p1, p2, f, tp, tq) && tp > epsilon_ && tp < (1.0 - epsilon_) && tq > epsilon_ && tq < (1.0 - epsilon_))
-                    //                    {
-                    //                        std::cout << " flip " << std::endl;
-                    //                        node_[index0].adjacent.erase(t1);
-                    //                        node_[index1].adjacent.erase(t);
-                    //                        element_[t][i + 1] = indexf;
-                    //                        node_[indexf].adjacent.insert(t);
-                    //                        element_[t1][subindex - 1] = index2;
-                    //                        node_[index2].adjacent.insert(t1);
-                    //                        were_flips = true;
-                    //                        break;
-                    //                    }
-                    if (isSkew(p0, p1, p2, f, tp, tq) && tp > epsilon_ && tp < (1.0 - epsilon_) && tq > epsilon_ && tq < (1.0 - epsilon_))
+                    if (a2_af_common.size() == 0 && isSkew(p0, p1, p2, f, tp, tq) && tp > epsilon_ && tp < (1.0 - epsilon_) && tq > epsilon_ && tq < (1.0 - epsilon_))
                     {
                         if (inCircumSphere(f, p0, p1, p2))
                         {
-                            std::cout << " flip " << std::endl;
+                            std::cout << "+ ";
                             node_[index0].adjacent.erase(t1);
                             node_[index1].adjacent.erase(t);
                             element_[t][i + 1] = indexf;

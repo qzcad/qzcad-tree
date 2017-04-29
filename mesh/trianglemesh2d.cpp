@@ -435,13 +435,11 @@ void TriangleMesh2D::addElement(const Triangle &triangle)
     Point2D p0 = node_[triangle[0]].point;
     Point2D p1 = node_[triangle[1]].point;
     Point2D p2 = node_[triangle[2]].point;
-    if ((p1.x() < p0.x() || (p1.x() == p0.x() && p1.y() < p0.y())) &&
-        (p1.x() < p2.x() || (p1.x() == p2.x() && p1.y() < p2.y())))
+    if (p1 < p0 && p1 < p2)
     {
         element_.push_back(Triangle(triangle[1], triangle[2], triangle[0]));
     }
-    else if ((p2.x() < p0.x() || (p2.x() == p0.x() && p2.y() < p0.y())) &&
-             (p2.x() < p1.x() || (p2.x() == p1.x() && p2.y() < p1.y())))
+    else if (p2 < p0 && p2 < p1)
     {
         element_.push_back(Triangle(triangle[2], triangle[0], triangle[1]));
     }
