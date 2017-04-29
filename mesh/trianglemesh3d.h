@@ -124,11 +124,19 @@ public:
      */
     void addElement(const std::vector<UInteger> &nodes_ref);
     /**
-     * @brief area Подсчитать площадь элемента
+     * @brief area Вычислить площадь элемента
      * @param number Номер элемента
      * @return Площадь элемента
      */
     virtual double area(const UInteger &number) const;
+    /**
+     * @brief Вычислить площадь треугольника, заданного тремя вершинами (формула Герона)
+     * @param p0 Первая вершина
+     * @param p1 Вторая вершина
+     * @param p2 Третья вершина
+     * @return Площадь треугольника
+     */
+    virtual double area(const Point3D &p0, const Point3D &p1, const Point3D &p2) const;
     /**
      * @brief Вычислить значение минимального угла в элементе
      * @param elNum Номер элемента
@@ -152,6 +160,19 @@ public:
      * @return Расстояние до ближайшей точки границы со знаком "+" для внутренних точек
      */
     double cfunction(const double &x, const double &y, const double &z);
+    /**
+     * @brief findBorder
+     * @param a
+     * @param b
+     * @param c
+     * @param func
+     * @param lb
+     * @param lc
+     * @param level
+     * @return
+     */
+    Point3D findBorder(const Point3D &a, const Point3D &b, const Point3D &c, std::function<double (double, double, double)> func, double lb = 0.33333, double lc = 0.33333, double level = 0.0);
+    double distToBorder(const Point3D &a, const Point3D &b, const Point3D &c, std::function<double (double, double, double)> func, double lb = 0.33333, double lc = 0.33333, double level = 0.0);
 protected:
     /**
      * @brief Функция для подсчета значений углов треугольника
