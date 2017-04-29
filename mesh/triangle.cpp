@@ -82,4 +82,12 @@ bool Triangle::in(const UInteger &node)
     return vertex_[0] == node || vertex_[1] == node || vertex_[2] == node;
 }
 
+int Triangle::index(const UInteger &node)
+{
+    if (vertex_[0] == node) return 0;
+    if (vertex_[1] == node) return 1;
+    if (vertex_[2] == node) return 2;
+    return -1;
+}
+
 }
