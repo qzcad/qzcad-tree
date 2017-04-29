@@ -111,6 +111,11 @@ public:
      * @return true, если точки приблизительно равны; false - иначе
      */
     bool isEqualTo(const Point1D &point, double epsilon = 0.000001) const;
+    /**
+     * @brief Масштабировать координаты на коэффициент
+     * @param d Коэффициент масштабирования
+     */
+    virtual void scale(const double &d);
 private:
     double x_; //!< Абсцисса точки
 };

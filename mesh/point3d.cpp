@@ -144,6 +144,12 @@ Point3D Point3D::inCoordSystem(const Point3D &Vx, const Point3D &Vy, const Point
     return p;
 }
 
+void Point3D::scale(const double &d)
+{
+    Point2D::scale(d);
+    z_ *= d;
+}
+
 Point2D &Point3D::operator =(const Point3D &point)
 {
     if (this != &point)

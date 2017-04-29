@@ -92,6 +92,13 @@ public:
     friend const Point2D operator *(double dec, const Point2D &point);
     /// Отношение вектора, занного точкой point, к числу dec
     friend const Point2D operator /(const Point2D &point, double dec);
+    /**
+     * @brief Оператор сравнения "меньше" с использованием лексикографического порядка
+     * @param leftPoint Левая точка
+     * @param rightPoint Правая точка
+     * @return leftPoint < rightPoint
+     */
+    friend bool operator <(const Point2D &leftPoint, const Point2D &rightPoint);
     /// @}
     /**
      * @brief Координаты нормализованного вектора
@@ -142,6 +149,11 @@ public:
      * @return Экзмепляр перпендикулярного вектора
      */
     Point2D perpendicular() const;
+    /**
+     * @brief Масштабировать координаты точки на коэффициент
+     * @param d Коэффициент масштабирования
+     */
+    virtual void scale(const double &d);
     /**
      * @brief Проверка пересекаются ли прямые P0P1 и Q0Q1
      * @param P0 Первая точка прямой P

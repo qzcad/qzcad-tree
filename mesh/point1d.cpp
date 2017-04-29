@@ -110,6 +110,10 @@ bool Point1D::isEqualTo(const Point1D &point, double epsilon) const
     return distanceTo(point) < epsilon;
 }
 
+void Point1D::scale(const double &d)
+{
+    x_ *= d;
+}
 
 Point1D Point1D::normalized() const
 {

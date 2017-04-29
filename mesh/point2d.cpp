@@ -90,6 +90,11 @@ double Point2D::operator *(const Point2D &point) const
     return this->x() * point.x() + this->y() * point.y();
 }
 
+bool operator <(const Point2D &leftPoint, const Point2D &rightPoint)
+{
+    return  (leftPoint.x() < rightPoint.x()) || (leftPoint.x() == rightPoint.x() && leftPoint.y() < rightPoint.y());
+}
+
 const Point2D operator *(double dec, const Point2D &point)
 {
     return Point2D (dec * point.x(), dec * point.y());
@@ -169,6 +174,12 @@ Point2D::PointToSegment Point2D::classify(const Point2D &p0, const Point2D &p1)
 Point2D Point2D::perpendicular() const
 {
     return Point2D(-y(), x());
+}
+
+void Point2D::scale(const double &d)
+{
+    Point1D::scale(d);
+    y_ *= d;
 }
 
 bool isCrossed(const Point2D &P0, const Point2D &P1, const Point2D &Q0, const Point2D &Q1, double &p, double &q)
