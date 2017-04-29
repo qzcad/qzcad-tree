@@ -90,8 +90,15 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
     {
         double d0 = o.distanceTo(a);
         double d1 = o.distanceTo(b);
-        double e0c = midpointToBorderDist(o, a, func, level);
-        double e1c = midpointToBorderDist(o, b, func, level);
+        double e0c = distToBorder(o, a, func, 0.5, level);
+        double e1c = distToBorder(o, b, func, 0.5, level);
+//        for (double alpha = 0.5; alpha < 1.0; alpha += 0.25)
+//        {
+//            double e0ccc = distToBorder(o, a, func, alpha, level);
+//            double e1ccc = distToBorder(o, b, func, alpha, level);
+//            if (e0ccc > e0c) e0c = e0ccc;
+//            if (e1ccc > e1c) e1c = e1ccc;
+//        }
         return 0.99 * (e0c*e0c + e1c*e1c) + 0.01 * (d0 - d1) * (d0 - d1);
     };
     std::cout << "Length optimization..." << std::endl;
@@ -114,23 +121,23 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
                 Point2D border1 = findBorder(node.point, node1.point, func, 0.001);
                 double f0 = functor(node0.point, border0, node1.point);
                 double f1 = functor(node0.point, border1, node1.point);
-                while (f0 < fcurrent && f0 < f1)
+                while (f0 < fcurrent)
                 {
                     fcurrent = f0;
                     node.point = border0;
                     border0 = findBorder(node.point, node0.point, func, 0.001);
-                    border1 = findBorder(node.point, node1.point, func, 0.001);
+//                    border1 = findBorder(node.point, node1.point, func, 0.001);
                     f0 = functor(node0.point, border0, node1.point);
-                    f1 = functor(node0.point, border1, node1.point);
+//                    f1 = functor(node0.point, border1, node1.point);
                     isOptimized = true;
                 }
-                while (f1 < f0 && f1 < fcurrent)
+                while (/*f1 < f0 &&*/ f1 < fcurrent)
                 {
                     fcurrent = f1;
                     node.point = border1;
-                    border0 = findBorder(node.point, node0.point, func, 0.001);
+//                    border0 = findBorder(node.point, node0.point, func, 0.001);
                     border1 = findBorder(node.point, node1.point, func, 0.001);
-                    f0 = functor(node0.point, border0, node1.point);
+//                    f0 = functor(node0.point, border0, node1.point);
                     f1 = functor(node0.point, border1, node1.point);
                     isOptimized = true;
                 }
@@ -806,8 +813,8 @@ void SegmentMesh2D::cellContours(const Point2D &p0, const Point2D &p1, const Poi
         Point2D prev = border[edge_table[index][ii]];
         Point2D next = border[edge_table[index][ii + 1]];
         // упорядоченное добавление узлов
-        UInteger ii0 = (prev.x() < next.x() || (prev.x() == next.x() && prev.y() < next.y())) ? addNode(prev, BORDER, min_distance, distance) : addNode(next, BORDER, min_distance, distance);
-        UInteger ii1 = (prev.x() < next.x() || (prev.x() == next.x() && prev.y() < next.y())) ? addNode(next, BORDER, min_distance, distance) : addNode(prev, BORDER, min_distance, distance);
+        UInteger ii0 = (prev < next) ? addNode(prev, BORDER, min_distance, distance) : addNode(next, BORDER, min_distance, distance);
+        UInteger ii1 = (prev < next) ? addNode(next, BORDER, min_distance, distance) : addNode(prev, BORDER, min_distance, distance);
         if (ii0 != ii1)
         {
             addElement(ii0, ii1);
@@ -839,7 +846,8 @@ Point2D SegmentMesh2D::findBorder(const Point2D &a, const Point2D &b, std::funct
                 Point2D h = 0.001 * l * n;
                 p0 = -h + c;
                 p1 = h + c;
-                while (signbit(func(p0.x(), p0.y()) - level) == signbit(func(p1.x(), p1.y()) - level)) {
+                while (signbit(func(p0.x(), p0.y()) - level) == signbit(func(p1.x(), p1.y()) - level))
+                {
                     p0 = p0 - h;
                     p1 = p1 + h;
                 }
@@ -850,9 +858,9 @@ Point2D SegmentMesh2D::findBorder(const Point2D &a, const Point2D &b, std::funct
     return border;
 }
 
-double SegmentMesh2D::midpointToBorderDist(const Point2D &a, const Point2D &b, std::function<double (double, double)> func, double level)
+double SegmentMesh2D::distToBorder(const Point2D &a, const Point2D &b, std::function<double (double, double)> func, double alpha, double level)
 {
-    Point2D border = findBorder(a, b, func, 0.5, level);
+    Point2D border = findBorder(a, b, func, alpha, level);
     return border.distanceTo(a, b);
 }
 
