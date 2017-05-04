@@ -11,11 +11,12 @@
 PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
                                      double thickness,
                                      const DoubleMatrix &elasticMatrix,
-                                     const std::list<FemCondition *> &conditions) :
+                                     const std::list<FemCondition *> &conditions, double alphaT) :
     Fem2D(mesh, 2, conditions)
 {
     thickness_ = thickness;
     D_ = elasticMatrix;
+    alpha_ = alphaT;
 }
 
 void PlaneStressStrain::buildGlobalMatrix()
@@ -55,6 +56,11 @@ void PlaneStressStrain::buildGlobalMatrix()
         }
     }
 
+    // температурные деформации
+    DoubleVector epsilon0(3, 0.0);
+    epsilon0(0) = alpha_;
+    epsilon0(1) = alpha_;
+
     // построение глобальной матрицы жесткости
     std::cout << "Stiffness Matrix...";
     ConsoleProgress progressBar(elementsCount);
@@ -66,6 +72,7 @@ void PlaneStressStrain::buildGlobalMatrix()
         DoubleMatrix local(freedom_ * elementNodes, freedom_ * elementNodes, 0.0);
         double x[elementNodes];
         double y[elementNodes];
+        DoubleVector epsilonForce(freedom_ * elementNodes, 0.0);
         // извлечение координат узлов
         ElementPointer element = mesh_->element(elNum);
         for (UInteger i = 0; i < elementNodes; i++)
@@ -104,9 +111,16 @@ void PlaneStressStrain::buildGlobalMatrix()
             }
 
             local += jacobian * w * thickness_ * (B.transpose() * D_ * B);
+
+            epsilonForce += jacobian * w * thickness_ * ((B.transpose() * D_) * epsilon0);
         } // ig
         // Ансамблирование
         assembly(element, local);
+        for (UInteger i = 0; i < freedom_ * elementNodes; i++)
+        {
+            UInteger index = freedom_ * element->vertexNode(i / freedom_) + (i % freedom_);
+            force_(index) += epsilonForce(i);
+        }
     } //for elNum
 }
 

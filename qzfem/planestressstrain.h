@@ -35,11 +35,13 @@ public:
      * @param thickness Толщина объекта
      * @param elasticMatrix Матрица упругости
      * @param conditions Список указателей на граничные условия и силы
+     * @param alphaT Коэффициент температурного напряжения
      */
     PlaneStressStrain(Mesh2D *mesh,
                       double thickness,
                       const DoubleMatrix &elasticMatrix,
-                      const std::list<FemCondition *> &conditions);
+                      const std::list<FemCondition *> &conditions,
+                      double alphaT = 0.0);
 protected:
     /**
      * @brief Метод для построения глобальной матрицы системы
@@ -57,6 +59,7 @@ protected:
 protected:
     double thickness_; //!< Толщина объекта
     DoubleMatrix D_; //!< Матрица упругости
+    double alpha_; //!< Коэффициент температурного напряжения
 };
 
 #endif // PLANESTRESSSTRAIN_H
