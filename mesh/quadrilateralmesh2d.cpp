@@ -587,28 +587,24 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
 //        }
 //    } // for i
     // сглаживание Лапласа
-    for (int iter = 0; iter < 5; iter++)
+    for (int iter = 0; iter < 10; iter++)
     {
         for (UInteger i = 0; i < nodesCount(); i++)
         {
             if (node_[i].type == INNER)
             {
-                Point2D nn = node_[i].point;
+                Point2D nn(0.0, 0.0);
                 AdjacentSet adjacent = node_[i].adjacent;
-                int acount = 1;
+                int acount = 0;
 //                double w_sum = 0.0;
                 for (AdjacentSet::iterator it = adjacent.begin(); it != adjacent.end(); ++it)
                 {
                     Quadrilateral aquad = element_[*it];
                     for (int nnode = 0; nnode < 4; nnode++)
                     {
-                        if (aquad[nnode] == i)
+                        if (aquad[nnode] != i)
                         {
-                            UInteger prev_index = aquad[nnode - 1];
-                            UInteger next_index = aquad[nnode + 1];
-                            nn = nn + node_[prev_index].point;
-                            ++acount;
-                            nn = nn + node_[next_index].point;
+                            nn = nn + node_[aquad[nnode]].point;
                             ++acount;
                         }
                     }
@@ -617,7 +613,7 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
             }
         } // for i
     }
-
+    minimizeFunctional();
     // the end.
     std::cout << "Создана сетка четырехугольных элементов для функционального объекта: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
@@ -733,7 +729,7 @@ double QuadrilateralMesh2D::isoFunc(const UInteger &i, const double &xi, const d
 double QuadrilateralMesh2D::functional(const std::vector<double> &vars)
 {
     double f = 0.0;
-    const double alpha = 0.999;
+    const double alpha = 0.9;
     const double beta = 1.0 - alpha;
     for (UInteger i = 0; i < element_.size(); i++)
     {
@@ -765,11 +761,11 @@ double QuadrilateralMesh2D::functional(const std::vector<double> &vars)
         for (int q = 0; q < 4; q++)
         {
 //            double length = sqr(c[0][q] - a[0][q]) + sqr(c[1][q] - a[1][q]) + sqr(b[0][q] - a[0][q]) + sqr(b[1][q] - a[1][q]);
-//            double ortho = (c[0][q] - a[0][q]) *  (b[0][q] - a[0][q]) + (c[1][q] - a[1][q]) * (b[1][q] - a[1][q]);
+            double ortho = (c[0][q] - a[0][q]) *  (b[0][q] - a[0][q]) + (c[1][q] - a[1][q]) * (b[1][q] - a[1][q]);
             double area = sqr((b[0][q] - a[0][q]) * (c[1][q] - a[1][q]) - (b[1][q] - a[1][q]) * (c[0][q] - a[0][q]));
 //            double r = regular(a[0][q], a[1][q], 0.8, 6);
-            double r = con(circle(a[0][q], a[1][q], 0.8), -circle(a[0][q], a[1][q], 0.6));
-            f += area / (1.0 + (r > 0.0 ? 10.0 * r : -r));
+//            double r = con(circle(a[0][q], a[1][q], 0.8), -circle(a[0][q], a[1][q], 0.6));
+            f += alpha * area + beta * ortho ;// / (1.0 + (r > 0.0 ? 10.0 * r : -r));
 //            f +=  alpha * length + beta *  (1.0 - 1.0 / cosh(r));
 //            localValue += sqr(0.5 * alpha);
         }
