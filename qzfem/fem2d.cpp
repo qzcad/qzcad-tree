@@ -39,7 +39,7 @@ DoubleMatrix Fem2D::evalPlaneStressMatrix(const double &E, const double &nu, con
     return d;
 }
 
-double Fem2D::isoQuad4(const double &xi, const double &eta, double x[], double y[], DoubleVector &N, DoubleVector &dNdX, DoubleVector &dNdY)
+double Fem2D::isoQuad4(const double &xi, const double &eta, const DoubleVector &x, const DoubleVector &y, DoubleVector &N, DoubleVector &dNdX, DoubleVector &dNdY)
 {
     const unsigned int elementNodes = 4;
     DoubleVector dNdXi(elementNodes);
@@ -79,7 +79,7 @@ double Fem2D::isoQuad4(const double &xi, const double &eta, double x[], double y
     return jacobian;
 }
 
-double Fem2D::isoTriangle3(const double &xi, const double &eta, double x[], double y[], DoubleVector &N, DoubleVector &dNdX, DoubleVector &dNdY)
+double Fem2D::isoTriangle3(const double &xi, const double &eta, const DoubleVector &x, const DoubleVector &y, DoubleVector &N, DoubleVector &dNdX, DoubleVector &dNdY)
 {
     const unsigned int elementNodes = 3;
     DoubleVector dNdXi(elementNodes);

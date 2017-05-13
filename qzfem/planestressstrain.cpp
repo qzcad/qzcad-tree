@@ -70,8 +70,8 @@ void PlaneStressStrain::buildGlobalMatrix()
 
         ++progressBar;
         DoubleMatrix local(freedom_ * elementNodes, freedom_ * elementNodes, 0.0);
-        double x[elementNodes];
-        double y[elementNodes];
+        DoubleVector x(elementNodes);
+        DoubleVector y(elementNodes);
         DoubleVector epsilonForce(freedom_ * elementNodes, 0.0);
         // извлечение координат узлов
         ElementPointer element = mesh_->element(elNum);
@@ -250,8 +250,8 @@ void PlaneStressStrain::buildGlobalVector()
             {
 
                 ++progressBar;
-                double x[elementNodes];
-                double y[elementNodes];
+                DoubleVector x(elementNodes);
+                DoubleVector y(elementNodes);
                 double vForce[elementNodes]; // значения объемных сил в узлах
                 // извлечение координат узлов
                 ElementPointer element = mesh_->element(elNum);
@@ -272,8 +272,6 @@ void PlaneStressStrain::buildGlobalVector()
                     // значения производных функций формы
                     DoubleVector dNdX(elementNodes);
                     DoubleVector dNdY(elementNodes);
-                    double xLocal = 0.0;
-                    double yLocal = 0.0;
                     // якобиан
                     double jacobian = 1.0;
                     if (dynamic_cast<TriangleMesh2D*>(mesh_) != NULL)
@@ -284,13 +282,8 @@ void PlaneStressStrain::buildGlobalVector()
                     {
                         jacobian = isoQuad4(xi, eta, x, y, N, dNdX, dNdY);
                     }
-                    for (UInteger i = 0; i < elementNodes; i++)
-                    {
-                        xLocal += x[i] * N[i];
-                        yLocal += y[i] * N[i];
-                    }
                     // вычисление объемных сил
-                    Point2D pLocal(xLocal, yLocal);
+                    Point2D pLocal(x * N, y * N);
                     double fLocal = (*condition)->value(&pLocal);
                     for (UInteger i = 0; i < elementNodes; i++)
                     {
@@ -365,8 +358,8 @@ void PlaneStressStrain::processSolution(const DoubleVector &displacement)
 
         ++progressBar;
 
-        double x[elementNodes];
-        double y[elementNodes];
+        DoubleVector x(elementNodes);
+        DoubleVector y(elementNodes);
         // извлечение координат узлов
         ElementPointer element = mesh_->element(elNum);
         for (UInteger i = 0; i < elementNodes; i++)

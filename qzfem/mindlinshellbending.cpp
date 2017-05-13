@@ -287,8 +287,8 @@ void MindlinShellBending::buildGlobalMatrix()
                     T(ii + i, jj + i) = lambda(ii, jj);
         }
 
-        double x[elementNodes];
-        double y[elementNodes];
+        DoubleVector x(elementNodes);
+        DoubleVector y(elementNodes);
         // извлечение координат узлов
 
         for (UInteger i = 0; i < elementNodes; i++)
@@ -520,8 +520,8 @@ void MindlinShellBending::buildGlobalVector()
                 Point3D C = *(dynamic_cast<const Point3D *>(mesh_->node(element->vertexNode(2))));
                 DoubleMatrix lambda = cosinuses(A, B, C);
                 DoubleMatrix lambdaT = lambda.transpose();
-                double x[elementNodes];
-                double y[elementNodes];
+                DoubleVector x(elementNodes);
+                DoubleVector y(elementNodes);
                 // извлечение координат узлов
                 for (UInteger i = 0; i < elementNodes; i++)
                 {
@@ -557,13 +557,8 @@ void MindlinShellBending::buildGlobalVector()
                     {
                         jacobian = isoQuad4(xi, eta, x, y, N, dNdX, dNdY);
                     }
-                    double xLocal = 0.0;
-                    double yLocal = 0.0;
-                    for (UInteger i = 0; i < elementNodes; i++)
-                    {
-                        xLocal += x[i] * N[i];
-                        yLocal += y[i] * N[i];
-                    }
+                    double xLocal = x * N;
+                    double yLocal = y * N;
                     Point3D pl(lambdaT(0, 0) * xLocal + lambdaT(0, 1) * yLocal,
                                lambdaT(1, 0) * xLocal + lambdaT(1, 1) * yLocal,
                                lambdaT(2, 0) * xLocal + lambdaT(2, 1) * yLocal);
@@ -696,8 +691,8 @@ void MindlinShellBending::processSolution(const DoubleVector &displacement)
 
         DoubleMatrix lambdaT = lambda.transpose();
 
-        double x[elementNodes];
-        double y[elementNodes];
+        DoubleVector x(elementNodes);
+        DoubleVector y(elementNodes);
         // извлечение координат узлов
         for (UInteger i = 0; i < elementNodes; i++)
         {

@@ -64,7 +64,7 @@ protected:
      * @param dNdY Значения y-производной функций формы
      * @return Якобиан преобразования в местную систему координат
      */
-    double isoQuad4(const double &xi, const double &eta, double x[], double y[],
+    double isoQuad4(const double &xi, const double &eta, const DoubleVector &x, const DoubleVector &y,
                     DoubleVector &N, DoubleVector &dNdX, DoubleVector &dNdY);
     /**
      * @brief Метод для построения значений функций формы линейного треугольного элемента
@@ -77,7 +77,7 @@ protected:
      * @param dNdY Значения y-производной функций формы
      * @return Якобиан преобразования в местную систему координат
      */
-    double isoTriangle3(const double &xi, const double &eta, double x[], double y[],
+    double isoTriangle3(const double &xi, const double &eta, const DoubleVector &x, const DoubleVector &y,
                         DoubleVector &N, DoubleVector &dNdX, DoubleVector &dNdY);
 };
 

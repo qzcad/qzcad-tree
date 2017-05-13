@@ -94,8 +94,8 @@ void MindlinShellLaminated::buildGlobalMatrix()
                     T(ii + i, jj + i) = lambda(ii, jj);
         }
 
-        double x[elementNodes];
-        double y[elementNodes];
+        DoubleVector x(elementNodes);
+        DoubleVector y(elementNodes);
         // извлечение координат узлов
 
         for (UInteger i = 0; i < elementNodes; i++)
@@ -267,8 +267,8 @@ void MindlinShellLaminated::processSolution(const DoubleVector &displacement)
 
         DoubleMatrix lambdaT = lambda.transpose();
 
-        double x[elementNodes];
-        double y[elementNodes];
+        DoubleVector x(elementNodes);
+        DoubleVector y(elementNodes);
         // извлечение координат узлов
         for (UInteger i = 0; i < elementNodes; i++)
         {

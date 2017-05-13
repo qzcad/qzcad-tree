@@ -79,8 +79,8 @@ void MindlinPlateLaminated::buildGlobalMatrix()
 
         ++progressBar;
         DoubleMatrix local(freedom_ * elementNodes, freedom_ * elementNodes, 0.0);
-        double x[elementNodes];
-        double y[elementNodes];
+        DoubleVector x(elementNodes);
+        DoubleVector y(elementNodes);
         // извлечение координат узлов
         ElementPointer element = mesh_->element(elNum);
         for (UInteger i = 0; i < elementNodes; i++)
@@ -292,8 +292,8 @@ void MindlinPlateLaminated::buildGlobalVector()
             {
 
                 ++progressBar;
-                double x[elementNodes];
-                double y[elementNodes];
+                DoubleVector x(elementNodes);
+                DoubleVector y(elementNodes);
                 double vForce[elementNodes]; // значения объемных сил в узлах
                 // извлечение координат узлов
                 ElementPointer element = mesh_->element(elNum);
@@ -324,15 +324,8 @@ void MindlinPlateLaminated::buildGlobalVector()
                     {
                         jacobian = isoQuad4(xi, eta, x, y, N, dNdX, dNdY);
                     }
-                    double xLocal = 0.0;
-                    double yLocal = 0.0;
-                    for (UInteger i = 0; i < elementNodes; i++)
-                    {
-                        xLocal += x[i] * N[i];
-                        yLocal += y[i] * N[i];
-                    }
                     // вычисление объемных сил
-                    Point2D pLocal(xLocal, yLocal);
+                    Point2D pLocal(x * N, y * N);
                     double fLocal = (*condition)->value(&pLocal);
                     for (unsigned int i = 0; i < elementNodes; i++)
                     {
@@ -439,8 +432,8 @@ void MindlinPlateLaminated::processSolution(const DoubleVector &displacement)
 
         ++progressBar;
 
-        double x[elementNodes];
-        double y[elementNodes];
+        DoubleVector x(elementNodes);
+        DoubleVector y(elementNodes);
         // извлечение координат узлов
         ElementPointer element = mesh_->element(elNum);
         for (UInteger i = 0; i < elementNodes; i++)
