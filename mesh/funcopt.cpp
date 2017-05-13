@@ -5,7 +5,7 @@
 
 namespace msh {
 
-std::vector<double> conjugateGradient(CoordinateFunction Functional, const std::vector<double> &x0, const double &h, const double &epsilon, int maxIter)
+std::vector<double> conjugateGradient(CoordinateFunction Functional, const std::vector<double> &x0, const double &h, const double &epsilon, int maxIter, bool messages)
 {
     std::vector<double> xk = x0;
     std::vector<double>::size_type size = x0.size();
@@ -15,7 +15,7 @@ std::vector<double> conjugateGradient(CoordinateFunction Functional, const std::
         std::vector<double> xkj = xk;
         std::vector<double> xkj1(size);
         std::vector<double> dxkj(size);
-        std::cout << "niter: " << k << " :: ";
+        if (messages) std::cout << "niter: " << k << " :: ";
 
         for (int j = 0; j < maxIter; j++)
         {
@@ -30,24 +30,26 @@ std::vector<double> conjugateGradient(CoordinateFunction Functional, const std::
             double nkj = norm2(xkj);
             double nkj1 = norm2(xkj1);
             double omega = (nkj1 * nkj1) / (nkj * nkj);
+            double ndxkj = 0.0;
 
             for(std::vector<double>::size_type i = 0; i < size; i++)
             {
                 Skj[i] = -nablaxkj[i] + omega * Skj[i];
                 dxkj[i] = xkj1[i] - xkj[i];
+                ndxkj += dxkj[i]*dxkj[i];
             }
 
-            if(norm2(dxkj) < epsilon)
+            if(sqrt(ndxkj) < epsilon)
             {
                 return xkj1;
             }
 
             xkj = xkj1;
 
-            if (j%2 == 0) std::cout << '*';
+            if (messages && j%10 == 0) std::cout << '*';
         }
         xk = xkj;
-        std::cout << std::endl;
+        if (messages) std::cout << "residual: " << norm2(dxkj) << std::endl;
     }
     return xk;
 }

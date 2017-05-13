@@ -8,6 +8,8 @@
 #include <omp.h>
 #endif
 
+#include "consoleprogress.h"
+
 #include "funcopt.h"
 #include "rfunctions.h"
 
@@ -361,48 +363,32 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
     const double hx = width / (double)(xCount - 1);
     const double hy = height / (double)(yCount - 1);
     const double iso_dist = sqrt(hx*hx + hy*hy);
-    std::map<UInteger, UInteger> nodesMap;
+    ConsoleProgress progress_bar(xCount-1);
 #ifdef WITH_OPENMP
 #pragma omp parallel for
 #endif
-    for (UInteger i = 0; i < xCount; i++)
+    for (UInteger i = 0; i < xCount-1; i++)
     {
         double x = xMin + (double) i * hx;
-        for (UInteger j = 0; j < yCount; j++)
+        for (UInteger j = 0; j < yCount-1; j++)
         {
             double y = yMin + (double) j * hy;
-            Point2D point(x, y);
 
-            if (func(x, y) > 0.0)
+
+            if (func(x, y) > epsilon_ && func(x + hx, y) > epsilon_ && func(x + hx, y + hy) > epsilon_ && func(x, y + hy) > epsilon_)
             {
+                Point2D point0(x, y);
+                Point2D point1(x + hx, y);
+                Point2D point2(x + hx, y + hy);
+                Point2D point3(x, y + hy);
 #ifdef WITH_OPENMP
 #pragma omp critical
 #endif
-                nodesMap[i * yCount + j] = pushNode(point, INNER);
+                addElement(addNode(point0, INNER), addNode(point1, INNER), addNode(point2, INNER), addNode(point3, INNER));
             }
         }
+        ++progress_bar;
     }
-    // формирование начальной сетки
-#ifdef WITH_OPENMP
-#pragma omp parallel for
-#endif
-    for (UInteger i = 0; i < xCount - 1; i++)
-    {
-        for (UInteger j = 0; j < yCount - 1; j++)
-        {
-            std::map<UInteger, UInteger>::iterator iter0 = nodesMap.find(i * yCount + j);
-            std::map<UInteger, UInteger>::iterator iter1 = nodesMap.find((i + 1) * yCount + j);
-            std::map<UInteger, UInteger>::iterator iter2 = nodesMap.find((i + 1) * yCount + j + 1);
-            std::map<UInteger, UInteger>::iterator iter3 = nodesMap.find(i * yCount + j + 1);
-            if (iter0 != nodesMap.end() && iter1 != nodesMap.end() && iter2 != nodesMap.end() && iter3 != nodesMap.end())
-            {
-#ifdef WITH_OPENMP
-#pragma omp critical
-#endif
-                        addElement(iter0->second, iter1->second, iter2->second, iter3->second);
-            } // if
-        } // for j
-    } // for i
 
     UInteger baseElementCount = elementsCount();
     std::vector<Point2D> normal(nodesCount()); // нормали к узлам
@@ -447,7 +433,7 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
             normal[i] = normal[i] + prevNormal.normalized() + nextNormal.normalized();
         }
     }
-    for (short iter = 0; iter < 2; iter++)
+    for (short iter = 0; iter < 4; iter++)
     {
         for (UInteger i = 0; i < normal.size(); i++)
         {
@@ -497,6 +483,8 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
     }
     // поиск изо-точек на границе
     std::vector<UInteger> iso(nodesCount()); // изо-точки (номера)
+    std::cout << "Searching iso-points...";
+    progress_bar.restart(normal.size());
 #ifdef WITH_OPENMP
 #pragma omp parallel for schedule(static, 1)
 #endif
@@ -511,12 +499,12 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
             Point2D inner = current;
             Point2D outer = current + iso_dist * n;
             Point2D borderPoint;
-            if (func(outer.x(), outer.y()) > 0.0)
+            if (func(outer.x(), outer.y()) > epsilon_)
             {
                 // внешняя точка перескачила через границу и попала внутрь
                 // ищем внешнюю точку пошагово сканированием
                 outer = current;
-                while (func(outer.x(), outer.y()) >= 0.0)
+                while (func(outer.x(), outer.y()) >= epsilon_)
                     outer = outer + (0.0001 * iso_dist) * n;
             }
             borderPoint = binary(inner, outer, func);
@@ -525,6 +513,7 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
 #endif
             iso[i] = pushNode(borderPoint, BORDER);
         } // if
+        ++progress_bar;
     } // for i
     // для характерных точек, которым не нашлась пара на этапе формирования нормалей, используем метод близжайшего узла
     for (std::list<Point2D>::iterator cPoint = charPoint.begin(); cPoint != charPoint.end(); ++cPoint)
@@ -548,6 +537,81 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
             min_n->point = *cPoint;
             min_n->type = CHARACTER;
         }
+    }
+    std::cout << "Smoothing border...";
+    for (int iii = 0; iii < 4; iii++)
+    {
+        progress_bar.restart(normal.size());
+#ifdef WITH_OPENMP
+#pragma omp parallel for schedule(static, 1)
+#endif
+        for (UInteger i = 0; i < normal.size(); i++)
+        {
+            if (normal[i].length() > epsilon_ && node_[iso[i]].type != CHARACTER)
+            {
+                AdjacentSet adjacent = node_[i].adjacent;
+                Point2D nn(0.0, 0.0);
+                int acount = 0;
+                for (AdjacentSet::iterator it = adjacent.begin(); it != adjacent.end(); ++it)
+                {
+                    Quadrilateral aquad = element_[*it];
+                    for (int nnode = 0; nnode < 4; nnode++)
+                    {
+                        if (aquad[nnode] == i)
+                        {
+                            UInteger prev_index = aquad[nnode - 1];
+                            UInteger next_index = aquad[nnode + 1];
+                            int prev_count = 0;
+                            int next_count = 0;
+                            for (AdjacentSet::iterator itt = adjacent.begin(); itt != adjacent.end(); ++itt)
+                            {
+                                Quadrilateral lquad = element_[*itt];
+                                if (lquad.in(prev_index))
+                                {
+                                    ++prev_count;
+                                }
+                                if (lquad.in(next_index))
+                                {
+                                    ++next_count;
+                                }
+                            }
+                            if (prev_count == 1)
+                            {
+                                nn = nn + node_[iso[prev_index]].point;
+                                acount++;
+                            }
+                            if (next_count == 1)
+                            {
+                                nn = nn + node_[iso[next_index]].point;
+                                acount++;
+                            }
+                            break;
+                        }
+                    }
+                }
+                nn.scale(1.0 / (double)acount);
+                Point2D current = node_[i].point;
+                Point2D n = (nn - current).normalized();
+                // двоичный поиск граничной точки
+                Point2D inner = current;
+                Point2D outer = current + iso_dist * n;
+                Point2D borderPoint;
+                if (func(outer.x(), outer.y()) > epsilon_)
+                {
+                    // внешняя точка перескачила через границу и попала внутрь
+                    // ищем внешнюю точку пошагово сканированием
+                    outer = current;
+                    while (func(outer.x(), outer.y()) >= epsilon_)
+                        outer = outer + (0.0001 * iso_dist) * n;
+                }
+                borderPoint = binary(inner, outer, func);
+#ifdef WITH_OPENMP
+#pragma omp critical
+#endif
+                node_[iso[i]].point = borderPoint;
+            } // if
+            ++progress_bar;
+        } // for i
     }
     // Форимрование приграничного слоя элементов
     for (UInteger i = 0; i < baseElementCount; i++)
@@ -573,47 +637,99 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
             }
         }
     }
+    std::cout << "Smoothing inner nodes...";
     // проект сглаживания путем локальной минимизации функционала
-//    for (UInteger i = 0; i < nodesCount(); i++)
-//    {
-//        if (node_[i].type == INNER)
-//        {
-//            Point2D point = node_[i].point;
-//            double x0[] = {point.x(), point.y()};
-//            double x[2];
-//            std::cout << functional(x0, i) << std::endl;
-//            conjugateGradient(2, x0, x, i, 0.0001 * iso_dist);
-//            node_[i].point = Point2D(x[0], x[1]);
-//        }
-//    } // for i
-    // сглаживание Лапласа
-    for (int iter = 0; iter < 10; iter++)
+    for (int iii = 0; iii < 10; iii++)
     {
+        progress_bar.restart(nodesCount());
         for (UInteger i = 0; i < nodesCount(); i++)
         {
             if (node_[i].type == INNER)
             {
-                Point2D nn(0.0, 0.0);
+                Point2D point = node_[i].point;
+                std::vector<double> x0(2);
+                std::vector<double> x(2);
                 AdjacentSet adjacent = node_[i].adjacent;
-                int acount = 0;
-//                double w_sum = 0.0;
-                for (AdjacentSet::iterator it = adjacent.begin(); it != adjacent.end(); ++it)
-                {
-                    Quadrilateral aquad = element_[*it];
-                    for (int nnode = 0; nnode < 4; nnode++)
+
+                auto func = [&](const std::vector<double> &vars){
+                    double f = 0.0;
+                    for (AdjacentSet::iterator it = adjacent.begin(); it != adjacent.end(); ++it)
                     {
-                        if (aquad[nnode] != i)
+                        Quadrilateral el = element_[*it];
+                        double x[4];
+                        double y[4];
+                        for (int j = 0; j < 4; j++)
                         {
-                            nn = nn + node_[aquad[nnode]].point;
-                            ++acount;
+                            UInteger nnode = el[j];
+                            if(nnode == i)
+                            {
+                                x[j] = vars[0];
+                                y[j] = vars[1];
+                            }
+                            else
+                            {
+                                x[j] = node_[nnode].point.x();
+                                y[j] = node_[nnode].point.y();
+                            }
+                        }
+                        // Рассмотрим 4х-угольник как 4 треугольника, определенных на его углах
+                        double a [][4] = {{x[0],    x[1],   x[2],   x[3]},
+                                          {y[0],    y[1],   y[2],   y[3]}};
+                        double b [][4] = {{x[1],    x[2],   x[3],   x[0]},
+                                          {y[1],    y[2],   y[3],   y[0]}};
+                        double c [][4] = {{x[3],    x[0],   x[1],   x[2]},
+                                          {y[3],    y[0],   y[1],   y[2]}};
+
+                        for (int q = 0; q < 4; q++)
+                        {
+                            double length = (c[0][q] - a[0][q])*(c[0][q] - a[0][q]) + (c[1][q] - a[1][q])*(c[1][q] - a[1][q]) +
+                                    (b[0][q] - a[0][q])*(b[0][q] - a[0][q]) + (b[1][q] - a[1][q])*(b[1][q] - a[1][q]);
+                            double ortho = (c[0][q] - a[0][q]) *  (b[0][q] - a[0][q]) + (c[1][q] - a[1][q]) * (b[1][q] - a[1][q]);
+//                            double area = (b[0][q] - a[0][q]) * (c[1][q] - a[1][q]) - (b[1][q] - a[1][q]) * (c[0][q] - a[0][q]);
+                            f += 0.4 * length + 0.6 * ortho * ortho;
                         }
                     }
-                }
-                node_[i].point = (1.0 / (double)acount) * nn;
+                    return f;
+                };
+
+                x0[0] = point.x();
+                x0[1] = point.y();
+
+                //            std::cout << func(x0) << std::endl;
+                x = conjugateGradient(func, x0, 0.001, 0.000001, 100, false);
+                node_[i].point = Point2D(x[0], x[1]);
             }
+            ++progress_bar;
         } // for i
     }
-    minimizeFunctional();
+    // сглаживание Лапласа
+//    for (int iter = 0; iter < 10; iter++)
+//    {
+//        for (UInteger i = 0; i < nodesCount(); i++)
+//        {
+//            if (node_[i].type == INNER)
+//            {
+//                Point2D nn(0.0, 0.0);
+//                AdjacentSet adjacent = node_[i].adjacent;
+//                int acount = 0;
+////                double w_sum = 0.0;
+//                for (AdjacentSet::iterator it = adjacent.begin(); it != adjacent.end(); ++it)
+//                {
+//                    Quadrilateral aquad = element_[*it];
+//                    for (int nnode = 0; nnode < 4; nnode++)
+//                    {
+//                        if (aquad[nnode] != i)
+//                        {
+//                            nn = nn + node_[aquad[nnode]].point;
+//                            ++acount;
+//                        }
+//                    }
+//                }
+//                node_[i].point = (1.0 / (double)acount) * nn;
+//            }
+//        } // for i
+//    }
+//    minimizeFunctional();
     // the end.
     std::cout << "Создана сетка четырехугольных элементов для функционального объекта: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
@@ -638,9 +754,10 @@ void QuadrilateralMesh2D::minimizeFunctional()
             x0.push_back(node_[i].point.y());
     }
     std::cout << functional(x0) << std::endl;
-    double h = 1.0E-5 * (xMax_ - xMin_);
+    double h = 1.0E-4 * (xMax_ - xMin_);
     CoordinateFunction func = std::bind(&QuadrilateralMesh2D::functional, this, std::placeholders::_1);
-    std::vector<double> x = descentGradient(func, x0, h, epsilon_);
+//    std::vector<double> x = descentGradient(func, x0, h, epsilon_);
+    std::vector<double> x = conjugateGradient(func, x0, h, h*h);
     std::cout << functional(x) << std::endl;
     for (UInteger i = 0; i < node_.size(); i++)
     {
@@ -731,22 +848,25 @@ double QuadrilateralMesh2D::functional(const std::vector<double> &vars)
     double f = 0.0;
     const double alpha = 0.9;
     const double beta = 1.0 - alpha;
-    for (UInteger i = 0; i < element_.size(); i++)
+    // функция для вычисления квадрата числа (C++0x)
+//    auto sqr = [](double value) { return value * value; };
+    for (auto el: element_)
     {
         double x[4];
         double y[4];
         for (int j = 0; j < 4; j++)
         {
-            if(node_[element_[i][j]].type == INNER)
+            UInteger nnode = el[j];
+            if(node_[nnode].type == INNER)
             {
-                x[j] = vars[ 2UL * element_[i][j] ];
-                y[j] = vars[ 2UL * element_[i][j] + 1 ];
+                x[j] = vars[ 2UL * nnode ];
+                y[j] = vars[ 2UL * nnode + 1 ];
             }
             else
             {
                 // узел граничный
-                x[j] = node_[element_[i][j]].point.x();
-                y[j] = node_[element_[i][j]].point.y();
+                x[j] = node_[nnode].point.x();
+                y[j] = node_[nnode].point.y();
             }
         }
         // Рассмотрим 4х-угольник как 4 треугольника, определенных на его углах
@@ -756,16 +876,15 @@ double QuadrilateralMesh2D::functional(const std::vector<double> &vars)
                           {y[1],    y[2],   y[3],   y[0]}};
         double c [][4] = {{x[3],    x[0],   x[1],   x[2]},
                           {y[3],    y[0],   y[1],   y[2]}};
-        // функция для вычисления квадрата числа (C++0x)
-        auto sqr = [](double value) { return value * value; };
+
         for (int q = 0; q < 4; q++)
         {
 //            double length = sqr(c[0][q] - a[0][q]) + sqr(c[1][q] - a[1][q]) + sqr(b[0][q] - a[0][q]) + sqr(b[1][q] - a[1][q]);
             double ortho = (c[0][q] - a[0][q]) *  (b[0][q] - a[0][q]) + (c[1][q] - a[1][q]) * (b[1][q] - a[1][q]);
-            double area = sqr((b[0][q] - a[0][q]) * (c[1][q] - a[1][q]) - (b[1][q] - a[1][q]) * (c[0][q] - a[0][q]));
+            double area = (b[0][q] - a[0][q]) * (c[1][q] - a[1][q]) - (b[1][q] - a[1][q]) * (c[0][q] - a[0][q]);
 //            double r = regular(a[0][q], a[1][q], 0.8, 6);
 //            double r = con(circle(a[0][q], a[1][q], 0.8), -circle(a[0][q], a[1][q], 0.6));
-            f += alpha * area + beta * ortho ;// / (1.0 + (r > 0.0 ? 10.0 * r : -r));
+            f += alpha * area * area + beta * ortho ;// / (1.0 + (r > 0.0 ? 10.0 * r : -r));
 //            f +=  alpha * length + beta *  (1.0 - 1.0 / cosh(r));
 //            localValue += sqr(0.5 * alpha);
         }
