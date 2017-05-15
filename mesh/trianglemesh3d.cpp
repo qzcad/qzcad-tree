@@ -1325,12 +1325,13 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
             Point3D h = 0.001 * avr_len * normal;
             Point3D p0 = point - h;
             Point3D p1 = point + h;
-            while (signbit(func_slice(p0.x(), p0.y(), p0.z()) - level) == signbit(func_slice(p1.x(), p1.y(), p1.z()) - level))
+            while (signbit(func_slice(p0.x(), p0.y(), p0.z()) - level) == signbit(func_slice(p1.x(), p1.y(), p1.z()) - level) && p0.distanceTo(p1) < 10.0 * avr_len)
             {
                 p0 = p0 - h;
                 p1 = p1 + h;
             }
-            (*n).point = binary(p0, p1, func_slice, level);
+            if (signbit(func_slice(p0.x(), p0.y(), p0.z()) - level) != signbit(func_slice(p1.x(), p1.y(), p1.z()) - level))
+                (*n).point = binary(p0, p1, func_slice, level);
             ++progress;
         }
     }
