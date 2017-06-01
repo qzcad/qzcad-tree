@@ -1335,8 +1335,7 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
             ++progress;
         }
     }
-    flip();
-//    return;
+
     auto functor = [&](const AdjacentSet &adjasentset)
     {
         double F = 0.0; // функционал
@@ -1379,9 +1378,10 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
 
     std::cout << "Length functional optimization..." << std::endl;
     bool optimized = true;
-    for (short iit = 0; iit < 10 && optimized; iit++)
+    for (short iit = 0; iit < 20 && optimized; iit++)
     {
-//        optimized = false;
+        optimized = false;
+        flip();
         progress.restart(nodesCount());
         for (UInteger i = 0; i < nodesCount(); i++)
         {
@@ -1499,7 +1499,7 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
             }
             ++progress;
         }
-        flip();
+//        flip();
         if (!optimized) std::cout << "Optimization done in " << iit << " iterations." << std::endl;
     }
     xMin_ = xMin;
@@ -1913,9 +1913,11 @@ void TriangleMesh3D::flip()
 {
     std::cout << "Flip routine...";
     bool were_flips = true;
-    while (were_flips)
+    int iic = 0;
+    while (were_flips && iic < 20)
     {
         were_flips = false;
+        ++iic;
         for (UInteger t = 0; t < element_.size(); t++)
         {
             Triangle triangle = element_[t];
@@ -1988,6 +1990,7 @@ void TriangleMesh3D::flip()
             }
         }
     }
+    std::cout << iic << std::endl;
 }
 
 }
