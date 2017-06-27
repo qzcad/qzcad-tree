@@ -8,48 +8,46 @@ namespace msh {
 std::vector<double> conjugateGradient(CoordinateFunction Functional, const std::vector<double> &x0, const double &h, const double &epsilon, int maxIter, bool messages)
 {
     std::vector<double> xk = x0;
-    std::vector<double>::size_type size = x0.size();
+    std::vector<double> dxk = nabla(Functional, xk, h);
+    std::vector<double> sk = dxk;
+    double alpha = goldenRatio(Functional, -1.0, 1.0, xk, sk, epsilon, maxIter);
+    for(std::vector<double>::iterator ixk = xk.begin(), isk = sk.begin(); ixk != xk.end(); ++ixk, ++isk)
+    {
+        (*ixk) = (*ixk) + alpha * (*isk);
+    }
+//    double f0 = Functional(xk);
 
     for (int k = 0; k < maxIter; k++)
     {
-        std::vector<double> xkj = xk;
-        std::vector<double> xkj1(size);
-        std::vector<double> dxkj(size);
-        if (messages) std::cout << "niter: " << k << " :: ";
-
-        for (int j = 0; j < maxIter; j++)
+        std::vector<double> dxk1 = nabla(Functional, xk, h);
+        double beta = 0.0, sum_old = 0.0, sum_new = 0.0;
+        for(std::vector<double>::iterator idxk = dxk.begin(), idxk1 = dxk1.begin(); idxk != dxk.end(); ++idxk, ++idxk1)
         {
-            std::vector<double> Skj = nabla(Functional, xkj, h);
-            double lambda = goldenRatio(Functional, -1.0, 1.0, xkj, Skj, epsilon, maxIter);
-
-            for(std::vector<double>::size_type i = 0; i < size; i++)
-                xkj1[i] = xkj[i] + lambda * Skj[i];
-
-            std::vector<double> nablaxkj = nabla(Functional, xkj, h);
-
-            double nkj = norm2(xkj);
-            double nkj1 = norm2(xkj1);
-            double omega = (nkj1 * nkj1) / (nkj * nkj);
-            double ndxkj = 0.0;
-
-            for(std::vector<double>::size_type i = 0; i < size; i++)
-            {
-                Skj[i] = -nablaxkj[i] + omega * Skj[i];
-                dxkj[i] = xkj1[i] - xkj[i];
-                ndxkj += dxkj[i]*dxkj[i];
-            }
-
-            if(sqrt(ndxkj) < epsilon)
-            {
-                return xkj1;
-            }
-
-            xkj = xkj1;
-
-            if (messages && j%10 == 0) std::cout << '*';
+            sum_old += (*idxk) * (*idxk);
+            sum_new += (*idxk1) * (*idxk1);
         }
-        xk = xkj;
-        if (messages) std::cout << "residual: " << norm2(dxkj) << std::endl;
+        if (sum_old != 0.0) beta = sum_new / sum_old;
+        for(std::vector<double>::iterator isk = sk.begin(), idxk1 = dxk1.begin(); isk != sk.end(); ++isk, ++idxk1)
+        {
+            (*isk) = (*idxk1) + beta * (*isk);
+        }
+        alpha = goldenRatio(Functional, -1.0, 1.0, xk, sk, epsilon, maxIter);
+        double resid = 0.0;
+        for(std::vector<double>::iterator ixk = xk.begin(), isk = sk.begin(); ixk != xk.end(); ++ixk, ++isk)
+        {
+            double ask = alpha * (*isk);
+            (*ixk) = (*ixk) + ask;
+            resid += ask * ask;
+        }
+        resid = sqrt(resid);
+//        double f1 = Functional(xk);
+//        double resid = fabs(f1 - f0);
+
+        if (messages) std::cout << "residual: " << resid << std::endl;
+        if (resid < epsilon) break;
+
+        dxk = dxk1;
+//        f0 = f1;
     }
     return xk;
 }
@@ -91,44 +89,39 @@ std::vector<double> nabla(CoordinateFunction Functional, const std::vector<doubl
 
 double goldenRatio(CoordinateFunction Functional, const double &a, const double &b, const std::vector<double> &x0, const std::vector<double> &s, const double &epsilon, int maxIter)
 {
+    const double phi = (sqrt(5.0) + 1.0) / 2.0; // golden ratio
     double left = a;
     double right = b;
-    const double phi = (sqrt(5.0) + 1.0) / 2.0; // golden ratio
-    double x1 = b - (b - a) / phi;
-    double x2 = a + (b - a) / phi;
-    double y1 = lambda(Functional, x0, s, x1);
-    double y2 = lambda(Functional, x0, s, x2);
+    double c = right - (right - left) / phi;
+    double d = left + (right - left) / phi;
+    int i = 0;
 
-    for(int count = 0; count < maxIter; count++)
+    while (i < maxIter && fabs(d - c) > epsilon)
     {
-        if(y1 <= y2)
+        if (lambda(Functional, x0, s, c) < lambda(Functional, x0, s, d))
         {
-            right = x2;
-            x2 = x1;
-            x1 = right - (right - left) / phi;
-            y2 = y1;
-            y1 = lambda(Functional, x0, s, x1);
+            right = d;
         }
         else
         {
-            left = x1;
-            x1 = x2;
-            x2 = left + (right - left) / phi;
-            y1 = y2;
-            y2 = lambda(Functional, x0, s, x2);
+            left = c;
         }
-        if((right - left) < epsilon) break;
+        c = right - (right - left) / phi;
+        d = left + (right - left) / phi;
     }
-    if(y1 <= y2) return x1;
-    return x2;
+    return (left + right) / 2.0;
 }
 
 double lambda(CoordinateFunction Functional, const std::vector<double> &x, const std::vector<double> &s, const double &lambda_val)
 {
     std::vector<double> x_lambda(x.size());
-    for (std::vector<double>::size_type i = 0; i < x.size(); i++)
+    std::vector<double>::const_iterator ix, is;
+    std::vector<double>::iterator il;
+    for (ix = x.begin(), is = s.begin(), il = x_lambda.begin();
+         ix != x.end() && is != s.end() && il != x_lambda.end();
+         ++ix, ++is, ++il)
     {
-        x_lambda[i] = x[i] + lambda_val * s[i];
+        (*il) = (*ix) + lambda_val * (*is);
     }
     return Functional(x_lambda);
 }
@@ -136,11 +129,11 @@ double lambda(CoordinateFunction Functional, const std::vector<double> &x, const
 double norm2(const std::vector<double> &x)
 {
     double norm = 0.0;
-    for (auto it = x.cbegin(); it != x.cend(); ++it)
+    for (auto v: x)
     {
-        norm += (*it) * (*it);
+        norm += v * v;
     }
-    return norm;
+    return sqrt(norm);
 }
 
 std::vector<double> descentGradient(CoordinateFunction Functional, const std::vector<double> &x0, const double &h, const double &epsilon, int maxIter, bool messages)
@@ -156,8 +149,6 @@ std::vector<double> descentGradient(CoordinateFunction Functional, const std::ve
         std::vector<double> sk = nabla(Functional, xk, h);
         double lambda = goldenRatio(Functional, -1.0, 1.0, xk, sk, epsilon, maxIter);
 
-//        for(std::vector<double>::size_type i = 0; i < xk.size(); i++)
-//            xk[i] += lambda * Sk[i];
         std::vector<double>::iterator ixk;
         std::vector<double>::iterator isk;
         for (ixk = xk.begin(), isk = sk.begin(); ixk != xk.end() && isk != sk.end(); ++ixk, ++isk)
