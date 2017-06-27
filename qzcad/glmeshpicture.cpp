@@ -769,9 +769,7 @@ void GLMeshPicture::paintGL()
                     {
                         continue; // для трехмерных объектов рисуются только наружные грани
                     }
-                    msh::PointPointer a = mesh_->node(face[1]);
-                    msh::PointPointer b = mesh_->node(face[0]);
-                    msh::PointPointer c = mesh_->node(face[2]);
+
                     if (!isMousePressed_)
                     {
                         if (showMesh_)
@@ -779,21 +777,31 @@ void GLMeshPicture::paintGL()
                             glEnable(GL_POLYGON_OFFSET_FILL);
                             glPolygonOffset(1.0, 1.0);
                         }
-                        // вычисление нормали к грани
-                        double nx = (b->y() - a->y()) * (c->z() - a->z()) - (b->z() - a->z()) * (c->y() - a->y());
-                        double ny = (b->z() - a->z()) * (c->x() - a->x()) - (b->x() - a->x()) * (c->z() - a->z());
-                        double nz = (b->x() - a->x()) * (c->y() - a->y()) - (b->y() - a->y()) * (c->x() - a->x());
-                        double nn = sqrt(nx * nx + ny * ny + nz * nz);
-                        // нормализация
-                        nx = nx / nn;
-                        ny = ny / nn;
-                        nz = nz / nn;
                         if (visualizationMode_ == VALUE  && valueIndex_ < mesh_->dataVectorsCount() && mesh_->data(valueIndex_).size() == mesh_->elementsCount())
                             qglColor(map_.color(mesh_->data(valueIndex_)[i], 1024));
                         else
                             qglColor(elementColor_);
                         // нормаль к многоугольнику
-                        glNormal3d(nx, ny, nz);
+                        if (mesh_->dimesion() == 3)
+                        {
+                            // вычисление нормали к грани
+                            msh::PointPointer a = mesh_->node(face[1]);
+                            msh::PointPointer b = mesh_->node(face[0]);
+                            msh::PointPointer c = mesh_->node(face[2]);
+                            double nx = (b->y() - a->y()) * (c->z() - a->z()) - (b->z() - a->z()) * (c->y() - a->y());
+                            double ny = (b->z() - a->z()) * (c->x() - a->x()) - (b->x() - a->x()) * (c->z() - a->z());
+                            double nz = (b->x() - a->x()) * (c->y() - a->y()) - (b->y() - a->y()) * (c->x() - a->x());
+                            double nn = sqrt(nx * nx + ny * ny + nz * nz);
+                            // нормализация
+                            nx = nx / nn;
+                            ny = ny / nn;
+                            nz = nz / nn;
+                            glNormal3d(nx, ny, nz);
+                        }
+                        else
+                        {
+                            glNormal3d(0.0, 0.0, -1.0);
+                        }
                         drawFace(face, GL_POLYGON);
                         if(showMesh_)
                         {

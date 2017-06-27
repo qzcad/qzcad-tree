@@ -157,6 +157,11 @@ UInteger Mesh2D::addNode(const Point2D &point, const NodeType &type, double epsi
     return pushNode(point, type);
 }
 
+UInteger Mesh2D::addNode(const Node2D &node, double epsilon, std::function<double (Point2D, Point2D)> distance)
+{
+    return addNode(node.point, node.type, epsilon, distance);
+}
+
 void Mesh2D::updateDomain()
 {
     Point2D start = node_[0].point;
@@ -218,7 +223,7 @@ Point2D Mesh2D::binary(Point2D p0, Point2D p1, std::function<double (double, dou
 
     if (signbit(val0) == signbit(val1))
     {
-        return Point2D(); // значения в узлах отрезка одного знака => нет решения
+        return p0; // значения в узлах отрезка одного знака => нет решения
     }
 
     Point2D center;
@@ -241,4 +246,62 @@ Point2D Mesh2D::binary(Point2D p0, Point2D p1, std::function<double (double, dou
     return center;
 }
 
+Point2D Mesh2D::findBorder(const Point2D &a, const Point2D &b, std::function<double(double, double)> func, double alpha, double level)
+{
+    Point2D v(a, b);
+    double l = v.length();
+    Point2D n = v.perpendicular().normalized();
+    Point2D c = a + (alpha * v);
+    Point2D p0 = ((-0.25 * l) * n) + c;
+    Point2D p1 = ((0.25 * l) * n) + c;
+    Point2D border = c;
+    if (l < epsilon_)
+        return a;
+    if (func != nullptr)
+    {
+        // R-function is defined
+        if (fabs(func(a.x(), a.y()) - level) < epsilon_ && fabs(func(b.x(), b.y()) - level) < epsilon_)
+        {
+            // zero-level segment
+            if (signbit(func(p0.x(), p0.y()) - level) != signbit(func(p1.x(), p1.y()) - level))
+            {
+                border = binary(p0, p1, func);
+            }
+            else
+            {
+                Point2D h = 0.001 * l * n;
+                p0 = -h + c;
+                p1 = h + c;
+//                while (signbit(func(p0.x(), p0.y()) - level) == signbit(func(p1.x(), p1.y()) - level))
+//                {
+//                    p0 = p0 - h;
+//                    p1 = p1 + h;
+//                }
+                double val0 = func(p0.x(), p0.y()) - level;
+                double val1 = func(p1.x(), p1.y()) - level;
+                short iic = 0;
+                while (signbit(val0) == signbit(val1) && fabs(val0) >= epsilon_ && fabs(val1) >= epsilon_ && iic < 5000)
+                {
+                    p0 = p0 - h;
+                    p1 = p1 + h;
+                    val0 = func(p0.x(), p0.y()) - level;
+                    val1 = func(p1.x(), p1.y()) - level;
+                    ++iic;
+                }
+                if (fabs(val0) < epsilon_) return p0;
+                if (fabs(val1) < epsilon_) return p1;
+                if (signbit(val0) == signbit(val1))
+                    return 0.5 * (a + b);
+                border = binary(p0, p1, func);
+            } // else
+        } // if zero level
+    } // if func
+    return border;
+}
+
+double Mesh2D::distToBorder(const Point2D &a, const Point2D &b, std::function<double (double, double)> func, double alpha, double level)
+{
+    Point2D border = findBorder(a, b, func, alpha, level);
+    return border.distanceTo(a, b);
+}
 }

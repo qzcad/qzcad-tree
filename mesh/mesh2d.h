@@ -132,9 +132,19 @@ public:
      * @brief Добавить узел, заданный точкой, с использованием проверки на наличие узла с такими координатами
      * @param point Координаты узла для вставки
      * @param type Тип узла
+     * @param epsilon Точность проверки
+     * @param distance Функция для вычисления расстояния между точками
      * @return Номер узла в массиве узлов
      */
     UInteger addNode(const Point2D &point, const NodeType &type, double epsilon = epsilon_, std::function<double(Point2D, Point2D)> distance = nullptr);
+    /**
+     * @brief Добавить узел с использованием проверки на наличие узла с такими координатами
+     * @param node Узел
+     * @param epsilon Точность проверки
+     * @param distance Функция для вычисления расстояния между точками
+     * @return Номер узла в массиве узлов
+     */
+    UInteger addNode(const Node2D &node, double epsilon = epsilon_, std::function<double(Point2D, Point2D)> distance = nullptr);
     /**
      * @brief Обновить параметры области определения сетки (xMin, xMax, yMin, yMax)
      */
@@ -177,6 +187,26 @@ public:
      * @return Координаты пересечения отрезка и границы области
      */
     static Point2D binary(Point2D p0, Point2D p1, std::function<double(double, double)> func, double level = 0.0);
+    /**
+     * @brief findBorder
+     * @param a
+     * @param b
+     * @param func
+     * @param alpha
+     * @param level
+     * @return
+     */
+    static Point2D findBorder(const Point2D &a, const Point2D &b, std::function<double(double, double)> func, double alpha = 0.5, double level = 0.0);
+    /**
+     * @brief distToBorder
+     * @param a
+     * @param b
+     * @param func
+     * @param alpha
+     * @param level
+     * @return
+     */
+    static double distToBorder(const Point2D &a, const Point2D &b, std::function<double(double, double)> func, double alpha = 0.5, double level = 0.0);
 protected:
     std::vector<Node2D> node_; //!< массив узлов
     double xMin_; //!< минимальное значение ординаты

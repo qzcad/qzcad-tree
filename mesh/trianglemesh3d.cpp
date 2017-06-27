@@ -1342,43 +1342,31 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
 //        double m = 0.0;
         for (std::set<UInteger>::iterator it = adjasentset.begin(); it != adjasentset.end(); ++it)
         {
-//            double a = area(*it);
             Triangle t = element_[*it];
             Point3D A = node_[t[0]].point;
             Point3D B = node_[t[1]].point;
             Point3D C = node_[t[2]].point;
             double d2b = distToBorder(A, B, C, func_slice, 0.33333, 0.33333, level);
-//            F += 0.4 * a*a + 0.6 * d2b;
-            Point3D AB = 0.5 * (A + B);
-            Point3D BC = 0.5 * (B + C);
-            Point3D CA = 0.5 * (C + A);
-            double ab = C.distanceTo(AB);
-            double bc = A.distanceTo(BC);
-            double ca = B.distanceTo(CA);
-            F += 0.3 * (ab*ab + bc*bc + ca*ca) + 0.7 * d2b;
-//            if (d2b > m) m = d2b;
+//            Point3D AB = 0.5 * (A + B);
+//            Point3D BC = 0.5 * (B + C);
+//            Point3D CA = 0.5 * (C + A);
+//            double ab = C.distanceTo(AB);
+//            double bc = A.distanceTo(BC);
+//            double ca = B.distanceTo(CA);
+            Point3D AB(A, B);
+            Point3D BC(B, C);
+            Point3D CA(C, A);
+            double ab = AB.length();
+            double bc = BC.length();
+            double ca = CA.length();
+            F += 0.01*(ab*ab + bc*bc + ca*ca) + 10.0*d2b*d2b;
         }
         return F;
-//        return 0.2*F + 0.8*(double)adjasentset.size() * m*m;
     };
-
-//    auto local_normal = [&](const AdjacentSet &adjasent)
-//    {
-//        Point3D normal(0.0, 0.0, 0.0);
-//        for (auto epointer: adjasent)
-//        {
-//            Triangle t = element_[epointer];
-//            Point3D a(node_[t[0]].point, node_[t[1]].point);
-//            Point3D b(node_[t[0]].point, node_[t[2]].point);
-//            Point3D n = a.product(b);
-//            normal = normal + n.normalized();
-//        }
-//        return normal.normalized();
-//    };
 
     std::cout << "Length functional optimization..." << std::endl;
     bool optimized = true;
-    for (short iit = 0; iit < 20 && optimized; iit++)
+    for (short iit = 0; iit < 4 && optimized; iit++)
     {
         optimized = false;
         flip();
@@ -1397,38 +1385,9 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
                 Point3D A = node_[t[index]].point;
                 Point3D B = node_[t[index + 1]].point;
                 Point3D C = node_[t[index + 2]].point;
-                const double step = 0.01;
+                const double step = 0.005;
                 double l = step;
                 bool isOptimizedTriangle = false;
-//                double f00;
-//                double f1;
-//                double f2;
-//                double nabla1;
-//                double nabla2;
-//                double lnabla;
-//                double f_dir = f_current;
-//                node_[i].point = findBorder(A, B, C, func_slice, 0.0, 0.0, level);
-//                f00 = functor(adjasent);
-//                node_[i].point = findBorder(A, B, C, func_slice, step, 0.0, level);
-//                f1 = functor(adjasent);
-//                node_[i].point = findBorder(A, B, C, func_slice, 0.0, step, level);
-//                f2 = functor(adjasent);
-//                node_[i].point = point;
-//                nabla1 = (f1 - f00) / step;
-//                nabla2 = (f2 - f00) / step;
-//                lnabla = sqrt(nabla1*nabla1 + nabla2*nabla2);
-//                if (lnabla < epsilon_ || nabla1 > 0.0 || nabla2 > 0.0) continue;
-//                nabla1 /= lnabla;
-//                nabla2 /= lnabla;
-//                do {
-//                    f_current = f_dir;
-//                    point = node_[i].point;
-//                    l1 -= step * nabla1;
-//                    l2 -= step * nabla2;
-//                    node_[i].point = findBorder(A, B, C, func_slice, l1, l2, level);
-//                    f_dir = functor(adjasent);
-//                } while (0.0 <= l1 && 0.0 <= l2 && (l1 + l2) < 1.0 && f_dir < f_current);
-//                node_[i].point = point;
                 l = step;
                 double f_dir = 0.0;
                 node_[i].point = findBorder(A, B, C, func_slice, l, l, level);
@@ -1439,7 +1398,7 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
                 }
                 else
                 {
-                    while (f_dir < f_current && l < 0.4)
+                    while (f_dir < f_current && l < 0.3)
                     {
                         point = node_[i].point;
                         f_current = f_dir;
@@ -1461,7 +1420,7 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
                     }
                     else
                     {
-                        while (f_dir < f_current && l < 0.4)
+                        while (f_dir < f_current && l < 0.6)
                         {
                             point = node_[i].point;
                             f_current = f_dir;
@@ -1484,7 +1443,7 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
                     }
                     else
                     {
-                        while (f_dir < f_current && l < 0.4)
+                        while (f_dir < f_current && l < 0.6)
                         {
                             point = node_[i].point;
                             f_current = f_dir;
@@ -1683,6 +1642,8 @@ Point3D TriangleMesh3D::findBorder(const Point3D &a, const Point3D &b, const Poi
         val1 = func(p1.x(), p1.y(), p1.z()) - level;
         ++iic;
     }
+    if (fabs(val0) < epsilon_) return p0;
+    if (fabs(val1) < epsilon_) return p1;
     if (signbit(func(p0.x(), p0.y(), p0.z()) - level) == signbit(func(p1.x(), p1.y(), p1.z()) - level))
         return a;
     return binary(p0, p1, func, level);
@@ -1691,7 +1652,8 @@ Point3D TriangleMesh3D::findBorder(const Point3D &a, const Point3D &b, const Poi
 double TriangleMesh3D::distToBorder(const Point3D &a, const Point3D &b, const Point3D &c, std::function<double (double, double, double)> func, double lb, double lc, double level)
 {
     Point3D border = findBorder(a, b, c, func, lb, lc, level);
-    return border.distanceTo(a, b, c);
+//    return border.distanceTo(a, b, c);
+    return border.distanceTo(((1.0 - lb - lc) * a) + (lb * b) + (lc * c));
 }
 
 bool TriangleMesh3D::angles(const Point3D &A, const Point3D &B, const Point3D &C, double &alpha, double &beta, double &gamma)

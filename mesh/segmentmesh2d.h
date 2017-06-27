@@ -176,6 +176,7 @@ public:
      * @param iter_num Количесво итераций
      */
     void laplacianSmoothing(std::function<double(double, double)> func, int iter_num = 1);
+    void lengthSmoothing(std::function<double(double, double)> func, double level = 0.0);
     /**
      * @brief Функция принадлежности точки контуру
      * @param x Абсцисса точки
@@ -185,8 +186,6 @@ public:
     double cfunction(const double &x, const double &y);
 protected:
     void cellContours(const Point2D &p0, const Point2D &p1, const Point2D &p2, const Point2D &p3, const double &v0, const double &v1, const double &v2, const double &v3, std::function<double(double, double)> func, double level = 0.0, std::function<double(Point2D, Point2D)> distance = nullptr);
-    Point2D findBorder(const Point2D &a, const Point2D &b, std::function<double(double, double)> func, double alpha = 0.5, double level = 0.0);
-    double distToBorder(const Point2D &a, const Point2D &b, std::function<double(double, double)> func, double alpha = 0.5, double level = 0.0);
 private:
     std::vector<Segment> element_; //!< Массив элементов
     typedef std::vector<Segment>::iterator ElementIterator;
