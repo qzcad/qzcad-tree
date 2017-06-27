@@ -144,6 +144,14 @@ Point3D Point3D::inCoordSystem(const Point3D &Vx, const Point3D &Vy, const Point
     return p;
 }
 
+Point3D Point3D::fromCoordSystem(const Point3D &Vx, const Point3D &Vy, const Point3D &Vz) const
+{
+    Point3D p(Vx.x() * x() + Vy.x() * y() + Vz.x() * z(),
+              Vx.y() * x() + Vy.y() * y() + Vz.y() * z(),
+              Vx.z() * x() + Vy.z() * y() + Vz.z() * z());
+    return p;
+}
+
 void Point3D::scale(const double &d)
 {
     Point2D::scale(d);

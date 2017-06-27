@@ -123,6 +123,7 @@ public:
      * @return Координаты точки в заданной системе
      */
     Point3D inCoordSystem(const Point3D &Vx, const Point3D &Vy, const Point3D &Vz) const;
+    Point3D fromCoordSystem(const Point3D &Vx, const Point3D &Vy, const Point3D &Vz) const;
     /**
      * @brief Масштабировать координаты точки на коэффициент
      * @param d Коэффициент масштабирования
