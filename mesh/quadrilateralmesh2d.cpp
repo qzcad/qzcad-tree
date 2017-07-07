@@ -4,6 +4,7 @@
 #include <math.h>
 #include <map>
 #include <climits>
+#include <ctime>
 #ifdef WITH_OPENMP
 #include <omp.h>
 #endif
@@ -361,10 +362,14 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
     xMax_ = xMin + width;
     yMin_ = yMin;
     yMax_ = yMin + height;
+    std::clock_t start;
+    double duration;
     const double hx = width / (double)(xCount - 1);
     const double hy = height / (double)(yCount - 1);
     const double iso_dist = sqrt(hx*hx + hy*hy);
+    std::cout << "Building initial mesh..." << std::endl;
     ConsoleProgress progress_bar(xCount-1);
+    start = std::clock();
 #ifdef WITH_OPENMP
 #pragma omp parallel for
 #endif
@@ -390,10 +395,13 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
         }
         ++progress_bar;
     }
-
+    duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+    std::cout << "Done in " << duration << " seconds." << std::endl;
     UInteger baseElementCount = elementsCount();
     std::vector<Point2D> normal(nodesCount()); // нормали к узлам
     // построение нормалей для всех узлов начальной сетки
+    std::cout << "Calculating normals..." << std::endl;
+    start = std::clock();
 #ifdef WITH_OPENMP
 #pragma omp parallel for
 #endif
@@ -434,7 +442,7 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
             normal[i] = normal[i] + prevNormal.normalized() + nextNormal.normalized();
         }
     }
-    for (short iter = 0; iter < 4; iter++)
+    for (short iter = 0; iter < 3; iter++)
     {
         for (UInteger i = 0; i < normal.size(); i++)
         {
@@ -482,10 +490,13 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
             }
         } // for i
     }
+    duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+    std::cout << "Done in " << duration << " seconds." << std::endl;
     // поиск изо-точек на границе
     std::vector<UInteger> iso(nodesCount()); // изо-точки (номера)
     std::cout << "Searching iso-points...";
     progress_bar.restart(normal.size());
+    start = std::clock();
 #ifdef WITH_OPENMP
 #pragma omp parallel for schedule(static, 1)
 #endif
@@ -539,6 +550,8 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
             min_n->type = CHARACTER;
         }
     }
+    duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+    std::cout << "Done in " << duration << " seconds." << std::endl;
 //    std::cout << "Smoothing border...";
 //    for (int iii = 0; iii < 4; iii++)
 //    {
@@ -618,6 +631,8 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
 //            ++progress_bar;
 //        } // for i
 //    }
+    std::cout << "Building boundary elements..." << std::endl;
+    start = std::clock();
     // Форимрование приграничного слоя элементов
     for (UInteger i = 0; i < baseElementCount; i++)
     {
@@ -642,6 +657,8 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
             }
         }
     }
+    duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+    std::cout << "Done in " << duration << " seconds." << std::endl;
     SegmentMesh2D smesh;
     std::vector<UInteger> snum(nodesCount()); // изо-точки (номера)
     for (UInteger i = 0; i < nodesCount(); i++)
@@ -677,9 +694,10 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
     for (UInteger i = 0; i < nodesCount(); i++)
         if (snum[i] < ULONG_MAX) node_[i].point = smesh.point2d(snum[i]);
 
-    std::cout << "Smoothing inner nodes...";
+    std::cout << "Laplacian smoothing...";
+    start = std::clock();
     // сглаживание Лапласа
-    for (int iter = 0; iter < 2; iter++)
+    for (int iter = 0; iter < 4; iter++)
     {
         for (UInteger i = 0; i < nodesCount(); i++)
         {
@@ -688,25 +706,31 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
                 Point2D nn(0.0, 0.0);
                 AdjacentSet adjacent = node_[i].adjacent;
                 int acount = 0;
-//                double w_sum = 0.0;
                 for (AdjacentSet::iterator it = adjacent.begin(); it != adjacent.end(); ++it)
                 {
                     Quadrilateral aquad = element_[*it];
                     for (int nnode = 0; nnode < 4; nnode++)
                     {
-                        if (aquad[nnode] != i)
+                        if (aquad[nnode] == i)
                         {
-                            nn = nn + node_[aquad[nnode]].point;
-                            ++acount;
+                            nn = nn + node_[aquad[nnode+1]].point;
+                            nn = nn + node_[aquad[nnode-1]].point;
+                            ++acount;++acount;
                         }
                     }
                 }
                 node_[i].point = (1.0 / (double)acount) * nn;
             }
         } // for i
+        std::cout << '*';
     }
+    duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+    std::cout << "Done in " << duration << " seconds." << std::endl;
+
+    std::cout << "Local optimization smoothing...";
+    start = std::clock();
     // проект сглаживания путем локальной минимизации функционала
-    for (int iii = 0; iii < 4; iii++)
+    for (int iii = 0; iii < 16; iii++)
     {
         progress_bar.restart(nodesCount());
         for (UInteger i = 0; i < nodesCount(); i++)
@@ -746,19 +770,15 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
                                           {y[1],    y[2],   y[3],   y[0]}};
                         double c [][4] = {{x[3],    x[0],   x[1],   x[2]},
                                           {y[3],    y[0],   y[1],   y[2]}};
-
                         for (int q = 0; q < 4; q++)
                         {
-//                            double length = (c[0][q] - a[0][q])*(c[0][q] - a[0][q]) + (c[1][q] - a[1][q])*(c[1][q] - a[1][q]) +
-//                                    (b[0][q] - a[0][q])*(b[0][q] - a[0][q]) + (b[1][q] - a[1][q])*(b[1][q] - a[1][q]);
-//                            double ortho = (c[0][q] - a[0][q]) *  (b[0][q] - a[0][q]) + (c[1][q] - a[1][q]) * (b[1][q] - a[1][q]);
                             double area = (b[0][q] - a[0][q]) * (c[1][q] - a[1][q]) - (b[1][q] - a[1][q]) * (c[0][q] - a[0][q]);
-//                            f += 0.0 * length + 1.8 * ortho * ortho;
                             f += exp(-10.0 * area);
                         }
                     }
                     return f;
                 };
+
                 x0[0] = point.x();
                 x0[1] = point.y();
                 x = conjugateGradient(functor, x0, 0.01 * iso_dist, 0.0001 * iso_dist, 40, false);
@@ -767,7 +787,8 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
             ++progress_bar;
         } // for i
     }
-
+    duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+    std::cout << "Done in " << duration << " seconds." << std::endl;
 //    minimizeFunctional();
     evalNodalValues(func);
     // the end.
@@ -788,7 +809,8 @@ ElementPointer QuadrilateralMesh2D::element(const UInteger &number) const
 void QuadrilateralMesh2D::minimizeFunctional()
 {
     std::vector<double> x0; // первое приближение
-    double h = (xMax_ - xMin_);
+    std::clock_t start;
+    double h = 0.0;
     for (UInteger i = 0; i < node_.size(); i++)
     {
             x0.push_back(node_[i].point.x());
@@ -801,16 +823,19 @@ void QuadrilateralMesh2D::minimizeFunctional()
         Point2D p12(node_[q[1]].point, node_[q[2]].point);
         Point2D p23(node_[q[2]].point, node_[q[3]].point);
         Point2D p30(node_[q[3]].point, node_[q[0]].point);
-        if (p01.length() < h) h = p01.length();
-        if (p12.length() < h) h = p12.length();
-        if (p23.length() < h) h = p23.length();
-        if (p30.length() < h) h = p30.length();
+        /*if (p01.length() < h)*/ h += p01.length();
+        /*if (p12.length() < h)*/ h += p12.length();
+        /*if (p23.length() < h)*/ h += p23.length();
+        /*if (p30.length() < h)*/ h += p30.length();
     }
-    h /= 10.0;
+    h /= (4.0 * (double)elementsCount());
     std::cout << "The mesh-defined functional, h = " << h << ", epsilon = " << h*h << ", zeroth approximation: " << functional(x0) << std::endl;
+    start = std::clock();
     CoordinateFunction func = std::bind(&QuadrilateralMesh2D::functional, this, std::placeholders::_1);
 //    std::vector<double> x = descentGradient(func, x0, h, h*h);
-    std::vector<double> x = conjugateGradient(func, x0, h, h*h, 40);
+    std::vector<double> x = conjugateGradient(func, x0, 0.01 * h, 0.0001*h, 40, false);
+    double duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+    std::cout << "Done in " << duration << " seconds." << std::endl;
     std::cout << functional(x) << std::endl;
     for (UInteger i = 0; i < node_.size(); i++)
     {
