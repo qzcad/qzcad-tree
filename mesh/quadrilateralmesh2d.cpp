@@ -715,7 +715,7 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
                         {
                             nn = nn + node_[aquad[nnode+1]].point;
                             nn = nn + node_[aquad[nnode-1]].point;
-                            ++acount;++acount;
+                            acount += 2;
                         }
                     }
                 }
