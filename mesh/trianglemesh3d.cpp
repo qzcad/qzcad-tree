@@ -1292,7 +1292,7 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
 //        UInteger p2 = addNode(nodes[triangle[2]], delta);
 //        if (p0 != p1 && p0 != p2 && p1 != p2) addElement(p0, p1, p2);
 //    }
-    for (short iit = 0; iit < 4; iit++)
+    for (short iit = 0; iit < 3; iit++)
     {
         progress.restart(nodesCount());
         for (std::vector<Node3D>::iterator n = node_.begin(); n != node_.end(); ++n)

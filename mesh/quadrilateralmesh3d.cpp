@@ -1,6 +1,7 @@
 #include "quadrilateralmesh3d.h"
 #undef __STRICT_ANSI__
 #include <math.h>
+#include <iostream>
 
 namespace msh {
 
@@ -128,25 +129,33 @@ void QuadrilateralMesh3D::cylinderDomain(const UInteger &rCount, const UInteger 
 void QuadrilateralMesh3D::coneDomain(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length)
 {
     clear();
-    double hphi = 2.0 * M_PI / (double)rCount;
-    double hl = length / (double)lCount;
-    double phi = 0.0;
+    double hxi = 1.0 / (double)rCount;
+    double heta = 1.0 / (double)lCount;
+    double xi = 0.0;
+    double radius;
+    double phi;
+    double p = (bottom_radius < top_radius) ? bottom_radius / top_radius : 2.0 - top_radius / bottom_radius;
+    double q = 2.0;
     // формирование массива узлов
     for (UInteger i = 0; i < rCount; i++)
     {
-        double l = 0.0;
+        double eta = 0.0;
 
         for (UInteger j = 0; j <= lCount; j++)
         {
-            double radius = bottom_radius + l / length * (top_radius - bottom_radius);
-            Point3D point(radius * cos(phi), l, radius * sin(phi));
+            double s = p * eta + (1.0 - p) * (1.0 - tanh(q * (1.0 - eta)) / tanh(q)); // формула растяжения Эйземана, Флетчер, Вычислительные методы в динамике жидкостей, том 2, стр. 123
+            if (j == 0) s = 0.0;
+            else if (j == lCount) s = 1.0;
+            radius = bottom_radius + s * (top_radius - bottom_radius);
+            phi = 2.0 * M_PI * xi;
+            Point3D point(radius * cos(phi), s * length, radius * sin(phi));
             if (j == 0 || j == lCount)
                 pushNode(point, CHARACTER);
             else
                 pushNode(point, BORDER);
-            l += hl;
+            eta += heta;
         }
-        phi += hphi;
+        xi += hxi;
     }
     // формирование массива элементов
     for (UInteger i = 0; i < rCount; i++)

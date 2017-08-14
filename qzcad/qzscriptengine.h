@@ -304,6 +304,13 @@ private:
      */
     static QScriptValue cuboid(QScriptContext *context, QScriptEngine *engine);
     /**
+     * @brief Функция области, ограниченной цилидром с образующей Oz
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны, то значение соответствующей функциий, иначе engine->undefinedValue()
+     */
+    static QScriptValue cylinder(QScriptContext *context, QScriptEngine *engine);
+    /**
      * @brief МКЭ: плоское напряжение
      * @param context Контекст скрипта
      * @param engine Двигатель скрипта

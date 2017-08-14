@@ -1348,3 +1348,9 @@ void MainWindow::on_actionExportSTL_triggered()
         out << tr("endsolid qzCAD") << '\n';
     }
 }
+
+void MainWindow::on_actionCylinderScript_triggered()
+{
+    QString command = "cylinder(x, y, z, radius, height)";
+    ui->codeEditor->insertPlainText(command);
+}

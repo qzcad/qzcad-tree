@@ -67,6 +67,8 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     globalObject().setProperty("plane", newFunction(plane));
     // cuboid
     globalObject().setProperty("cuboid", newFunction(cuboid));
+    // cylinder
+    globalObject().setProperty("cylinder", newFunction(cylinder));
 
     // Точка (плоскость или пространство)
     globalObject().setProperty("Point", newFunction(createPoint));
@@ -1517,6 +1519,30 @@ QScriptValue QZScriptEngine::cuboid(QScriptContext *context, QScriptEngine *engi
     double h = context->argument(4).toNumber();
     double d = context->argument(5).toNumber();
     return msh::cuboid(x, y, z, w, h, d);
+}
+
+QScriptValue QZScriptEngine::cylinder(QScriptContext *context, QScriptEngine *engine)
+{
+    Q_UNUSED(engine);
+    QString typeError = QObject::tr("cylinder(x, y, z, radius, height: Float): argument type error (%1).");
+    if (context->argumentCount() != 5)
+        context->throwError(QObject::tr("cylinder(x, y, z, radius, height: Float): arguments count error."));
+    if (!context->argument(0).isNumber())
+        return context->throwError(typeError.arg("x: Floating number"));
+    if (!context->argument(1).isNumber())
+        return context->throwError(typeError.arg("y: Floating number"));
+    if (!context->argument(2).isNumber())
+        return context->throwError(typeError.arg("z: Floating number"));
+    if (!context->argument(3).isNumber())
+        return context->throwError(typeError.arg("radius: Floating number"));
+    if (!context->argument(4).isNumber())
+        return context->throwError(typeError.arg("height: Floating number"));
+    double x = context->argument(0).toNumber();
+    double y = context->argument(1).toNumber();
+    double z = context->argument(2).toNumber();
+    double r = context->argument(3).toNumber();
+    double h = context->argument(4).toNumber();
+    return msh::cylinder(x, y, z, r, h);
 }
 
 QScriptValue QZScriptEngine::planeStress(QScriptContext *context, QScriptEngine *engine)

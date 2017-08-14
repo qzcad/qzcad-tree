@@ -279,6 +279,7 @@
      <addaction name="actionEllipsoidScript"/>
      <addaction name="actionSphereScript"/>
      <addaction name="actionCuboidScript"/>
+     <addaction name="actionCylinderScript"/>
     </widget>
     <widget class="QMenu" name="menuMeshScripts">
      <property name="title">
@@ -933,7 +934,7 @@
   </action>
   <action name="actionCuboidScript">
    <property name="text">
-    <string>Область ограниченная прямоугольным параллелипипедом: cuboid(x, y, z, w, h, d)</string>
+    <string>Область, ограниченная прямоугольным параллелипипедом: cuboid(x, y, z, w, h, d)</string>
    </property>
   </action>
   <action name="actionExportSTL">
@@ -943,6 +944,11 @@
    </property>
    <property name="text">
     <string>Экспорт в STL...</string>
+   </property>
+  </action>
+  <action name="actionCylinderScript">
+   <property name="text">
+    <string>Область, ограниченная цилиндром с образующей Oz: cylinder(x, y, z, r, h)</string>
    </property>
   </action>
  </widget>

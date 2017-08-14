@@ -101,6 +101,16 @@ double ellipsoid(const double &x, const double &y, const double &z, const double
  */
 double sphere(const double &x, const double &y, const double &z, const double &r);
 /**
+ * @brief Область, ограниченная цилиндром с образующей Oz
+ * @param x Абсцисса
+ * @param y Ордината
+ * @param z Аппликата
+ * @param r Радиус оснований
+ * @param h Длина образующей
+ * @return Значение соответствующей функции
+ */
+double cylinder(const double &x, const double &y, const double &z, const double &r, const double &h);
+/**
  * @brief Область, огранинченная плоскостью (ориентированное уравнение плоскости), заданной тремя точками
  * @param x Абсцисса
  * @param y Ордината

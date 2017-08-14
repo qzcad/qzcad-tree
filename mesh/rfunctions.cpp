@@ -95,4 +95,9 @@ double cuboid(const double &x, const double &y, const double &z, const double &w
     return con(rectangle(x, y, w, h), band(z, d));
 }
 
+double cylinder(const double &x, const double &y, const double &z, const double &r, const double &h)
+{
+    return con(circle(x, y, r), band(z, h));
+}
+
 }
