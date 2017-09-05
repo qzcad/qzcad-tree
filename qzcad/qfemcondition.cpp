@@ -19,7 +19,7 @@ QFemCondition::QFemCondition(QObject *parent) :
 //    isConst_ = true;
 //}
 
-QFemCondition::QFemCondition(FemConditionType type, FemDirection direction, const QScriptValue &conditionFunction, const QScriptValue &valueFunction, QObject *parent) :
+QFemCondition::QFemCondition(FemConditionType type, int direction, const QScriptValue &conditionFunction, const QScriptValue &valueFunction, QObject *parent) :
     QObject(parent)
 {
     type_ = type;
@@ -45,7 +45,7 @@ FemCondition::FemConditionType QFemCondition::type() const
     return type_;
 }
 
-FemCondition::FemDirection QFemCondition::direction() const
+int QFemCondition::direction() const
 {
     return direction_;
 }

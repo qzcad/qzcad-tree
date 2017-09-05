@@ -192,24 +192,24 @@ void Fem::processInitialValues()
                 PointPointer point = mesh_->node(i);
                 if ((*condition)->isApplied(point))
                 {
-                    FemCondition::FemDirection dir = (*condition)->direction();
+                    int dir = (*condition)->direction();
 
-                    if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
+                    if (dir & FemCondition::FIRST)
                         setInitialNodalValue(freedom_ * i, (*condition)->value(point));
 
-                    if ((dir == FemCondition::ALL || dir == FemCondition::SECOND) && freedom_ >= 2)
+                    if ((dir & FemCondition::SECOND) && freedom_ >= 2)
                         setInitialNodalValue(freedom_ * i + 1UL, (*condition)->value(point));
 
-                    if ((dir == FemCondition::ALL || dir == FemCondition::THIRD) && freedom_ >= 3)
+                    if ((dir & FemCondition::THIRD) && freedom_ >= 3)
                         setInitialNodalValue(freedom_ * i + 2UL, (*condition)->value(point));
 
-                    if ((dir == FemCondition::ALL || dir == FemCondition::FOURTH) && freedom_ >= 4)
+                    if ((dir & FemCondition::FOURTH) && freedom_ >= 4)
                         setInitialNodalValue(freedom_ * i + 3UL, (*condition)->value(point));
 
-                    if ((dir == FemCondition::ALL || dir == FemCondition::FIFTH) && freedom_ >= 5)
+                    if ((dir & FemCondition::FIFTH) && freedom_ >= 5)
                         setInitialNodalValue(freedom_ * i + 4UL, (*condition)->value(point));
 
-                    if ((dir == FemCondition::ALL || dir == FemCondition::SIXTH) && freedom_ >= 6)
+                    if ((dir & FemCondition::SIXTH) && freedom_ >= 6)
                         setInitialNodalValue(freedom_ * i + 5UL, (*condition)->value(point));
                 }
                 ++progressBar;

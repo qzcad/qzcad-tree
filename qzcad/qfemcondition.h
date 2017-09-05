@@ -13,10 +13,10 @@ class QFemCondition : public QObject, public FemCondition
 public:
     explicit QFemCondition(QObject *parent = 0);
 //    QFemCondition(int type, int direction, double value, const QScriptValue &conditionFunction, QObject *parent = 0);
-    QFemCondition(FemConditionType type, FemDirection direction, const QScriptValue &conditionFunction, const QScriptValue &valueFunction, QObject *parent = 0);
+    QFemCondition(FemConditionType type, int direction, const QScriptValue &conditionFunction, const QScriptValue &valueFunction, QObject *parent = 0);
     QFemCondition(const QFemCondition &qfc);
     FemConditionType type() const;
-    FemDirection direction() const;
+    int direction() const;
     bool isApplied(msh::PointPointer point);
     double value(msh::PointPointer point);
     Q_INVOKABLE QString toString() const;
@@ -28,7 +28,7 @@ private:
     QScriptValue valueFunction_; //!< Функция - значение в точке
 //    double value_; //!< Начальное значение для случая, когда функция принимает константное значение по всей области определения
     FemConditionType type_;
-    FemDirection direction_;
+    int direction_;
 //    bool isConst_;
 };
 // Регистрация класса для использования в скриптах моделей

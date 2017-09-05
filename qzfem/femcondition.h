@@ -67,20 +67,20 @@ public:
 
     enum FemDirection
     {
-        ALL = 0,
-        FIRST = 1,
-        SECOND = 2,
-        THIRD = 3,
-        FOURTH = 4,
-        FIFTH = 5,
-        SIXTH = 6,
-        SEVENTH = 7,
-        EIGHTH = 8,
-        NINETH = 9,
-        TENTH = 10
+        FIRST =   (1<<0),
+        SECOND =  (1<<1),
+        THIRD =   (1<<2),
+        FOURTH =  (1<<3),
+        FIFTH =   (1<<4),
+        SIXTH =   (1<<5),
+        SEVENTH = (1<<6),
+        EIGHTH =  (1<<7),
+        NINETH =  (1<<8),
+        TENTH =   (1<<9),
+        ALL = FIRST | SECOND | THIRD | FOURTH | FIFTH | SIXTH | SEVENTH | EIGHTH | NINETH | TENTH
     };
 
-    virtual FemDirection direction() const = 0;
+    virtual int direction() const = 0;
 };
 
 #endif // FEMCONDITION_H

@@ -1099,6 +1099,7 @@ QScriptValue QZScriptEngine::createSweptMesh(QScriptContext *context, QScriptEng
             return context->throwError(typeError.arg("mesh"));
         }
     }
+    return context->throwError(tr("SweepMesh: wrong count of arguments"));
 }
 
 QScriptValue QZScriptEngine::printStd(QScriptContext *context, QScriptEngine *engine)
@@ -1689,7 +1690,7 @@ QScriptValue QZScriptEngine::createBoundaryCondition(QScriptContext *context, QS
 
         int direction = context->argument(0).toInteger();
 
-        return engine->newQObject(new QFemCondition(FemCondition::INITIAL_VALUE, static_cast<FemCondition::FemDirection>(direction), condition, value), QScriptEngine::ScriptOwnership);
+        return engine->newQObject(new QFemCondition(FemCondition::INITIAL_VALUE, direction, condition, value), QScriptEngine::ScriptOwnership);
     }
     return context->throwError(QObject::tr("BoundaryCondition(direction: Integer, condition: Function, value: {Floating or Function}): arguments count error."));
 }

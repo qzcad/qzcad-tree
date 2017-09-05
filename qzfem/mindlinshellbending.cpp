@@ -411,18 +411,18 @@ void MindlinShellBending::buildGlobalVector()
                 if ((*condition)->isApplied(point))
                 {
                     double f = (*condition)->value(point);
-                    FemCondition::FemDirection dir = (*condition)->direction();
-                    if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
+                    int dir = (*condition)->direction();
+                    if (dir & FemCondition::FIRST)
                         force_(freedom_ * i) += f;
-                    if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
+                    if (dir & FemCondition::SECOND)
                         force_(freedom_ * i + 1UL) += f;
-                    if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
+                    if (dir & FemCondition::THIRD)
                         force_(freedom_ * i + 2UL) += f;
-                    if (dir == FemCondition::ALL || dir == FemCondition::FOURTH)
+                    if (dir & FemCondition::FOURTH)
                         force_(freedom_ * i + 3UL) += f;
-                    if (dir == FemCondition::ALL || dir == FemCondition::FIFTH)
+                    if (dir & FemCondition::FIFTH)
                         force_(freedom_ * i + 4UL) += f;
-                    if (dir == FemCondition::ALL || dir == FemCondition::SIXTH)
+                    if (dir & FemCondition::SIXTH)
                         force_(freedom_ * i + 5UL) += f;
                 }
                 ++progressBar;
@@ -447,7 +447,7 @@ void MindlinShellBending::buildGlobalVector()
                         {
                             PointPointer point0 = mesh_->node(element->vertexNode(i));
                             PointPointer point1 = mesh_->node(element->vertexNode(i + 1));
-                            FemCondition::FemDirection dir = (*condition)->direction();
+                            int dir = (*condition)->direction();
                             if ((*condition)->isApplied(point0) && (*condition)->isApplied(point1))
                             {
                                 Point3D p0(point0->x(), point0->y(), point0->z());
@@ -469,32 +469,32 @@ void MindlinShellBending::buildGlobalVector()
                                     f0 += N0 * jacobian * w * (*condition)->value(&p);
                                     f1 += N1 * jacobian * w * (*condition)->value(&p);
                                 } // for ixi
-                                if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
+                                if (dir & FemCondition::FIRST)
                                 {
                                     force_(freedom_ * element->vertexNode(i)) += f0;
                                     force_(freedom_ * element->vertexNode(i + 1)) += f1;
                                 }
-                                if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
+                                if (dir & FemCondition::SECOND)
                                 {
                                     force_(freedom_ * element->vertexNode(i) + 1UL) += f0;
                                     force_(freedom_ * element->vertexNode(i + 1) + 1UL) += f1;
                                 }
-                                if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
+                                if (dir & FemCondition::THIRD)
                                 {
                                     force_(freedom_ * element->vertexNode(i) + 2UL) += f0;
                                     force_(freedom_ * element->vertexNode(i + 1) + 2UL) += f1;
                                 }
-                                if (dir == FemCondition::ALL || dir == FemCondition::FOURTH)
+                                if (dir & FemCondition::FOURTH)
                                 {
                                     force_(freedom_ * element->vertexNode(i) + 3UL) += f0;
                                     force_(freedom_ * element->vertexNode(i + 1) + 3UL) += f1;
                                 }
-                                if (dir == FemCondition::ALL || dir == FemCondition::FIFTH)
+                                if (dir & FemCondition::FIFTH)
                                 {
                                     force_(freedom_ * element->vertexNode(i) + 4UL) += f0;
                                     force_(freedom_ * element->vertexNode(i + 1) + 4UL) += f1;
                                 }
-                                if (dir == FemCondition::ALL || dir == FemCondition::SIXTH)
+                                if (dir & FemCondition::SIXTH)
                                 {
                                     force_(freedom_ * element->vertexNode(i) + 5UL) += f0;
                                     force_(freedom_ * element->vertexNode(i + 1) + 5UL) += f1;
@@ -535,7 +535,7 @@ void MindlinShellBending::buildGlobalVector()
                 for (UInteger i = 0; i < elementNodes; i++)
                     element_force[i] = 0.0;
 
-                FemCondition::FemDirection dir = (*condition)->direction();
+                int dir = (*condition)->direction();
 
                 for (int ig = 0; ig < gaussPoints; ig++)
                 {
@@ -574,27 +574,27 @@ void MindlinShellBending::buildGlobalVector()
                 // ансамбль объемных сил
                 for (UInteger i = 0 ; i < elementNodes; i++)
                 {
-                    if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
+                    if (dir & FemCondition::FIRST)
                     {
                         force_(freedom_ * element->vertexNode(i)) += element_force[i];
                     }
-                    if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
+                    if (dir & FemCondition::SECOND)
                     {
                         force_(freedom_ * element->vertexNode(i) + 1UL) += element_force[i];
                     }
-                    if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
+                    if (dir & FemCondition::THIRD)
                     {
                         force_(freedom_ * element->vertexNode(i) + 2UL) += element_force[i];
                     }
-                    if (dir == FemCondition::ALL || dir == FemCondition::FOURTH)
+                    if (dir & FemCondition::FOURTH)
                     {
                         force_(freedom_ * element->vertexNode(i) + 3UL) += element_force[i];
                     }
-                    if (dir == FemCondition::ALL || dir == FemCondition::FIFTH)
+                    if (dir & FemCondition::FIFTH)
                     {
                         force_(freedom_ * element->vertexNode(i) + 4UL) += element_force[i];
                     }
-                    if (dir == FemCondition::ALL || dir == FemCondition::SIXTH)
+                    if (dir & FemCondition::SIXTH)
                     {
                         force_(freedom_ * element->vertexNode(i) + 5UL) += element_force[i];
                     }

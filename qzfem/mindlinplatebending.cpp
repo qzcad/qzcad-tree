@@ -171,12 +171,12 @@ void MindlinPlateBending::buildGlobalVector()
                 if ((*condition)->isApplied(point))
                 {
                     double f = (*condition)->value(point);
-                    FemCondition::FemDirection dir = (*condition)->direction();
-                    if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
+                    int dir = (*condition)->direction();
+                    if (dir & FemCondition::FIRST)
                         force_(freedom_ * i) += f;
-                    if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
+                    if (dir & FemCondition::SECOND)
                         force_(freedom_ * i + 1) += f;
-                    if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
+                    if (dir & FemCondition::THIRD)
                         force_(freedom_ * i + 2) += f;
                 }
                 ++progressBar;
@@ -201,7 +201,7 @@ void MindlinPlateBending::buildGlobalVector()
                         {
                             PointPointer point0 = mesh_->node(element->vertexNode(i));
                             PointPointer point1 = mesh_->node(element->vertexNode(i + 1));
-                            FemCondition::FemDirection dir = (*condition)->direction();
+                            int dir = (*condition)->direction();
                             if ((*condition)->isApplied(point0) && (*condition)->isApplied(point1))
                             {
                                 Point2D p0(point0->x(), point0->y());
@@ -222,17 +222,17 @@ void MindlinPlateBending::buildGlobalVector()
                                     f0 += N0 * jacobian * w * (*condition)->value(&p);
                                     f1 += N1 * jacobian * w * (*condition)->value(&p);
                                 } // for ixi
-                                if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
+                                if (dir & FemCondition::FIRST)
                                 {
                                     force_(freedom_ * element->vertexNode(i)) += f0;
                                     force_(freedom_ * element->vertexNode(i + 1)) += f1;
                                 }
-                                if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
+                                if (dir & FemCondition::SECOND)
                                 {
                                     force_(freedom_ * element->vertexNode(i) + 1) += f0;
                                     force_(freedom_ * element->vertexNode(i + 1) + 1) += f1;
                                 }
-                                if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
+                                if (dir & FemCondition::THIRD)
                                 {
                                     force_(freedom_ * element->vertexNode(i) + 2) += f0;
                                     force_(freedom_ * element->vertexNode(i + 1) + 2) += f1;
@@ -292,15 +292,15 @@ void MindlinPlateBending::buildGlobalVector()
                         vForce[i] = vForce[i] + (N[i] * jacobian * w) * fLocal;
                     }
                 } // ig
-                FemCondition::FemDirection dir = (*condition)->direction();
+                int dir = (*condition)->direction();
                 // ансамбль объемных сил
                 for (UInteger i = 0 ; i < elementNodes; i++)
                 {
-                    if (dir == FemCondition::ALL || dir == FemCondition::FIRST)
+                    if (dir & FemCondition::FIRST)
                         force_(freedom_ * element->vertexNode(i)) += vForce[i];
-                    if (dir == FemCondition::ALL || dir == FemCondition::SECOND)
+                    if (dir & FemCondition::SECOND)
                         force_(freedom_ * element->vertexNode(i) + 1) += vForce[i];
-                    if (dir == FemCondition::ALL || dir == FemCondition::THIRD)
+                    if (dir & FemCondition::THIRD)
                         force_(freedom_ * element->vertexNode(i) + 2) += vForce[i];
                 }
             } //for elNum
