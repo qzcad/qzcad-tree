@@ -1913,7 +1913,7 @@ QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine
             return context->throwError(typeError.arg("mesh"));
         }
 
-        if (!context->argument(1).isNumber() && !context->argument(1).isArray())
+        if (!context->argument(1).isNumber() && !context->argument(1).isArray() && !context->argument(1).isFunction())
             return context->throwError(typeError.arg("h"));
 
         if (!context->argument(2).isNumber() && !context->argument(2).isArray())
@@ -2001,6 +2001,61 @@ QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine
 
             fem_ = new MindlinShellLaminated (mesh, //!
                                             h,
+                                            elasticMatrix,
+                                            conditions);
+            fem_->solve();
+            setMesh(mesh);
+        }
+        else if (context->argument(1).isFunction() && context->argument(2).isArray() && context->argument(3).isArray())
+        {
+            QScriptValue h_func = context->argument(1);
+            QScriptValue e_array = context->argument(2);
+            QScriptValue nu_array = context->argument(3);
+            std::vector<DoubleMatrix> elasticMatrix;
+            std::cout << "!!!!!!!!!!!!!!!!!!";
+            auto thickness_func = [&](double x, double y, double z)
+            {
+                QScriptValueList args;
+                args << x << y << z;
+                QScriptValue harray = h_func.call(QScriptValue(), args);
+                std::vector<double> vals;
+
+//                if (harray.property("length").toInteger() != e_array.property("length").toInteger())
+//                    context->throwError(typeError.arg("Thickness error: all the input arrays must have same length"));
+                for (int i = 0; i < harray.property("length").toInteger(); i++)
+                    vals.push_back(harray.property(i).toNumber());
+                return vals;
+            };
+            if (e_array.property("length").toInteger() != nu_array.property("length").toInteger())
+            {
+                return context->throwError(typeError.arg("E, nu: all the input arrays must have same length"));
+            }
+            if (context->argument(4).isArray())
+            {
+                QScriptValue g_array = context->argument(4);
+                if (e_array.property("length").toInteger() != g_array.property("length").toInteger())
+                {
+                    return context->throwError(typeError.arg("E, nu, G: all the input arrays must have same length"));
+                }
+                for (int i = 0; i < e_array.property("length").toInteger(); i++)
+                {
+                    DoubleMatrix D = Fem2D::evalPlaneStressMatrix(e_array.property(i).toNumber(), nu_array.property(i).toNumber(), g_array.property(i).toNumber());
+                    elasticMatrix.push_back(D);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < e_array.property("length").toInteger(); i++)
+                {
+                    DoubleMatrix D = Fem2D::evalPlaneStressMatrix(e_array.property(i).toNumber(), nu_array.property(i).toNumber());
+                    elasticMatrix.push_back(D);
+                }
+            }
+
+            if (fem_ != NULL) delete fem_;
+
+            fem_ = new MindlinShellLaminated (mesh, //!
+                                            thickness_func,
                                             elasticMatrix,
                                             conditions);
             fem_->solve();

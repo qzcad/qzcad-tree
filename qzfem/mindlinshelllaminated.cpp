@@ -12,6 +12,18 @@ MindlinShellLaminated::MindlinShellLaminated(Mesh3D *mesh,
 {
     thickness_ = thickness;
     D_ = planeStressMatrix;
+    thickness_func_ = NULL;
+}
+
+MindlinShellLaminated::MindlinShellLaminated(Mesh3D *mesh,
+                                             std::function<std::vector<double> (double, double, double)> thickness,
+                                             const std::vector<DoubleMatrix> &planeStressMatrix,
+                                             const std::list<FemCondition *> &conditions,
+                                             double alphaT) :
+    MindlinShellBending(mesh, 1.0, planeStressMatrix[0], conditions, alphaT)
+{
+    D_ = planeStressMatrix;
+    thickness_func_ = thickness;
 }
 
 void MindlinShellLaminated::buildGlobalMatrix()
@@ -51,9 +63,10 @@ void MindlinShellLaminated::buildGlobalMatrix()
         }
     }
 
-    unsigned layers_count = thickness_.size();
+    unsigned layers_count = D_.size();
     std::vector<DoubleMatrix> D(layers_count); // матрица упругости
     std::vector<DoubleMatrix> Dc(layers_count);
+    std::vector<double> thickness = thickness_;
     double H = 0.0; // толщина
 
     for (unsigned i = 0; i < layers_count; i++)
@@ -67,11 +80,12 @@ void MindlinShellLaminated::buildGlobalMatrix()
         std::cout << "Dc["<< i << "]:" << std::endl;
         Dc[i].print();
 
-        H += thickness_[i];
+        if (!thickness_.empty()) H += thickness_[i];
     }
-    std::cout << "Thickness: " << H << std::endl;
-
-
+    if (!thickness_.empty())
+        std::cout << "Thickness: " << H << std::endl;
+    else
+        std::cout << "The laminated shell with a variable thickness." << std::endl;
 
     // построение глобальной матрицы жесткости
     std::cout << "Stiffness Matrix...";
@@ -86,6 +100,7 @@ void MindlinShellLaminated::buildGlobalMatrix()
         Point3D B = *(dynamic_cast<const Point3D *>(mesh_->node(element->vertexNode(1))));
         Point3D C = *(dynamic_cast<const Point3D *>(mesh_->node(element->vertexNode(2))));
         DoubleMatrix lambda = cosinuses(A, B, C);
+        DoubleMatrix lambdaT = lambda.transpose();
         DoubleMatrix T(freedom_ * elementNodes, freedom_ * elementNodes, 0.0);
         for (UInteger i = 0; i <= (freedom_ * elementNodes - 3); i += 3)
         {
@@ -144,12 +159,26 @@ void MindlinShellLaminated::buildGlobalMatrix()
                 Bc(0, i * freedom_ + 2) = dNdX(i);  Bc(0, i * freedom_ + 3) = N(i);
                 Bc(1, i * freedom_ + 2) = dNdY(i);  Bc(1, i * freedom_ + 4) = N(i);
             }
+            if (thickness_func_ != NULL)
+            {
+                double xLocal = x * N;
+                double yLocal = y * N;
 
+                Point3D pl(lambdaT(0, 0) * xLocal + lambdaT(0, 1) * yLocal,
+                           lambdaT(1, 0) * xLocal + lambdaT(1, 1) * yLocal,
+                           lambdaT(2, 0) * xLocal + lambdaT(2, 1) * yLocal);
+                // вычисление объемных сил
+                Point3D pLocal = pl + A;
+                thickness = thickness_func_(pLocal.x(), pLocal.y(), pLocal.z());
+                H = 0.0;
+                for (double h: thickness)
+                    H += h;
+            }
             double z0 = -H / 2.0;
             double z1 = 0.0;
             for (unsigned i = 0; i < layers_count; i++)
             {
-                z1 = z0 + thickness_[i];
+                z1 = z0 + thickness[i];
                 local += jacobian * w * (z1 - z0) * (Bm.transpose() * D[i] * Bm);
                 local += jacobian * w * (z1*z1 - z0*z0) / 2.0 * (Bm.transpose() * D[i] * Bf);
                 local += jacobian * w * (z1*z1 - z0*z0) / 2.0 * (Bf.transpose() * D[i] * Bm);
@@ -179,7 +208,7 @@ void MindlinShellLaminated::processSolution(const DoubleVector &displacement)
         elementNodes = 4;
     }
 
-    unsigned layers_count = thickness_.size();
+    unsigned layers_count = D_.size();
     std::vector<DoubleMatrix> D(layers_count); // матрица упругости
     std::vector<DoubleMatrix> Dc(layers_count);
     double H = 0.0; // толщина
@@ -194,7 +223,7 @@ void MindlinShellLaminated::processSolution(const DoubleVector &displacement)
         std::cout << "Dc["<< i << "]:" << std::endl;
         Dc[i].print();
 
-        H += thickness_[i];
+        if (!thickness_.empty()) H += thickness_[i];
     }
     std::vector<double> xxx(nodesCount);
     std::vector<double> yyy(nodesCount);
@@ -329,6 +358,21 @@ void MindlinShellLaminated::processSolution(const DoubleVector &displacement)
             DoubleVector dLocal = T * dis;
 
             sigma_membrane = (D[layers_count - 1] * Bm) * dLocal;
+            if (thickness_func_ != NULL)
+            {
+                double xLocal = x * N;
+                double yLocal = y * N;
+
+                Point3D pl(lambdaT(0, 0) * xLocal + lambdaT(0, 1) * yLocal,
+                           lambdaT(1, 0) * xLocal + lambdaT(1, 1) * yLocal,
+                           lambdaT(2, 0) * xLocal + lambdaT(2, 1) * yLocal);
+                // вычисление объемных сил
+                Point3D pLocal = pl + A;
+                std::vector<double> thickness = thickness_func_(pLocal.x(), pLocal.y(), pLocal.z());
+                H = 0.0;
+                for (double h: thickness)
+                    H += h;
+            }
             sigma_plate = H / 2.0 * ((D[layers_count - 1] * Bf) * dLocal);
             sigma[0] = sigma_membrane[0] + sigma_plate[0];
             sigma[1] = sigma_membrane[1] + sigma_plate[1];
