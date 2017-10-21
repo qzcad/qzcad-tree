@@ -9,6 +9,7 @@
 #include "qsegmentmesh2d.h"
 #include "qtrianglemesh3d.h"
 #include "qtetrahedralmesh3d.h"
+#include "qhexahedralmesh3d.h"
 
 #include "rfunctions.h"
 
@@ -1094,6 +1095,12 @@ QScriptValue QZScriptEngine::createSweptMesh(QScriptContext *context, QScriptEng
             tetra->sweepBaseMesh(mesh, z0, z1, phi0, phi1, k0, k1, lCount);
             return engine->newQObject(tetra, QScriptEngine::ScriptOwnership);
         }
+        else if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != NULL) {
+            QQuadrilateralMesh2D *mesh = qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0));
+            QHexahedralMesh3D *hex = new QHexahedralMesh3D();
+            hex->sweepBaseMesh(mesh, z0, z1, phi0, phi1, k0, k1, lCount);
+            return engine->newQObject(hex, QScriptEngine::ScriptOwnership);
+        }
         else
         {
             return context->throwError(typeError.arg("mesh"));
@@ -1151,6 +1158,10 @@ QScriptValue QZScriptEngine::setMesh(QScriptContext *context, QScriptEngine *eng
     else if (qscriptvalue_cast<QTetrahedralMesh3D *>(context->argument(0)) != NULL)
     {
         mesh_ = new TetrahedralMesh3D(qscriptvalue_cast<QTetrahedralMesh3D *>(context->argument(0)));
+    }
+    else if (qscriptvalue_cast<QHexahedralMesh3D *>(context->argument(0)) != NULL)
+    {
+        mesh_ = new HexahedralMesh3D(qscriptvalue_cast<QHexahedralMesh3D *>(context->argument(0)));
     }
     else
     {
