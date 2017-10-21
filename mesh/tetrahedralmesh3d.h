@@ -66,6 +66,17 @@ public:
      * @brief Метод очищает информацию об елементах
      */
     virtual void clearElements();
+    /**
+     * @brief Генерация сетки движением вдоль оси z
+     * @param baseMesh Указатель на базовую сетку (профиль)
+     * @param z0 Ближння координата профиля
+     * @param z1 Дальняя координата профиля
+     * @param phi0 Начальный поворот профиля
+     * @param phi1 Конечный поворот профиля
+     * @param k0 Начальный масштаб профиля
+     * @param k1 Конечный масштаб профиля
+     * @param zLayersCount Количество слоев вдоль оси z
+     */
     void sweepBaseMesh(TriangleMesh2D *baseMesh, const double &z0, const double &z1, const double &phi0, const double &phi1, const double &k0, const double &k1, const int &zLayersCount);
 private:
     std::vector<Tetrahedron> element_; //!< Массив шестигранных элементов
