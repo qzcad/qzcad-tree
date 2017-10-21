@@ -154,6 +154,13 @@ public:
      * @return leftPoint < rightPoint
      */
     friend bool operator <(const Point3D &leftPoint, const Point3D &rightPoint);
+    /**
+     * @brief Оператор сравнения "меньше или равно" с использованием лексикографического порядка
+     * @param leftPoint Левая точка
+     * @param rightPoint Правая точка
+     * @return leftPoint < rightPoint
+     */
+    friend bool operator <=(const Point3D &leftPoint, const Point3D &rightPoint);
     /// @}
     /**
      * @brief Проверка скрещиваются ли прямые P0P1 и Q0Q1
