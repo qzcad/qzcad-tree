@@ -145,8 +145,8 @@ Point3D Mesh3D::binary(Point3D p0, Point3D p1, std::function<double (double, dou
     double val0 = func(p0.x(), p0.y(), p0.z()) - level;
     double val1 = func(p1.x(), p1.y(), p1.z()) - level;
 
-    if (0.0 <= val0 && val0 < epsilon_) return p0;
-    if (0.0 <= val1 && val1 < epsilon_) return p1;
+    if (fabs(val0) < epsilon_) return p0;
+    if (fabs(val1) < epsilon_) return p1;
 
     if (signbit(val0) == signbit(val1))
     {
@@ -169,9 +169,95 @@ Point3D Mesh3D::binary(Point3D p0, Point3D p1, std::function<double (double, dou
             p0 = center;
             val0 = val;
         }
-    } while (!(0.0 <= val && val < epsilon_) && !p0.isEqualTo(p1, epsilon_ / 100000.0));
+    } while (!(fabs(val) < epsilon_));
     return center;
 }
+
+Point3D Mesh3D::findBorder(Point3D point, std::function<double (double, double, double)> func, double h, double level)
+{
+    if (func != nullptr)
+    {
+        double f = func(point.x(), point.y(), point.z()) - level;
+        const double dh = 0.5 * h;
+        while (fabs(f) >= epsilon_)
+        {
+            Point3D g = grad(func, point, dh).normalized();
+            Point3D p;
+            if (f < 0.0) p = point + h * g;
+            else p = point - h * g;
+            double fp = func(p.x(), p.y(), p.z()) - level;
+
+            if (signbit(f) != signbit(fp))
+                return binary(point, p, func, level);
+
+            point = p;
+            f = fp;
+        }
+    }
+    return point;
+}
+
+Point3D Mesh3D::findBorder(const Point3D &a, const Point3D &b, const Point3D &c, std::function<double (double, double, double)> func, double lb, double lc, double level)
+{
+    Point3D point = ((1.0 - lb - lc) * a) + (lb * b) + (lc * c);
+    Point3D center = ((1.0 - 0.333 - 0.333) * a) + (0.333 * b) + (0.333 * c);
+//    if (a.isEqualTo(center, epsilon_) || b.isEqualTo(center, epsilon_) || c.isEqualTo(center, epsilon_))
+//        return a;
+    return findBorder(point, func, a.distanceTo(center), level);
+
+//    Point3D ab(a, b);
+//    Point3D ac(a, c);
+//    double lab = ab.length();
+//    double lac = ac.length();
+//    if (lab < epsilon_ || lac < epsilon_) return a;
+//    Point3D normal = ab.product(ac);
+//    if (normal.length() < epsilon_) return a;
+
+//    Point3D point = ((1.0 - lb - lc) * a) + (lb * b) + (lc * c);
+//    if (fabs(func(point.x(), point.y(), point.z()) - level) < epsilon_) return point;
+
+//    double avr_len = 0.5 * (lab + lac);
+//    Point3D h = 0.01 * avr_len * normal.normalized();
+//    Point3D p0 = point - h;
+//    Point3D p1 = point + h;
+//    double val0 = func(p0.x(), p0.y(), p0.z()) - level;
+//    double val1 = func(p1.x(), p1.y(), p1.z()) - level;
+//    short iic = 0;
+//    while (signbit(val0) == signbit(val1)
+//           && fabs(val0) >= epsilon_ && fabs(val1) >= epsilon_ && iic < 10000)
+//    {
+//        p0 = p0 - h;
+//        p1 = p1 + h;
+//        val0 = func(p0.x(), p0.y(), p0.z()) - level;
+//        val1 = func(p1.x(), p1.y(), p1.z()) - level;
+//        ++iic;
+//    }
+//    if (fabs(val0) < epsilon_) return p0;
+//    if (fabs(val1) < epsilon_) return p1;
+//    if (signbit(func(p0.x(), p0.y(), p0.z()) - level) == signbit(func(p1.x(), p1.y(), p1.z()) - level))
+//        return a;
+//    return binary(p0, p1, func, level);
+}
+
+double Mesh3D::distToBorder(const Point3D &a, const Point3D &b, const Point3D &c, std::function<double (double, double, double)> func, double lb, double lc, double level)
+{
+    Point3D border = findBorder(a, b, c, func, lb, lc, level);
+    return border.distanceTo(((1.0 - lb - lc) * a) + (lb * b) + (lc * c));
+}
+
+Point3D Mesh3D::grad(std::function<double (double, double, double)> func, const Point3D &p, const double &h)
+{
+    double x = p.x();
+    double y = p.y();
+    double z = p.z();
+    return Point3D((func(x + h, y, z) - func(x - h, y, z)) / (2.0 * h),
+                   (func(x, y + h, z) - func(x, y - h, z)) / (2.0 * h),
+                   (func(x, y, z + h) - func(x, y, z - h)) / (2.0 * h));
+//    return Point3D((func(x - h - h, y, z) - 8.0 * func(x - h, y, z) + 8.0 * func(x + h, y, z) - func(x + h + h, y, z)) / (12.0 * h),
+//                   (func(x, y - h - h, z) - 8.0 * func(x, y - h, z) + 8.0 * func(x, y + h, z) - func(x, y + h + h, z)) / (12.0 * h),
+//                   (func(x, y, z - h - h) - 8.0 * func(x, y, z - h) + 8.0 * func(x, y, z + h) - func(x, y, z + h + h)) / (12.0 * h));
+}
+
 
 void Mesh3D::evalNodalValues(std::function<double (double, double, double)> func)
 {

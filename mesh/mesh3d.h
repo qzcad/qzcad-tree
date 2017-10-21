@@ -140,6 +140,47 @@ public:
      */
     static Point3D binary(Point3D p0, Point3D p1, std::function<double(double, double, double)> func, double level = 0.0);
     /**
+     * @brief Поиск ближайшей к точке point граничной при помощи градиента, вычисленного разностной схемой с шагом h
+     * @param point Точка, для которой необходимо найти ближайшую граничную
+     * @param func Функция области
+     * @param h Шаг для вычисления частных производных
+     * @param level Линия уровня границы
+     * @return Координаты граничной точки
+     */
+    static Point3D findBorder(Point3D point, std::function<double (double, double, double)> func, double h, double level = 0.0);
+    /**
+     * @brief Поиск ближайшей граничной точки к точке, определенной l-координатами треугольника: point = ((1.0 - lb - lc) * a) + (lb * b) + (lc * c)
+     * @param a Первая вершина треугольника (в порядке обхода)
+     * @param b Вторая вершина треугольника (в порядке обхода)
+     * @param c Третья вершина треугольника (в порядке обхода)
+     * @param func Функция области
+     * @param lb Первая l-координата
+     * @param lc Вторая l-координата
+     * @param level Линия уровня
+     * @return Координаты точки на границе области
+     */
+    static Point3D findBorder(const Point3D &a, const Point3D &b, const Point3D &c, std::function<double (double, double, double)> func, double lb = 0.33333, double lc = 0.33333, double level = 0.0);
+    /**
+     * @brief Вычисление расстояния до границы от точки, определенной l-координатами треугольника: point = ((1.0 - lb - lc) * a) + (lb * b) + (lc * c)
+     * @param a Первая вершина треугольника (в порядке обхода)
+     * @param b Вторая вершина треугольника (в порядке обхода)
+     * @param c Третья вершина треугольника (в порядке обхода)
+     * @param func Функция области
+     * @param lb Первая l-координата
+     * @param lc Вторая l-координата
+     * @param level Линия уровня
+     * @return Расстояние до границы области
+     */
+    static double distToBorder(const Point3D &a, const Point3D &b, const Point3D &c, std::function<double (double, double, double)> func, double lb = 0.33333, double lc = 0.33333, double level = 0.0);
+    /**
+     * @brief Вычислить градиент в точке (четырехточечная схема)
+     * @param func Функция двух переменных
+     * @param p Точка, в которой вычисляется градиент
+     * @param h Шаг разностной схемы
+     * @return Координаты градиента
+     */
+    static Point3D grad(std::function<double(double, double, double)> func, const Point3D &p, const double &h);
+    /**
      * @brief Метод для построения вектора значений заданной функции в узлах сетки
      * @param func Указатель функции трех переменных
      */

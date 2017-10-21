@@ -188,25 +188,42 @@ public:
      */
     static Point2D binary(Point2D p0, Point2D p1, std::function<double(double, double)> func, double level = 0.0);
     /**
-     * @brief findBorder
-     * @param a
-     * @param b
-     * @param func
-     * @param alpha
-     * @param level
-     * @return
+     * @brief Градиентный поиск ближайжей к точке point граничной
+     * @param point Координаты точки для поиска
+     * @param func Функция области
+     * @param h шаг для вычисления градиента
+     * @param level Линия уровня
+     * @return Координата граничной точки
+     */
+    static Point2D findBorder(Point2D point, std::function<double(double, double)> func, const double &h, double level = 0.0);
+    /**
+     * @brief Поиск граничной точки, ближайжей к a + alpha * (b - a)
+     * @param a Левая граница интервала
+     * @param b Правая граница интервала
+     * @param func Функция области
+     * @param alpha Процент сдвига от точки a к b для начала поиска (значение в интервале [0; 1])
+     * @param level Линия уровня
+     * @return Координата граничной точки
      */
     static Point2D findBorder(const Point2D &a, const Point2D &b, std::function<double(double, double)> func, double alpha = 0.5, double level = 0.0);
     /**
-     * @brief distToBorder
-     * @param a
-     * @param b
-     * @param func
-     * @param alpha
-     * @param level
-     * @return
+     * @brief Вычислить расстояние до границы от точки a + alpha * (b - a)
+     * @param a Левая граница интервала
+     * @param b Правая граница интервала
+     * @param func Функция области
+     * @param alpha Процент сдвига от точки a к b для начала поиска (значение в интервале [0; 1])
+     * @param level Линия уровня
+     * @return Расстояние до границы
      */
     static double distToBorder(const Point2D &a, const Point2D &b, std::function<double(double, double)> func, double alpha = 0.5, double level = 0.0);
+    /**
+     * @brief Вычислить градиент в точке (четырехточечная схема)
+     * @param func Функция двух переменных
+     * @param p Точка, в которой вычисляется градиент
+     * @param h Шаг разностной схемы
+     * @return Координаты градиента
+     */
+    static Point2D grad(std::function<double(double, double)> func, const Point2D &p, const double &h);
 protected:
     std::vector<Node2D> node_; //!< массив узлов
     double xMin_; //!< минимальное значение ординаты
