@@ -4,7 +4,7 @@
 
 namespace msh {
 
-double Mesh::epsilon_ = 1.0E-10; // инициализация точности
+double Mesh::epsilon_ = std::numeric_limits<float>::epsilon(); // инициализация точности
 
 Mesh::Mesh(const Mesh *mesh)
 {
