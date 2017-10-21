@@ -152,7 +152,10 @@ void HexahedralMesh3D::rotateBaseMesh(QuadrilateralMesh2D *baseMesh, const doubl
                 nodes_pointers[7] = current_quad[3];
             }
 
-            addElement(nodes_pointers[0], nodes_pointers[1], nodes_pointers[2], nodes_pointers[3], nodes_pointers[4], nodes_pointers[5], nodes_pointers[6], nodes_pointers[7]);
+            if (x_axes)
+                addElement(nodes_pointers[0], nodes_pointers[1], nodes_pointers[2], nodes_pointers[3], nodes_pointers[4], nodes_pointers[5], nodes_pointers[6], nodes_pointers[7]);
+            else
+                addElement(nodes_pointers[1], nodes_pointers[2], nodes_pointers[6], nodes_pointers[5], nodes_pointers[0], nodes_pointers[3], nodes_pointers[7], nodes_pointers[4]);
             if (withLayersInfo && baseMesh->sizeOfLayers() == baseMesh->elementsCount())
                 pushLayer(baseMesh->layer(i));
         }
@@ -233,7 +236,7 @@ void HexahedralMesh3D::rotateBaseMesh(QuadrilateralMesh2D *baseMesh, const doubl
         for(i = 0; i < baseMesh->elementsCount(); i++)
         {
             Quadrilateral current_quad = baseMesh->quadrilateral(i);
-            if(angle < 0.0)
+            if((x_axes && angle < 0.0) || (!x_axes && angle > 0.0))
             {
                 nodes_pointers[1] = current_quad[0] + iz * baseNodesCount;
                 nodes_pointers[2] = current_quad[1] + iz * baseNodesCount;
@@ -268,6 +271,12 @@ HexahedralMesh3D::HexahedralMesh3D(const HexahedralMesh3D &mesh) : Mesh3D(&mesh)
 {
     element_ = mesh.element_;
     node_ = mesh.node_;
+}
+
+HexahedralMesh3D::HexahedralMesh3D(const HexahedralMesh3D *mesh): Mesh3D(mesh)
+{
+    element_ = mesh->element_;
+    node_ = mesh->node_;
 }
 
 UInteger HexahedralMesh3D::elementsCount() const
@@ -345,6 +354,52 @@ void HexahedralMesh3D::addElement(const std::vector<UInteger> &nodes_ref)
 void HexahedralMesh3D::clearElements()
 {
     element_.clear();
+}
+
+void HexahedralMesh3D::sweepBaseMesh(QuadrilateralMesh2D *baseMesh, const double &z0, const double &z1, const double &phi0, const double &phi1, const double &k0, const double &k1, const int &zLayersCount)
+{
+    clear();
+    double hz = (z1 - z0) / (double)zLayersCount;
+    double hphi = (phi1 - phi0) / (double)zLayersCount;
+    double hk = (k1 - k0) / (double)zLayersCount;
+    double z = z0;
+    double phi = phi0;
+    double k = k0;
+    for (int i = 0; i <= zLayersCount; i++)
+    {
+        for (UInteger j = 0; j < baseMesh->nodesCount(); j++)
+        {
+            Point2D plane_point = baseMesh->point2d(j);
+            Point3D space_point (k * plane_point.x() * cos(phi) + k * plane_point.y() * sin(phi),
+                                 k * plane_point.y() * cos(phi) - k * plane_point.x() * sin(phi),
+                                 z);
+            NodeType type = baseMesh->nodeType(j);
+            if (i == 0 || i == zLayersCount) type = BORDER;
+            pushNode(space_point, type);
+        }
+        z += hz;
+        phi += hphi;
+        k += hk;
+    }
+    // формирование шестигранников
+    for(int i = 0; i < zLayersCount; i++)
+    {
+        for(UInteger j = 0; j < baseMesh->elementsCount(); j++)
+        {
+            Quadrilateral quad = baseMesh->quadrilateral(j);
+            std::vector<UInteger> nnode(8);
+            nnode[0] = quad[0] + (UInteger)i * baseMesh->nodesCount();
+            nnode[1] = quad[1] + (UInteger)i * baseMesh->nodesCount();
+            nnode[2] = quad[2] + (UInteger)i * baseMesh->nodesCount();
+            nnode[3] = quad[3] + (UInteger)i * baseMesh->nodesCount();
+            nnode[4] = quad[0] + (UInteger)(i + 1) * baseMesh->nodesCount();
+            nnode[5] = quad[1] + (UInteger)(i + 1) * baseMesh->nodesCount();
+            nnode[6] = quad[2] + (UInteger)(i + 1) * baseMesh->nodesCount();
+            nnode[7] = quad[3] + (UInteger)(i + 1) * baseMesh->nodesCount();
+            addElement(nnode);
+        }
+    }
+    updateDomain();
 }
 
 }

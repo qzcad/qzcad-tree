@@ -65,6 +65,11 @@ public:
      */
     HexahedralMesh3D(const HexahedralMesh3D &mesh);
     /**
+     * @brief Конструктор создает копию объекта, переданого по ссылке
+     * @param mesh Ссылка на объект для копирования
+     */
+    HexahedralMesh3D(const HexahedralMesh3D *mesh);
+    /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
      */
@@ -108,6 +113,18 @@ public:
      * @brief Метод очищает информацию об елементах
      */
     virtual void clearElements();
+    /**
+     * @brief Генерация сетки движением вдоль оси z
+     * @param baseMesh Указатель на базовую сетку (профиль)
+     * @param z0 Ближння координата профиля
+     * @param z1 Дальняя координата профиля
+     * @param phi0 Начальный поворот профиля
+     * @param phi1 Конечный поворот профиля
+     * @param k0 Начальный масштаб профиля
+     * @param k1 Конечный масштаб профиля
+     * @param zLayersCount Количество слоев вдоль оси z
+     */
+    void sweepBaseMesh(QuadrilateralMesh2D *baseMesh, const double &z0, const double &z1, const double &phi0, const double &phi1, const double &k0, const double &k1, const int &zLayersCount);
 //    UInteger toArray(UInteger i, UInteger j, UInteger k, UInteger yCount, UInteger zCount) { return i * yCount * zCount + j * zCount + k; }
 private:
     std::vector<Hexahedral> element_; //!< Массив шестигранных элементов
