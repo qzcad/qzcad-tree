@@ -89,6 +89,21 @@ public:
      */
     void marchingCubes(const UInteger &xCount, const UInteger &yCount, const UInteger &zCount, const double &xMin, const double &yMin, const double &zMin, const double &width, const double &height, const double &depth, std::function<double (double, double, double)> func, double level = 0.0, bool slice_x = false, bool slice_y = false, bool slice_z = false);
     /**
+     * @brief Метод марширующих тетраэдров
+     * @param xCount Количество точек дискретизации по оси абсцисс
+     * @param yCount Количество точек дискретизации по оси ординат
+     * @param zCount Количество точек дискретизации по оси аппликат
+     * @param xMin Абсцисса минимального угла
+     * @param yMin Ордината минимального угла
+     * @param zMin Аппликата минимального угла
+     * @param width Ширина
+     * @param height Высота
+     * @param depth Глубина
+     * @param func Функция, положительная во внутренних точка и отрицательная во внешних
+     * @param level Уровень поверхности
+     */
+    void marchingTetrahedrons(const UInteger &xCount, const UInteger &yCount, const UInteger &zCount, const double &xMin, const double &yMin, const double &zMin, const double &width, const double &height, const double &depth, std::function<double (double, double, double)> func, double level = 0.0, bool slice_x = false, bool slice_y = false, bool slice_z = false);
+    /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
      */
@@ -123,6 +138,7 @@ public:
      * @param Массив ссылок (номеров) на узлы
      */
     void addElement(const std::vector<UInteger> &nodes_ref);
+    void addElementOrdered(const Point3D &t0, const Point3D &t1, const Point3D &t2, double epsilon = epsilon_);
     /**
      * @brief area Вычислить площадь элемента
      * @param number Номер элемента
@@ -161,18 +177,20 @@ public:
      */
     double cfunction(const double &x, const double &y, const double &z);
     /**
-     * @brief findBorder
-     * @param a
-     * @param b
-     * @param c
-     * @param func
-     * @param lb
-     * @param lc
-     * @param level
-     * @return
+     * @brief Процедура сглаживания Лапласа
+     * @param func Функция области
+     * @param level Линия уровня
+     * @param iter_num Количесво итераций
      */
-    Point3D findBorder(const Point3D &a, const Point3D &b, const Point3D &c, std::function<double (double, double, double)> func, double lb = 0.33333, double lc = 0.33333, double level = 0.0);
-    double distToBorder(const Point3D &a, const Point3D &b, const Point3D &c, std::function<double (double, double, double)> func, double lb = 0.33333, double lc = 0.33333, double level = 0.0);
+    void laplacianSmoothing(std::function<double(double, double, double)> func, double level = 0, int iter_num = 1);
+    /**
+     * @brief Процедура сглаживания на основе минимизации функционала расстояния-длины
+     * @param func Функция области
+     * @param level Линия уровня
+     * @param iter_num Количесво итераций
+     */
+    void distlenSmoothing(std::function<double(double, double, double)> func, double level = 0, int iter_num = 1);
+
 protected:
     /**
      * @brief Функция для подсчета значений углов треугольника
@@ -211,6 +229,11 @@ protected:
     Point2D circumCylinderCenter(const Point2D &A, const Point2D &B, const Point2D &C, std::function<Point3D(double, double)> domainFunction);
     bool insertDelaunayNode(const Point2D &point, const NodeType &type, TriangleMesh2D::Triangulation &triangulation, std::function<Point3D(double, double)> domainFunction);
     void flip();
+    typedef struct
+    {
+        Point3D a, b, c;
+    } CooTriangle;
+    void clearCooTriangles(std::list<CooTriangle> &cootriangles, std::function<double (double, double, double)> func, double level = 0.0, double delta = epsilon_);
 protected:
     std::vector<Triangle> element_; //!< Массив элементов
 };

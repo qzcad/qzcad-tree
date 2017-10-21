@@ -85,8 +85,8 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
         node_[num].point = character;
         node_[num].type = CHARACTER;
     }
-
-    if (isOptimized) lengthSmoothing(func, level);
+    laplacianSmoothing(func, level);
+    if (isOptimized) distlenSmoothing(func, level);
 
     // оптимизация по кривизне границы
 //    for (int it = 0; (it < 10) && isOptimized; ++it)
@@ -537,7 +537,7 @@ bool SegmentMesh2D::isEncroached(const Point2D &point, UInteger &number)
     return false;
 }
 
-void SegmentMesh2D::laplacianSmoothing(std::function<double(double, double)> func, int iter_num)
+void SegmentMesh2D::laplacianSmoothing(std::function<double(double, double)> func, double level, int iter_num)
 {
     if (func == nullptr)
         return;
@@ -550,7 +550,7 @@ void SegmentMesh2D::laplacianSmoothing(std::function<double(double, double)> fun
             Node2D node = node_[i];
             Point2D point = node.point;
             AdjacentSet adjacent = node.adjacent;
-            if (node.type != CHARACTER && adjacent.size() == 2 && fabs(func(point.x(), point.y())) < epsilon_)
+            if (node.type != CHARACTER && adjacent.size() == 2 && fabs(func(point.x(), point.y()) - level) < epsilon_)
             {
                 AdjacentSet::iterator it = adjacent.begin();
                 Segment s0 = element_[*(it)];
@@ -560,66 +560,29 @@ void SegmentMesh2D::laplacianSmoothing(std::function<double(double, double)> fun
                 Point2D c = 0.5 * (a + b);
                 Point2D v(a, b);
                 double l = v.length();
-                Point2D n = v.perpendicular().normalized();
-                Point2D p0 = ((-0.25 * l) * n) + c;
-                Point2D p1 = ((0.25 * l) * n) + c;
-                Point2D border;
-                if (signbit(func(p0.x(), p0.y())) != signbit(func(p1.x(), p1.y())))
-                {
-                    border = binary(p0, p1, func);
-                }
-                else
-                {
-                    p0 = ((-0.5 * l) * n) + c;
-                    p1 = ((0.5 * l) * n) + c;
-                    if (signbit(func(p0.x(), p0.y())) != signbit(func(p1.x(), p1.y())))
-                    {
-                        border = binary(p0, p1, func);
-                    }
-                    else
-                    {
-                        p0 = ((-0.05 * l) * n) + c;
-                        p1 = ((0.05 * l) * n) + c;
-                        if (signbit(func(p0.x(), p0.y())) != signbit(func(p1.x(), p1.y())))
-                        {
-                            border = binary(p0, p1, func);
-                        }
-                        else
-                        {
-                            p0 = (l * n) + c;
-                            p1 = (l * n) + c;
-                            if (signbit(func(p0.x(), p0.y())) != signbit(func(p1.x(), p1.y())))
-                            {
-                                border = binary(p0, p1, func);
-                            }
-                            else
-                            {
-                                // border is not found => contuine loop
-                                continue;
-                            }
-                        } // else
-                    } // else
-                } // else
+                Point2D border = findBorder(c, func, 0.1 * l, level);
                 node_[i].point = border;
             }
         }
     }
 }
 
-void SegmentMesh2D::lengthSmoothing(std::function<double (double, double)> func, double level)
+void SegmentMesh2D::distlenSmoothing(std::function<double (double, double)> func, double level, int iter_num)
 {
     std::cout << "Length optimization: " << nodesCount() << " nodes, " << elementsCount() << " elements." << std::endl;
 
     auto functor = [&](const Point2D &a, const Point2D &o, const Point2D &b)
     {
+        const double alpha = 0.001;
+        const double beta = 1.0 - alpha;
         double d0 = o.distanceTo(a);
         double d1 = o.distanceTo(b);
         double e0c = distToBorder(o, a, func, 0.5, level);
         double e1c = distToBorder(o, b, func, 0.5, level);
-        return 0.99 * (e0c*e0c + e1c*e1c) + 0.01 * (d0 - d1) * (d0 - d1);
+        return beta * (e0c*e0c + e1c*e1c) + alpha * (d0*d0 + d1*d1);
     };
 
-    for (int it = 0; (it < 4); ++it)
+    for (int iter = 0; iter < iter_num; ++iter)
     {
         ConsoleProgress progress(nodesCount());
         for (UInteger i = 0; i < nodesCount(); i++)
@@ -631,31 +594,107 @@ void SegmentMesh2D::lengthSmoothing(std::function<double (double, double)> func,
                 UInteger e1 = *(++node.adjacent.begin());
                 Node2D node0 = (element_[e0][0] == i) ? node_[element_[e0][1]] : node_[element_[e0][0]];
                 Node2D node1 = (element_[e1][0] == i) ? node_[element_[e1][1]] : node_[element_[e1][0]];
-                double fcurrent = functor(node0.point, node.point, node1.point);
-                Point2D border0 = findBorder(node.point, node0.point, func, -0.001, level);
-                bool isOptimized = false;
-                double f0 = functor(node0.point, border0, node1.point);
-                while (f0 < fcurrent)
-                {
-                    fcurrent = f0;
-                    node.point = border0;
-                    border0 = findBorder(node.point, node0.point, func, -0.001, level);
-                    f0 = functor(node0.point, border0, node1.point);
-                    isOptimized = true;
-                }
-                if (!isOptimized)
-                {
-                    border0 = findBorder(node.point, node1.point, func, -0.001, level);
-                    f0 = functor(node0.point, border0, node1.point);
-                    while (f0 < fcurrent)
+                double f_current = functor(node0.point, node.point, node1.point);
+                bool optimized = false;
+                double step = 0.1;
+                short iic = 0;
+                do {
+                    Point2D border = findBorder(node.point, node0.point, func, -step, level);
+                    double f_dir = functor(node0.point, border, node1.point);
+                    if (f_dir < f_current)
                     {
-                        fcurrent = f0;
-                        node.point = border0;
-                        border0 = findBorder(node.point, node1.point, func, -0.001, level);
-                        f0 = functor(node0.point, border0, node1.point);
+                        node.point = border;
+                        f_current = f_dir;
+                        optimized = true;
                     }
+                    else
+                    {
+                        step /= 10.0;
+                    }
+                    ++iic;
+                } while (step >= 0.0001 && iic < 100);
+                if (!optimized)
+                {
+                    step = 0.1;
+                    do {
+                        Point2D border = findBorder(node.point, node0.point, func, step, level);
+                        double f_dir = functor(node0.point, border, node1.point);
+                        if (f_dir < f_current)
+                        {
+                            node.point = border;
+                            f_current = f_dir;
+                            optimized = true;
+                        }
+                        else
+                        {
+                            step /= 10.0;
+                        }
+                        ++iic;
+                    } while (step >= 0.0001 && iic < 100);
+                }
+                if (!optimized)
+                {
+                    step = 0.1;
+                    do {
+                        Point2D border = findBorder(node.point, node1.point, func, -step, level);
+                        double f_dir = functor(node0.point, border, node1.point);
+                        if (f_dir < f_current)
+                        {
+                            node.point = border;
+                            f_current = f_dir;
+                            optimized = true;
+                        }
+                        else
+                        {
+                            step /= 10.0;
+                        }
+                        ++iic;
+                    } while (step >= 0.0001 && iic < 100);
+                }
+                if (!optimized)
+                {
+                    step = 0.1;
+                    do {
+                        Point2D border = findBorder(node.point, node1.point, func, step, level);
+                        double f_dir = functor(node0.point, border, node1.point);
+                        if (f_dir < f_current)
+                        {
+                            node.point = border;
+                            f_current = f_dir;
+                            optimized = true;
+                        }
+                        else
+                        {
+                            step /= 10.0;
+                        }
+                        ++iic;
+                    } while (step >= 0.0001 && iic < 100);
                 }
                 node_[i].point = node.point;
+//                Point2D border0 = findBorder(node.point, node0.point, func, -0.001, level);
+//                bool isOptimized = false;
+//                double f0 = functor(node0.point, border0, node1.point);
+//                while (f0 < fcurrent)
+//                {
+//                    fcurrent = f0;
+//                    node.point = border0;
+//                    border0 = findBorder(node.point, node0.point, func, -0.001, level);
+//                    f0 = functor(node0.point, border0, node1.point);
+//                    isOptimized = true;
+//                }
+//                if (!isOptimized)
+//                {
+//                    border0 = findBorder(node.point, node1.point, func, -0.001, level);
+//                    f0 = functor(node0.point, border0, node1.point);
+//                    while (f0 < fcurrent)
+//                    {
+//                        fcurrent = f0;
+//                        node.point = border0;
+//                        border0 = findBorder(node.point, node1.point, func, -0.001, level);
+//                        f0 = functor(node0.point, border0, node1.point);
+//                    }
+//                }
+//                node_[i].point = node.point;
             }
             ++progress;
         }
@@ -769,9 +808,9 @@ void SegmentMesh2D::cellContours(const Point2D &p0, const Point2D &p1, const Poi
     int index = 0;
 
     if (distance != nullptr)
-        min_distance = 0.4 * distance(p0, p3);
+        min_distance = 0.2 * distance(p0, p3);
     else
-        min_distance = 0.4 * p0.distanceTo(p3);
+        min_distance = 0.2 * p0.distanceTo(p3);
 
     if (v0 - level < epsilon_) index |= 1;
     if (v1 - level < epsilon_) index |= 2;
@@ -811,11 +850,14 @@ void SegmentMesh2D::cellContours(const Point2D &p0, const Point2D &p1, const Poi
         Point2D prev = border[edge_table[index][ii]];
         Point2D next = border[edge_table[index][ii + 1]];
         // упорядоченное добавление узлов
-        UInteger ii0 = (prev < next) ? addNode(prev, BORDER, min_distance, distance) : addNode(next, BORDER, min_distance, distance);
-        UInteger ii1 = (prev < next) ? addNode(next, BORDER, min_distance, distance) : addNode(prev, BORDER, min_distance, distance);
-        if (ii0 != ii1)
+        if ((distance != nullptr && distance(prev, next) >= min_distance) || (distance == nullptr && !prev.isEqualTo(next, min_distance)))
         {
-            addElement(ii0, ii1);
+            UInteger ii0 = (prev < next) ? addNode(prev, BORDER, min_distance, distance) : addNode(next, BORDER, min_distance, distance);
+            UInteger ii1 = (prev < next) ? addNode(next, BORDER, min_distance, distance) : addNode(prev, BORDER, min_distance, distance);
+            if (ii0 != ii1)
+            {
+                addElement(ii0, ii1);
+            }
         }
     }
 }

@@ -690,7 +690,7 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
             }
         }
     }
-    smesh.lengthSmoothing(func);
+    smesh.distlenSmoothing(func);
     for (UInteger i = 0; i < nodesCount(); i++)
         if (snum[i] < ULONG_MAX) node_[i].point = smesh.point2d(snum[i]);
 

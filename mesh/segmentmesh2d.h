@@ -172,11 +172,11 @@ public:
      */
     bool isEncroached(const Point2D &point, UInteger &number);
     /**
-     * @brief Процедура сглаживания Лапласа (применяется только к узла нулевой линии уровня
+     * @brief Процедура сглаживания Лапласа (применяется только к узла нулевой линии уровня)
      * @param iter_num Количесво итераций
      */
-    void laplacianSmoothing(std::function<double(double, double)> func, int iter_num = 1);
-    void lengthSmoothing(std::function<double(double, double)> func, double level = 0.0);
+    void laplacianSmoothing(std::function<double(double, double)> func, double level = 0.0, int iter_num = 4);
+    void distlenSmoothing(std::function<double(double, double)> func, double level = 0.0, int iter_num = 8);
     /**
      * @brief Функция принадлежности точки контуру
      * @param x Абсцисса точки

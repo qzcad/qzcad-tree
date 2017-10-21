@@ -871,7 +871,12 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
 void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCount, const UInteger &zCount, const double &xMin, const double &yMin, const double &zMin, const double &width, const double &height, const double &depth, std::function<double (double, double, double)> func, double level, bool slice_x, bool slice_y, bool slice_z)
 {
     clear();
-
+    xMin_ = xMin;
+    xMax_ = xMin + width;
+    yMin_ = yMin;
+    yMax_ = yMin + height;
+    zMin_ = zMin;
+    zMax_ = zMin + depth;
     int edges[256] = { 0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
                        0x80c, 0x905, 0xa0f, 0xb06, 0xc0a, 0xd03, 0xe09, 0xf00,
                        0x190, 0x99 , 0x393, 0x29a, 0x596, 0x49f, 0x795, 0x69c,
@@ -1075,8 +1080,8 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
                               {7, 2, 3, 7, 6, 2, 5, 4, 9, -1, -1, -1, -1, -1, -1, -1},
                               {9, 5, 4, 0, 8, 6, 0, 6, 2, 6, 8, 7, -1, -1, -1, -1},
                               {3, 6, 2, 3, 7, 6, 1, 5, 0, 5, 4, 0, -1, -1, -1, -1},
-                              {6, 2, 8, 6, 8, 7, 2, 1, 8, 4, 8, 5, 1, 5, 8, -1}, {
-                                  9, 5, 4, 10, 1, 6, 1, 7, 6, 1, 3, 7, -1, -1, -1, -1},
+                              {6, 2, 8, 6, 8, 7, 2, 1, 8, 4, 8, 5, 1, 5, 8, -1},
+                              {9, 5, 4, 10, 1, 6, 1, 7, 6, 1, 3, 7, -1, -1, -1, -1},
                               {1, 6, 10, 1, 7, 6, 1, 0, 7, 8, 7, 0, 9, 5, 4, -1},
                               {4, 0, 10, 4, 10, 5, 0, 3, 10, 6, 10, 7, 3, 7, 10, -1},
                               {7, 6, 10, 7, 10, 8, 5, 4, 10, 4, 8, 10, -1, -1, -1, -1},
@@ -1166,9 +1171,9 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
     double xc = xMin + width / 2.0;
     double yc = yMin + height / 2.0;
     double zc = zMin + depth / 2.0;
-    ConsoleProgress progress(xCount - 1);
 
-
+    std::list<CooTriangle> cootriangles;
+    //
     auto func_slice = [&](double x, double y, double z)
     {
         double r = func(x, y, z);
@@ -1177,6 +1182,8 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
         if (slice_z) r = con(r, zc - z);
         return r;
     };
+    //
+    ConsoleProgress progress(xCount - 1);
     double x = xMin;
     for (UInteger i = 0; i < xCount - 1; i++)
     {
@@ -1191,87 +1198,193 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
                 Point3D border[12];
                 Point3D p[8];
                 p[0].set(x, y, z);
-                p[1].set(x, y + hy, z);
+                p[1].set(x + hx, y, z);
                 p[2].set(x + hx, y + hy, z);
-                p[3].set(x + hx, y, z);
+                p[3].set(x, y + hy, z);
                 p[4].set(x, y, z + hz);
-                p[5].set(x, y + hy, z + hz);
+                p[5].set(x + hx, y, z + hz);
                 p[6].set(x + hx, y + hy, z + hz);
-                p[7].set(x + hx, y, z + hz);
-                if (func_slice(p[0].x(), p[0].y(), p[0].z()) - level < epsilon_) index |= 1;
-                if (func_slice(p[1].x(), p[1].y(), p[1].z()) - level < epsilon_) index |= 2;
-                if (func_slice(p[2].x(), p[2].y(), p[2].z()) - level < epsilon_) index |= 4;
-                if (func_slice(p[3].x(), p[3].y(), p[3].z()) - level < epsilon_) index |= 8;
-                if (func_slice(p[4].x(), p[4].y(), p[4].z()) - level < epsilon_) index |= 16;
-                if (func_slice(p[5].x(), p[5].y(), p[5].z()) - level < epsilon_) index |= 32;
-                if (func_slice(p[6].x(), p[6].y(), p[6].z()) - level < epsilon_) index |= 64;
-                if (func_slice(p[7].x(), p[7].y(), p[7].z()) - level < epsilon_) index |= 128;
+                p[7].set(x, y + hy, z + hz);
+                if (func(p[0].x(), p[0].y(), p[0].z()) - level < epsilon_) index |= 1;
+                if (func(p[1].x(), p[1].y(), p[1].z()) - level < epsilon_) index |= 2;
+                if (func(p[2].x(), p[2].y(), p[2].z()) - level < epsilon_) index |= 4;
+                if (func(p[3].x(), p[3].y(), p[3].z()) - level < epsilon_) index |= 8;
+                if (func(p[4].x(), p[4].y(), p[4].z()) - level < epsilon_) index |= 16;
+                if (func(p[5].x(), p[5].y(), p[5].z()) - level < epsilon_) index |= 32;
+                if (func(p[6].x(), p[6].y(), p[6].z()) - level < epsilon_) index |= 64;
+                if (func(p[7].x(), p[7].y(), p[7].z()) - level < epsilon_) index |= 128;
                 if (index != 0)
                 {
-                    if (edges[index] & 1) border[0] = binary(p[0], p[1], func_slice, level);
-                    if (edges[index] & 2) border[1] = binary(p[1], p[2], func_slice, level);
-                    if (edges[index] & 4) border[2] = binary(p[2], p[3], func_slice, level);
-                    if (edges[index] & 8) border[3] = binary(p[3], p[0], func_slice, level);
-                    if (edges[index] & 16) border[4] = binary(p[4], p[5], func_slice, level);
-                    if (edges[index] & 32) border[5] = binary(p[5], p[6], func_slice, level);
-                    if (edges[index] & 64) border[6] = binary(p[6], p[7], func_slice, level);
-                    if (edges[index] & 128) border[7] = binary(p[7], p[4], func_slice, level);
-                    if (edges[index] & 256) border[8] = binary(p[0], p[4], func_slice, level);
-                    if (edges[index] & 512) border[9] = binary(p[1], p[5], func_slice, level);
-                    if (edges[index] & 1024) border[10] = binary(p[2], p[6], func_slice, level);
-                    if (edges[index] & 2048) border[11] = binary(p[3], p[7], func_slice, level);
+                    if (edges[index] & 1) border[0] = binary(p[0], p[1], func, level);
+                    if (edges[index] & 2) border[1] = binary(p[1], p[2], func, level);
+                    if (edges[index] & 4) border[2] = binary(p[2], p[3], func, level);
+                    if (edges[index] & 8) border[3] = binary(p[3], p[0], func, level);
+                    if (edges[index] & 16) border[4] = binary(p[4], p[5], func, level);
+                    if (edges[index] & 32) border[5] = binary(p[5], p[6], func, level);
+                    if (edges[index] & 64) border[6] = binary(p[6], p[7], func, level);
+                    if (edges[index] & 128) border[7] = binary(p[7], p[4], func, level);
+                    if (edges[index] & 256) border[8] = binary(p[0], p[4], func, level);
+                    if (edges[index] & 512) border[9] = binary(p[1], p[5], func, level);
+                    if (edges[index] & 1024) border[10] = binary(p[2], p[6], func, level);
+                    if (edges[index] & 2048) border[11] = binary(p[3], p[7], func, level);
                     for (int t = 0; triangles[index][t] != -1; t += 3)
                     {
-                        Point3D t0 = border[triangles[index][t + 2]];
-                        Point3D t1 = border[triangles[index][t + 1]];
-                        Point3D t2 = border[triangles[index][t]];
-                        UInteger p0;
-                        UInteger p1;
-                        UInteger p2;
+                        CooTriangle coot;
+                        coot.a = border[triangles[index][t]];
+                        coot.b = border[triangles[index][t + 1]];
+                        coot.c = border[triangles[index][t + 2]];
+                        cootriangles.push_back(coot);
+                    }
+                }
+                z += hz;
+            }
+            y += hy;
+        }
+        x += hx;
+    }
+    double delta = 0.2 * sqrt(hx*hx + hy*hy + hz*hz);
+//    std::cout << cootriangles.size() << std::endl;
+    clearCooTriangles(cootriangles, func_slice, level, delta);
+    for (CooTriangle t: cootriangles)
+    {
+        addElement(addNode(t.a, BORDER), addNode(t.b, BORDER), addNode(t.c, BORDER));
+    }
+    flip();
+
+    laplacianSmoothing(func_slice, level, 4);
+
+    distlenSmoothing(func_slice, level, 8);
+
+    evalNodalValues(func);
+    std::cout << "Марширующие кубы: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
+}
+
+void TriangleMesh3D::marchingTetrahedrons(const UInteger &xCount, const UInteger &yCount, const UInteger &zCount, const double &xMin, const double &yMin, const double &zMin, const double &width, const double &height, const double &depth, std::function<double (double, double, double)> func, double level, bool slice_x, bool slice_y, bool slice_z)
+{
+    clear();
+    xMin_ = xMin;
+    xMax_ = xMin + width;
+    yMin_ = yMin;
+    yMax_ = yMin + height;
+    zMin_ = zMin;
+    zMax_ = zMin + depth;
+    double hx = width / (double)(xCount - 1);
+    double hy = height / (double)(yCount - 1);
+    double hz = depth / (double)(zCount - 1);
+    double xc = xMin + width / 2.0;
+    double yc = yMin + height / 2.0;
+    double zc = zMin + depth / 2.0;
+    // номера вершин куба, образующих шесть тетраэдров
+    const int tetrahedronsInACube[6][4] =
+    {
+        {0,5,1,6},
+        {0,1,2,6},
+        {0,2,3,6},
+        {0,3,7,6},
+        {0,7,4,6},
+        {0,4,5,6}
+    };
+    // коды ребер тетрыэдра, которые пересечены границей
+    const int tetrahedronEdgeFlags[16]=
+    {
+        0x00, 0x0d, 0x13, 0x1e, 0x26, 0x2b, 0x35, 0x38, 0x38, 0x35, 0x2b, 0x26, 0x1e, 0x13, 0x0d, 0x00
+    };
+    // номера пар вершин, образующих ребра тетраэра
+    const int tetrahedronEdgeConnection[6][2] =
+    {
+        {0,1},  {1,2},  {2,0},  {0,3},  {1,3},  {2,3}
+    };
+    // список треугольников
+    const int tetrahedronTriangles[16][7] =
+    {
+            {-1, -1, -1, -1, -1, -1, -1},
+            { 0,  3,  2, -1, -1, -1, -1},
+            { 0,  1,  4, -1, -1, -1, -1},
+            { 1,  4,  2,  2,  4,  3, -1},
+            { 1,  2,  5, -1, -1, -1, -1},
+            { 0,  3,  5,  0,  5,  1, -1},
+            { 0,  2,  5,  0,  5,  4, -1},
+            { 5,  4,  3, -1, -1, -1, -1},
+            { 3,  4,  5, -1, -1, -1, -1},
+            { 4,  5,  0,  5,  2,  0, -1},
+            { 1,  5,  0,  5,  3,  0, -1},
+            { 5,  2,  1, -1, -1, -1, -1},
+            { 3,  4,  2,  2,  4,  1, -1},
+            { 4,  1,  0, -1, -1, -1, -1},
+            { 2,  3,  0, -1, -1, -1, -1},
+            {-1, -1, -1, -1, -1, -1, -1},
+    };
+    // lambda-функция для построенгия сечений области
+    auto func_slice = [&](double x, double y, double z)
+    {
+        double r = func(x, y, z);
+        if (slice_x) r = con(r, xc - x);
+        if (slice_y) r = con(r, yc - y);
+        if (slice_z) r = con(r, zc - z);
+        return r;
+    };
+    //
+    ConsoleProgress progress(xCount - 1);
+    double x = xMin;
+    for (UInteger i = 0; i < xCount - 1; i++)
+    {
+        double y = yMin;
+        ++progress;
+        for (UInteger j = 0; j < yCount - 1; j++)
+        {
+            double z = zMin;
+            for (UInteger k = 0; k < zCount - 1; k++)
+            {
+                Point3D p[8];
+                double cubeValue[8];
+                double tetrahedronValue[4];
+                Point3D tetrahedronPosition[4];
+                p[0].set(x, y, z);
+                p[1].set(x + hx, y, z);
+                p[2].set(x + hx, y + hy, z);
+                p[3].set(x, y + hy, z);
+                p[4].set(x, y, z + hz);
+                p[5].set(x + hx, y, z + hz);
+                p[6].set(x + hx, y + hy, z + hz);
+                p[7].set(x, y + hy, z + hz);
+                for (int icv = 0; icv < 8; icv++)
+                    cubeValue[icv] = func_slice(p[icv].x(), p[icv].y(), p[icv].z()) - level;
+                for (int iTetrahedron = 0; iTetrahedron < 6; iTetrahedron++)
+                {
+                    for (int iVertex = 0; iVertex < 4; iVertex++)
+                    {
+                        int iVertexInACube = tetrahedronsInACube[iTetrahedron][iVertex];
+                        tetrahedronPosition[iVertex] = p[iVertexInACube];
+                        tetrahedronValue[iVertex] = cubeValue[iVertexInACube];
+                    }
+                    int iFlagIndex = 0;
+                    Point3D edgeVertex[6];
+                    for (int iVertex = 0; iVertex < 4; iVertex++)
+                    {
+                        if(tetrahedronValue[iVertex] > -epsilon_)
+                            iFlagIndex |= 1<<iVertex; // если внутренний или граничный
+                    }
+                    int iEdgeFlags = tetrahedronEdgeFlags[iFlagIndex];
+                    if (iEdgeFlags == 0)
+                        continue;
+                    for (int iEdge = 0; iEdge < 6; iEdge++)
+                    {
+                        //if there is an intersection on this edge
+                        if(iEdgeFlags & (1<<iEdge))
                         {
-                            if (t0 < t1 && t0 < t2)
-                            {
-                                p0 = addNode(t0, BORDER);
-                                if (t1 < t2)
-                                {
-                                    p1 = addNode(t1, BORDER);
-                                    p2 = addNode(t2, BORDER);
-                                }
-                                else
-                                {
-                                    p2 = addNode(t2, BORDER);
-                                    p1 = addNode(t1, BORDER);
-                                }
-                            }
-                            else if (t1 < t0 && t1 < t2)
-                            {
-                                p1 = addNode(t1, BORDER);
-                                if (t0 < t2)
-                                {
-                                    p0 = addNode(t0, BORDER);
-                                    p2 = addNode(t2, BORDER);
-                                }
-                                else
-                                {
-                                    p2 = addNode(t2, BORDER);
-                                    p0 = addNode(t0, BORDER);
-                                }
-                            }
-                            else
-                            {
-                                p2 = addNode(t2, BORDER);
-                                if (t1 < t0)
-                                {
-                                    p1 = addNode(t1, BORDER);
-                                    p0 = addNode(t0, BORDER);
-                                }
-                                else
-                                {
-                                    p0 = addNode(t0, BORDER);
-                                    p1 = addNode(t1, BORDER);
-                                }
-                            }
-                            if (p0 != p1 && p0 != p2 && p1 != p2) addElement(p0, p1, p2);
+                            int iVert0 = tetrahedronEdgeConnection[iEdge][0];
+                            int iVert1 = tetrahedronEdgeConnection[iEdge][1];
+                            edgeVertex[iEdge] = binary(tetrahedronPosition[iVert0], tetrahedronPosition[iVert1], func_slice, level);
+                        }
+                    }
+                    for (int iTriangle = 0; iTriangle < 2 && tetrahedronTriangles[iFlagIndex][3*iTriangle] >= 0; iTriangle++)
+                    {
+                        Point3D t0 = edgeVertex[tetrahedronTriangles[iFlagIndex][3*iTriangle]];
+                        Point3D t1 = edgeVertex[tetrahedronTriangles[iFlagIndex][3*iTriangle+1]];
+                        Point3D t2 = edgeVertex[tetrahedronTriangles[iFlagIndex][3*iTriangle+2]];
+                        if (!t0.isEqualTo(t1, epsilon_) && !t0.isEqualTo(t2, epsilon_) && !t1.isEqualTo(t2, epsilon_))
+                        {
+                            addElementOrdered(t2, t1, t0);
                         }
                     }
                 }
@@ -1281,194 +1394,8 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
         }
         x += hx;
     }
-//    std::vector<Triangle> elements = element_;
-//    std::vector<Node3D> nodes = node_;
-//    clear();
-//    for (std::vector<Triangle>::iterator t = elements.begin(); t != elements.end(); ++t)
-//    {
-//        Triangle triangle = *t;
-//        UInteger p0 = addNode(nodes[triangle[0]], delta);
-//        UInteger p1 = addNode(nodes[triangle[1]], delta);
-//        UInteger p2 = addNode(nodes[triangle[2]], delta);
-//        if (p0 != p1 && p0 != p2 && p1 != p2) addElement(p0, p1, p2);
-//    }
-    for (short iit = 0; iit < 3; iit++)
-    {
-        progress.restart(nodesCount());
-        for (std::vector<Node3D>::iterator n = node_.begin(); n != node_.end(); ++n)
-        {
-            Node3D node = *n;
-            AdjacentSet adjasent = node.adjacent;
-            Point3D point(0.0, 0.0, 0.0);
-            Point3D normal(0.0, 0.0, 0.0);
-            AdjacentSet neighbours;
-            double avr_len = 0.0; // средняя длина ребра
-            for (auto epointer: adjasent)
-            {
-                Triangle t = element_[epointer];
-                Point3D a(node_[t[0]].point, node_[t[1]].point);
-                Point3D b(node_[t[0]].point, node_[t[2]].point);
-                Point3D n = a.product(b);
-                neighbours.insert(t[0]);
-                neighbours.insert(t[1]);
-                neighbours.insert(t[2]);
-                normal = normal + n.normalized();
-                avr_len += a.length() + b.length();
-            }
-            normal = normal.normalized();
-            avr_len /= (2.0 * (double)adjasent.size());
-            for (auto npointer: neighbours)
-            {
-                point = point + node_[npointer].point;
-            }
-            point.scale(1.0 / (double)neighbours.size());
-            Point3D h = 0.001 * avr_len * normal;
-            Point3D p0 = point - h;
-            Point3D p1 = point + h;
-            while (signbit(func_slice(p0.x(), p0.y(), p0.z()) - level) == signbit(func_slice(p1.x(), p1.y(), p1.z()) - level) && p0.distanceTo(p1) < 10.0 * avr_len)
-            {
-                p0 = p0 - h;
-                p1 = p1 + h;
-            }
-            if (signbit(func_slice(p0.x(), p0.y(), p0.z()) - level) != signbit(func_slice(p1.x(), p1.y(), p1.z()) - level))
-                (*n).point = binary(p0, p1, func_slice, level);
-            ++progress;
-        }
-    }
-
-    auto functor = [&](const AdjacentSet &adjasentset)
-    {
-        double F = 0.0; // функционал
-//        double m = 0.0;
-        for (std::set<UInteger>::iterator it = adjasentset.begin(); it != adjasentset.end(); ++it)
-        {
-            Triangle t = element_[*it];
-            Point3D A = node_[t[0]].point;
-            Point3D B = node_[t[1]].point;
-            Point3D C = node_[t[2]].point;
-            double d2b = distToBorder(A, B, C, func_slice, 0.33333, 0.33333, level);
-//            Point3D AB = 0.5 * (A + B);
-//            Point3D BC = 0.5 * (B + C);
-//            Point3D CA = 0.5 * (C + A);
-//            double ab = C.distanceTo(AB);
-//            double bc = A.distanceTo(BC);
-//            double ca = B.distanceTo(CA);
-            Point3D AB(A, B);
-            Point3D BC(B, C);
-            Point3D CA(C, A);
-            double ab = AB.length();
-            double bc = BC.length();
-            double ca = CA.length();
-            F += 0.01*(ab*ab + bc*bc + ca*ca) + 10.0*d2b*d2b;
-        }
-        return F;
-    };
-
-    std::cout << "Length functional optimization..." << std::endl;
-    bool optimized = true;
-    for (short iit = 0; iit < 4 && optimized; iit++)
-    {
-        optimized = false;
-        flip();
-        progress.restart(nodesCount());
-        for (UInteger i = 0; i < nodesCount(); i++)
-        {
-            Node3D node = node_[i];
-            AdjacentSet adjasent = node.adjacent;
-            Point3D point = node.point;
-            double f_current = functor(adjasent);
-
-            for (std::set<UInteger>::iterator it = adjasent.begin(); it != adjasent.end(); ++it)
-            {
-                Triangle t = element_[*it];
-                int index = t.index(i);
-                Point3D A = node_[t[index]].point;
-                Point3D B = node_[t[index + 1]].point;
-                Point3D C = node_[t[index + 2]].point;
-                const double step = 0.005;
-                double l = step;
-                bool isOptimizedTriangle = false;
-                l = step;
-                double f_dir = 0.0;
-                node_[i].point = findBorder(A, B, C, func_slice, l, l, level);
-                f_dir = functor(adjasent);
-                if (f_dir > f_current)
-                {
-                    node_[i].point = point; // revert changes
-                }
-                else
-                {
-                    while (f_dir < f_current && l < 0.3)
-                    {
-                        point = node_[i].point;
-                        f_current = f_dir;
-                        l += step;
-                        node_[i].point = findBorder(A, B, C, func_slice, l, l, level);
-                        f_dir = functor(adjasent);
-                    }
-                    node_[i].point = point;
-                    optimized = isOptimizedTriangle = true;
-                }
-                if (!isOptimizedTriangle)
-                {
-                    l = step;
-                    node_[i].point = findBorder(A, B, C, func_slice, l, 0.0, level);
-                    f_dir = functor(adjasent);
-                    if (f_dir > f_current)
-                    {
-                        node_[i].point = point; // revert changes
-                    }
-                    else
-                    {
-                        while (f_dir < f_current && l < 0.6)
-                        {
-                            point = node_[i].point;
-                            f_current = f_dir;
-                            l += step;
-                            node_[i].point = findBorder(A, B, C, func_slice, l, 0.0, level);
-                            f_dir = functor(adjasent);
-                        }
-                        node_[i].point = point;
-                        optimized = isOptimizedTriangle = true;
-                    }
-                }
-                if (!isOptimizedTriangle)
-                {
-                    l =step;
-                    node_[i].point = findBorder(A, B, C, func_slice, 0, l, level);
-                    f_dir = functor(adjasent);
-                    if (f_dir > f_current)
-                    {
-                        node_[i].point = point; // revert changes
-                    }
-                    else
-                    {
-                        while (f_dir < f_current && l < 0.6)
-                        {
-                            point = node_[i].point;
-                            f_current = f_dir;
-                            l += step;
-                            node_[i].point = findBorder(A, B, C, func_slice, 0.0, l, level);
-                            f_dir = functor(adjasent);
-                        }
-                        node_[i].point = point;
-                        optimized =true;
-                    }
-                }
-            }
-            ++progress;
-        }
-//        flip();
-        if (!optimized) std::cout << "Optimization done in " << iit << " iterations." << std::endl;
-    }
-    xMin_ = xMin;
-    xMax_ = xMin + width;
-    yMin_ = yMin;
-    yMax_ = yMin + height;
-    zMin_ = zMin;
-    zMax_ = zMin + depth;
     evalNodalValues(func);
-    std::cout << "Марширующие кубы: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
+    std::cout << "Марширующие тетраэдры: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
 UInteger TriangleMesh3D::elementsCount() const
@@ -1508,6 +1435,56 @@ void TriangleMesh3D::addElement(const Triangle &triangle)
 void TriangleMesh3D::addElement(const std::vector<UInteger> &nodes_ref)
 {
     addElement(nodes_ref[0], nodes_ref[1], nodes_ref[2]);
+}
+
+void TriangleMesh3D::addElementOrdered(const Point3D &t0, const Point3D &t1, const Point3D &t2, double epsilon)
+{
+    UInteger p0;
+    UInteger p1;
+    UInteger p2;
+    if (t0 <= t1 && t0 <= t2)
+    {
+        p0 = addNode(t0, BORDER, epsilon);
+        if (t1 <= t2)
+        {
+            p1 = addNode(t1, BORDER, epsilon);
+            p2 = addNode(t2, BORDER, epsilon);
+        }
+        else
+        {
+            p2 = addNode(t2, BORDER, epsilon);
+            p1 = addNode(t1, BORDER, epsilon);
+        }
+    }
+    else if (t1 <= t0 && t1 <= t2)
+    {
+        p1 = addNode(t1, BORDER, epsilon);
+        if (t0 <= t2)
+        {
+            p0 = addNode(t0, BORDER, epsilon);
+            p2 = addNode(t2, BORDER, epsilon);
+        }
+        else
+        {
+            p2 = addNode(t2, BORDER, epsilon);
+            p0 = addNode(t0, BORDER, epsilon);
+        }
+    }
+    else
+    {
+        p2 = addNode(t2, BORDER, epsilon);
+        if (t1 <= t0)
+        {
+            p1 = addNode(t1, BORDER, epsilon);
+            p0 = addNode(t0, BORDER, epsilon);
+        }
+        else
+        {
+            p0 = addNode(t0, BORDER, epsilon);
+            p1 = addNode(t1, BORDER, epsilon);
+        }
+    }
+    addElement(p0, p1, p2);
 }
 
 double TriangleMesh3D::area(const UInteger &number) const
@@ -1612,49 +1589,230 @@ double TriangleMesh3D::cfunction(const double &x, const double &y, const double 
     return sign * min_distance;
 }
 
-Point3D TriangleMesh3D::findBorder(const Point3D &a, const Point3D &b, const Point3D &c, std::function<double (double, double, double)> func, double lb, double lc, double level)
+void TriangleMesh3D::laplacianSmoothing(std::function<double (double, double, double)> func, double level, int iter_num)
 {
-
-    Point3D ab(a, b);
-    Point3D ac(a, c);
-    double lab = ab.length();
-    double lac = ac.length();
-    if (lab < epsilon_ || lac < epsilon_) return a;
-    Point3D normal = ab.product(ac);
-    if (normal.length() < epsilon_) return a;
-
-    Point3D point = ((1.0 - lb - lc) * a) + (lb * b) + (lc * c);
-    if (fabs(func(point.x(), point.y(), point.z()) - level) < epsilon_) return point;
-
-    double avr_len = 0.5 * (lab + lac);
-    Point3D h = 0.01 * avr_len * normal.normalized();
-    Point3D p0 = point - h;
-    Point3D p1 = point + h;
-    double val0 = func(p0.x(), p0.y(), p0.z()) - level;
-    double val1 = func(p1.x(), p1.y(), p1.z()) - level;
-    short iic = 0;
-    while (signbit(val0) == signbit(val1)
-           && fabs(val0) >= epsilon_ && fabs(val1) >= epsilon_ && iic < 10000)
+    auto functor = [&](const AdjacentSet &adjasentset, const UInteger &nnode)
     {
-        p0 = p0 - h;
-        p1 = p1 + h;
-        val0 = func(p0.x(), p0.y(), p0.z()) - level;
-        val1 = func(p1.x(), p1.y(), p1.z()) - level;
-        ++iic;
+        const double alpha = 0.001;
+        const double beta = 1.0 - alpha;
+        double F = 0.0; // функционал
+        for (UInteger adj: adjasentset)
+        {
+            Triangle t = element_[adj];
+            int index = t.index(nnode);
+            Point3D A = node_[t[index]].point;
+            Point3D B = node_[t[index + 1]].point;
+            Point3D C = node_[t[index + 2]].point;
+            double d2b = distToBorder(A, B, C, func, 0.33333, 0.33333, level);
+            Point3D AB(A, B);
+            Point3D CA(C, A);
+            double ab = AB.length();
+            double ca = CA.length();
+            F += alpha * 0.5 * (ab*ab + ca*ca) + beta * d2b*d2b;
+        }
+        return F;
+    };
+    std::cout << "Сглаживание Лапласа: " << nodesCount() << " узлов, " << elementsCount() << " элементов." << std::endl;
+    for (short iit = 0; iit < iter_num; iit++)
+    {
+        ConsoleProgress progress(nodesCount());
+        for (UInteger nnode = 0; nnode < nodesCount(); nnode++)
+        {
+            AdjacentSet adjacent = node_[nnode].adjacent;
+            Point3D prev = node_[nnode].point;
+            Point3D point(0.0, 0.0, 0.0);
+            AdjacentSet neighbours;
+            double avr_len = 0.0; // средняя длина ребра
+            double f = functor(adjacent, nnode);
+            for (auto epointer: adjacent)
+            {
+                Triangle t = element_[epointer];
+                int index = t.index(nnode);
+                Point3D a(node_[t[index]].point, node_[t[index + 1]].point);
+                Point3D b(node_[t[index]].point, node_[t[index + 2]].point);
+                neighbours.insert(t[index + 1]);
+                neighbours.insert(t[index + 2]);
+                avr_len += 0.5 * (a.length() + b.length());
+            }
+            avr_len /= (double)adjacent.size();
+            for (auto npointer: neighbours)
+            {
+                point = point + node_[npointer].point;
+            }
+            point.scale(1.0 / (double)neighbours.size());
+            node_[nnode].point = findBorder(point, func, 0.1 * avr_len, level);
+            if (functor(adjacent, nnode) > f) node_[nnode].point = prev;
+            ++progress;
+        }
+        flip();
     }
-    if (fabs(val0) < epsilon_) return p0;
-    if (fabs(val1) < epsilon_) return p1;
-    if (signbit(func(p0.x(), p0.y(), p0.z()) - level) == signbit(func(p1.x(), p1.y(), p1.z()) - level))
-        return a;
-    return binary(p0, p1, func, level);
 }
 
-double TriangleMesh3D::distToBorder(const Point3D &a, const Point3D &b, const Point3D &c, std::function<double (double, double, double)> func, double lb, double lc, double level)
+void TriangleMesh3D::distlenSmoothing(std::function<double (double, double, double)> func, double level, int iter_num)
 {
-    Point3D border = findBorder(a, b, c, func, lb, lc, level);
-//    return border.distanceTo(a, b, c);
-    return border.distanceTo(((1.0 - lb - lc) * a) + (lb * b) + (lc * c));
+    auto functor = [&](const AdjacentSet &adjasentset, const UInteger &nnode)
+    {
+        const double alpha = 0.001;
+        const double beta = 1.0 - alpha;
+        double F = 0.0; // функционал
+        for (UInteger adj: adjasentset)
+        {
+            Triangle t = element_[adj];
+            int index = t.index(nnode);
+            Point3D A = node_[t[index]].point;
+            Point3D B = node_[t[index + 1]].point;
+            Point3D C = node_[t[index + 2]].point;
+            double d2b = distToBorder(A, B, C, func, 0.33333, 0.33333, level);
+            Point3D AB(A, B);
+            Point3D CA(C, A);
+            double ab = AB.length();
+            double ca = CA.length();
+            F += alpha * 0.5 * (ab*ab + ca*ca) + beta * d2b*d2b;
+        }
+        return F;
+    };
+
+    std::cout << "Сглаживание функционала расстояния-длины: " << nodesCount() << " узлов, " << elementsCount() << " элементов." << std::endl;
+    bool optimized = true;
+    for (short iit = 0; iit < iter_num && optimized; iit++)
+    {
+//        optimized = false;
+        flip();
+        ConsoleProgress progress(nodesCount());
+        for (UInteger i = 0; i < nodesCount(); i++)
+        {
+            Node3D node = node_[i];
+            AdjacentSet adjasent = node.adjacent;
+            Point3D point = node.point;
+            double f_current = functor(adjasent, i);
+
+            for (std::set<UInteger>::iterator it = adjasent.begin(); it != adjasent.end(); ++it)
+            {
+                Triangle t = element_[*it];
+                int index = t.index(i);
+                Point3D B = node_[t[index + 1]].point;
+                Point3D C = node_[t[index + 2]].point;
+                double step = 0.1;
+                int iic = 0;
+                do
+                {
+                    node_[i].point = findBorder(node_[i].point, B, C, func, step, 0.0, level);
+                    double f_dir = functor(adjasent, i);
+                    if (f_dir >= f_current)
+                    {
+                        node_[i].point = point;
+                        f_dir = f_current;
+                        step /= 10.0;
+                    }
+                    else
+                    {
+                        point = node_[i].point;
+                        f_current = f_dir;
+                    }
+                    iic++;
+                } while (step >= 0.001 && iic < 100);
+                /*if (iic == 3)*/step = 0.1;/*else step=0.001;*/
+                iic = 0;
+                do
+                {
+                    node_[i].point = findBorder(node_[i].point, B, C, func, 0.0, step, level);
+                    double f_dir = functor(adjasent, i);
+                    if (f_dir >= f_current)
+                    {
+                        node_[i].point = point;
+                        f_dir = f_current;
+                        step /= 10.0;
+                    }
+                    else
+                    {
+                        point = node_[i].point;
+                        f_current = f_dir;
+                    }
+                    iic++;
+                } while (step >= 0.001 && iic < 100);
+
+//                Triangle t = element_[*it];
+//                int index = t.index(i);
+//                Point3D A = node_[t[index]].point;
+//                Point3D B = node_[t[index + 1]].point;
+//                Point3D C = node_[t[index + 2]].point;
+//                double step = 0.01;
+//                bool isOptimizedTriangle = false;
+//                double f_dir = f_current;
+//                double l = step;
+//                double f_dir = 0.0;
+//                node_[i].point = findBorder(A, B, C, func_slice, l, l, level);
+//                f_dir = functor(adjasent);
+//                if (f_dir > f_current)
+//                {
+//                    node_[i].point = point; // revert changes
+//                }
+//                else
+//                {
+//                    while (f_dir < f_current && l < 0.3)
+//                    {
+//                        point = node_[i].point;
+//                        f_current = f_dir;
+//                        l += step;
+//                        node_[i].point = findBorder(A, B, C, func_slice, l, l, level);
+//                        f_dir = functor(adjasent);
+//                    }
+//                    node_[i].point = point;
+//                    optimized = isOptimizedTriangle = true;
+//                }
+//                if (!isOptimizedTriangle)
+//                {
+//                    l = step;
+//                    node_[i].point = findBorder(A, B, C, func_slice, l, 0.0, level);
+//                    f_dir = functor(adjasent);
+//                    if (f_dir > f_current)
+//                    {
+//                        node_[i].point = point; // revert changes
+//                    }
+//                    else
+//                    {
+//                        while (f_dir < f_current && l < 0.6)
+//                        {
+//                            point = node_[i].point;
+//                            f_current = f_dir;
+//                            l += step;
+//                            node_[i].point = findBorder(A, B, C, func_slice, l, 0.0, level);
+//                            f_dir = functor(adjasent);
+//                        }
+//                        node_[i].point = point;
+//                        optimized = isOptimizedTriangle = true;
+//                    }
+//                }
+//                if (!isOptimizedTriangle)
+//                {
+//                    l = step;
+//                    node_[i].point = findBorder(A, B, C, func_slice, 0, l, level);
+//                    f_dir = functor(adjasent);
+//                    if (f_dir > f_current)
+//                    {
+//                        node_[i].point = point; // revert changes
+//                    }
+//                    else
+//                    {
+//                        while (f_dir < f_current && l < 0.6)
+//                        {
+//                            point = node_[i].point;
+//                            f_current = f_dir;
+//                            l += step;
+//                            node_[i].point = findBorder(A, B, C, func_slice, 0.0, l, level);
+//                            f_dir = functor(adjasent);
+//                        }
+//                        node_[i].point = point;
+//                        optimized =true;
+//                    }
+//                }
+            }
+            ++progress;
+        }
+//        flip();
+    }
 }
+
 
 bool TriangleMesh3D::angles(const Point3D &A, const Point3D &B, const Point3D &C, double &alpha, double &beta, double &gamma)
 {
@@ -1876,7 +2034,7 @@ void TriangleMesh3D::flip()
     std::cout << "Flip routine...";
     bool were_flips = true;
     int iic = 0;
-    while (were_flips && iic < 20)
+    while (were_flips && iic < 40)
     {
         were_flips = false;
         ++iic;
@@ -1893,7 +2051,7 @@ void TriangleMesh3D::flip()
                 AdjacentSet a2 = node_[index2].adjacent;
                 std::vector<UInteger> common;
                 set_intersection(a0.begin(), a0.end(), a1.begin(), a1.end(), std::back_inserter(common));
-                if (common.size() > 2)std::cout << t << ": " << common[0] << ' ' << common[1] << ' ' << common[2] << ' ' << common[3] << "; ";
+                if (common.size() > 2)std::cout << t << ": " << index0 << "," << index1;// << " : " << common[0] << ' ' << common[1] << ' ' << common[2] << ' ' << common[3] << "; ";
                 if (common.size() == 2)
                 {
                     Point3D p0 = node_[index0].point;
@@ -1953,6 +2111,101 @@ void TriangleMesh3D::flip()
         }
     }
     std::cout << iic << std::endl;
+}
+
+void TriangleMesh3D::clearCooTriangles(std::list<CooTriangle> &cootriangles, std::function<double(double, double, double)> func, double level, double delta)
+{
+    std::list<CooTriangle>::iterator it = cootriangles.begin();
+    while (it != cootriangles.end())
+    {
+        Point3D a = (*it).a;
+        Point3D b = (*it).b;
+        Point3D c = (*it).c;
+        if (a.isEqualTo(b, delta) && a.isEqualTo(c, delta))
+        {
+            Point3D mc = findBorder((1.0 / 3.0) * (a + b + c), func, delta, level);
+            it = cootriangles.erase(it);
+            it = cootriangles.begin();
+            for (std::list<CooTriangle>::iterator itt = cootriangles.begin(); itt != cootriangles.end(); ++itt)
+            {
+                if ((*itt).a.isEqualTo(a, epsilon_) || (*itt).a.isEqualTo(b, epsilon_) || (*itt).a.isEqualTo(c, epsilon_))
+                    (*itt).a = mc;
+                if ((*itt).b.isEqualTo(a, epsilon_) || (*itt).b.isEqualTo(b, epsilon_) || (*itt).b.isEqualTo(c, epsilon_))
+                    (*itt).b = mc;
+                if ((*itt).c.isEqualTo(a, epsilon_) || (*itt).c.isEqualTo(b, epsilon_) || (*itt).c.isEqualTo(c, epsilon_))
+                    (*itt).c = mc;
+            }
+        }
+        else if (a.isEqualTo(b, delta))
+        {
+            Point3D mc = findBorder(0.5 * (a + b), func, delta, level);
+            it = cootriangles.erase(it);
+            it = cootriangles.begin();
+            for (std::list<CooTriangle>::iterator itt = cootriangles.begin(); itt != cootriangles.end(); ++itt)
+            {
+                if ((*itt).a.isEqualTo(a, epsilon_) || (*itt).a.isEqualTo(b, epsilon_))
+                    (*itt).a = mc;
+                if ((*itt).b.isEqualTo(a, epsilon_) || (*itt).b.isEqualTo(b, epsilon_))
+                    (*itt).b = mc;
+                if ((*itt).c.isEqualTo(a, epsilon_) || (*itt).c.isEqualTo(b, epsilon_))
+                    (*itt).c = mc;
+            }
+        }
+        else if (a.isEqualTo(c, delta))
+        {
+            Point3D mc = findBorder(0.5 * (a + c), func, delta, level);
+            it = cootriangles.erase(it);
+            it = cootriangles.begin();
+            for (std::list<CooTriangle>::iterator itt = cootriangles.begin(); itt != cootriangles.end(); ++itt)
+            {
+                if ((*itt).a.isEqualTo(a, epsilon_) || (*itt).a.isEqualTo(c, epsilon_))
+                    (*itt).a = mc;
+                if ((*itt).b.isEqualTo(a, epsilon_) || (*itt).b.isEqualTo(c, epsilon_))
+                    (*itt).b = mc;
+                if ((*itt).c.isEqualTo(a, epsilon_) || (*itt).c.isEqualTo(c, epsilon_))
+                    (*itt).c = mc;
+            }
+        }
+        else if (c.isEqualTo(b, delta))
+        {
+            Point3D mc = findBorder(0.5 * (c + b), func, delta, level);
+            it = cootriangles.erase(it);
+            it = cootriangles.begin();
+            for (std::list<CooTriangle>::iterator itt = cootriangles.begin(); itt != cootriangles.end(); ++itt)
+            {
+                if ((*itt).a.isEqualTo(c, epsilon_) || (*itt).a.isEqualTo(b, epsilon_))
+                    (*itt).a = mc;
+                if ((*itt).b.isEqualTo(c, epsilon_) || (*itt).b.isEqualTo(b, epsilon_))
+                    (*itt).b = mc;
+                if ((*itt).c.isEqualTo(c, epsilon_) || (*itt).c.isEqualTo(b, epsilon_))
+                    (*itt).c = mc;
+            }
+        }
+        else ++it;
+    }
+    ConsoleProgress pb(cootriangles.size());
+    it = cootriangles.begin();
+    while (it != cootriangles.end())
+    {
+        bool f = false;
+        std::list<CooTriangle>::iterator itt = std::next(it);
+        while (itt != cootriangles.end())
+        {
+            if (((*it).a.isEqualTo((*itt).a, epsilon_) || (*it).a.isEqualTo((*itt).b, epsilon_) || (*it).a.isEqualTo((*itt).c, epsilon_)) &&
+                    ((*it).b.isEqualTo((*itt).a, epsilon_) || (*it).b.isEqualTo((*itt).b, epsilon_) || (*it).b.isEqualTo((*itt).c, epsilon_)) &&
+                    ((*it).c.isEqualTo((*itt).a, epsilon_) || (*it).c.isEqualTo((*itt).b, epsilon_) || (*it).c.isEqualTo((*itt).c, epsilon_)))
+            {
+                itt = cootriangles.erase(itt);
+                f = true;
+            }
+            else ++itt;
+        }
+
+        if (f) it = cootriangles.erase(it);
+        else ++it;
+
+        ++pb;
+    }
 }
 
 }
