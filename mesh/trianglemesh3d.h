@@ -233,6 +233,13 @@ protected:
     {
         Point3D a, b, c;
     } CooTriangle;
+    /**
+     * @brief Процедура удаления из списка треугольников, которые со стороной меньше delta
+     * @param cootriangles Список треугольников, заданных своими координатами
+     * @param func Функция области
+     * @param level Уровень границы
+     * @param delta Минимально допустимый размер стороны
+     */
     void clearCooTriangles(std::list<CooTriangle> &cootriangles, std::function<double (double, double, double)> func, double level = 0.0, double delta = epsilon_);
 protected:
     std::vector<Triangle> element_; //!< Массив элементов

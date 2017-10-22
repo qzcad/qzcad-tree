@@ -2115,6 +2115,8 @@ void TriangleMesh3D::flip()
 
 void TriangleMesh3D::clearCooTriangles(std::list<CooTriangle> &cootriangles, std::function<double(double, double, double)> func, double level, double delta)
 {
+    if (delta < epsilon_) delta = epsilon_;
+    double h = (delta > epsilon_) ? delta : 3.0 * epsilon_;
     std::list<CooTriangle>::iterator it = cootriangles.begin();
     while (it != cootriangles.end())
     {
@@ -2123,7 +2125,7 @@ void TriangleMesh3D::clearCooTriangles(std::list<CooTriangle> &cootriangles, std
         Point3D c = (*it).c;
         if (a.isEqualTo(b, delta) && a.isEqualTo(c, delta))
         {
-            Point3D mc = findBorder((1.0 / 3.0) * (a + b + c), func, delta, level);
+            Point3D mc = findBorder((1.0 / 3.0) * (a + b + c), func, h, level);
             it = cootriangles.erase(it);
             it = cootriangles.begin();
             for (std::list<CooTriangle>::iterator itt = cootriangles.begin(); itt != cootriangles.end(); ++itt)
@@ -2138,7 +2140,7 @@ void TriangleMesh3D::clearCooTriangles(std::list<CooTriangle> &cootriangles, std
         }
         else if (a.isEqualTo(b, delta))
         {
-            Point3D mc = findBorder(0.5 * (a + b), func, delta, level);
+            Point3D mc = findBorder(0.5 * (a + b), func, h, level);
             it = cootriangles.erase(it);
             it = cootriangles.begin();
             for (std::list<CooTriangle>::iterator itt = cootriangles.begin(); itt != cootriangles.end(); ++itt)
@@ -2153,7 +2155,7 @@ void TriangleMesh3D::clearCooTriangles(std::list<CooTriangle> &cootriangles, std
         }
         else if (a.isEqualTo(c, delta))
         {
-            Point3D mc = findBorder(0.5 * (a + c), func, delta, level);
+            Point3D mc = findBorder(0.5 * (a + c), func, h, level);
             it = cootriangles.erase(it);
             it = cootriangles.begin();
             for (std::list<CooTriangle>::iterator itt = cootriangles.begin(); itt != cootriangles.end(); ++itt)
@@ -2168,7 +2170,7 @@ void TriangleMesh3D::clearCooTriangles(std::list<CooTriangle> &cootriangles, std
         }
         else if (c.isEqualTo(b, delta))
         {
-            Point3D mc = findBorder(0.5 * (c + b), func, delta, level);
+            Point3D mc = findBorder(0.5 * (c + b), func, h, level);
             it = cootriangles.erase(it);
             it = cootriangles.begin();
             for (std::list<CooTriangle>::iterator itt = cootriangles.begin(); itt != cootriangles.end(); ++itt)
@@ -2187,21 +2189,27 @@ void TriangleMesh3D::clearCooTriangles(std::list<CooTriangle> &cootriangles, std
     it = cootriangles.begin();
     while (it != cootriangles.end())
     {
-        bool f = false;
+        Point3D a = (*it).a;
+        Point3D b = (*it).b;
+        Point3D c = (*it).c;
+        bool isFind = false;
         std::list<CooTriangle>::iterator itt = std::next(it);
         while (itt != cootriangles.end())
         {
-            if (((*it).a.isEqualTo((*itt).a, epsilon_) || (*it).a.isEqualTo((*itt).b, epsilon_) || (*it).a.isEqualTo((*itt).c, epsilon_)) &&
-                    ((*it).b.isEqualTo((*itt).a, epsilon_) || (*it).b.isEqualTo((*itt).b, epsilon_) || (*it).b.isEqualTo((*itt).c, epsilon_)) &&
-                    ((*it).c.isEqualTo((*itt).a, epsilon_) || (*it).c.isEqualTo((*itt).b, epsilon_) || (*it).c.isEqualTo((*itt).c, epsilon_)))
+            Point3D ai = (*itt).a;
+            Point3D bi = (*itt).b;
+            Point3D ci = (*itt).c;
+            if ((a.isEqualTo(ai, epsilon_) || a.isEqualTo(bi, epsilon_) || a.isEqualTo(ci, epsilon_)) &&
+                    (b.isEqualTo(ai, epsilon_) || b.isEqualTo(bi, epsilon_) || b.isEqualTo(ci, epsilon_)) &&
+                    (c.isEqualTo(ai, epsilon_) || c.isEqualTo(bi, epsilon_) || c.isEqualTo(ci, epsilon_)))
             {
                 itt = cootriangles.erase(itt);
-                f = true;
+                isFind = true;
             }
             else ++itt;
         }
 
-        if (f) it = cootriangles.erase(it);
+        if (isFind) it = cootriangles.erase(it);
         else ++it;
 
         ++pb;
