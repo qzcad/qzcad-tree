@@ -233,4 +233,11 @@ bool isSkew(const Point3D &P0, const Point3D &P1, const Point3D &Q0, const Point
     return isCrossed(p0, p1, q0, q1, p, q);
 }
 
+Point3D normal3(const Point3D &A, const Point3D &B, const Point3D &C)
+{
+    Point3D ab(A, B);
+    Point3D ac(A, C);
+    return ac.product(ab).normalized();
+}
+
 }

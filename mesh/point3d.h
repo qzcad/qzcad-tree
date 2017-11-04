@@ -173,6 +173,14 @@ public:
      * @return
      */
     friend bool isSkew(const Point3D &P0, const Point3D &P1, const Point3D &Q0, const Point3D &Q1, double &p, double &q);
+    /**
+     * @brief Вычислить внешнюю нормаль к треугольнику ABC
+     * @param A Первая вершина треугольника
+     * @param B Вторая вершина треугольника
+     * @param C Третья вершина треугольника
+     * @return Нормализовнные координаты вектора-нормали
+     */
+    friend Point3D normal3(const Point3D &A, const Point3D &B, const Point3D &C);
 private:
     double z_; //!< Аппликата точки
 };

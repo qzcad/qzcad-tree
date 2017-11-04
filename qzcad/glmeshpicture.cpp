@@ -782,26 +782,8 @@ void GLMeshPicture::paintGL()
                         else
                             qglColor(elementColor_);
                         // нормаль к многоугольнику
-                        if (mesh_->dimesion() == 3)
-                        {
-                            // вычисление нормали к грани
-                            msh::PointPointer a = mesh_->node(face[1]);
-                            msh::PointPointer b = mesh_->node(face[0]);
-                            msh::PointPointer c = mesh_->node(face[2]);
-                            double nx = (b->y() - a->y()) * (c->z() - a->z()) - (b->z() - a->z()) * (c->y() - a->y());
-                            double ny = (b->z() - a->z()) * (c->x() - a->x()) - (b->x() - a->x()) * (c->z() - a->z());
-                            double nz = (b->x() - a->x()) * (c->y() - a->y()) - (b->y() - a->y()) * (c->x() - a->x());
-                            double nn = sqrt(nx * nx + ny * ny + nz * nz);
-                            // нормализация
-                            nx = nx / nn;
-                            ny = ny / nn;
-                            nz = nz / nn;
-                            glNormal3d(nx, ny, nz);
-                        }
-                        else
-                        {
-                            glNormal3d(0.0, 0.0, -1.0);
-                        }
+                        msh::Point3D n = mesh_->normal(face);
+                        glNormal3d(n.x(), n.y(), n.z());;
                         drawFace(face, GL_POLYGON);
                         if(showMesh_)
                         {

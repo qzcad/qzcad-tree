@@ -162,6 +162,11 @@ UInteger Mesh2D::addNode(const Node2D &node, double epsilon, std::function<doubl
     return addNode(node.point, node.type, epsilon, distance);
 }
 
+Point3D Mesh2D::normal(const UIntegerVector &face) const
+{
+    return Point3D(0.0, 0.0, -1.0);
+}
+
 void Mesh2D::updateDomain()
 {
     Point2D start = node_[0].point;

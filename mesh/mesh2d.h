@@ -146,6 +146,12 @@ public:
      */
     UInteger addNode(const Node2D &node, double epsilon = epsilon_, std::function<double(Point2D, Point2D)> distance = nullptr);
     /**
+     * @brief Вычислить нормаль к грани
+     * @param face Масив, представляющий грань
+     * @return Координаты вектора-нормали
+     */
+    virtual Point3D normal(const UIntegerVector &face) const;
+    /**
      * @brief Обновить параметры области определения сетки (xMin, xMax, yMin, yMax)
      */
     virtual void updateDomain();

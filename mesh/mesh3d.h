@@ -115,6 +115,12 @@ public:
      */
     UInteger addNode(const Node3D &node, double epsilon = epsilon_);
     /**
+     * @brief Вычислить нормаль к грани
+     * @param face Масив, представляющий грань
+     * @return Координаты вектора-нормали
+     */
+    virtual Point3D normal(const UIntegerVector &face) const;
+    /**
      * @brief Обновить параметры области определения сетки (xMin, xMax, yMin, yMax, zMin, zMax)
      */
     virtual void updateDomain();

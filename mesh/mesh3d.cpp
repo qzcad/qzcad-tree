@@ -1,5 +1,6 @@
 #include "mesh3d.h"
 #include <math.h>
+#include "point3d.h"
 
 namespace msh {
 Mesh3D::Mesh3D(const Mesh3D *mesh) : Mesh(mesh)
@@ -107,6 +108,26 @@ UInteger Mesh3D::addNode(const Point3D &point, const NodeType &type, double epsi
 UInteger Mesh3D::addNode(const Node3D &node, double epsilon)
 {
     return addNode(node.point, node.type, epsilon);
+}
+
+Point3D Mesh3D::normal(const UIntegerVector &face) const
+{
+    int fs = face.size();
+    if (fs == 3)
+    {
+        return normal3(node_[face[0]].point, node_[face[1]].point, node_[face[2]].point);
+    }
+    // else we use average of normals
+    Point3D n(0.0, 0.0, 0.0);
+    for (int i = 0; i < fs; i++)
+    {
+        Point3D prev = (i == 0) ? node_[face[fs - 1]].point : node_[face[i - 1]].point;
+        Point3D curr = node_[face[i]].point;
+        Point3D next = (i == fs - 1) ? node_[face[0]].point : node_[face[i + 1]].point;
+        n = n + normal3(prev, curr, next);
+    }
+    n.scale(1.0 / (double)fs);
+    return n.normalized();
 }
 
 void Mesh3D::updateDomain()

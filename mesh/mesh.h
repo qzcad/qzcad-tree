@@ -16,6 +16,7 @@
 #include "nodetype.h"
 #include "nameddoublevector.h"
 #include "adjacentset.h"
+#include "point3d.h"
 
 namespace msh
 {
@@ -108,6 +109,12 @@ public:
      * @return true - граничная грань; false - внутреняя
      */
     virtual bool isBorderFace(const UIntegerVector &face) const;
+    /**
+     * @brief Вычислить нормаль к грани
+     * @param face Масив, представляющий грань
+     * @return Координаты вектора-нормали
+     */
+    virtual Point3D normal(const UIntegerVector &face) const = 0;
     /**
      * @brief Обновить параметры области определения сетки (xMin, xMax, yMin, yMax, zMin, zMax)
      */
