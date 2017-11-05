@@ -178,6 +178,13 @@ private:
      */
     static QScriptValue createSweptMesh(QScriptContext *context, QScriptEngine *engine);
     /**
+     * @brief "Конструктор" воксельных моделей
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Объект для использования в скриптах
+     */
+    static QScriptValue createVoxelMesh(QScriptContext *context, QScriptEngine *engine);
+    /**
      * @brief Qt Script реализация операции печати на консоль через std::cout
      * @param context Контекст скрипта
      * @param engine Двигатель скрипта

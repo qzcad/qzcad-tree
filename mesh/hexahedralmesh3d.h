@@ -65,8 +65,8 @@ public:
      */
     HexahedralMesh3D(const HexahedralMesh3D &mesh);
     /**
-     * @brief Конструктор создает копию объекта, переданого по ссылке
-     * @param mesh Ссылка на объект для копирования
+     * @brief Конструктор создает копию объекта, переданого по указателю
+     * @param mesh Указатель на объект для копирования
      */
     HexahedralMesh3D(const HexahedralMesh3D *mesh);
     /**
@@ -126,6 +126,7 @@ public:
      */
     void sweepBaseMesh(QuadrilateralMesh2D *baseMesh, const double &z0, const double &z1, const double &phi0, const double &phi1, const double &k0, const double &k1, const int &zLayersCount);
 //    UInteger toArray(UInteger i, UInteger j, UInteger k, UInteger yCount, UInteger zCount) { return i * yCount * zCount + j * zCount + k; }
+
 private:
     std::vector<Hexahedral> element_; //!< Массив шестигранных элементов
 };

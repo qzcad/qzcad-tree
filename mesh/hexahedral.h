@@ -72,7 +72,7 @@ public:
     virtual UInteger vertexNode (int i) const;
     /**
      * @brief Количество граней, соответвующих элементу (необходимо для визуализации)
-     * @return Количество гранейn (6)
+     * @return Количество граней (6)
      */
     virtual int facesCount() const;
     /**

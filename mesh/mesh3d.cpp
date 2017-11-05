@@ -13,6 +13,7 @@ Mesh3D::Mesh3D(const Mesh3D *mesh) : Mesh(mesh)
         xMax_ = mesh->xMax_;
         yMax_ = mesh->yMax_;
         zMax_ = mesh->zMax_;
+        node_ = mesh->node_;
     }
     else
     {

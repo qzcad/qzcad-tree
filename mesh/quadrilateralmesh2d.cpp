@@ -337,22 +337,12 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const QuadrilateralMesh2D &mesh) :
     Mesh2D(&mesh)
 {
     element_ = mesh.element_;
-    node_ = mesh.node_;
-    xMin_ = mesh.xMin_;
-    xMax_ = mesh.xMax_;
-    yMin_ = mesh.yMin_;
-    yMax_ = mesh.yMax_;
 }
 
 QuadrilateralMesh2D::QuadrilateralMesh2D(const QuadrilateralMesh2D *mesh) :
     Mesh2D(mesh)
 {
     element_ = mesh->element_;
-    node_ = mesh->node_;
-    xMin_ = mesh->xMin_;
-    xMax_ = mesh->xMax_;
-    yMin_ = mesh->yMin_;
-    yMax_ = mesh->yMax_;
 }
 
 void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint)

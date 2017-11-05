@@ -30,8 +30,8 @@ public:
      */
     QuadrilateralMesh3D(const QuadrilateralMesh3D &mesh);
     /**
-     * @brief Конструктор создает копию объекта, переданого по ссылке
-     * @param mesh Ссылка на объект для копирования
+     * @brief Конструктор создает копию объекта, переданого по указателю
+     * @param mesh Указатель на объект для копирования
      */
     QuadrilateralMesh3D(const QuadrilateralMesh3D *mesh);
     /**

@@ -40,7 +40,8 @@ SOURCES += mesh.cpp \
     rfunctions.cpp \
     nameddoublevector.cpp \
     tetrahedralmesh3d.cpp \
-    tetrahedron.cpp
+    tetrahedron.cpp \
+    voxelmesh.cpp
 
 HEADERS += mesh.h \
     point.h \
@@ -74,7 +75,8 @@ HEADERS += mesh.h \
     rfunctions.h \
     nameddoublevector.h \
     tetrahedralmesh3d.h \
-    tetrahedron.h
+    tetrahedron.h \
+    voxelmesh.h
 unix:!symbian {
     maemo5 {
         target.path = /opt/usr/lib

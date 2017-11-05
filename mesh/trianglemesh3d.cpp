@@ -25,13 +25,11 @@ TriangleMesh3D::TriangleMesh3D() : Mesh3D(NULL)
 
 TriangleMesh3D::TriangleMesh3D(const TriangleMesh3D &mesh) : Mesh3D(&mesh)
 {
-    node_ = mesh.node_;
     element_ = mesh.element_;
 }
 
 TriangleMesh3D::TriangleMesh3D(const TriangleMesh3D *mesh) : Mesh3D(mesh)
 {
-    node_ = mesh->node_;
     element_ = mesh->element_;
 }
 

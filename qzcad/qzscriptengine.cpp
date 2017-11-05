@@ -10,6 +10,7 @@
 #include "qtrianglemesh3d.h"
 #include "qtetrahedralmesh3d.h"
 #include "qhexahedralmesh3d.h"
+#include "qvoxelmesh.h"
 
 #include "rfunctions.h"
 
@@ -104,6 +105,8 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     globalObject().setProperty("MarchingCubes", newFunction(createMarchingCubes));
     // "Вытягивание" тела движением
     globalObject().setProperty("SweepMesh", newFunction(createSweptMesh));
+    // Воксельная модель
+    globalObject().setProperty("VoxelMesh", newFunction(createVoxelMesh));
 
     // setMesh
     globalObject().setProperty("setMesh", newFunction(setMesh));
@@ -1109,6 +1112,59 @@ QScriptValue QZScriptEngine::createSweptMesh(QScriptContext *context, QScriptEng
     return context->throwError(tr("SweepMesh: wrong count of arguments"));
 }
 
+QScriptValue QZScriptEngine::createVoxelMesh(QScriptContext *context, QScriptEngine *engine)
+{
+    QString typeError = tr("VoxelMesh(origin: Point, width: Floating, height: Floating, depth: Floating, h: Floating, func: Function[, filter: Function]: wrong argument (%1).");
+    if (context->argumentCount() != 6 && context->argumentCount() != 7)
+        return context->throwError(tr("VoxelMesh(origin: Point, width: Floating, height: Floating, depth: Floating, h: Floating, func: Function[, filter: Function]: wrong count of arguments"));
+    if (!context->argument(0).isQObject() || qscriptvalue_cast<QPoint3D *>(context->argument(0)) == NULL)
+        return context->throwError(typeError.arg("origin"));
+    if (!context->argument(1).isNumber())
+        return context->throwError(typeError.arg("width"));
+    if (!context->argument(2).isNumber())
+        return context->throwError(typeError.arg("height"));
+    if (!context->argument(3).isNumber())
+        return context->throwError(typeError.arg("depth"));
+    if (!context->argument(4).isNumber())
+        return context->throwError(typeError.arg("h"));
+    QScriptValue funcValue = context->argument(5);
+    if (!funcValue.isFunction())
+        return context->throwError(typeError.arg("func"));
+
+    auto func = [&](double x, double y, double z)
+    {
+        QScriptValueList args;
+        args << x << y << z;
+        return funcValue.call(QScriptValue(), args).toNumber();
+    };
+    QPoint3D *origin = qscriptvalue_cast<QPoint3D *>(context->argument(0));
+    double width = context->argument(1).toNumber();
+    double height = context->argument(2).toNumber();
+    double depth = context->argument(3).toNumber();
+    double h = context->argument(4).toNumber();
+    QVoxelMesh *qvm;
+    if (context->argumentCount() == 6)
+    {
+        qvm = new QVoxelMesh();
+        qvm->voxel(origin->x(), origin->y(), origin->z(), width, height, depth, h, func);
+    }
+    else
+    {
+        QScriptValue filterValue = context->argument(6);
+        if (!filterValue.isFunction())
+            return context->throwError(typeError.arg("filter"));
+        auto filter = [&](double x, double y, double z)
+        {
+            QScriptValueList args;
+            args << x << y << z;
+            return filterValue.call(QScriptValue(), args).toBool();
+        };
+        qvm = new QVoxelMesh();
+        qvm->voxel(origin->x(), origin->y(), origin->z(), width, height, depth, h, func, filter);
+    }
+    return engine->newQObject(qvm, QScriptEngine::ScriptOwnership);
+}
+
 QScriptValue QZScriptEngine::printStd(QScriptContext *context, QScriptEngine *engine)
 {
     for (register int i = 0; i < context->argumentCount(); ++i)
@@ -1162,6 +1218,10 @@ QScriptValue QZScriptEngine::setMesh(QScriptContext *context, QScriptEngine *eng
     else if (qscriptvalue_cast<QHexahedralMesh3D *>(context->argument(0)) != NULL)
     {
         mesh_ = new HexahedralMesh3D(qscriptvalue_cast<QHexahedralMesh3D *>(context->argument(0)));
+    }
+    else if (qscriptvalue_cast<QVoxelMesh *>(context->argument(0)) != NULL)
+    {
+        mesh_ = new QVoxelMesh(qscriptvalue_cast<QVoxelMesh *>(context->argument(0)));
     }
     else
     {

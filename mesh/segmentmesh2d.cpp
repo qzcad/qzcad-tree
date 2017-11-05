@@ -16,14 +16,12 @@ SegmentMesh2D::SegmentMesh2D() : Mesh2D(NULL)
 
 SegmentMesh2D::SegmentMesh2D(const SegmentMesh2D &mesh) : Mesh2D(&mesh)
 {
-    node_ = mesh.node_;
     element_ = mesh.element_;
 }
 
 SegmentMesh2D::SegmentMesh2D(const SegmentMesh2D *mesh) : Mesh2D(mesh)
 {
     element_ = mesh->element_;
-    node_ = mesh->node_;
 }
 
 void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint, double level, bool isOptimized, std::function<double(Point2D, Point2D)> distance)

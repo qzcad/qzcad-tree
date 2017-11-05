@@ -12,13 +12,11 @@ TetrahedralMesh3D::TetrahedralMesh3D() : Mesh3D(NULL)
 TetrahedralMesh3D::TetrahedralMesh3D(const TetrahedralMesh3D &mesh) : Mesh3D(&mesh)
 {
     element_ = mesh.element_;
-    node_ = mesh.node_;
 }
 
 TetrahedralMesh3D::TetrahedralMesh3D(const TetrahedralMesh3D *mesh) : Mesh3D(mesh)
 {
     element_ = mesh->element_;
-    node_ = mesh->node_;
 }
 
 UInteger TetrahedralMesh3D::elementsCount() const

@@ -270,13 +270,11 @@ void HexahedralMesh3D::rotateBaseMesh(QuadrilateralMesh2D *baseMesh, const doubl
 HexahedralMesh3D::HexahedralMesh3D(const HexahedralMesh3D &mesh) : Mesh3D(&mesh)
 {
     element_ = mesh.element_;
-    node_ = mesh.node_;
 }
 
 HexahedralMesh3D::HexahedralMesh3D(const HexahedralMesh3D *mesh): Mesh3D(mesh)
 {
     element_ = mesh->element_;
-    node_ = mesh->node_;
 }
 
 UInteger HexahedralMesh3D::elementsCount() const

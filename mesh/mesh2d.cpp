@@ -10,6 +10,7 @@ Mesh2D::Mesh2D(const Mesh2D *mesh) : Mesh(mesh)
         yMin_ = mesh->yMin_;
         xMax_ = mesh->xMax_;
         yMax_ = mesh->yMax_;
+        node_ = mesh->node_;
     }
     else
     {

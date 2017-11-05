@@ -34,8 +34,8 @@ public:
      */
     SegmentMesh2D(const SegmentMesh2D &mesh);
     /**
-     * @brief Конструктор создает копию объекта, переданого по ссылке
-     * @param mesh Ссылка на объект для копирования
+     * @brief Конструктор создает копию объекта, переданого по указателю
+     * @param mesh Указатель на объект для копирования
      */
     SegmentMesh2D(const SegmentMesh2D *mesh);
     /**

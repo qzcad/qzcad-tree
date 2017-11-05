@@ -366,21 +366,11 @@ void TriangleMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yC
 TriangleMesh2D::TriangleMesh2D(const TriangleMesh2D &mesh) : Mesh2D(&mesh)
 {
     element_ = mesh.element_;
-    node_ = mesh.node_;
-    xMin_ = mesh.xMin_;
-    xMax_ = mesh.xMax_;
-    yMin_ = mesh.yMin_;
-    yMax_ = mesh.yMax_;
 }
 
 TriangleMesh2D::TriangleMesh2D(const TriangleMesh2D *mesh) : Mesh2D(mesh)
 {
     element_ = mesh->element_;
-    node_ = mesh->node_;
-    xMin_ = mesh->xMin_;
-    xMax_ = mesh->xMax_;
-    yMin_ = mesh->yMin_;
-    yMax_ = mesh->yMax_;
 }
 
 void TriangleMesh2D::delaunay(SegmentMesh2D *mesh)

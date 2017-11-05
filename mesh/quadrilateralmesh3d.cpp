@@ -11,13 +11,11 @@ QuadrilateralMesh3D::QuadrilateralMesh3D() : Mesh3D(NULL)
 
 QuadrilateralMesh3D::QuadrilateralMesh3D(const QuadrilateralMesh3D &mesh) : Mesh3D(&mesh)
 {
-    node_ = mesh.node_;
     element_ = mesh.element_;
 }
 
 QuadrilateralMesh3D::QuadrilateralMesh3D(const QuadrilateralMesh3D *mesh) : Mesh3D(mesh)
 {
-    node_ = mesh->node_;
     element_ = mesh->element_;
 }
 
