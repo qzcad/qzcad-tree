@@ -94,13 +94,15 @@ UInteger Mesh3D::pushNode(PointPointer point, const NodeType &type)
 
 UInteger Mesh3D::addNode(const Point3D &point, const NodeType &type, double epsilon)
 {
-    for (UInteger i = 0; i < node_.size(); i++)
+    UInteger ns = node_.size();
+    for (UInteger i = 0; i < ns; i++)
     {
-        if ( point.isEqualTo(node_[i].point, epsilon) )
+        UInteger ii = ns - i - 1UL;
+        if ( point.isEqualTo(node_[ii].point, epsilon) )
         {
-            if (node_[i].type != type) // обновление типа узла
-                node_[i].type = type;
-            return i;
+            if (node_[ii].type != type) // обновление типа узла
+                node_[ii].type = type;
+            return ii;
         }
     }
     return pushNode(point, type);
