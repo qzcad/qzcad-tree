@@ -61,11 +61,6 @@ public:
      */
     TriangleMesh2D(const TriangleMesh2D *mesh);
     /**
-     * @brief Метод построения триангуляции Делоне заданного двумерного конутра
-     * @param mesh Указатель на контур
-     */
-    void delaunay(SegmentMesh2D *mesh);
-    /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
      */
@@ -130,17 +125,20 @@ public:
      */
     double angleAspect(const UInteger &elNum);
     /**
-     * @brief Триангуляция Делоне объекта, представленного функционально
-     * @param xCount Количество узлов вдоль оси абсцисс
-     * @param yCount Количество узлов вдоль оси ординат
-     * @param xMin Абсцисса нижнего левого угла прямоугольной области
-     * @param yMin Ордината нижнего левого угла прямоугольной области
-     * @param width Ширина прямоугольной области
-     * @param height Высота прямоугольной области
-     * @param func Функция области
-     * @param charPoint Список характерных точек
+     * @brief Триангуляция Делоне контура функциональной модели
+     * @param mesh Объект-конутр
+     * @param func Указатель на функцию области. Если он равен nullptr, то используется сfunction.
+     * @see SegmentMesh2D::cfunction
      */
-    void delaunay(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint);
+    void delaunay(const SegmentMesh2D &mesh, std::function<double(double, double)> func);
+    /**
+     * @brief Триангуляция Делоне с использованием улучшения модели методом Рапперта
+     * @param mesh Объект-контур
+     * @param func Указатель на функцию области. Если он равен nullptr, то используется сfunction.
+     * @param alpha Минимально допустимый угол в радианах
+     * @param max_area Если больше нуля, то удаляются все треугольники, площадь которых больше заданного значения.
+     */
+    void ruppert(const SegmentMesh2D &mesh, std::function<double(double, double)> func, double alpha = 0.436332, double max_area = 0.0);
     /**
      * @brief Триангуляция Делоне с использованием метода Рапперта для объекта, представленного функционально
      * @param xCount Количество узлов вдоль оси абсцисс
@@ -228,7 +226,7 @@ public:
      * @brief Оптимизация триангуляции Делоне методом Рапперта (супер область)
      * @param Triangulation Ссылка на триангуляцию Делоне супер области
      */
-    static void superRuppert(Triangulation &triangulation, SegmentMesh2D *mesh, std::function<double(double, double)> func);
+    static void superRuppert(Triangulation &triangulation, SegmentMesh2D *mesh, std::function<double(double, double)> func, double alpha = 0.436332);
     /**
      * @brief Метод выполняет процедуру разбиения всех сегментов, в диаметр-окружности которых поападают другие вершины
      * @param triangulation Ссылка на триангуляцию Делоне

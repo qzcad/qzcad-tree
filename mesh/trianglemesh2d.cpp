@@ -6,6 +6,7 @@
 #include <climits>
 #include <algorithm>
 #include <float.h>
+#include <time.h>
 #ifdef WITH_OPENMP
 #include <omp.h>
 #endif
@@ -373,22 +374,6 @@ TriangleMesh2D::TriangleMesh2D(const TriangleMesh2D *mesh) : Mesh2D(mesh)
     element_ = mesh->element_;
 }
 
-void TriangleMesh2D::delaunay(SegmentMesh2D *mesh)
-{
-    clear();
-    Triangulation triangulation = superDelaunay(mesh, NULL);
-    for (UInteger i = 4; i < triangulation.nodes.size(); i++) pushNode(triangulation.nodes[i], BORDER);
-    for (std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
-         triangle != triangulation.triangles.end(); ++triangle)
-    {
-        if (triangle->vertexNode(0) > 3 && triangle->vertexNode(1) > 3 && triangle->vertexNode(2) > 3)
-            addElement(triangle->vertexNode(0) - 4UL, triangle->vertexNode(1) - 4UL, triangle->vertexNode(2) - 4UL);
-//           addElement(triangle->vertexNode(0), triangle->vertexNode(1), triangle->vertexNode(2));
-    }
-    xMin_ = mesh->xMin(); xMax_ = mesh->xMax();
-    yMin_ = mesh->yMin(); yMax_ = mesh->yMax();
-}
-
 UInteger TriangleMesh2D::elementsCount() const
 {
     return element_.size();
@@ -518,15 +503,14 @@ double TriangleMesh2D::angleAspect(const UInteger &elNum)
     return 0.0;
 }
 
-void TriangleMesh2D::delaunay(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint)
+void TriangleMesh2D::delaunay(const SegmentMesh2D &mesh, std::function<double (double, double)> func)
 {
     clear();
-
-    SegmentMesh2D mesh;
-    mesh.functionalDomain(xCount, yCount, xMin, yMin, width, height, func, charPoint);
-
-    Triangulation triangulation = superDelaunay(&mesh, func);
-
+    SegmentMesh2D smesh = mesh;
+    std::cout << "Delaunay Meshing: " << smesh.nodesCount() << " nodes, " << smesh.elementsCount() << " elements in the initial mesh." << std::endl;
+    clock_t start = clock();
+    if (func == nullptr) func = std::bind(&SegmentMesh2D::cfunction, &smesh, std::placeholders::_1, std::placeholders::_2);
+    Triangulation triangulation = superDelaunay(&smesh, func);
     for (UInteger i = 4; i < triangulation.nodes.size(); i++) pushNode(triangulation.nodes[i], triangulation.types[i]);
     for (std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
          triangle != triangulation.triangles.end(); ++triangle)
@@ -541,9 +525,61 @@ void TriangleMesh2D::delaunay(const UInteger &xCount, const UInteger &yCount, co
                 addElement(triangle->vertexNode(0) - 4UL, triangle->vertexNode(1) - 4UL, triangle->vertexNode(2) - 4UL);
         }
     }
+    std::cout << "Done in " << (double)(clock() - start) / CLOCKS_PER_SEC << "s: " << nodesCount() << " nodes, " << elementsCount() << " elements." << std::endl;
     evalNodalValues(func);
-    xMin_ = mesh.xMin(); xMax_ = mesh.xMax();
-    yMin_ = mesh.yMin(); yMax_ = mesh.yMax();
+    xMin_ = smesh.xMin(); xMax_ = smesh.xMax();
+    yMin_ = smesh.yMin(); yMax_ = smesh.yMax();
+}
+
+void TriangleMesh2D::ruppert(const SegmentMesh2D &mesh, std::function<double (double, double)> func, double alpha, double max_area)
+{
+    clear();
+    SegmentMesh2D smesh = mesh;
+    std::cout << "Ruppert Meshing: " << smesh.nodesCount() << " nodes, " << smesh.elementsCount() << " elements in the initial mesh." << std::endl;
+    clock_t start = clock();
+    if (func == nullptr) func = std::bind(&SegmentMesh2D::cfunction, &smesh, std::placeholders::_1, std::placeholders::_2);
+    Triangulation triangulation = superDelaunay(&smesh, func);
+    superRuppert(triangulation, &smesh, func, alpha);
+    if (max_area > 0.0)
+    {
+        areaRefinement(max_area, func, triangulation);
+        superRuppert(triangulation, &smesh, func);
+    }
+    for (std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
+             triangle != triangulation.triangles.end(); )
+    {
+        Point2D A = triangulation.nodes[triangle->vertexNode(0)];
+        Point2D B = triangulation.nodes[triangle->vertexNode(1)];
+        Point2D C = triangulation.nodes[triangle->vertexNode(2)];
+        Point2D center = 1.0 / 3.0 * (A + B + C);
+        double val_a = func(A.x(), A.y());
+        double val_b = func(B.x(), B.y());
+        double val_c = func(C.x(), C.y());
+        double val_center = func(center.x(), center.y());
+        if (!(val_a > -epsilon_ && val_b > -epsilon_ && val_c > -epsilon_ && val_center > -epsilon_))
+        {
+            triangle = triangulation.triangles.erase(triangle);
+        }
+        else
+        {
+             triangle++;
+        }
+    }
+
+    for (std::list<Triangle>::iterator triangle = triangulation.triangles.begin();
+             triangle != triangulation.triangles.end(); ++triangle)
+    {
+        Point2D A = triangulation.nodes[triangle->vertexNode(0)];
+        Point2D B = triangulation.nodes[triangle->vertexNode(1)];
+        Point2D C = triangulation.nodes[triangle->vertexNode(2)];
+        addElement(addNode(A, triangulation.types[triangle->vertexNode(0)]),
+                addNode(B, triangulation.types[triangle->vertexNode(1)]),
+                addNode(C, triangulation.types[triangle->vertexNode(2)]));
+    }
+    std::cout << "Done in " << (double)(clock() - start) / CLOCKS_PER_SEC << "s: " << nodesCount() << " nodes, " << elementsCount() << " elements." << std::endl;
+    evalNodalValues(func);
+    xMin_ = smesh.xMin(); xMax_ = smesh.xMax();
+    yMin_ = smesh.yMin(); yMax_ = smesh.yMax();
 }
 
 void TriangleMesh2D::ruppert(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint, bool refineArea)
@@ -551,7 +587,7 @@ void TriangleMesh2D::ruppert(const UInteger &xCount, const UInteger &yCount, con
     clear();
 
     SegmentMesh2D mesh;//, contour;
-    mesh.functionalDomain(xCount, yCount, xMin, yMin, width, height, func, charPoint);
+    mesh.MarchingQuads(xCount, yCount, xMin, yMin, width, height, func, charPoint);
 //    mesh.frontGraph(xCount, yCount, xMin, yMin, width, height, func, charPoint, 3);
 
     Triangulation triangulation = superDelaunay(&mesh, func);
@@ -638,7 +674,7 @@ void TriangleMesh2D::ruppert(const UInteger &xCount, const UInteger &yCount, con
 //    }
 
     SegmentMesh2D mesh;
-    mesh.functionalDomain(xCount, yCount, xMin, yMin, width, height, func_a, func_b, charPoint, delta);
+    mesh.MarchingQuads(xCount, yCount, xMin, yMin, width, height, func_a, func_b, charPoint, delta);
 
     Triangulation triangulation = superDelaunay(&mesh, nullptr);
 
@@ -928,7 +964,7 @@ TriangleMesh2D::Triangulation TriangleMesh2D::superDelaunay(SegmentMesh2D *mesh,
     return triangulation;
 }
 
-void TriangleMesh2D::superRuppert(TriangleMesh2D::Triangulation &triangulation, SegmentMesh2D *mesh, std::function<double(double, double)> func)
+void TriangleMesh2D::superRuppert(TriangleMesh2D::Triangulation &triangulation, SegmentMesh2D *mesh, std::function<double(double, double)> func, double alpha)
 {
     splitSegments(triangulation);
     ConsoleProgress progress(7000000UL);
@@ -946,7 +982,7 @@ void TriangleMesh2D::superRuppert(TriangleMesh2D::Triangulation &triangulation, 
             if (func == nullptr)
                 func_val = true;
             else
-                func_val = (func(A.x(), A.y()) >= -epsilon_ || func(B.x(), B.y()) >= -epsilon_ || func(C.x(), C.y()) >= -epsilon_);
+                func_val = (func(A.x(), A.y()) > -epsilon_ || func(B.x(), B.y()) > -epsilon_ || func(C.x(), C.y()) > -epsilon_);
 
             if (mesh->isCrossedElement(A, B, seg_num))
             {
@@ -972,7 +1008,7 @@ void TriangleMesh2D::superRuppert(TriangleMesh2D::Triangulation &triangulation, 
                 else
                     ++triangle;
             }
-            else if (minAngle(A, B, C) < 0.436332 && func_val) // 25gr
+            else if (minAngle(A, B, C) < alpha && func_val) // 25gr
             {
                 Point2D center;
 
@@ -1219,7 +1255,7 @@ bool TriangleMesh2D::circumCircle(const double &xp, const double &yp, const doub
     dx = xp - xc;
     dy = yp - yc;
     drsqr = dx * dx + dy * dy;
-    return (drsqr <= rsqr - epsilon_);
+    return (drsqr <= rsqr);
 }
 
 }
