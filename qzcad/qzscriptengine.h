@@ -80,12 +80,19 @@ private:
      */
     static QScriptValue createQuadrilateralMesh2D(QScriptContext *context, QScriptEngine *engine);
     /**
-     * @brief "Конструктор" сеток двумерных балок
+     * @brief "Конструктор" сеток двумерных балок методом Бегущих квадратов
      * @param context Контекст скрипта
      * @param engine Двигатель скрипта
      * @return Объект для использования в скриптах
      */
-    static QScriptValue createSegmentMesh2D(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue createMarchingQuads(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief "Конструктор" сеток двумерных балок для параметрических кривых
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Объект для использования в скриптах
+     */
+    static QScriptValue createParametricSegments(QScriptContext *context, QScriptEngine *engine);
     /**
      * @brief "Конструктор" двумерных картин линий уровня
      * @param context Контекст скрипта
@@ -206,6 +213,13 @@ private:
      */
     static QScriptValue currentMesh(QScriptContext *context, QScriptEngine *engine);
     /**
+     * @brief Установить результирующую сетку
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return engine->undefinedValue()
+     */
+    static QScriptValue smoothMesh(QScriptContext *context, QScriptEngine *engine);
+    /**
      * @brief Функция суммирования с произвольным числом аргументов
      * @param context Контекст скрипта
      * @param engine Двигатель скрипта
@@ -317,6 +331,15 @@ private:
      * @return Если аргументы корректны, то значение соответствующей функциий, иначе engine->undefinedValue()
      */
     static QScriptValue cylinder(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue elasticFem(QScriptContext *context, QScriptEngine *engine);
+    static QScriptValue mindlinFem(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief МКЭ: двумерные задачи упругости
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны, то будет найдено решение задачи, иначе engine->undefinedValue()
+     */
+    static QScriptValue planeStressStrain(QScriptContext *context, QScriptEngine *engine);
     /**
      * @brief МКЭ: плоское напряжение
      * @param context Контекст скрипта
@@ -380,6 +403,34 @@ private:
      * @return Если аргументы корректны, то будет выведен в стандартный вывод отчет
      */
     static QScriptValue reportValues(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief Функция создания матриц связи напряжений и деформаций. Случай плоских деформаций
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны, то матрица 3x3
+     */
+    static QScriptValue createPlaneStrainMatrix(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief Функция создания матриц связи напряжений и деформаций. Случай плоских напряжений
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны, то матрица 3x3
+     */
+    static QScriptValue createPlaneStressMatrix(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief Функция создания матриц связи напряжений и деформаций. Случай плоских напряжений для ламината
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны, то матрица 3x3
+     */
+    static QScriptValue createLaminaStressMatrix(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief Функция создания матриц связи сдвиговых напряжений и деформаций для ламината
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны, то матрица 2x2
+     */
+    static QScriptValue createLaminaShearMatrix(QScriptContext *context, QScriptEngine *engine);
 private:
     static double epsilon_; //!< Точность численных операций
     static msh::Mesh *mesh_; //!< Сетка, построенная в результате интерпретации скрипта

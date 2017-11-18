@@ -7,12 +7,27 @@
 
 MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
                                          double thickness,
-                                         const DoubleMatrix &planeStressMatrix,
+                                         const DoubleMatrix &D,
                                          const std::list<FemCondition *> &conditions) :
     Fem2D(mesh, 3, conditions)
 {
     thickness_ = thickness;
-    D_ = planeStressMatrix;
+    D_ = D;
+    Dc_.resize(2, 2);
+    Dc_(0, 0) = D_(2, 2); Dc_(0, 1) = 0.0;
+    Dc_(1, 0) = 0.0; Dc_(1, 1) = D_(2, 2);
+}
+
+MindlinPlateBending::MindlinPlateBending(Mesh2D *mesh,
+                                         double thickness,
+                                         const DoubleMatrix &D,
+                                         const DoubleMatrix &Dc,
+                                         const std::list<FemCondition *> &conditions) :
+    Fem2D(mesh, 3, conditions)
+{
+    thickness_ = thickness;
+    D_ = D;
+    Dc_ = Dc;
 }
 
 void MindlinPlateBending::buildGlobalMatrix()
@@ -52,13 +67,10 @@ void MindlinPlateBending::buildGlobalMatrix()
             }
         }
     }
-    DoubleMatrix D = D_; // матрица упругости
-    DoubleMatrix Dc(2, 0.0);
-    Dc(0, 0) = D(2, 2); Dc(1, 1) = D(2, 2);
     std::cout << "D" << std::endl;
-    D.print();
+    D_.print();
     std::cout << "Dc:" << std::endl;
-    Dc.print();
+    Dc_.print();
     // построение глобальной матрицы жесткости
     std::cout << "Stiffness Matrix...";
     ConsoleProgress progressBar(elementsCount);
@@ -112,8 +124,8 @@ void MindlinPlateBending::buildGlobalMatrix()
                 Bc(1, i * freedom_) = dNdY(i);  Bc(1, i * freedom_ + 2) = N(i);
             }
 
-            local += jacobian * w * thickness_*thickness_*thickness_ / 12.0 * (Bf.transpose() * D * Bf);
-            local += jacobian * w * kappa * thickness_ * (Bc.transpose() * Dc * Bc);
+            local += jacobian * w * thickness_*thickness_*thickness_ / 12.0 * (Bf.transpose() * D_ * Bf);
+            local += jacobian * w * kappa * thickness_ * (Bc.transpose() * Dc_ * Bc);
         } // ig
         // Ансамблирование
         assembly(element, local);
@@ -321,13 +333,10 @@ void MindlinPlateBending::processSolution(const DoubleVector &displacement)
     {
         elementNodes = 4;
     }
-    DoubleMatrix D = D_; // матрица упругости
-    DoubleMatrix Dc(2, 0.0);
-    Dc(0, 0) = D(2, 2); Dc(1, 1) = D(2, 2);
     std::cout << "D" << std::endl;
-    D.print();
+    D_.print();
     std::cout << "Dc:" << std::endl;
-    Dc.print();
+    Dc_.print();
     std::vector<double> w(nodesCount);
     std::vector<double> theta_x(nodesCount);
     std::vector<double> theta_y(nodesCount);
@@ -423,8 +432,8 @@ void MindlinPlateBending::processSolution(const DoubleVector &displacement)
                 dis(freedom_ * i + 2, 0) = displacement[freedom_ * element->vertexNode(i) + 2];
             }
 
-            sigma = (thickness_ / 2.0) * ((D * Bf) * dis);
-            tau = ((Dc * Bc) * dis);
+            sigma = (thickness_ / 2.0) * ((D_ * Bf) * dis);
+            tau = ((Dc_ * Bc) * dis);
             double von = sqrt(sigma(0,0)*sigma(0,0) - sigma(0,0)*sigma(1,0) + sigma(1,0)*sigma(1,0) + 3.0 * sigma(2,0)*sigma(2,0));
 
             SigmaX[element->vertexNode(inode)] += sigma(0, 0);

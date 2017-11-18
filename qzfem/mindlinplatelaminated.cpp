@@ -11,6 +11,27 @@ MindlinPlateLaminated::MindlinPlateLaminated(Mesh2D *mesh,
 {
     thickness_ = thickness;
     D_ = planeStressMatrix;
+    unsigned layers_count = thickness_.size();
+    Dc_.resize(layers_count);
+    for (unsigned i = 0; i < layers_count; i++)
+    {
+        Dc_[i].resize(2, 2);
+        Dc_[i] (0, 1) = Dc_[i] (1, 0) = 0.0;
+        Dc_[i] (0, 0) = D_[i] (2, 2);
+        Dc_[i] (1, 1) = D_[i] (2, 2);
+    }
+}
+
+MindlinPlateLaminated::MindlinPlateLaminated(Mesh2D *mesh,
+                                             const std::vector<double> &thickness,
+                                             const std::vector<DoubleMatrix> &D,
+                                             const std::vector<DoubleMatrix> &Dc,
+                                             const std::list<FemCondition *> &conditions) :
+    Fem2D(mesh, 5, conditions)
+{
+    thickness_ = thickness;
+    D_ = D;
+    Dc_ = Dc;
 }
 
 void MindlinPlateLaminated::buildGlobalMatrix()
@@ -51,21 +72,14 @@ void MindlinPlateLaminated::buildGlobalMatrix()
         }
     }
     unsigned layers_count = thickness_.size();
-    std::vector<DoubleMatrix> D(layers_count); // матрица упругости
-    std::vector<DoubleMatrix> Dc(layers_count);
     double H = 0.0; // толщина пластинки
 
     for (unsigned i = 0; i < layers_count; i++)
     {
-        D[i] = D_[i];
-        Dc[i].resize(2, 2);
-        Dc[i] (0, 1) = Dc[i] (1, 0) = 0.0;
-        Dc[i] (0, 0) = D_[i] (2, 2);
-        Dc[i] (1, 1) = D_[i] (2, 2);
         std::cout << "D[" << i << "]:" << std::endl;
-        D[i].print();
+        D_[i].print();
         std::cout << "Dc["<< i << "]:" << std::endl;
-        Dc[i].print();
+        Dc_[i].print();
         H += thickness_[i];
     }
     std::cout << "Thickness: " << H << std::endl;
@@ -133,11 +147,11 @@ void MindlinPlateLaminated::buildGlobalMatrix()
             for (unsigned i = 0; i < layers_count; i++)
             {
                 z1 = z0 + thickness_[i];
-                local += jacobian * w * (z1 - z0) * (Bm.transpose() * D[i] * Bm);
-                local += jacobian * w * (z1*z1 - z0*z0) / 2.0 * (Bm.transpose() * D[i] * Bf);
-                local += jacobian * w * (z1*z1 - z0*z0) / 2.0 * (Bf.transpose() * D[i] * Bm);
-                local += jacobian * w * (z1*z1*z1 - z0*z0*z0) / 3.0 * (Bf.transpose() * D[i] * Bf);
-                local += jacobian * w * kappa * (z1 - z0) * (Bc.transpose() * Dc[i] * Bc);
+                local += jacobian * w * (z1 - z0) * (Bm.transpose() * D_[i] * Bm);
+                local += jacobian * w * (z1*z1 - z0*z0) / 2.0 * (Bm.transpose() * D_[i] * Bf);
+                local += jacobian * w * (z1*z1 - z0*z0) / 2.0 * (Bf.transpose() * D_[i] * Bm);
+                local += jacobian * w * (z1*z1*z1 - z0*z0*z0) / 3.0 * (Bf.transpose() * D_[i] * Bf);
+                local += jacobian * w * kappa * (z1 - z0) * (Bc.transpose() * Dc_[i] * Bc);
                 z0 = z1;
             }
         } // ig
@@ -366,21 +380,14 @@ void MindlinPlateLaminated::processSolution(const DoubleVector &displacement)
         elementNodes = 4;
     }
     unsigned layers_count = thickness_.size();
-    std::vector<DoubleMatrix> D(layers_count); // матрица упругости
-    std::vector<DoubleMatrix> Dc(layers_count);
     double H = 0.0; // толщина пластинки
 
     for (unsigned i = 0; i < layers_count; i++)
     {
-        D[i] = D_[i];
-        Dc[i].resize(2, 2);
-        Dc[i] (0, 1) = Dc[i] (1, 0) = 0.0;
-        Dc[i] (0, 0) = D_[i] (2, 2);
-        Dc[i] (1, 1) = D_[i] (2, 2);
         std::cout << "D[" << i << "]:" << std::endl;
-        D[i].print();
+        D_[i].print();
         std::cout << "Dc["<< i << "]:" << std::endl;
-        Dc[i].print();
+        Dc_[i].print();
         H += thickness_[i];
     }
     std::vector<double> u(nodesCount);
@@ -488,8 +495,8 @@ void MindlinPlateLaminated::processSolution(const DoubleVector &displacement)
                 dis(freedom_ * i + 4, 0) = displacement[freedom_ * element->vertexNode(i) + 4];
             }
 
-            sigma = ((D[layers_count - 1] * Bm) * dis) + (H / 2.0 * ((D[layers_count - 1] * Bf) * dis));
-            tau = ((Dc[layers_count - 1] * Bc) * dis);
+            sigma = ((D_[layers_count - 1] * Bm) * dis) + (H / 2.0 * ((D_[layers_count - 1] * Bf) * dis));
+            tau = ((Dc_[layers_count - 1] * Bc) * dis);
             double von = sqrt(sigma(0,0)*sigma(0,0) - sigma(0,0)*sigma(1,0) + sigma(1,0)*sigma(1,0) + 3.0 * sigma(2,0)*sigma(2,0));
 
             SigmaX[element->vertexNode(inode)] += sigma(0, 0);

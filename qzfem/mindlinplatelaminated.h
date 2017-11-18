@@ -20,6 +20,11 @@ public:
                           const std::vector<double> &thickness,
                           const std::vector<DoubleMatrix> &planeStressMatrix,
                           const std::list<FemCondition *> &conditions);
+    MindlinPlateLaminated(Mesh2D *mesh,
+                          const std::vector<double> &thickness,
+                          const std::vector<DoubleMatrix> &D,
+                          const std::vector<DoubleMatrix> &Dc,
+                          const std::list<FemCondition *> &conditions);
 protected:
     /**
      * @brief Метод для построения глобальной матрицы системы
@@ -37,6 +42,7 @@ protected:
 protected:
     std::vector<double> thickness_; //!< Толщина объекта
     std::vector<DoubleMatrix> D_; //!< Матрица упругости
+    std::vector<DoubleMatrix> Dc_; //!< Матрица упругости
 };
 
 #endif // MINDLINPLATELAMINATED_H

@@ -26,6 +26,7 @@ public:
      * @param conditions Список условий (нагрузок и граничных условий)
      */
     MindlinShellBending(Mesh3D *mesh, double thickness, const DoubleMatrix &planeStressMatrix, const std::list<FemCondition *> &conditions, double alphaT = 0.0);
+    MindlinShellBending(Mesh3D *mesh, double thickness, const DoubleMatrix &D, const DoubleMatrix &Dc, const std::list<FemCondition *> &conditions, double alphaT = 0.0);
     /**
      * @brief Конструктор для КЭ анаилза многослойных оболочек Миндлина
      * @param mesh Указатель на сетку элементов
@@ -44,6 +45,7 @@ public:
      * @param conditions Список условий (нагрузок и граничных условий)
      */
    // MindlinShellBending(Mesh3D *mesh, double thickness, const std::vector<double> &strain, const std::vector<double> &stress, double nu, const std::list<FemCondition *> &conditions);
+
 protected:
     /**
      * @brief Метод для построения глобальной матрицы системы
@@ -62,6 +64,7 @@ protected:
 protected:
     double thickness_; //!< Толщина объекта
     DoubleMatrix D_; //!< Матрица упругости
+    DoubleMatrix Dc_; //!< Матрица упругости
     double alpha_; //!< Коэффициент температурного напряжения
 };
 

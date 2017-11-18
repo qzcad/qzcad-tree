@@ -51,6 +51,25 @@ public:
      * @return Матрица 3x3 - матрица плоского напряженного состояния
      */
     static DoubleMatrix evalPlaneStressMatrix(const double &E, const double &nu, const double &G);
+    /**
+     * @brief Метод вычисляет матрицу плоского напряженного состояния ламината
+     * @param E1 Модуль Юнга xx
+     * @param E2 Модуль Юнга yy
+     * @param nu12 Коэффициент Пуассона xy
+     * @param nu21 Коэффициент Пуассона yx
+     * @param G12 Модуль сдвига xy
+     * @param theta Угол намотки
+     * @return Матрица 3x3 - матрица плоского напряженного состояния ламината
+     */
+    static DoubleMatrix evalLaminaStressMatrix(const double &E1, const double &E2, const double &nu12, const double &G12, const double &theta);
+    /**
+     * @brief Метод вычисляет матрицу сдвига ламината
+     * @param G13 Модуль свига xz
+     * @param G23 Модуль сдвига yz
+     * @param theta Угол намотки
+     * @return Матрица 2x2 - матрица сдвига ламината
+     */
+    static DoubleMatrix evalLaminaShearMatrix(const double &G13, const double &G23, const double &theta);
 
 protected:
     /**

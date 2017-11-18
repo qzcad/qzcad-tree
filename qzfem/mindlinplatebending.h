@@ -19,7 +19,12 @@ class MindlinPlateBending : public Fem2D
 public:
     MindlinPlateBending(Mesh2D *mesh,
                         double thickness,
-                        const DoubleMatrix &planeStressMatrix,
+                        const DoubleMatrix &D,
+                        const std::list<FemCondition *> &conditions);
+    MindlinPlateBending(Mesh2D *mesh,
+                        double thickness,
+                        const DoubleMatrix &D,
+                        const DoubleMatrix &Dc,
                         const std::list<FemCondition *> &conditions);
 protected:
     /**
@@ -38,6 +43,7 @@ protected:
 protected:
     double thickness_; //!< Толщина объекта
     DoubleMatrix D_; //!< Матрица упругости
+    DoubleMatrix Dc_; //!< Матрица упругости для сдвиговых деформаций
 };
 
 #endif // MINDLINPLATEBENDING_H

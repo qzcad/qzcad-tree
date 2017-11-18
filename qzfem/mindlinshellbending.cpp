@@ -14,8 +14,26 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh,
 {
     thickness_ = thickness;
     D_ = planeStressMatrix;
+    Dc_.resize(2, 2);
+    Dc_(0, 0) = D_(2, 2); Dc_(0, 1) = 0.0;
+    Dc_(1, 0) = 0.0; Dc_(1, 1) = D_(2, 2);
     alpha_ = alphaT;
 }
+
+MindlinShellBending::MindlinShellBending(Mesh3D *mesh,
+                                         double thickness,
+                                         const DoubleMatrix &D,
+                                         const DoubleMatrix &Dc,
+                                         const std::list<FemCondition *> &conditions,
+                                         double alphaT) :
+    Fem2D(mesh, 6, conditions)
+{
+    thickness_ = thickness;
+    D_ = D;
+    Dc_ = Dc;
+    alpha_ = alphaT;
+}
+
 /*
 MindlinShellBending::MindlinShellBending(Mesh3D *mesh,
                                          const std::vector<double> &thickness,
@@ -249,14 +267,10 @@ void MindlinShellBending::buildGlobalMatrix()
         }
     }
 
-    DoubleMatrix D = D_; // матрица упругости
-    DoubleMatrix Dc(2, 0.0);
-    Dc(0, 0) = D(2, 2); Dc(1, 1) = D(2, 2);
-
     std::cout << "D:" << std::endl;
-    D.print();
+    D_.print();
     std::cout << "Dc:" << std::endl;
-    Dc.print();
+    Dc_.print();
     std::cout << "Thickness: " << thickness_ << std::endl;
 
     // температурные деформации
@@ -338,11 +352,11 @@ void MindlinShellBending::buildGlobalMatrix()
                 Bc(1, i * freedom_ + 2) = dNdY(i);  Bc(1, i * freedom_ + 4) = N(i);
             }
 
-            local += jacobian * w * thickness_ * (Bm.transpose() * D * Bm);
-            local += jacobian * w * thickness_*thickness_*thickness_ / 12.0 * (Bf.transpose() * D * Bf);
-            local += jacobian * w * kappa * thickness_ * (Bc.transpose() * Dc * Bc);
+            local += jacobian * w * thickness_ * (Bm.transpose() * D_ * Bm);
+            local += jacobian * w * thickness_*thickness_*thickness_ / 12.0 * (Bf.transpose() * D_ * Bf);
+            local += jacobian * w * kappa * thickness_ * (Bc.transpose() * Dc_ * Bc);
 
-            epsilonForce += jacobian * w * thickness_ * ((Bm.transpose() * D) * epsilon0);
+            epsilonForce += jacobian * w * thickness_ * ((Bm.transpose() * D_) * epsilon0);
         } // ig
 
         DoubleMatrix surf = T.transpose() * local * T;
@@ -617,9 +631,6 @@ void MindlinShellBending::processSolution(const DoubleVector &displacement)
     {
         elementNodes = 4;
     }
-    DoubleMatrix D = D_; // матрица упругости
-    DoubleMatrix Dc(2, 0.0);
-    Dc(0, 0) = D(2, 2); Dc(1, 1) = D(2, 2);
     std::vector<double> xxx(nodesCount);
     std::vector<double> yyy(nodesCount);
     std::vector<double> zzz(nodesCount);
@@ -752,12 +763,12 @@ void MindlinShellBending::processSolution(const DoubleVector &displacement)
 
             DoubleVector dLocal = T * dis;
 
-            sigma_membrane = (D * Bm) * dLocal;
-            sigma_plate = thickness_ / 2.0 * ((D * Bf) * dLocal);
+            sigma_membrane = (D_ * Bm) * dLocal;
+            sigma_plate = thickness_ / 2.0 * ((D_ * Bf) * dLocal);
             sigma[0] = sigma_membrane[0] + sigma_plate[0];
             sigma[1] = sigma_membrane[1] + sigma_plate[1];
             sigma[2] = sigma_membrane[2] + sigma_plate[2];
-            tau = (Dc * Bc) * dLocal;
+            tau = (Dc_ * Bc) * dLocal;
 
             DoubleMatrix localSigma(3, 3, 0.0);
             localSigma(0, 0) = sigma(0); localSigma(0, 1) = sigma(2); localSigma(0, 2) = tau(0);

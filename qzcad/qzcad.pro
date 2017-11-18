@@ -65,7 +65,8 @@ SOURCES += main.cpp\
     qsegmentmesh2d.cpp \
     qtetrahedralmesh3d.cpp \
     qhexahedralmesh3d.cpp \
-    qvoxelmesh.cpp
+    qvoxelmesh.cpp \
+    qdoublematrix.cpp
 
 HEADERS  += mainwindow.h \
     globalconsts.h \
@@ -100,7 +101,8 @@ HEADERS  += mainwindow.h \
     qsegmentmesh2d.h \
     qtetrahedralmesh3d.h \
     qhexahedralmesh3d.h \
-    qvoxelmesh.h
+    qvoxelmesh.h \
+    qdoublematrix.h
 
 FORMS    += mainwindow.ui \
     glcontrolwidget.ui \

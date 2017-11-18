@@ -1,6 +1,7 @@
 #include "fem2d.h"
 
 #include "doublematrix.h"
+#include <math.h>
 
 Fem2D::Fem2D(Mesh *mesh, UInteger freedom, const std::list<FemCondition *> &conditions) :
     Fem(mesh, freedom, conditions)
@@ -37,6 +38,35 @@ DoubleMatrix Fem2D::evalPlaneStressMatrix(const double &E, const double &nu, con
     DoubleMatrix d = evalPlaneStressMatrix(E, nu);
     d(2, 2) = G;
     return d;
+}
+
+DoubleMatrix Fem2D::evalLaminaStressMatrix(const double &E1, const double &E2, const double &nu12, const double &G12, const double &theta)
+{
+    DoubleMatrix Q(3, 3, 0.0);
+    DoubleMatrix T(3, 3, 0.0);
+    double c = cos(theta);
+    double s = sin(theta);
+    double nu21 = nu12 * E2 / E1;
+    Q(0, 0) = E1 / (1.0 - nu12 * nu21); Q(0, 1) = nu12 * E2 / (1.0 - nu12 * nu21);
+    Q(1, 0) = nu21 * E1 / (1.0 - nu12 * nu21); Q(1, 1) = E2 / (1.0 - nu12 * nu21);
+    Q(2, 2) = G12;
+    T(0, 0) = c * c;  T(0, 1) = s * s;  T(0, 2) = -2.0 * c * s;
+    T(1, 0) = s * s;  T(1, 1) = c * c;  T(1, 2) = 2.0 * c * s;
+    T(2, 0) = c * s;  T(2, 1) = -c * s;  T(2, 2) = c * c - s * s;
+    return T * Q * T.transpose();
+}
+
+DoubleMatrix Fem2D::evalLaminaShearMatrix(const double &G13, const double &G23, const double &theta)
+{
+    DoubleMatrix Q(2, 2, 0.0);
+    DoubleMatrix T(2, 2, 0.0);
+    double c = cos(theta);
+    double s = sin(theta);
+    Q(0, 0) = G13;
+    Q(1, 1) = G23;
+    T(0, 0) = c;  T(0, 1) = -s;
+    T(1, 0) = s;  T(1, 1) = c;
+    return T * Q * T.transpose();
 }
 
 double Fem2D::isoQuad4(const double &xi, const double &eta, const DoubleVector &x, const DoubleVector &y, DoubleVector &N, DoubleVector &dNdX, DoubleVector &dNdY)
