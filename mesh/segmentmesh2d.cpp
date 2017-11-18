@@ -4,7 +4,7 @@
 #include <iostream>
 #include <limits>
 #include <math.h>
-
+#include <time.h>
 
 #include "consoleprogress.h"
 
@@ -24,7 +24,7 @@ SegmentMesh2D::SegmentMesh2D(const SegmentMesh2D *mesh) : Mesh2D(mesh)
     element_ = mesh->element_;
 }
 
-void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint, double level, bool isOptimized, std::function<double(Point2D, Point2D)> distance)
+void SegmentMesh2D::MarchingQuads(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint, double level, int smooth, int optimize, std::function<double(Point2D, Point2D)> distance)
 {
     clear();
     std::cout << "Mesh generation: level = " << level << std::endl;
@@ -83,68 +83,13 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
         node_[num].point = character;
         node_[num].type = CHARACTER;
     }
-    laplacianSmoothing(func, level);
-    if (isOptimized) distlenSmoothing(func, level);
-
-    // оптимизация по кривизне границы
-//    for (int it = 0; (it < 10) && isOptimized; ++it)
-//    {
-//        std::cout << "Curvature it " << it << " ";
-//        isOptimized = false;
-//        UInteger es = element_.size();
-//        for (UInteger i = 0; i < es; i++)
-//        {
-//            Segment s = element_[i];
-//            Point2D a = node_[s[0]].point;
-//            Point2D b = node_[s[1]].point;
-//            Point2D v(a, b);
-//            Point2D n = v.perpendicular().normalized();
-//            Point2D c = 0.5 * (a + b);
-//            double l = v.length();
-//            Point2D p0 = (-0.25 * l * n) + c;
-//            Point2D p1 = (0.25 * l * n) + c;
-//            if (signbit(func(p0.x(), p0.y()) - level) != signbit(func(p1.x(), p1.y()) - level))
-//            {
-//                Point2D border = binary(p0, p1, func, level);
-//                if (!border.isEqualTo(c, tolerance * l))
-//                {
-//                    UInteger j = pushNode(border, BORDER);
-//                    addElement(j, s[1]);
-//                    node_[s[1]].adjacent.erase(i);
-//                    element_[i][1] = j;
-//                    node_[j].adjacent.insert(i);
-//                    std::cout << '+';
-//                    isOptimized = true;
-//                }
-//            }
-//            else
-//            {
-//                Point2D h = 0.01 * l * n;
-//                p0 = -h + c;
-//                p1 = h + c;
-//                while (signbit(func(p0.x(), p0.y()) - level) == signbit(func(p1.x(), p1.y()) - level)) {
-//                    p0 = p0 - h;
-//                    p1 = p1 + h;
-//                }
-//                Point2D border = binary(p0, p1, func, level);
-//                if (!border.isEqualTo(c, tolerance * l))
-//                {
-//                    UInteger j = pushNode(border, BORDER);
-//                    addElement(j, s[1]);
-//                    node_[s[1]].adjacent.erase(i);
-//                    element_[i][1] = j;
-//                    node_[j].adjacent.insert(i);
-//                    std::cout << '!';
-//                    isOptimized = true;
-//                }
-//            }
-//        }
-//        std::cout << std::endl;
-//    }
+    laplacianSmoothing(func, level, smooth);
+    curvatureSmoothing(func, level, 0.05, optimize);
+    distlenSmoothing(func, level, optimize);
     std::cout << "Segments mesh: nodes - " << nodesCount() << " elements - " << elementsCount() << std::endl;
 }
 
-void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func_a, std::function<double (double, double)> func_b, std::list<Point2D> charPoint, double delta)
+void SegmentMesh2D::MarchingQuads(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func_a, std::function<double (double, double)> func_b, std::list<Point2D> charPoint, double delta)
 {
     clear();
     SegmentMesh2D mesh_a, mesh_b;
@@ -160,14 +105,14 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
         if (fabs(func_a(point.x(), point.y())) < epsilon_) points_a.push_back(point);
         else if (fabs(func_b(point.x(), point.y())) < epsilon_) points_b.push_back(point); // общие точки добавятся во время обработки узлов зоны контакта
     }
-    mesh_a.functionalDomain(xCount, yCount, xMin, yMin, width, height, func_a, points_a, true);
+    mesh_a.MarchingQuads(xCount, yCount, xMin, yMin, width, height, func_a, points_a, true);
     // обработка узлов зоны контакта
     for (UInteger i = 0 ; i < mesh_a.nodesCount(); i++)
     {
         Point2D point = mesh_a.node_[i].point;
         if (fabs(func_b(point.x(), point.y())) < epsilon_) points_b.push_back(point);
     }
-    mesh_b.functionalDomain(xCount, yCount, xMin, yMin, width, height, func_b, points_b, true);
+    mesh_b.MarchingQuads(xCount, yCount, xMin, yMin, width, height, func_b, points_b, true);
     node_ = mesh_a.node_;
     element_ = mesh_a.element_;
     for (ElementIterator el_b = mesh_b.element_.begin(); el_b != mesh_b.element_.end(); ++el_b)
@@ -221,7 +166,7 @@ void SegmentMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCo
     std::cout << "Contact mesh: nodes - " << nodesCount() << " elements - " << elementsCount() << std::endl;
 }
 
-void SegmentMesh2D::contourGraph(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint, int contours, bool isOptimized)
+void SegmentMesh2D::contourGraph(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint, int contours, int smooth, int optimize)
 {
     clear();
     xMin_ = xMin;
@@ -233,7 +178,7 @@ void SegmentMesh2D::contourGraph(const UInteger &xCount, const UInteger &yCount,
     double maxf = 0.0;
     double h = 0.0;
 
-    functionalDomain(xCount, yCount, xMin, yMin, width, height, func, charPoint, 0.0, false);
+    MarchingQuads(xCount, yCount, xMin, yMin, width, height, func, charPoint, 0.0, smooth, optimize);
 
     double x0 = xMin_;
     for (UInteger i = 0; i < xCount; i++)
@@ -256,7 +201,7 @@ void SegmentMesh2D::contourGraph(const UInteger &xCount, const UInteger &yCount,
     {
         SegmentMesh2D S;
         std::list<Point2D> C;
-        S.functionalDomain(xCount, yCount, xMin, yMin, width, height, func, C, 0.0 + (double)i * h, false);
+        S.MarchingQuads(xCount, yCount, xMin, yMin, width, height, func, C, 0.0 + (double)i * h, smooth, optimize);
         for (UInteger j = 0; j < S.elementsCount(); j++)
         {
             addElement(pushNode(S.node(S.element_[j][0]), S.nodeType(S.element_[j][0])), pushNode(S.node(S.element_[j][1]), S.nodeType(S.element_[j][1])));
@@ -268,7 +213,7 @@ void SegmentMesh2D::contourGraph(const UInteger &xCount, const UInteger &yCount,
     std::cout << "Segments mesh: nodes - " << nodesCount() << " elements - " << elementsCount() << std::endl;
 }
 
-void SegmentMesh2D::frontGraph(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint, int contours, bool isOptimized)
+void SegmentMesh2D::frontGraph(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint, int contours, int smooth, int optimize)
 {
     clear();
     xMin_ = xMin;
@@ -280,7 +225,7 @@ void SegmentMesh2D::frontGraph(const UInteger &xCount, const UInteger &yCount, c
     double maxf = 0.0;
 //    double h = 0.0;
 
-    functionalDomain(xCount, yCount, xMin, yMin, width, height, func, charPoint, 0.0, isOptimized);
+    MarchingQuads(xCount, yCount, xMin, yMin, width, height, func, charPoint, 0.0, smooth, optimize);
 
     UInteger border_elements_count = elementsCount();
 
@@ -330,22 +275,13 @@ void SegmentMesh2D::frontGraph(const UInteger &xCount, const UInteger &yCount, c
     }
     std::cout << "max(f) = " << maxf << std::endl;
 
-//    h = maxf / (double)contours;
+    double h = maxf / (double)contours;
 
-//    for (int i = 1; i < contours; i++)
-//    {
-//        SegmentMesh2D S;
-//        std::list<Point2D> C;
-//        S.functionalDomain(xCount, yCount, xMin, yMin, width, height, contour_func, C, (double)i * h, false);
-//        for (UInteger j = 0; j < S.elementsCount(); j++)
-//        {
-//            addElement(pushNode(S.node(S.element_[j][0]), S.nodeType(S.element_[j][0])), pushNode(S.node(S.element_[j][1]), S.nodeType(S.element_[j][1])));
-//        }
-//    }
+    for (int i = 1; i < contours; i++)
     {
         SegmentMesh2D S;
         std::list<Point2D> C;
-        S.functionalDomain(xCount, yCount, xMin, yMin, width, height, contour_func, C, 0.5 * sqrt(hx*hx +hy*hy), false);
+        S.MarchingQuads(xCount, yCount, xMin, yMin, width, height, contour_func, C, (double)i * h, smooth, optimize);
         for (UInteger j = 0; j < S.elementsCount(); j++)
         {
             addElement(pushNode(S.node(S.element_[j][0]), S.nodeType(S.element_[j][0])), pushNode(S.node(S.element_[j][1]), S.nodeType(S.element_[j][1])));
@@ -503,12 +439,12 @@ bool SegmentMesh2D::isCrossedElement(const Point2D &p0, const Point2D &p1, UInte
     return false;
 }
 
-Point2D SegmentMesh2D::refineMidpoint(const UInteger &number, std::function<double(double, double)> func)
+Point2D SegmentMesh2D::refineMidpoint(const UInteger &number, std::function<double(double, double)> func, double level)
 {
     Segment seg = element_[number];
     Point2D a = node_[seg[0]].point;
     Point2D b = node_[seg[1]].point;
-    Point2D border = findBorder(a, b, func);
+    Point2D border = findBorder(a, b, func, 0.5, level);
     UInteger ic = pushNode(border, BORDER);
     addElement(ic, seg[1]);
     node_[seg[1]].adjacent.erase(number);
@@ -540,6 +476,8 @@ void SegmentMesh2D::laplacianSmoothing(std::function<double(double, double)> fun
     if (func == nullptr)
         return;
 
+    std::cout << "Laplacian Smoothing: " << nodesCount() << " nodes, " << elementsCount() << " elements." << std::endl;
+    clock_t start = clock();
     for (int iter = 0; iter < iter_num; iter++)
     {
         std::cout << "Laplacian smothing: " << iter << std::endl;
@@ -563,11 +501,12 @@ void SegmentMesh2D::laplacianSmoothing(std::function<double(double, double)> fun
             }
         }
     }
+    std::cout << "Done in " << (double)(clock() - start) / CLOCKS_PER_SEC << "s." << std::endl;
 }
 
 void SegmentMesh2D::distlenSmoothing(std::function<double (double, double)> func, double level, int iter_num)
 {
-    std::cout << "Length optimization: " << nodesCount() << " nodes, " << elementsCount() << " elements." << std::endl;
+    std::cout << "Distance-Length Optimization: " << nodesCount() << " nodes, " << elementsCount() << " elements." << std::endl;
 
     auto functor = [&](const Point2D &a, const Point2D &o, const Point2D &b)
     {
@@ -579,7 +518,7 @@ void SegmentMesh2D::distlenSmoothing(std::function<double (double, double)> func
         double e1c = distToBorder(o, b, func, 0.5, level);
         return beta * (e0c*e0c + e1c*e1c) + alpha * (d0*d0 + d1*d1);
     };
-
+    clock_t start = clock();
     for (int iter = 0; iter < iter_num; ++iter)
     {
         ConsoleProgress progress(nodesCount());
@@ -697,6 +636,42 @@ void SegmentMesh2D::distlenSmoothing(std::function<double (double, double)> func
             ++progress;
         }
     }
+    std::cout << "Done in " << (double)(clock() - start) / CLOCKS_PER_SEC << "s." << std::endl;
+}
+
+void SegmentMesh2D::curvatureSmoothing(std::function<double (double, double)> func, double level, double alpha, int iter_num)
+{
+    bool optimized = true;
+    std::cout << "Curvature Post Smothing: " << nodesCount() << " nodes, " << elementsCount() << " elements." << std::endl;
+    // оптимизация по кривизне границы
+    clock_t start = clock();
+    for (int it = 0; it < iter_num && optimized; ++it)
+    {
+        std::cout << "Curvature it " << it << " ";
+        optimized = false;
+        UInteger es = element_.size();
+        for (UInteger i = 0; i < es; i++)
+        {
+            Segment s = element_[i];
+            Point2D a = node_[s[0]].point;
+            Point2D b = node_[s[1]].point;
+            Point2D c = 0.5 * (a + b);
+            double l = a.distanceTo(b);
+            Point2D border = findBorder(c, func, 0.5 * l, level);
+            if (!border.isEqualTo(c, 0.05 * l))
+            {
+                UInteger j = pushNode(border, BORDER);
+                addElement(j, s[1]);
+                node_[s[1]].adjacent.erase(i);
+                element_[i][1] = j;
+                node_[j].adjacent.insert(i);
+                std::cout << '+';
+                optimized = true;
+            }
+        }
+        std::cout << std::endl;
+    }
+    std::cout << "Done in " << (double)(clock() - start) / CLOCKS_PER_SEC << "s: " << nodesCount() << " nodes, " << elementsCount() << " elements." << std::endl;
 }
 
 double SegmentMesh2D::cfunction(const double &x, const double &y)
@@ -726,39 +701,6 @@ double SegmentMesh2D::cfunction(const double &x, const double &y)
             count++;
     }
     sign = (count % 2 == 0 ) ? -1.0 : 1.0;
-//    double alpha = 0.0;
-//    for (UInteger i = 0; i < 3000; i++)
-//    {
-//        Point2D next = point + Point2D(cos(alpha), sin(alpha));
-//        int count = 0;
-//        bool isTouch = false;
-//        for (UInteger je = 0; je < elementsCount() && !isTouch; je++)
-//        {
-//            Segment sj = element_[je];
-//            Point2D q1 = node_[sj[0]].point;
-//            Point2D q2 = node_[sj[1]].point;
-//            double tp = -1.0, tq = -1.0;
-//            if (isCrossed(point, next, q1, q2, tp, tq) && tp > 0.0)
-//            {
-//                if (epsilon_ < tq && tq < 1.0 - epsilon_)
-//                {
-//                    count += 1;
-//                }
-//                else if (fabs(tq) < epsilon_ || fabs(tq - 1.0) < epsilon_)
-//                {
-//                    isTouch = true;
-//                    break;
-//                }
-//            }
-//        }
-//        if (!isTouch)
-//        {
-//            sign = (count % 2 == 0 ) ? -1.0 : 1.0;
-//            break;
-//        }
-//        alpha += 0.001;
-
-//    }
     return min_distance * sign;
 }
 

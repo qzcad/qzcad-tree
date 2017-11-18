@@ -52,7 +52,7 @@ public:
      * @param isOptimized Если true, то сетка сгущается на участках с наибольшей кривизной
      * @param distance Указатель на фукнцию растояния (если дискретизация не в двумерной декартовой системе)
      */
-    void functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, double level = 0.0, bool isOptimized = true, std::function<double(Point2D, Point2D)> distance = nullptr);
+    void MarchingQuads(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, double level = 0.0, int smooth = 0, int optimize = 0, std::function<double(Point2D, Point2D)> distance = nullptr);
     /**
      * @brief Метод создает равномерную дискретную модель на основе сегментов для области, определенной функционально (случай контакта двух тел)
      * @param xCount Количество узлов вдоль оси абсцисс
@@ -66,7 +66,7 @@ public:
      * @param charPoint Список характерных точек
      * @param delta Параметр сгущения элементов в окрестности контакта (если меньше 0, то сгущение отсутствует)
      */
-    void functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func_a, std::function<double(double, double)> func_b, std::list<Point2D> charPoint, double delta = -1.0);
+    void MarchingQuads(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func_a, std::function<double(double, double)> func_b, std::list<Point2D> charPoint, double delta = -1.0);
     /**
      * @brief Метод создает дискретную модель заданного числа линий уровня R-функция
      * @param xCount Количество узлов вдоль оси абсцисс
@@ -80,7 +80,7 @@ public:
      * @param contours Количество линий уровня
      * @param isOptimized Если true, то сетка сгущается на участках с наибольшей кривизной
      */
-    void contourGraph(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, int contours = 4, bool isOptimized = true);
+    void contourGraph(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, int contours = 4, int smooth = 0, int optimize = 0);
     /**
      * @brief Метод создает дискретную модель заданного числа внутренних фронтов границы R-функция
      * @param xCount Количество узлов вдоль оси абсцисс
@@ -94,7 +94,7 @@ public:
      * @param contours Количество линий уровня
      * @param isOptimized Если true, то сетка сгущается на участках с наибольшей кривизной
      */
-    void frontGraph(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, int contours = 4, bool isOptimized = true);
+    void frontGraph(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, int contours = 4, int smooth = 0, int optimize = 0);
     void parametricDomain(const UInteger &count, const double &tmin, const double &tmax, std::function<Point2D (double)> domainFunction);
     /**
      * @brief elementsCount Количество элементов
@@ -161,9 +161,10 @@ public:
      * @brief Метод репроекции средины сегмента на границу
      * @param number Номер сегмента (элемента)
      * @param func Функция области
+     * @param level Линия уровня
      * @return Координаты нового узла
      */
-    Point2D refineMidpoint(const UInteger &number, std::function<double(double, double)> func);
+    Point2D refineMidpoint(const UInteger &number, std::function<double(double, double)> func, double level = 0);
     /**
      * @brief Метод проверяет попадание точки в окружность, радиусом которой приходится один из сегментов (элементов)
      * @param point Координаты точки
@@ -172,11 +173,27 @@ public:
      */
     bool isEncroached(const Point2D &point, UInteger &number);
     /**
-     * @brief Процедура сглаживания Лапласа (применяется только к узла нулевой линии уровня)
+     * @brief Процедура сглаживания Лапласа
+     * @param func Функция области
+     * @param level Линия уровня
      * @param iter_num Количесво итераций
      */
     void laplacianSmoothing(std::function<double(double, double)> func, double level = 0.0, int iter_num = 4);
+    /**
+     * @brief Процедура поиска наиболее рационального размещения узлов на основе минимизации функционала расстояния-длины
+     * @param func Функция области
+     * @param level Линия уровня
+     * @param iter_num Количество итераций
+     */
     void distlenSmoothing(std::function<double(double, double)> func, double level = 0.0, int iter_num = 8);
+    /**
+     * @brief Процедура сглаживания на основе вставки новых узлов в середины сегментов с большим отношением длины к расстоянию до границы
+     * @param func Функция области
+     * @param level Линия уровня
+     * @param alpha Максимольное отншение расстояния до границы к длине сегмента
+     * @param iter_num Количество итераций
+     */
+    void curvatureSmoothing(std::function<double(double, double)> func, double level = 0.0, double alpha = 0.05, int iter_num = 8);
     /**
      * @brief Функция принадлежности точки контуру
      * @param x Абсцисса точки
