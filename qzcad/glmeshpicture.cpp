@@ -757,8 +757,8 @@ void GLMeshPicture::paintGL()
                     qglColor(map_.color(mesh_->data(valueIndex_)[i], 256));
                 else
                     qglColor(elementColor_);
-                drawFace(face, GL_LINES, 2.0, 1.0);
-                drawFace(face, GL_POINTS, 1.0, 6.0);
+                drawFace(face, GL_LINES, 1.0, 1.0);
+                drawFace(face, GL_POINTS, 1.0, 4.0);
             }
             else if (mesh_->dimesion() == 2 || mesh_->isBorderElement(element))
             {
@@ -790,7 +790,7 @@ void GLMeshPicture::paintGL()
                             glDisable(GL_POLYGON_OFFSET_FILL);
                             qglColor(meshColor_);
                             drawFace(face, GL_LINE_LOOP, 1.0, 1.0, false);
-                            drawFace(face, GL_POINTS, 1.0, 6.0, false, msh::CHARACTER);
+                            drawFace(face, GL_POINTS, 1.0, 4.0, false, msh::CHARACTER);
                         }
                         if (isUseVector_ && isShowInitialFrames)
                         {

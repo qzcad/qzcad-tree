@@ -22,4 +22,3 @@ double QSegmentMesh2D::cfunction(const double &x, const double &y)
 {
     return SegmentMesh2D::cfunction(x, y);
 }
-

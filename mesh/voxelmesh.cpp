@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#include "consoleprogress.h"
+
 namespace msh {
 
 VoxelMesh::VoxelMesh(): HexahedralMesh3D()
@@ -41,11 +43,12 @@ void VoxelMesh::voxel(const double &xMin, const double &yMin, const double &zMin
     xMin_ = xMin; xMax_ = xMin + width;
     yMin_ = yMin; yMax_ = yMin + height;
     zMin_ = zMin; zMax_ = zMin + depth;
-    if (xMin_ >= xMax_ || yMin_ >= yMax_ || zMin_ >= zMax_ || h < 0)
+    if (xMin_ >= xMax_ || yMin_ >= yMax_ || zMin_ >= zMax_ || h <= 0.0)
     {
         std::cout << "Wrong dimensions: [" << xMin_ << "; " << xMax_ << "] x [" << yMin_ << "; " << yMax_ << "] x [" << zMin_ << "; " << zMax_ << "], h = " << h << std::endl;
         return;
     }
+    ConsoleProgress progress(width / h);
     double x = xMin_;
     while (x < xMax_)
     {
@@ -55,29 +58,30 @@ void VoxelMesh::voxel(const double &xMin, const double &yMin, const double &zMin
             double z = zMin_;
             while (z < zMax_)
             {
-                if (filter == nullptr ||
-                        (filter != nullptr && filter(x, y, z) && filter(x + h, y, z) && filter(x + h, y + h, z) && filter(x, y + h, z)
-                         && filter(x, y, z + h) && filter(x + h, y, z + h) && filter(x + h, y + h, z + h) && filter(x, y + h, z + h)))
+                if (filter == nullptr || (filter != nullptr && filter(x + 0.5 * h, y + 0.5 * h, z + 0.5 * h)))
                 {
-                    addElement(pushNode(Point3D(x, y, z), BORDER),
-                               pushNode(Point3D(x + h, y, z), BORDER),
-                               pushNode(Point3D(x + h, y + h, z), BORDER),
-                               pushNode(Point3D(x, y + h, z), BORDER),
-                               pushNode(Point3D(x, y, z + h), BORDER),
-                               pushNode(Point3D(x + h, y, z + h), BORDER),
-                               pushNode(Point3D(x + h, y + h, z + h), BORDER),
-                               pushNode(Point3D(x, y + h, z + h), BORDER));
+                    addElement(addNode(Point3D(x, y, z), BORDER),
+                               addNode(Point3D(x + h, y, z), BORDER),
+                               addNode(Point3D(x + h, y + h, z), BORDER),
+                               addNode(Point3D(x, y + h, z), BORDER),
+                               addNode(Point3D(x, y, z + h), BORDER),
+                               addNode(Point3D(x + h, y, z + h), BORDER),
+                               addNode(Point3D(x + h, y + h, z + h), BORDER),
+                               addNode(Point3D(x, y + h, z + h), BORDER));
                 }
                 z += h;
             }
             y += h;
         }
         x += h;
+        ++progress;
     }
+    progress.restart(nodesCount());
     for (Node3D n: node_)
     {
         Point3D g = grad(func, n.point, h);
         normal_.push_back(g);
+        ++progress;
     }
     evalNodalValues(func);
 }
