@@ -595,7 +595,7 @@ void TriangleMesh2D::ruppert(const UInteger &xCount, const UInteger &yCount, con
     superRuppert(triangulation, &mesh, func);
     if (refineArea)
     {
-        areaRefinement(3.0 * (width / (double)(xCount - 1) * height / (double)(yCount - 1)), func, triangulation);
+        areaRefinement(6.0 * (width / (double)(xCount - 1) * height / (double)(yCount - 1)), func, triangulation);
         superRuppert(triangulation, &mesh, func);
     }
 
