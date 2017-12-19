@@ -431,12 +431,15 @@ QScriptValue QZScriptEngine::createMarchingQuads(QScriptContext *context, QScrip
         }
 
         QSegmentMesh2D *smo = new QSegmentMesh2D();
-        smo->MarchingQuads(xCount, yCount,
-                              origin->x(), origin->y(),
-                              width, height,
-                              func, pointList, 0.0,
-                              engine->globalObject().property("SLEVEL").toInt32(),
-                              engine->globalObject().property("OLEVEL").toInt32());
+        QuadrilateralMesh2D qm;
+        qm.rectangleDomain(xCount, yCount, origin->x(), origin->y(), width, height);
+        smo->backgroundGrid(&qm, func, pointList, 0.0, engine->globalObject().property("SLEVEL").toInt32(), engine->globalObject().property("OLEVEL").toInt32());
+//        smo->MarchingQuads(xCount, yCount,
+//                              origin->x(), origin->y(),
+//                              width, height,
+//                              func, pointList, 0.0,
+//                              engine->globalObject().property("SLEVEL").toInt32(),
+//                              engine->globalObject().property("OLEVEL").toInt32());
 
         return engine->newQObject(smo, QScriptEngine::ScriptOwnership);
     }

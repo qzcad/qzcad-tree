@@ -343,6 +343,71 @@ void SegmentMesh2D::parametricDomain(const UInteger &count, const double &tmin, 
     updateDomain();
 }
 
+void SegmentMesh2D::backgroundGrid(const Mesh2D *mesh2d, std::function<double(double, double)> func, std::list<Point2D> charPoint, double level, int smooth, int optimize)
+{
+    clear();
+    std::list<ElementPointer> inner;
+    std::set<UInteger> border;
+    double h = mesh2d->xMax() - mesh2d->xMin();
+    // make a list of background elements and a set of border points in this list
+    for (UInteger i = 0; i < mesh2d->elementsCount(); i++)
+    {
+        ElementPointer el = mesh2d->element(i);
+        int m = el->verticesCount();
+        std::vector<double> values(m);
+        int code = 0;
+        for (int j = 0; j < m; j++)
+        {
+            Point2D point = mesh2d->point2d(el->vertexNode(j));
+            double value = func(point.x(), point.y());
+            values[j] = value;
+            if (value - level < epsilon_)
+                code |= (1 << j);
+        }
+        if (code == 0)
+        {
+            inner.push_back(el);
+        }
+        else if (code != (1<<m) - 1)
+        {
+            for (int j = 0; j < m; j++)
+            {
+                if (values[j] - level >= epsilon_)
+                    border.insert(el->vertexNode(j));
+            }
+        }
+    }
+    // loop a list of background elements and add border faces into the mesh
+    for (ElementPointer el: inner)
+    {
+        int m = el->verticesCount();
+        for (int j = 0; j < m; j++)
+        {
+            int current = j;
+            int next = (j < m - 1) ? (j + 1) : 0;
+            UInteger i0 = el->vertexNode(current);
+            UInteger i1 = el->vertexNode(next);
+            Point2D p0 = mesh2d->point2d(i0);
+            Point2D p1 = mesh2d->point2d(i1);
+            double d = p0.distanceTo(p1);
+            if (border.find(i0) != border.end() && border.find(i1) != border.end())
+                addElement(addNode(p0, BORDER), addNode(p1, BORDER));
+            if (d < h)
+                h = d;
+        }
+    }
+    // loop nodes of the mesh and find correct position
+    for (std::vector<Node2D>::iterator i = node_.begin(); i != node_.end(); ++i)
+    {
+        i->point = findBorder(i->point, func, 0.25 * h, level);
+    }
+    laplacianSmoothing(func, level, smooth);
+    curvatureSmoothing(func, level, 0.05, optimize);
+    distlenSmoothing(func, level, optimize);
+    std::cout << "Segments mesh: nodes - " << nodesCount() << " elements - " << elementsCount() << std::endl;
+    updateDomain();
+}
+
 UInteger SegmentMesh2D::elementsCount() const
 {
     return element_.size();

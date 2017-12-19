@@ -96,6 +96,7 @@ public:
      */
     void frontGraph(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, int contours = 4, int smooth = 0, int optimize = 0);
     void parametricDomain(const UInteger &count, const double &tmin, const double &tmax, std::function<Point2D (double)> domainFunction);
+    void backgroundGrid(const Mesh2D *mesh2d, std::function<double(double, double)> func, std::list<Point2D> charPoint, double level = 0.0, int smooth = 0, int optimize = 0);
     /**
      * @brief elementsCount Количество элементов
      * @return Количество отрезков (граней), которые образуют контур
