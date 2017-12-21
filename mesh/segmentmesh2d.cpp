@@ -390,7 +390,17 @@ void SegmentMesh2D::backgroundGrid(const Mesh2D *mesh2d, std::function<double(do
             Point2D p0 = mesh2d->point2d(i0);
             Point2D p1 = mesh2d->point2d(i1);
             double d = p0.distanceTo(p1);
-            if (border.find(i0) != border.end() && border.find(i1) != border.end())
+            bool isInner = false;
+            // check an other element with these vertices
+            for (ElementPointer el1: inner)
+            {
+                if (el1 != el && el1->in(i0) && el1->in(i1))
+                {
+                    isInner = true;
+                    break;
+                }
+            }
+            if (!isInner && border.find(i0) != border.end() && border.find(i1) != border.end())
                 addElement(addNode(p0, BORDER), addNode(p1, BORDER));
             if (d < h)
                 h = d;

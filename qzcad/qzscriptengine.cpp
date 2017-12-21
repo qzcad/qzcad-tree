@@ -82,6 +82,8 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     globalObject().setProperty("MarchingQuads", newFunction(createMarchingQuads));
     // Двумерная картина линий уровня
     globalObject().setProperty("ContourGraph", newFunction(createContourGraph));
+    // Дискретная модель границы
+    globalObject().setProperty("BoundaryMesh", newFunction(createBoundaryMesh));
     // Двумерная сетка треугольников
     globalObject().setProperty("Triangles2D", newFunction(createTriangleMesh2D));
     // Триангуляция Делоне
@@ -431,15 +433,12 @@ QScriptValue QZScriptEngine::createMarchingQuads(QScriptContext *context, QScrip
         }
 
         QSegmentMesh2D *smo = new QSegmentMesh2D();
-        QuadrilateralMesh2D qm;
-        qm.rectangleDomain(xCount, yCount, origin->x(), origin->y(), width, height);
-        smo->backgroundGrid(&qm, func, pointList, 0.0, engine->globalObject().property("SLEVEL").toInt32(), engine->globalObject().property("OLEVEL").toInt32());
-//        smo->MarchingQuads(xCount, yCount,
-//                              origin->x(), origin->y(),
-//                              width, height,
-//                              func, pointList, 0.0,
-//                              engine->globalObject().property("SLEVEL").toInt32(),
-//                              engine->globalObject().property("OLEVEL").toInt32());
+        smo->MarchingQuads(xCount, yCount,
+                              origin->x(), origin->y(),
+                              width, height,
+                              func, pointList, 0.0,
+                              engine->globalObject().property("SLEVEL").toInt32(),
+                              engine->globalObject().property("OLEVEL").toInt32());
 
         return engine->newQObject(smo, QScriptEngine::ScriptOwnership);
     }
@@ -536,6 +535,51 @@ QScriptValue QZScriptEngine::createContourGraph(QScriptContext *context, QScript
         return engine->newQObject(smo, QScriptEngine::ScriptOwnership);
     }
     return context->throwError(QObject::tr("ContourGraph(xCount: Integer, yCount: Integer, origin: Point, width: Floating, height: Floating, function: Function, contours: Integer[, points: Array]): arguments count error."));
+}
+
+QScriptValue QZScriptEngine::createBoundaryMesh(QScriptContext *context, QScriptEngine *engine)
+{
+    if (context->argumentCount() == 2 || context->argumentCount() == 3)
+    {
+        Mesh2D *mesh = NULL;
+        if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != NULL)
+            mesh = qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0));
+        if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != NULL)
+            mesh = qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0));
+        if (mesh == NULL)
+            return context->throwError(tr("BoundaryMesh(mesh, func [, points]:  wrong type of the mesh argument"));
+        if (dynamic_cast<Mesh2D *>(mesh) != NULL)
+        {
+            Mesh2D *mesh2d = dynamic_cast<Mesh2D *>(mesh);
+            QScriptValue function = context->argument(1);
+            if (!function.isFunction())
+                return context->throwError(tr("BoundaryMesh(mesh, func [, points]: wrong type of the func argument"));
+            auto func = [&](double x, double y)->double
+            {
+                QScriptValueList args;
+                args << x << y;
+                return function.call(QScriptValue(), args).toNumber();
+            };
+            std::list<msh::Point2D> pointList;
+            if (context->argumentCount() == 3)
+            {
+                if (!context->argument(2).isArray())
+                    return context->throwError(tr("BoundaryMesh(mesh, func [, points]: wrong type of the points argument"));
+                QScriptValue array = context->argument(2);
+                for (int i = 0; i < array.property("length").toInteger(); i++)
+                {
+                    QPoint2D *point = qscriptvalue_cast<QPoint2D *>(array.property(i));
+                    if (point == NULL)
+                        return context->throwError(tr("BoundaryMesh(mesh, func [, points]: wrong type of the points element"));
+                    pointList.push_back(Point2D(point->x(), point->y()));
+                }
+            }
+            QSegmentMesh2D *segements = new QSegmentMesh2D();
+            segements->backgroundGrid(mesh2d, func, pointList, 0.0, engine->globalObject().property("SLEVEL").toInt32(), engine->globalObject().property("OLEVEL").toInt32());
+            return engine->newQObject(segements, QScriptEngine::ScriptOwnership);
+        }
+    }
+    return context->throwError(tr("BoundaryMesh(mesh, func [, points]: wrong number of arguments."));
 }
 
 QScriptValue QZScriptEngine::createTriangleMesh2D(QScriptContext *context, QScriptEngine *engine)
