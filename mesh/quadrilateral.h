@@ -83,7 +83,7 @@ public:
      * @param node Номер (хеш-код) узла
      * @return true, если узел принадлежит элементу, false, иначе
      */
-    bool in(const UInteger &node);
+    virtual bool in(const UInteger &node) const;
 private:
     UInteger vertex_[4]; //!< Вершины четырехугольника (номера, хеш-коды)
 };

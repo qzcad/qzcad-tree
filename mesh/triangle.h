@@ -83,13 +83,13 @@ public:
      * @param node Номер (хеш-код) узла
      * @return true, если узел принадлежит элементу, false, иначе
      */
-    bool in(const UInteger &node);
+    virtual bool in(const UInteger &node) const;
     /**
      * @brief Возвращает индекс узла, номер (хеш-код) котороый равен заданному
      * @param node Номер (хеш-код) узла
      * @return Индекс (от 0 до 2) если такой номер найден, -1 - иначе
      */
-    int index(const UInteger &node);
+    int index(const UInteger &node) const;
 private:
     UInteger vertex_[3]; //!< Вершины треугольника (номера или хеш-коды)
 };

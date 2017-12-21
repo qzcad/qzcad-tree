@@ -40,6 +40,12 @@ public:
      * @return Грань элемента, номер которойс равен i
      */
     virtual UIntegerVector face(const int &i) const = 0;
+    /**
+     * @brief Проверка принадлежности узла элементу
+     * @param node Номер (хеш-код) узла
+     * @return true, если узел принадлежит элементу, false, иначе
+     */
+    virtual bool in(const UInteger &node) const = 0;
 };
 }
 

@@ -70,6 +70,12 @@ public:
      * @return ,если пара соединенных узлов совпадает
      */
     bool isSame(const Segment &s);
+    /**
+     * @brief Проверка принадлежности узла элементу
+     * @param node Номер (хеш-код) узла
+     * @return true, если узел принадлежит элементу, false, иначе
+     */
+    virtual bool in(const UInteger &node) const;
 private:
     UInteger leftVertex_; //!< левая вершина
     UInteger rightVertex_; //!< правая вершина

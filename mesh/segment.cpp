@@ -58,4 +58,9 @@ bool Segment::isSame(const Segment &s)
     return (leftVertex_ == s.leftVertex_ && rightVertex_ == s.rightVertex_) ||
             (leftVertex_ == s.rightVertex_ && rightVertex_ == s.leftVertex_);
 }
+
+bool Segment::in(const UInteger &node) const
+{
+    return leftVertex_ == node || rightVertex_ == node;
+}
 }

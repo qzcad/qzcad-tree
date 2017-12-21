@@ -77,12 +77,12 @@ UIntegerVector Triangle::face(const int &i) const
     return face;
 }
 
-bool Triangle::in(const UInteger &node)
+bool Triangle::in(const UInteger &node) const
 {
     return vertex_[0] == node || vertex_[1] == node || vertex_[2] == node;
 }
 
-int Triangle::index(const UInteger &node)
+int Triangle::index(const UInteger &node) const
 {
     if (vertex_[0] == node) return 0;
     if (vertex_[1] == node) return 1;

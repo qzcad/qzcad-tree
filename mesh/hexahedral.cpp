@@ -102,4 +102,10 @@ UIntegerVector Hexahedral::face(const int &i) const
     return face;
 }
 
+bool Hexahedral::in(const UInteger &node) const
+{
+    return vertex_[0] == node || vertex_[1] == node || vertex_[2] == node || vertex_[3] == node ||
+            vertex_[4] == node || vertex_[5] == node || vertex_[6] == node || vertex_[7] == node;
+}
+
 }
