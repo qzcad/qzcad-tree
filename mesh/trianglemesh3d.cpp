@@ -1245,7 +1245,7 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
     clearCooTriangles(cootriangles, func_slice, level, delta);
     for (CooTriangle t: cootriangles)
     {
-        addElement(addNode(t.a, BORDER), addNode(t.b, BORDER), addNode(t.c, BORDER));
+        addElement(addNode(t.a, BORDER, delta), addNode(t.b, BORDER, delta), addNode(t.c, BORDER, delta));
     }
     flip();
 
@@ -1619,6 +1619,7 @@ void TriangleMesh3D::laplacianSmoothing(std::function<double (double, double, do
             AdjacentSet adjacent = node_[nnode].adjacent;
             Point3D prev = node_[nnode].point;
             Point3D point(0.0, 0.0, 0.0);
+            Point3D n(0.0, 0.0, 0.0);
             AdjacentSet neighbours;
             double avr_len = 0.0; // средняя длина ребра
             double f = functor(adjacent, nnode);
@@ -1631,6 +1632,7 @@ void TriangleMesh3D::laplacianSmoothing(std::function<double (double, double, do
                 neighbours.insert(t[index + 1]);
                 neighbours.insert(t[index + 2]);
                 avr_len += 0.5 * (a.length() + b.length());
+                n = n + normal3(point, node_[t[index + 1]].point, node_[t[index + 2]].point);
             }
             avr_len /= (double)adjacent.size();
             for (auto npointer: neighbours)
@@ -1638,7 +1640,13 @@ void TriangleMesh3D::laplacianSmoothing(std::function<double (double, double, do
                 point = point + node_[npointer].point;
             }
             point.scale(1.0 / (double)neighbours.size());
-            node_[nnode].point = findBorder(point, func, 0.1 * avr_len, level);
+            n = n.normalized();
+            n.scale(0.1 * avr_len);
+            Point3D p1 = point - n;
+            Point3D p2 = point + n;
+            if (signbit(func(p1.x(), p1.y(), p1.z()) - level) != signbit(func(p2.x(), p2.y(), p2.z()) - level))
+                node_[nnode].point = binary(p1, p2, func, level);
+//            node_[nnode].point = findBorder(point, func, 0.1 * avr_len, level);
             if (functor(adjacent, nnode) > f) node_[nnode].point = prev;
             ++progress;
         }
@@ -1650,7 +1658,8 @@ void TriangleMesh3D::distlenSmoothing(std::function<double (double, double, doub
 {
     auto functor = [&](const AdjacentSet &adjasentset, const UInteger &nnode)
     {
-        const double alpha = 0.001;
+        // alpha = 0.001 is optimal for gradient searching
+        const double alpha = 0.0025;
         const double beta = 1.0 - alpha;
         double F = 0.0; // функционал
         for (UInteger adj: adjasentset)
@@ -1662,10 +1671,10 @@ void TriangleMesh3D::distlenSmoothing(std::function<double (double, double, doub
             Point3D C = node_[t[index + 2]].point;
             double d2b = distToBorder(A, B, C, func, 0.33333, 0.33333, level);
             Point3D AB(A, B);
-            Point3D CA(C, A);
+            Point3D AC(A, C);
             double ab = AB.length();
-            double ca = CA.length();
-            F += alpha * 0.5 * (ab*ab + ca*ca) + beta * d2b*d2b;
+            double ac = AC.length();
+            F += alpha * 0.5 * (ab*ab + ac*ac) + beta * d2b*d2b;
         }
         return F;
     };
@@ -1728,6 +1737,24 @@ void TriangleMesh3D::distlenSmoothing(std::function<double (double, double, doub
                     }
                     iic++;
                 } while (step >= 0.001 && iic < 100);
+                iic = 0;
+                do
+                {
+                    node_[i].point = findBorder(node_[i].point, B, C, func, step, step, level);
+                    double f_dir = functor(adjasent, i);
+                    if (f_dir >= f_current)
+                    {
+                        node_[i].point = point;
+                        f_dir = f_current;
+                        step /= 10.0;
+                    }
+                    else
+                    {
+                        point = node_[i].point;
+                        f_current = f_dir;
+                    }
+                    iic++;
+                } while (step >= 0.001 && iic < 50);
 
 //                Triangle t = element_[*it];
 //                int index = t.index(i);
@@ -2114,7 +2141,7 @@ void TriangleMesh3D::flip()
 void TriangleMesh3D::clearCooTriangles(std::list<CooTriangle> &cootriangles, std::function<double(double, double, double)> func, double level, double delta)
 {
     if (delta < epsilon_) delta = epsilon_;
-    double h = (delta > epsilon_) ? delta : 3.0 * epsilon_;
+    double h = (0.5 * delta > epsilon_) ? 0.5 * delta : 3.0 * epsilon_;
     std::list<CooTriangle>::iterator it = cootriangles.begin();
     while (it != cootriangles.end())
     {
@@ -2128,11 +2155,11 @@ void TriangleMesh3D::clearCooTriangles(std::list<CooTriangle> &cootriangles, std
             it = cootriangles.begin();
             for (std::list<CooTriangle>::iterator itt = cootriangles.begin(); itt != cootriangles.end(); ++itt)
             {
-                if ((*itt).a.isEqualTo(a, epsilon_) || (*itt).a.isEqualTo(b, epsilon_) || (*itt).a.isEqualTo(c, epsilon_))
+                if ((*itt).a.isEqualTo(a, delta) || (*itt).a.isEqualTo(b, delta) || (*itt).a.isEqualTo(c, delta))
                     (*itt).a = mc;
-                if ((*itt).b.isEqualTo(a, epsilon_) || (*itt).b.isEqualTo(b, epsilon_) || (*itt).b.isEqualTo(c, epsilon_))
+                if ((*itt).b.isEqualTo(a, delta) || (*itt).b.isEqualTo(b, delta) || (*itt).b.isEqualTo(c, delta))
                     (*itt).b = mc;
-                if ((*itt).c.isEqualTo(a, epsilon_) || (*itt).c.isEqualTo(b, epsilon_) || (*itt).c.isEqualTo(c, epsilon_))
+                if ((*itt).c.isEqualTo(a, delta) || (*itt).c.isEqualTo(b, delta) || (*itt).c.isEqualTo(c, delta))
                     (*itt).c = mc;
             }
         }
@@ -2143,11 +2170,11 @@ void TriangleMesh3D::clearCooTriangles(std::list<CooTriangle> &cootriangles, std
             it = cootriangles.begin();
             for (std::list<CooTriangle>::iterator itt = cootriangles.begin(); itt != cootriangles.end(); ++itt)
             {
-                if ((*itt).a.isEqualTo(a, epsilon_) || (*itt).a.isEqualTo(b, epsilon_))
+                if ((*itt).a.isEqualTo(a, delta) || (*itt).a.isEqualTo(b, delta))
                     (*itt).a = mc;
-                if ((*itt).b.isEqualTo(a, epsilon_) || (*itt).b.isEqualTo(b, epsilon_))
+                if ((*itt).b.isEqualTo(a, delta) || (*itt).b.isEqualTo(b, delta))
                     (*itt).b = mc;
-                if ((*itt).c.isEqualTo(a, epsilon_) || (*itt).c.isEqualTo(b, epsilon_))
+                if ((*itt).c.isEqualTo(a, delta) || (*itt).c.isEqualTo(b, delta))
                     (*itt).c = mc;
             }
         }
@@ -2158,11 +2185,11 @@ void TriangleMesh3D::clearCooTriangles(std::list<CooTriangle> &cootriangles, std
             it = cootriangles.begin();
             for (std::list<CooTriangle>::iterator itt = cootriangles.begin(); itt != cootriangles.end(); ++itt)
             {
-                if ((*itt).a.isEqualTo(a, epsilon_) || (*itt).a.isEqualTo(c, epsilon_))
+                if ((*itt).a.isEqualTo(a, delta) || (*itt).a.isEqualTo(c, delta))
                     (*itt).a = mc;
-                if ((*itt).b.isEqualTo(a, epsilon_) || (*itt).b.isEqualTo(c, epsilon_))
+                if ((*itt).b.isEqualTo(a, delta) || (*itt).b.isEqualTo(c, delta))
                     (*itt).b = mc;
-                if ((*itt).c.isEqualTo(a, epsilon_) || (*itt).c.isEqualTo(c, epsilon_))
+                if ((*itt).c.isEqualTo(a, delta) || (*itt).c.isEqualTo(c, delta))
                     (*itt).c = mc;
             }
         }
@@ -2173,11 +2200,11 @@ void TriangleMesh3D::clearCooTriangles(std::list<CooTriangle> &cootriangles, std
             it = cootriangles.begin();
             for (std::list<CooTriangle>::iterator itt = cootriangles.begin(); itt != cootriangles.end(); ++itt)
             {
-                if ((*itt).a.isEqualTo(c, epsilon_) || (*itt).a.isEqualTo(b, epsilon_))
+                if ((*itt).a.isEqualTo(c, delta) || (*itt).a.isEqualTo(b, delta))
                     (*itt).a = mc;
-                if ((*itt).b.isEqualTo(c, epsilon_) || (*itt).b.isEqualTo(b, epsilon_))
+                if ((*itt).b.isEqualTo(c, delta) || (*itt).b.isEqualTo(b, delta))
                     (*itt).b = mc;
-                if ((*itt).c.isEqualTo(c, epsilon_) || (*itt).c.isEqualTo(b, epsilon_))
+                if ((*itt).c.isEqualTo(c, delta) || (*itt).c.isEqualTo(b, delta))
                     (*itt).c = mc;
             }
         }

@@ -29,10 +29,10 @@ void VoxelMesh::clearElements()
 
 Point3D VoxelMesh::normal(const UIntegerVector &face) const
 {
-    Point3D n = normal_[face[0]];
-    for (int i = 1; i < face.size(); i++)
+    Point3D n(0.0, 0.0, 0.0);
+    for (UInteger nnode: face)
     {
-        n = n + normal_[face[i]];
+        n = n + normal_[nnode];
     }
     return n.normalized();
 }

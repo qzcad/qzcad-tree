@@ -225,6 +225,15 @@ Point3D Mesh3D::findBorder(const Point3D &a, const Point3D &b, const Point3D &c,
 {
     Point3D point = ((1.0 - lb - lc) * a) + (lb * b) + (lc * c);
     Point3D center = ((1.0 - 0.333 - 0.333) * a) + (0.333 * b) + (0.333 * c);
+//    Point3D n = normal3(a, b, c);
+//    double h = a.distanceTo(center);
+//    Point3D p0 = point - h * n;
+//    Point3D p1 = point + h * n;
+//    if (fabs(func(point.x(), point.y(), point.z()) - level) < epsilon_)
+//        return point;
+//    if (signbit(func(p0.x(), p0.y(), p0.z()) - level) == signbit(func(p1.x(), p1.y(), p1.z()) - level))
+//        return a;
+//    return binary(p0, p1, func, level);
 //    if (a.isEqualTo(center, epsilon_) || b.isEqualTo(center, epsilon_) || c.isEqualTo(center, epsilon_))
 //        return a;
     return findBorder(point, func, a.distanceTo(center), level);
@@ -260,7 +269,21 @@ Point3D Mesh3D::findBorder(const Point3D &a, const Point3D &b, const Point3D &c,
 //    if (fabs(val1) < epsilon_) return p1;
 //    if (signbit(func(p0.x(), p0.y(), p0.z()) - level) == signbit(func(p1.x(), p1.y(), p1.z()) - level))
 //        return a;
-//    return binary(p0, p1, func, level);
+    //    return binary(p0, p1, func, level);
+}
+
+Point3D Mesh3D::findBorder(const Point3D &a, const Point3D &b, const Point3D &c, std::function<double (double, double, double)> func, Point3D n, double lb, double lc, double level)
+{
+    Point3D point = ((1.0 - lb - lc) * a) + (lb * b) + (lc * c);
+    Point3D center = ((1.0 - 0.333 - 0.333) * a) + (0.333 * b) + (0.333 * c);
+    double h = a.distanceTo(center);
+    Point3D p0 = point - h * n;
+    Point3D p1 = point + h * n;
+    if (fabs(func(point.x(), point.y(), point.z()) - level) < epsilon_)
+        return point;
+    if (signbit(func(p0.x(), p0.y(), p0.z()) - level) == signbit(func(p1.x(), p1.y(), p1.z()) - level))
+        return a;
+    return binary(p0, p1, func, level);
 }
 
 double Mesh3D::distToBorder(const Point3D &a, const Point3D &b, const Point3D &c, std::function<double (double, double, double)> func, double lb, double lc, double level)

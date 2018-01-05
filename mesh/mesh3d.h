@@ -166,6 +166,7 @@ public:
      * @return Координаты точки на границе области
      */
     static Point3D findBorder(const Point3D &a, const Point3D &b, const Point3D &c, std::function<double (double, double, double)> func, double lb = 0.33333, double lc = 0.33333, double level = 0.0);
+    static Point3D findBorder(const Point3D &a, const Point3D &b, const Point3D &c, std::function<double (double, double, double)> func, Point3D n, double lb = 0.33333, double lc = 0.33333, double level = 0.0);
     /**
      * @brief Вычисление расстояния до границы от точки, определенной l-координатами треугольника: point = ((1.0 - lb - lc) * a) + (lb * b) + (lc * c)
      * @param a Первая вершина треугольника (в порядке обхода)
