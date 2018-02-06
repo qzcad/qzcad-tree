@@ -46,6 +46,12 @@ public:
      * @return true, если узел принадлежит элементу, false, иначе
      */
     virtual bool in(const UInteger &node) const = 0;
+    /**
+     * @brief Возвращает индекс узла, номер (хеш-код) котороый равен заданному
+     * @param node Номер (хеш-код) узла
+     * @return Индекс (значение от 0 до verticesCount() - 1) если такой номер найден, -1 - иначе
+     */
+    virtual int index(const UInteger &node) const = 0;
 };
 }
 

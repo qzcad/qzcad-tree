@@ -108,4 +108,17 @@ bool Hexahedral::in(const UInteger &node) const
             vertex_[4] == node || vertex_[5] == node || vertex_[6] == node || vertex_[7] == node;
 }
 
+int Hexahedral::index(const UInteger &node) const
+{
+    if (vertex_[0] == node) return 0;
+    if (vertex_[1] == node) return 1;
+    if (vertex_[2] == node) return 2;
+    if (vertex_[3] == node) return 3;
+    if (vertex_[4] == node) return 4;
+    if (vertex_[5] == node) return 5;
+    if (vertex_[6] == node) return 6;
+    if (vertex_[7] == node) return 7;
+    return -1;
+}
+
 }

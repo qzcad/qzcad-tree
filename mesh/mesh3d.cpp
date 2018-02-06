@@ -322,6 +322,11 @@ void Mesh3D::evalNodalValues(std::function<double (double, double, double)> func
         addDataVector("F(x,y,z)", r);
     }
 }
+
+Point3D Mesh3D::point3d(const UInteger &nnumber) const
+{
+    return node_[nnumber].point;
+}
 }
 
 

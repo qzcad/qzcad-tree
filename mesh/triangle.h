@@ -87,9 +87,9 @@ public:
     /**
      * @brief Возвращает индекс узла, номер (хеш-код) котороый равен заданному
      * @param node Номер (хеш-код) узла
-     * @return Индекс (от 0 до 2) если такой номер найден, -1 - иначе
+     * @return Индекс (значение от 0 до verticesCount() - 1) если такой номер найден, -1 - иначе
      */
-    int index(const UInteger &node) const;
+    virtual int index(const UInteger &node) const;
 private:
     UInteger vertex_[3]; //!< Вершины треугольника (номера или хеш-коды)
 };

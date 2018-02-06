@@ -12,6 +12,7 @@
 
 #include "mesh3d.h"
 #include "quadrilateral.h"
+#include "hexahedralmesh3d.h"
 
 namespace msh {
 /**
@@ -52,6 +53,15 @@ public:
      * @param length Длина образующей
      */
     void coneDomain(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length);
+    /**
+     * @brief Метод построения стеки с использованием фоновых шестигранников
+     * @param mesh Сетка шестигранников
+     * @param func Функция области
+     * @param level Уровень нуля
+     * @param smooth Количество итераций сглаживания
+     * @param optimize Количество итераций оптимизации
+     */
+    void backgroundGrid(const HexahedralMesh3D *mesh, std::function<double(double, double, double)> func, double level = 0.0, int smooth = 0, int optimize = 0);
     /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
@@ -110,6 +120,13 @@ public:
      * @brief Метод очищает информацию об елементах
      */
     virtual void clearElements();
+    /**
+     * @brief Процедура сглаживания Лапласа
+     * @param func Функция области
+     * @param level Линия уровня
+     * @param iter_num Количесво итераций
+     */
+    void laplacianSmoothing(std::function<double(double, double, double)> func, double level = 0, int iter_num = 1);
 protected:
     std::vector<Quadrilateral> element_; //!< Массив элементов
 };

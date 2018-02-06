@@ -3,6 +3,8 @@
 #include <math.h>
 #include <iostream>
 
+#include "consoleprogress.h"
+
 namespace msh {
 
 QuadrilateralMesh3D::QuadrilateralMesh3D() : Mesh3D(NULL)
@@ -185,6 +187,79 @@ void QuadrilateralMesh3D::coneDomain(const UInteger &rCount, const UInteger &lCo
     yMax_ = length;
 }
 
+void QuadrilateralMesh3D::backgroundGrid(const HexahedralMesh3D *mesh, std::function<double (double, double, double)> func, double level, int smooth, int optimize)
+{
+    clear();
+    std::list<ElementPointer> inner;
+    std::set<UInteger> border;
+    double h = mesh->xMax() - mesh->xMin();
+    // make a list of background elements and a set of border points in this list
+    for (UInteger i = 0; i < mesh->elementsCount(); i++)
+    {
+        ElementPointer el = mesh->element(i);
+        int m = el->verticesCount();
+        std::vector<double> values(m);
+        int code = 0;
+        for (int j = 0; j < m; j++)
+        {
+            Point3D point = mesh->point3d(el->vertexNode(j));
+            double value = func(point.x(), point.y(), point.z());
+            values[j] = value;
+            if (value - level < epsilon_)
+                code |= (1 << j);
+        }
+        if (code == 0)
+        {
+            inner.push_back(el);
+        }
+        else if (code != (1<<m) - 1)
+        {
+            for (int j = 0; j < m; j++)
+            {
+                if (values[j] - level >= epsilon_)
+                    border.insert(el->vertexNode(j));
+            }
+        }
+    }
+    // loop a list of background elements and add border faces into the mesh
+    for (ElementPointer el: inner)
+    {
+        int m = el->facesCount();
+        for (int j = 0; j < m; j++)
+        {
+            UIntegerVector f = el->face(j);
+            Point3D p[4];
+            p[0] = mesh->point3d(f[0]);
+            p[1] = mesh->point3d(f[1]);
+            p[2] = mesh->point3d(f[2]);
+            p[3] = mesh->point3d(f[3]);
+            double d = p[0].distanceTo(p[1]);
+            bool isInner = false;
+            // check an other element with these vertices
+            for (ElementPointer el1: inner)
+            {
+                if (el1 != el && el1->in(f[0]) && el1->in(f[1]) && el1->in(f[2]) && el1->in(f[3]))
+                {
+                    isInner = true;
+                    break;
+                }
+            }
+            if (!isInner && border.find(f[0]) != border.end() && border.find(f[1]) != border.end() && border.find(f[2]) != border.end() && border.find(f[3]) != border.end())
+                addElement(addNode(p[0], BORDER), addNode(p[1], BORDER), addNode(p[2], BORDER), addNode(p[3], BORDER));
+            if (d < h)
+                h = d;
+        }
+    }
+    // loop nodes of the mesh and find correct position
+    for (std::vector<Node3D>::iterator i = node_.begin(); i != node_.end(); ++i)
+    {
+        i->point = findBorder(i->point, func, 0.25 * h, level);
+    }
+    laplacianSmoothing(func, level, smooth);
+    std::cout << "Surface quadrilateral mesh: nodes - " << nodesCount() << ", elements - " << elementsCount() << std::endl;
+    updateDomain();
+}
+
 UInteger QuadrilateralMesh3D::elementsCount() const
 {
     return element_.size();
@@ -272,5 +347,50 @@ void QuadrilateralMesh3D::translate(const double &x, const double &y, const doub
 void QuadrilateralMesh3D::clearElements()
 {
     element_.clear();
+}
+
+void QuadrilateralMesh3D::laplacianSmoothing(std::function<double (double, double, double)> func, double level, int iter_num)
+{
+    std::cout << "Laplacian Smoothing: nodes - " << nodesCount() << ", elements - " << elementsCount() << "." << std::endl;
+    for (short iit = 0; iit < iter_num; iit++)
+    {
+        ConsoleProgress progress(nodesCount());
+        for (UInteger nnode = 0; nnode < nodesCount(); nnode++)
+        {
+            AdjacentSet adjacent = node_[nnode].adjacent;
+//            Point3D prev = node_[nnode].point;
+            Point3D point(0.0, 0.0, 0.0);
+            Point3D n(0.0, 0.0, 0.0);
+            AdjacentSet neighbours;
+            double avr_len = 0.0; // средняя длина ребра
+//            double f = functor(adjacent, nnode);
+            for (UInteger elnum: adjacent)
+            {
+                Quadrilateral q = element_[elnum];
+                int index = q.index(nnode);
+                Point3D a(node_[q[index]].point, node_[q[index + 1]].point);
+                Point3D b(node_[q[index]].point, node_[q[index + 2]].point);
+                neighbours.insert(q[index + 1]);
+                neighbours.insert(q[index + 2]);
+                avr_len += 0.5 * (a.length() + b.length());
+                n = n + normal3(point, node_[q[index + 1]].point, node_[q[index + 2]].point);
+            }
+            avr_len /= (double)adjacent.size();
+            for (auto npointer: neighbours)
+            {
+                point = point + node_[npointer].point;
+            }
+            point.scale(1.0 / (double)neighbours.size());
+            n = n.normalized();
+            n.scale(0.1 * avr_len);
+            Point3D p1 = point - n;
+            Point3D p2 = point + n;
+//            if (signbit(func(p1.x(), p1.y(), p1.z()) - level) != signbit(func(p2.x(), p2.y(), p2.z()) - level))
+//                node_[nnode].point = binary(p1, p2, func, level);
+            node_[nnode].point = findBorder(point, func, 0.1 * avr_len, level);
+//            if (functor(adjacent, nnode) > f) node_[nnode].point = prev;
+            ++progress;
+        }
+    }
 }
 }

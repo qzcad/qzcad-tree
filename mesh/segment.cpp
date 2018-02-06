@@ -63,4 +63,11 @@ bool Segment::in(const UInteger &node) const
 {
     return leftVertex_ == node || rightVertex_ == node;
 }
+
+int Segment::index(const UInteger &node) const
+{
+    if (leftVertex_ == node) return 0;
+    if (rightVertex_ == node) return 1;
+    return -1;
+}
 }

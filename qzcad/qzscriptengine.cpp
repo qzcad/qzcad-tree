@@ -543,11 +543,13 @@ QScriptValue QZScriptEngine::createBoundaryMesh(QScriptContext *context, QScript
 {
     if (context->argumentCount() >= 1 && context->argumentCount() <= 3)
     {
-        Mesh2D *mesh = NULL;
+        Mesh *mesh = NULL;
         if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != NULL)
             mesh = qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0));
         if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != NULL)
             mesh = qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0));
+        if (qscriptvalue_cast<QHexahedralMesh3D *>(context->argument(0)) != NULL)
+            mesh = qscriptvalue_cast<QHexahedralMesh3D *>(context->argument(0));
         if (mesh == NULL)
             return context->throwError(tr("BoundaryMesh(mesh, func [, points]:  wrong type of the mesh argument"));
         if (dynamic_cast<Mesh2D *>(mesh) != NULL)
@@ -588,6 +590,44 @@ QScriptValue QZScriptEngine::createBoundaryMesh(QScriptContext *context, QScript
             QSegmentMesh2D *segements = new QSegmentMesh2D();
             segements->backgroundGrid(mesh2d, func, pointList, 0.0, engine->globalObject().property("SLEVEL").toInt32(), engine->globalObject().property("OLEVEL").toInt32());
             return engine->newQObject(segements, QScriptEngine::ScriptOwnership);
+        }
+        if (dynamic_cast<HexahedralMesh3D *>(mesh) != NULL)
+        {
+            HexahedralMesh3D *hmesh = dynamic_cast<HexahedralMesh3D *>(mesh);
+            std::list<msh::Point3D> pointList;
+            if (context->argumentCount() == 1)
+            {
+//                QSegmentMesh2D *segements = new QSegmentMesh2D();
+//                segements->extract(mesh2d);
+//                return engine->newQObject(segements, QScriptEngine::ScriptOwnership);
+            }
+
+            QScriptValue function = context->argument(1);
+            if (!function.isFunction())
+                return context->throwError(tr("BoundaryMesh(mesh, func [, points]: wrong type of the func argument"));
+            auto func = [&](double x, double y, double z)->double
+            {
+                QScriptValueList args;
+                args << x << y << z;
+                return function.call(QScriptValue(), args).toNumber();
+            };
+
+            if (context->argumentCount() == 3)
+            {
+                if (!context->argument(2).isArray())
+                    return context->throwError(tr("BoundaryMesh(mesh, func [, points]: wrong type of the points argument"));
+                QScriptValue array = context->argument(2);
+                for (int i = 0; i < array.property("length").toInteger(); i++)
+                {
+                    QPoint3D *point = qscriptvalue_cast<QPoint3D *>(array.property(i));
+                    if (point == NULL)
+                        return context->throwError(tr("BoundaryMesh(mesh, func [, points]: wrong type of the points element"));
+                    pointList.push_back(Point3D(point->x(), point->y(), point->z()));
+                }
+            }
+            QQuadrilateralMesh3D *quads = new QQuadrilateralMesh3D();
+            quads->backgroundGrid(hmesh, func, 0.0, engine->globalObject().property("SLEVEL").toInt32(), engine->globalObject().property("OLEVEL").toInt32());
+            return engine->newQObject(quads, QScriptEngine::ScriptOwnership);
         }
     }
     return context->throwError(tr("BoundaryMesh(mesh, func [, points]: wrong number of arguments."));

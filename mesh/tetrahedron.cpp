@@ -95,4 +95,13 @@ bool Tetrahedron::in(const UInteger &node) const
     return vertex_[0] == node || vertex_[1] == node || vertex_[2] == node || vertex_[3] == node;
 }
 
+int Tetrahedron::index(const UInteger &node) const
+{
+    if (vertex_[0] == node) return 0;
+    if (vertex_[1] == node) return 1;
+    if (vertex_[2] == node) return 2;
+    if (vertex_[3] == node) return 3;
+    return -1;
+}
+
 }

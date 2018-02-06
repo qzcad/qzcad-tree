@@ -192,6 +192,12 @@ public:
      * @param func Указатель функции трех переменных
      */
     void evalNodalValues(std::function<double (double, double, double)> func);
+    /**
+     * @brief Метод возвращает трехмерные координаты узла
+     * @param nnumber Номер узла
+     * @return Координты узла
+     */
+    Point3D point3d(const UInteger &nnumber) const;
 protected:
     std::vector<Node3D> node_; //!< массив узлов
     double xMin_; //!< минимальное значение ординаты
