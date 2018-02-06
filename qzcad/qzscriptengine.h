@@ -185,6 +185,13 @@ private:
      */
     static QScriptValue createMarchingCubes(QScriptContext *context, QScriptEngine *engine);
     /**
+     * @brief "Конструктор" сеток шестигранных элементов
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Объект для использования в скриптах
+     */
+    static QScriptValue createHexahedralMesh(QScriptContext *context, QScriptEngine *engine);
+    /**
      * @brief "Конструктор" сеток движением дискретной модели профиля
      * @param context Контекст скрипта
      * @param engine Двигатель скрипта

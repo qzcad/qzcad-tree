@@ -172,18 +172,21 @@ Point3D Mesh2D::normal(const UIntegerVector &face) const
 
 void Mesh2D::updateDomain()
 {
-    Point2D start = node_[0].point;
-    xMin_ = xMax_ = start.x();
-    yMin_ = yMax_ = start.y();
-    for (UInteger i = 1; i < node_.size(); i++)
+    if (nodesCount() > 0)
     {
-        Point2D current = node_[i].point;
-        double x = current.x();
-        double y = current.y();
-        if (xMin_ > x) xMin_ = x;
-        if (xMax_ < x) xMax_ = x;
-        if (yMin_ > y) yMin_ = y;
-        if (yMax_ < y) yMax_ = y;
+        Point2D start = node_[0].point;
+        xMin_ = xMax_ = start.x();
+        yMin_ = yMax_ = start.y();
+        for (UInteger i = 1; i < node_.size(); i++)
+        {
+            Point2D current = node_[i].point;
+            double x = current.x();
+            double y = current.y();
+            if (xMin_ > x) xMin_ = x;
+            if (xMax_ < x) xMax_ = x;
+            if (yMin_ > y) yMin_ = y;
+            if (yMax_ < y) yMax_ = y;
+        }
     }
 }
 

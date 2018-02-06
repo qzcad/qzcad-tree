@@ -108,6 +108,8 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     globalObject().setProperty("MarchingCubes", newFunction(createMarchingCubes));
     // Параметрические кривые
     globalObject().setProperty("ParametricSegments", newFunction(createParametricSegments));
+    // Сетка шестигранников
+    globalObject().setProperty("HexahedralMesh", newFunction(createHexahedralMesh));
     // "Вытягивание" тела движением
     globalObject().setProperty("SweepMesh", newFunction(createSweptMesh));
     // Воксельная модель
@@ -539,7 +541,7 @@ QScriptValue QZScriptEngine::createContourGraph(QScriptContext *context, QScript
 
 QScriptValue QZScriptEngine::createBoundaryMesh(QScriptContext *context, QScriptEngine *engine)
 {
-    if (context->argumentCount() == 2 || context->argumentCount() == 3)
+    if (context->argumentCount() >= 1 && context->argumentCount() <= 3)
     {
         Mesh2D *mesh = NULL;
         if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != NULL)
@@ -551,6 +553,15 @@ QScriptValue QZScriptEngine::createBoundaryMesh(QScriptContext *context, QScript
         if (dynamic_cast<Mesh2D *>(mesh) != NULL)
         {
             Mesh2D *mesh2d = dynamic_cast<Mesh2D *>(mesh);
+            std::list<msh::Point2D> pointList;
+
+            if (context->argumentCount() == 1)
+            {
+                QSegmentMesh2D *segements = new QSegmentMesh2D();
+                segements->extract(mesh2d);
+                return engine->newQObject(segements, QScriptEngine::ScriptOwnership);
+            }
+
             QScriptValue function = context->argument(1);
             if (!function.isFunction())
                 return context->throwError(tr("BoundaryMesh(mesh, func [, points]: wrong type of the func argument"));
@@ -560,7 +571,7 @@ QScriptValue QZScriptEngine::createBoundaryMesh(QScriptContext *context, QScript
                 args << x << y;
                 return function.call(QScriptValue(), args).toNumber();
             };
-            std::list<msh::Point2D> pointList;
+
             if (context->argumentCount() == 3)
             {
                 if (!context->argument(2).isArray())
@@ -1135,6 +1146,40 @@ QScriptValue QZScriptEngine::createMarchingCubes(QScriptContext *context, QScrip
             return engine->newQObject(tmo, QScriptEngine::ScriptOwnership);
         }
     return context->throwError(QObject::tr("MarchingCubes(xCount: Integer, yCount: Integer, zCount:Integer, origin: Point, width: Floating, height: Floating, depth: Floating, function: Function): arguments count error."));
+}
+
+QScriptValue QZScriptEngine::createHexahedralMesh(QScriptContext *context, QScriptEngine *engine)
+{
+    if (context->argumentCount() == 7)
+    {
+        // uniform hexahedral mesh
+        QString typeError = tr("HexahedralMesh(xCount: Integer, yCount: Integer, zCount: Integer, origin: Point, width: Floating, height: Floating, depth: Floating): wrong type of the %1 argument.");
+        if (!context->argument(0).isNumber())
+            return context->throwError(typeError.arg("xCount"));
+        if (!context->argument(1).isNumber())
+            return context->throwError(typeError.arg("yCount"));
+        if (!context->argument(2).isNumber())
+            return context->throwError(typeError.arg("zCount"));
+        if (!context->argument(3).isQObject() || qscriptvalue_cast<QPoint3D *>(context->argument(3)) == NULL)
+            return context->throwError(typeError.arg("origin"));
+        if (!context->argument(4).isNumber())
+            return context->throwError(typeError.arg("width"));
+        if (!context->argument(5).isNumber())
+            return context->throwError(typeError.arg("height"));
+        if (!context->argument(6).isNumber())
+            return context->throwError(typeError.arg("depth"));
+        int xCount = context->argument(0).toInt32();
+        int yCount = context->argument(1).toInt32();
+        int zCount = context->argument(2).toInt32();
+        QPoint3D *origin = qscriptvalue_cast<QPoint3D *>(context->argument(3));
+        double w = context->argument(4).toNumber();
+        double h = context->argument(5).toNumber();
+        double d = context->argument(6).toNumber();
+        QHexahedralMesh3D *hex = new QHexahedralMesh3D();
+        hex->prismDomain(xCount, yCount, zCount, origin->x(), origin->y(), origin->z(), w, h, d);
+        return engine->newQObject(hex, QScriptEngine::ScriptOwnership);
+    }
+    return context->throwError(tr("HexahedralMesh(): wrong number of arguments."));
 }
 
 QScriptValue QZScriptEngine::createSweptMesh(QScriptContext *context, QScriptEngine *engine)

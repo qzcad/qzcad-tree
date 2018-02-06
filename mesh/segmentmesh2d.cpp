@@ -411,10 +411,64 @@ void SegmentMesh2D::backgroundGrid(const Mesh2D *mesh2d, std::function<double(do
     {
         i->point = findBorder(i->point, func, 0.25 * h, level);
     }
+    // loop character nodes and for each one, find the closest node
+    for (std::list<Point2D>::iterator cPoint = charPoint.begin(); cPoint != charPoint.end(); ++cPoint)
+    {
+        Point2D character = *cPoint;
+        double d = character.distanceTo(node_[0].point);
+        UInteger num = 0;
+        character.print();
+        std::cout << " F = " << func(character.x(), character.y()) << std::endl;
+        for (UInteger i = 1; i < nodesCount(); i++)
+        {
+            double c = (character.distanceTo(node_[i].point));
+            if (c < d)
+            {
+                d = c;
+                num = i;
+            }
+        }
+        node_[num].point = character;
+        node_[num].type = CHARACTER;
+    }
     laplacianSmoothing(func, level, smooth);
     curvatureSmoothing(func, level, 0.05, optimize);
     distlenSmoothing(func, level, optimize);
     std::cout << "Segments mesh: nodes - " << nodesCount() << " elements - " << elementsCount() << std::endl;
+    updateDomain();
+}
+
+void SegmentMesh2D::extract(const Mesh2D *mesh2d)
+{
+    for (UInteger i = 0; i < mesh2d->elementsCount(); i++)
+    {
+        ElementPointer el = mesh2d->element(i);
+        int m = el->verticesCount();
+        for (int j = 0; j < m; j++)
+        {
+            int current = j;
+            int next = (j < m - 1) ? (j + 1) : 0;
+            UInteger i0 = el->vertexNode(current);
+            UInteger i1 = el->vertexNode(next);
+            Point2D p0 = mesh2d->point2d(i0);
+            Point2D p1 = mesh2d->point2d(i1);
+            bool isInner = false;
+            // check an other element with these vertices
+            for (UInteger ii = 0; ii < mesh2d->elementsCount(); ii++)
+            {
+                ElementPointer el1 = mesh2d->element(ii);
+                if (i != ii && el1->in(i0) && el1->in(i1))
+                {
+                    isInner = true;
+                    break;
+                }
+            }
+            if (!isInner && (mesh2d->nodeType(i0) == BORDER || mesh2d->nodeType(i0) == CHARACTER) && (mesh2d->nodeType(i1) == BORDER || mesh2d->nodeType(i1) == CHARACTER))
+                addElement(addNode(p0, (mesh2d->nodeType(i0) == BORDER) ? BORDER : CHARACTER),
+                           addNode(p1, (mesh2d->nodeType(i1) == BORDER) ? BORDER : CHARACTER));
+        }
+    }
+    std::cout << "Segments mesh is extracted: nodes - " << nodesCount() << " elements - " << elementsCount() << std::endl;
     updateDomain();
 }
 

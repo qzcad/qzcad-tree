@@ -135,22 +135,25 @@ Point3D Mesh3D::normal(const UIntegerVector &face) const
 
 void Mesh3D::updateDomain()
 {
-    Point3D start = node_[0].point;
-    xMin_ = xMax_ = start.x();
-    yMin_ = yMax_ = start.y();
-    zMin_ = zMax_ = start.z();
-    for (UInteger i = 1; i < node_.size(); i++)
+    if (nodesCount() > 0)
     {
-        Point3D current = node_[i].point;
-        double x = current.x();
-        double y = current.y();
-        double z = current.z();
-        if (xMin_ > x) xMin_ = x;
-        if (xMax_ < x) xMax_ = x;
-        if (yMin_ > y) yMin_ = y;
-        if (yMax_ < y) yMax_ = y;
-        if (zMin_ > z) zMin_ = z;
-        if (zMax_ < z) zMax_ = z;
+        Point3D start = node_[0].point;
+        xMin_ = xMax_ = start.x();
+        yMin_ = yMax_ = start.y();
+        zMin_ = zMax_ = start.z();
+        for (UInteger i = 1; i < node_.size(); i++)
+        {
+            Point3D current = node_[i].point;
+            double x = current.x();
+            double y = current.y();
+            double z = current.z();
+            if (xMin_ > x) xMin_ = x;
+            if (xMax_ < x) xMax_ = x;
+            if (yMin_ > y) yMin_ = y;
+            if (yMax_ < y) yMax_ = y;
+            if (zMin_ > z) zMin_ = z;
+            if (zMax_ < z) zMax_ = z;
+        }
     }
 }
 
