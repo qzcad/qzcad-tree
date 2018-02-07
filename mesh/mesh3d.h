@@ -154,6 +154,7 @@ public:
      * @return Координаты граничной точки
      */
     static Point3D findBorder(Point3D point, std::function<double (double, double, double)> func, double h, double level = 0.0);
+    static Point3D findBorder(const Point3D &point, const Point3D &normal, std::function<double (double, double, double)> func, const double &h, double level = 0.0);
     /**
      * @brief Поиск ближайшей граничной точки к точке, определенной l-координатами треугольника: point = ((1.0 - lb - lc) * a) + (lb * b) + (lc * c)
      * @param a Первая вершина треугольника (в порядке обхода)
