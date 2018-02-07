@@ -368,19 +368,29 @@ void QuadrilateralMesh3D::laplacianSmoothing(std::function<double (double, doubl
             {
                 Quadrilateral q = element_[elnum];
                 int index = q.index(nnode);
-                Point3D a(node_[q[index]].point, node_[q[index + 1]].point);
-                Point3D b(node_[q[index]].point, node_[q[index + 2]].point);
+//                Point3D a(node_[q[index]].point, node_[q[index + 1]].point);
+//                Point3D b(node_[q[index]].point, node_[q[index + 2]].point);
                 neighbours.insert(q[index + 1]);
                 neighbours.insert(q[index + 2]);
-                avr_len += 0.5 * (a.length() + b.length());
-                n = n + normal3(point, node_[q[index + 1]].point, node_[q[index + 2]].point);
+//                avr_len += 0.5 * (a.length() + b.length());
+//                n = n + normal3(point, node_[q[index + 1]].point, node_[q[index + 2]].point);
             }
-            avr_len /= (double)adjacent.size();
+//            avr_len /= (double)adjacent.size();
             for (auto npointer: neighbours)
             {
                 point = point + node_[npointer].point;
             }
             point.scale(1.0 / (double)neighbours.size());
+            for (UInteger elnum: adjacent)
+            {
+                Quadrilateral q = element_[elnum];
+                int index = q.index(nnode);
+                Point3D a(point, node_[q[index + 1]].point);
+                Point3D b(point, node_[q[index + 2]].point);
+                avr_len += 0.5 * (a.length() + b.length());
+                n = n + normal3(point, node_[q[index + 1]].point, node_[q[index + 2]].point);
+            }
+            avr_len /= (double)adjacent.size();
             n = n.normalized();
             n.scale(0.1 * avr_len);
             Point3D p1 = point - n;
