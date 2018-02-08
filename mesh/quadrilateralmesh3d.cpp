@@ -288,13 +288,52 @@ void QuadrilateralMesh3D::backgroundGrid(const HexahedralMesh3D *mesh, std::func
         }
     }
     // loop nodes of the mesh and find correct position
-//    bool isCorrected = true;
-//    while (isCorrected)
-//    {
-//        isCorrected = false;
-//        progress.restart(node_.size());
-//        for (UInteger i = 0; i != node_.size(); ++i)
-//    }
+    h *= 0.25;
+    const double dh = 0.5 * h;
+    UInteger corrected_count = node_.size();
+    while (corrected_count > 0)
+    {
+        corrected_count = 0;
+        for (UInteger i = 0; i != node_.size(); ++i)
+        {
+            Point3D point = node_[i].point;
+            double f = func(point.x(), point.y(), point.z()) - level;
+            if (fabs(f) >= epsilon_)
+            {
+                Point3D g = grad(func, point, dh).normalized();
+                Point3D p = (f < 0.0) ? (point + h * g) : (point - h * g);
+                double fp = func(p.x(), p.y(), p.z()) - level;
+                if (signbit(f) != signbit(fp))
+                {
+                    p = binary(point, p, func, level);
+                }
+                node_[i].point = p;
+                corrected_count++;
+            }
+            else
+            {
+                AdjacentSet adjacent = node_[i].adjacent;
+                Point3D center(0.0, 0.0, 0.0);
+                AdjacentSet neighbours;
+                for (UInteger elnum: adjacent)
+                {
+                    Quadrilateral q = element_[elnum];
+                    int index = q.index(i);
+                    neighbours.insert(q[index + 1]);
+                    neighbours.insert(q[index + 2]);
+                    neighbours.insert(q[index + 3]);
+                }
+                for (UInteger npointer: neighbours)
+                {
+                    center = center + node_[npointer].point;
+                }
+                center.scale(1.0 / (double)neighbours.size());
+                node_[i].point = findBorder(center, func, h, level);
+            }
+        }
+        std::cout << corrected_count << " " << std::ends;
+    }
+    /*
     progress.restart(node_.size());
     std::vector<Point3D> surface(node_.size());
     for (UInteger i = 0; i != node_.size(); ++i)
@@ -319,7 +358,7 @@ void QuadrilateralMesh3D::backgroundGrid(const HexahedralMesh3D *mesh, std::func
         surface[i] = findBorder(point, func, 0.25 * h, level);
         ++progress;
     }
-    for (UInteger i = 0; i != node_.size(); ++i) node_[i].point = surface[i];
+    for (UInteger i = 0; i != node_.size(); ++i) node_[i].point = surface[i];*/
     laplacianSmoothing(func, level, smooth);
     std::cout << "Surface quadrilateral mesh: nodes - " << nodesCount() << ", elements - " << elementsCount() << std::endl;
     updateDomain();
