@@ -127,6 +127,13 @@ public:
      * @param iter_num Количесво итераций
      */
     void laplacianSmoothing(std::function<double(double, double, double)> func, double level = 0, int iter_num = 1);
+    /**
+     * @brief Процедура сглаживания на основе минимизации функционала расстояния-длины
+     * @param func Функция области
+     * @param level Линия уровня
+     * @param iter_num Количесво итераций
+     */
+    void distlenSmoothing(std::function<double(double, double, double)> func, double level = 0, int iter_num = 1);
 protected:
     std::vector<Quadrilateral> element_; //!< Массив элементов
 };

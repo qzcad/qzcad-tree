@@ -360,6 +360,7 @@ void QuadrilateralMesh3D::backgroundGrid(const HexahedralMesh3D *mesh, std::func
     }
     for (UInteger i = 0; i != node_.size(); ++i) node_[i].point = surface[i];*/
     laplacianSmoothing(func, level, smooth);
+    distlenSmoothing(func, level, optimize);
     std::cout << "Surface quadrilateral mesh: nodes - " << nodesCount() << ", elements - " << elementsCount() << std::endl;
     updateDomain();
 }
@@ -490,6 +491,115 @@ void QuadrilateralMesh3D::laplacianSmoothing(std::function<double (double, doubl
             }
             avr_len /= (double)adjacent.size();
             node_[nnode].point = findBorder(point, func, 0.1 * avr_len, level);
+            ++progress;
+        }
+    }
+}
+
+void QuadrilateralMesh3D::distlenSmoothing(std::function<double (double, double, double)> func, double level, int iter_num)
+{
+    auto functor = [&](const AdjacentSet &adjasentset, const UInteger &nnode)
+    {
+        // alpha = 0.001 is optimal for gradient searching
+        const double alpha = 0.001;
+        const double beta = 1.0 - alpha;
+        double F = 0.0; // функционал
+        for (UInteger adj: adjasentset)
+        {
+            Quadrilateral q = element_[adj];
+            int index = q.index(nnode);
+            Point3D A = node_[q[index]].point;
+            Point3D B = node_[q[index + 1]].point;
+            Point3D C = node_[q[index - 1]].point;
+            Point3D D = node_[q[index + 2]].point;
+            Point3D center = 0.25 * (A + B + C + D);
+            Point3D p = findBorder(center, func, (B - A).length() * 0.25, level);
+            double d2b = center.distanceTo(p);
+//            double d2b = distToBorder(A, B, C, func, 0.33333, 0.33333, level);
+            Point3D AB(A, B);
+            Point3D AC(A, C);
+            double ab = AB.length();
+            double ac = AC.length();
+            F += alpha * 0.5 * (ab*ab + ac*ac) + beta * d2b*d2b;
+        }
+        return F;
+    };
+
+    std::cout << "Сглаживание функционала расстояния-длины: " << nodesCount() << " узлов, " << elementsCount() << " элементов." << std::endl;
+    bool optimized = true;
+    for (short iit = 0; iit < iter_num && optimized; iit++)
+    {
+        ConsoleProgress progress(nodesCount());
+        for (UInteger i = 0; i < nodesCount(); i++)
+        {
+            Node3D node = node_[i];
+            AdjacentSet adjasent = node.adjacent;
+            Point3D point = node.point;
+            double f_current = functor(adjasent, i);
+
+            for (std::set<UInteger>::iterator it = adjasent.begin(); it != adjasent.end(); ++it)
+            {
+                Quadrilateral q = element_[*it];
+                int index = q.index(i);
+                Point3D B = node_[q[index + 1]].point;
+                Point3D C = node_[q[index - 1]].point;
+                double step = 0.1;
+                int iic = 0;
+                do
+                {
+                    node_[i].point = findBorder(node_[i].point, B, C, func, step, 0.0, level);
+                    double f_dir = functor(adjasent, i);
+                    if (f_dir >= f_current)
+                    {
+                        node_[i].point = point;
+                        f_dir = f_current;
+                        step /= 10.0;
+                    }
+                    else
+                    {
+                        point = node_[i].point;
+                        f_current = f_dir;
+                    }
+                    iic++;
+                } while (step >= 0.001 && iic < 10);
+                /*if (iic == 3)*/step = 0.1;/*else step=0.001;*/
+                iic = 0;
+                do
+                {
+                    node_[i].point = findBorder(node_[i].point, B, C, func, 0.0, step, level);
+                    double f_dir = functor(adjasent, i);
+                    if (f_dir >= f_current)
+                    {
+                        node_[i].point = point;
+                        f_dir = f_current;
+                        step /= 10.0;
+                    }
+                    else
+                    {
+                        point = node_[i].point;
+                        f_current = f_dir;
+                    }
+                    iic++;
+                } while (step >= 0.001 && iic < 10);
+                iic = 0;
+                do
+                {
+                    node_[i].point = findBorder(node_[i].point, B, C, func, step, step, level);
+                    double f_dir = functor(adjasent, i);
+                    if (f_dir >= f_current)
+                    {
+                        node_[i].point = point;
+                        f_dir = f_current;
+                        step /= 10.0;
+                    }
+                    else
+                    {
+                        point = node_[i].point;
+                        f_current = f_dir;
+                    }
+                    iic++;
+                } while (step >= 0.001 && iic < 5);
+            }
             ++progress;
         }
     }
