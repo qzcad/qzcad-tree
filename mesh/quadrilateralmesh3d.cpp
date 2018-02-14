@@ -288,77 +288,72 @@ void QuadrilateralMesh3D::backgroundGrid(const HexahedralMesh3D *mesh, std::func
         }
     }
     // loop nodes of the mesh and find correct position
-    h *= 0.25;
-    const double dh = 0.5 * h;
-    UInteger corrected_count = node_.size();
-    while (corrected_count > 0)
-    {
-        corrected_count = 0;
-        for (UInteger i = 0; i != node_.size(); ++i)
-        {
-            Point3D point = node_[i].point;
-            double f = func(point.x(), point.y(), point.z()) - level;
-            if (fabs(f) >= epsilon_)
-            {
-                Point3D g = grad(func, point, dh).normalized();
-                Point3D p = (f < 0.0) ? (point + h * g) : (point - h * g);
-                double fp = func(p.x(), p.y(), p.z()) - level;
-                if (signbit(f) != signbit(fp))
-                {
-                    p = binary(point, p, func, level);
-                }
-                node_[i].point = p;
-                corrected_count++;
-            }
-            else
-            {
-                AdjacentSet adjacent = node_[i].adjacent;
-                Point3D center(0.0, 0.0, 0.0);
-                AdjacentSet neighbours;
-                for (UInteger elnum: adjacent)
-                {
-                    Quadrilateral q = element_[elnum];
-                    int index = q.index(i);
-                    neighbours.insert(q[index + 1]);
-                    neighbours.insert(q[index + 2]);
-                    neighbours.insert(q[index + 3]);
-                }
-                for (UInteger npointer: neighbours)
-                {
-                    center = center + node_[npointer].point;
-                }
-                center.scale(1.0 / (double)neighbours.size());
-                node_[i].point = findBorder(center, func, h, level);
-            }
-        }
-        std::cout << corrected_count << " " << std::ends;
-    }
-    /*
+//    h *= 0.25;
+//    const double dh = 0.5 * h;
+//    UInteger corrected_count = node_.size();
+//    while (corrected_count > 0)
+//    {
+//        corrected_count = 0;
+//        for (UInteger i = 0; i != node_.size(); ++i)
+//        {
+//            Point3D point = node_[i].point;
+//            double f = func(point.x(), point.y(), point.z()) - level;
+//            if (fabs(f) >= epsilon_)
+//            {
+//                Point3D g = grad(func, point, dh).normalized();
+//                Point3D p = (f < 0.0) ? (point + h * g) : (point - h * g);
+//                double fp = func(p.x(), p.y(), p.z()) - level;
+//                if (signbit(f) != signbit(fp))
+//                {
+//                    p = binary(point, p, func, level);
+//                }
+//                node_[i].point = p;
+//                corrected_count++;
+//            }
+//            else
+//            {
+//                AdjacentSet adjacent = node_[i].adjacent;
+//                Point3D center(0.0, 0.0, 0.0);
+//                AdjacentSet neighbours;
+//                for (UInteger elnum: adjacent)
+//                {
+//                    Quadrilateral q = element_[elnum];
+//                    int index = q.index(i);
+//                    neighbours.insert(q[index + 1]);
+//                    neighbours.insert(q[index + 2]);
+//                    neighbours.insert(q[index + 3]);
+//                }
+//                for (UInteger npointer: neighbours)
+//                {
+//                    center = center + node_[npointer].point;
+//                }
+//                center.scale(1.0 / (double)neighbours.size());
+//                node_[i].point = findBorder(center, func, h, level);
+//            }
+//        }
+//        std::cout << corrected_count << " " << std::ends;
+//    }
+
     progress.restart(node_.size());
     std::vector<Point3D> surface(node_.size());
     for (UInteger i = 0; i != node_.size(); ++i)
     {
-//        AdjacentSet adjacent = node_[i].adjacent;
         Point3D point = node_[i].point;
-//        Point3D n(0.0, 0.0, 0.0);
-//        double avr_len = 0.0;
-//        for (UInteger elnum: adjacent)
-//        {
-//            Quadrilateral q = element_[elnum];
-//            int index = q.index(i);
-//            Point3D prev = node_[q[index - 1]].point;
-//            Point3D next = node_[q[index + 1]].point;
-//            Point3D a(prev, point);
-//            Point3D b(point, next);
-//            avr_len += 0.5 * (a.length() + b.length());
-//            n = n + normal3(point, prev, next);
-//        }
-//        avr_len /= (double)adjacent.size();
-//        surface[i] = findBorder(point, n.normalized(), func, sqrt(3.0) * avr_len, level);
-        surface[i] = findBorder(point, func, 0.25 * h, level);
+        AdjacentSet adjacent = node_[i].adjacent;
+        Point3D n(0.0, 0.0, 0.0);
+        for (UInteger elnum: adjacent)
+        {
+            Quadrilateral q = element_[elnum];
+            int index = q.index(i);
+            Point3D prev = node_[q[index - 1]].point;
+            Point3D next = node_[q[index + 1]].point;
+            n = n + normal3(point, prev, next);
+        }
+        surface[i] = findBorder(point, n.normalized(), func, sqrt(3.0) * h, level);
+//        surface[i] = findBorder(point, func, 0.25 * h, level);
         ++progress;
     }
-    for (UInteger i = 0; i != node_.size(); ++i) node_[i].point = surface[i];*/
+    for (UInteger i = 0; i != node_.size(); ++i) node_[i].point = surface[i];
     laplacianSmoothing(func, level, smooth);
     distlenSmoothing(func, level, optimize);
     std::cout << "Surface quadrilateral mesh: nodes - " << nodesCount() << ", elements - " << elementsCount() << std::endl;
@@ -501,7 +496,7 @@ void QuadrilateralMesh3D::distlenSmoothing(std::function<double (double, double,
     auto functor = [&](const AdjacentSet &adjasentset, const UInteger &nnode)
     {
         // alpha = 0.001 is optimal for gradient searching
-        const double alpha = 0.001;
+        const double alpha = 0.002;
         const double beta = 1.0 - alpha;
         double F = 0.0; // функционал
         for (UInteger adj: adjasentset)
@@ -512,16 +507,58 @@ void QuadrilateralMesh3D::distlenSmoothing(std::function<double (double, double,
             Point3D B = node_[q[index + 1]].point;
             Point3D C = node_[q[index - 1]].point;
             Point3D D = node_[q[index + 2]].point;
-            Point3D center = 0.25 * (A + B + C + D);
-            Point3D p = findBorder(center, func, (B - A).length() * 0.25, level);
-            double d2b = center.distanceTo(p);
-//            double d2b = distToBorder(A, B, C, func, 0.33333, 0.33333, level);
             Point3D AB(A, B);
             Point3D AC(A, C);
             double ab = AB.length();
             double ac = AC.length();
+            Point3D center = 0.25 * (A + B + C + D);
+            Point3D p = findBorder(center, func, min(ab, ac) * 0.25, level);
+            double d2b = center.distanceTo(p);
             F += alpha * 0.5 * (ab*ab + ac*ac) + beta * d2b*d2b;
+
+//            Point3D N = AB.product(AC);
+//            Point3D Vx = AB.normalized();
+//            Point3D Vz = N.normalized();
+//            Point3D Vy = Vz.product(Vx);
+//            Point3D a = (A - A).inCoordSystem(Vx, Vy, Vz);
+//            Point3D b = (B - A).inCoordSystem(Vx, Vy, Vz);
+//            Point3D c = (C - A).inCoordSystem(Vx, Vy, Vz);
+////            Point3D d = (D - A).inCoordSystem(Vx, Vy, Vz);
+//            double area = (b.x() - a.x()) * (c.y() - a.y()) - (b.y() - a.y()) * (c.x() - a.x());
+//            Point3D center = 0.25 * (A + B + C + D);
+//            Point3D p = findBorder(center, func, min(ab, ac) * 0.25, level);
+//            double d2b = center.distanceTo(p);
+//            F += alpha * exp(10.0 * area) + beta * d2b*d2b;
         }
+//        for (UInteger adj: adjasentset)
+//        {
+//            Quadrilateral q = element_[adj];
+//            for (int i = 0; i < 4; i++)
+//            {
+//                Point3D A = node_[q[i]].point;
+//                Point3D B = node_[q[i + 1]].point;
+//                Point3D C = node_[q[i - 1]].point;
+//                Point3D AB(A, B);
+//                Point3D AC(A, C);
+//                double ab = AB.length();
+//                double ac = AC.length();
+
+////                Point3D N = AB.product(AC);
+////                Point3D Vx = AB.normalized();
+////                Point3D Vz = N.normalized();
+////                Point3D Vy = Vz.product(Vx);
+////                Point3D a = (A - A).inCoordSystem(Vx, Vy, Vz);
+////                Point3D b = (B - A).inCoordSystem(Vx, Vy, Vz);
+////                Point3D c = (C - A).inCoordSystem(Vx, Vy, Vz);
+////                double area = (b.x() - a.x()) * (c.y() - a.y()) - (b.y() - a.y()) * (c.x() - a.x());
+//                Point3D center = 0.3333333333333333 * (A + B + C);
+//                Point3D p = findBorder(center, func, min(ab, ac) * 0.25, level);
+//                double d2b = center.distanceTo(p);
+////                F += alpha * exp(10.0 * area) + beta * d2b*d2b;
+
+//                F += alpha * 0.5 * (ab*ab + ac*ac) + beta * d2b*d2b;
+//            }
+//        }
         return F;
     };
 
@@ -561,7 +598,7 @@ void QuadrilateralMesh3D::distlenSmoothing(std::function<double (double, double,
                         f_current = f_dir;
                     }
                     iic++;
-                } while (step >= 0.001 && iic < 10);
+                } while (step >= 0.001 && iic < 20);
                 /*if (iic == 3)*/step = 0.1;/*else step=0.001;*/
                 iic = 0;
                 do
@@ -580,7 +617,7 @@ void QuadrilateralMesh3D::distlenSmoothing(std::function<double (double, double,
                         f_current = f_dir;
                     }
                     iic++;
-                } while (step >= 0.001 && iic < 10);
+                } while (step >= 0.001 && iic < 20);
                 iic = 0;
                 do
                 {
@@ -598,7 +635,7 @@ void QuadrilateralMesh3D::distlenSmoothing(std::function<double (double, double,
                         f_current = f_dir;
                     }
                     iic++;
-                } while (step >= 0.001 && iic < 5);
+                } while (step >= 0.001 && iic < 10);
             }
             ++progress;
         }
