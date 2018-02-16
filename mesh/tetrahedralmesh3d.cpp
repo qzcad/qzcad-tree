@@ -134,5 +134,28 @@ void TetrahedralMesh3D::sweepBaseMesh(TriangleMesh2D *baseMesh, const double &z0
     updateDomain();
 }
 
+void TetrahedralMesh3D::convertHexahedralMesh5(const HexahedralMesh3D *mesh)
+{
+    clear();
+    int a[5][4] = {
+        {0, 1, 2, 5},
+        {0, 2, 7, 5},
+        {0, 2, 3, 7},
+        {0, 5, 7, 4},
+        {2, 7, 5, 6}
+    };
+    for (UInteger in = 0; in < mesh->nodesCount(); in++)
+    {
+        pushNode(mesh->point3d(in), mesh->nodeType(in));
+    }
+    for (UInteger ie; ie < mesh->elementsCount(); ie++)
+    {
+        Hexahedral h = mesh->hexahedron(ie);
+        for (int j = 0; j < 5; j++)
+            addElement(h[a[j][0]], h[a[j][1]], h[a[j][2]], h[a[j][3]]);
+    }
+    updateDomain();
+}
+
 }
 

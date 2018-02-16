@@ -400,6 +400,11 @@ void HexahedralMesh3D::sweepBaseMesh(QuadrilateralMesh2D *baseMesh, const double
     updateDomain();
 }
 
+Hexahedral HexahedralMesh3D::hexahedron(const UInteger &ie) const
+{
+    return element_[ie];
+}
+
 }
 
 

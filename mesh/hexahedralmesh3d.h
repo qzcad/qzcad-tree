@@ -126,7 +126,12 @@ public:
      */
     void sweepBaseMesh(QuadrilateralMesh2D *baseMesh, const double &z0, const double &z1, const double &phi0, const double &phi1, const double &k0, const double &k1, const int &zLayersCount);
 //    UInteger toArray(UInteger i, UInteger j, UInteger k, UInteger yCount, UInteger zCount) { return i * yCount * zCount + j * zCount + k; }
-
+    /**
+     * @brief Метод возвращает шестигранник с заданным номером
+     * @param ie Номер шестигранника
+     * @return Шестигранник с номером ie
+     */
+    Hexahedral hexahedron(const UInteger &ie) const;
 private:
     std::vector<Hexahedral> element_; //!< Массив шестигранных элементов
 };

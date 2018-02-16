@@ -13,6 +13,7 @@
 #include "mesh3d.h"
 #include "tetrahedron.h"
 #include "trianglemesh2d.h"
+#include "hexahedralmesh3d.h"
 
 namespace msh {
 /**
@@ -78,6 +79,11 @@ public:
      * @param zLayersCount Количество слоев вдоль оси z
      */
     void sweepBaseMesh(TriangleMesh2D *baseMesh, const double &z0, const double &z1, const double &phi0, const double &phi1, const double &k0, const double &k1, const int &zLayersCount);
+    /**
+     * @brief Конвертировать шестигранники в тетраэдры (пяти элементная схема)
+     * @param mesh Указатель на сетку шестигранников
+     */
+    void convertHexahedralMesh5(const HexahedralMesh3D *mesh);
 private:
     std::vector<Tetrahedron> element_; //!< Массив шестигранных элементов
 };
