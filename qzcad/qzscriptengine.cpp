@@ -110,6 +110,8 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     globalObject().setProperty("ParametricSegments", newFunction(createParametricSegments));
     // Сетка шестигранников
     globalObject().setProperty("HexahedralMesh", newFunction(createHexahedralMesh));
+    // Сетка тетраэдров
+    globalObject().setProperty("TetrahedralMesh", newFunction(createTetrahedralMesh));
     // "Вытягивание" тела движением
     globalObject().setProperty("SweepMesh", newFunction(createSweptMesh));
     // Воксельная модель
@@ -1222,6 +1224,20 @@ QScriptValue QZScriptEngine::createHexahedralMesh(QScriptContext *context, QScri
     return context->throwError(tr("HexahedralMesh(): wrong number of arguments."));
 }
 
+QScriptValue QZScriptEngine::createTetrahedralMesh(QScriptContext *context, QScriptEngine *engine)
+{
+    if (context->argumentCount() == 1)
+    {
+        QHexahedralMesh3D *hmesh = qscriptvalue_cast<QHexahedralMesh3D *>(context->argument(0));
+        if (hmesh == NULL)
+            return context->throwError(tr("TetrahedralMesh(m: HexahedralMesh[, func: Function]): m is not a hexahedral mesh"));
+        QTetrahedralMesh3D *tet = new QTetrahedralMesh3D();
+        tet->convertHexahedralMesh5(hmesh);
+        return engine->newQObject(tet, QScriptEngine::ScriptOwnership);
+    }
+    return context->throwError(tr("TetrahedralMesh(): wrong number of arguments."));
+}
+
 QScriptValue QZScriptEngine::createSweptMesh(QScriptContext *context, QScriptEngine *engine)
 {
     if (4 <= context->argumentCount() && context->argumentCount() <= 8)
@@ -1844,6 +1860,7 @@ QScriptValue QZScriptEngine::elasticFem(QScriptContext *context, QScriptEngine *
         setMesh(mesh);
         return engine->undefinedValue();
     }
+    return context->throwError(tr("The ElasticFem function: wrong parameters."));
 }
 
 QScriptValue QZScriptEngine::mindlinFem(QScriptContext *context, QScriptEngine *engine)

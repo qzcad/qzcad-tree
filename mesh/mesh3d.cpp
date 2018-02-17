@@ -78,13 +78,18 @@ void Mesh3D::clearNodes()
     node_.clear();
 }
 
+UInteger Mesh3D::pushNode(const Node3D &node)
+{
+    node_.push_back(node);
+    return node_.size() - 1;
+}
+
 UInteger Mesh3D::pushNode(const Point3D &point, const NodeType &type)
 {
     Node3D node;
     node.point = point;
     node.type = type;
-    node_.push_back(node);
-    return node_.size() - 1;
+    return pushNode(node);
 }
 
 UInteger Mesh3D::pushNode(PointPointer point, const NodeType &type)
@@ -352,6 +357,11 @@ void Mesh3D::evalNodalValues(std::function<double (double, double, double)> func
 Point3D Mesh3D::point3d(const UInteger &nnumber) const
 {
     return node_[nnumber].point;
+}
+
+Node3D Mesh3D::node3d(const UInteger &nnumber) const
+{
+    return node_[nnumber];
 }
 }
 

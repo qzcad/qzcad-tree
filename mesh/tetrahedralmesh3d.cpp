@@ -1,6 +1,7 @@
 #include "tetrahedralmesh3d.h"
 
 #include <math.h>
+#include <iostream>
 
 namespace msh {
 
@@ -137,7 +138,7 @@ void TetrahedralMesh3D::sweepBaseMesh(TriangleMesh2D *baseMesh, const double &z0
 void TetrahedralMesh3D::convertHexahedralMesh5(const HexahedralMesh3D *mesh)
 {
     clear();
-    int a[5][4] = {
+    const int tetrahedronsInCube[5][4] = {
         {0, 1, 2, 5},
         {0, 2, 7, 5},
         {0, 2, 3, 7},
@@ -146,14 +147,18 @@ void TetrahedralMesh3D::convertHexahedralMesh5(const HexahedralMesh3D *mesh)
     };
     for (UInteger in = 0; in < mesh->nodesCount(); in++)
     {
-        pushNode(mesh->point3d(in), mesh->nodeType(in));
+        pushNode(mesh->node3d(in));
     }
-    for (UInteger ie; ie < mesh->elementsCount(); ie++)
+    for (UInteger ie = 0; ie < mesh->elementsCount(); ie++)
     {
-        Hexahedral h = mesh->hexahedron(ie);
+        Hexahedral hexaheron = mesh->hexahedron(ie);
         for (int j = 0; j < 5; j++)
-            addElement(h[a[j][0]], h[a[j][1]], h[a[j][2]], h[a[j][3]]);
+            addElement(hexaheron[tetrahedronsInCube[j][0]],
+                    hexaheron[tetrahedronsInCube[j][1]],
+                    hexaheron[tetrahedronsInCube[j][2]],
+                    hexaheron[tetrahedronsInCube[j][3]]);
     }
+    std::cout << "Создана сетка тетраэдров: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
     updateDomain();
 }
 

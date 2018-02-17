@@ -88,6 +88,12 @@ public:
      */
     virtual double surfaceArea() const = 0;
     /**
+     * @brief Добавить узел без проверки на наличие такого же
+     * @param node Узел для добавления
+     * @return Номер узла в массиве узлов
+     */
+    UInteger pushNode(const Node3D &node);
+    /**
      * @brief Добавить узел, заданный точкой, без проверки на наличие в массиве узлов
      * @param point Координаты узла для вставки
      * @param type Тип узла
@@ -199,6 +205,12 @@ public:
      * @return Координты узла
      */
     Point3D point3d(const UInteger &nnumber) const;
+    /**
+     * @brief Метод возвращает узел (координаты и тип)
+     * @param nnumber Номер узла
+     * @return Узел с номером nnumber
+     */
+    Node3D node3d(const UInteger &nnumber) const;
 protected:
     std::vector<Node3D> node_; //!< массив узлов
     double xMin_; //!< минимальное значение ординаты
