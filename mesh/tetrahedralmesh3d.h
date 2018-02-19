@@ -84,6 +84,12 @@ public:
      * @param mesh Указатель на сетку шестигранников
      */
     void convertHexahedralMesh5(const HexahedralMesh3D *mesh);
+    /**
+     * @brief Конвертировать шестигранники в тетраэдры (шести элементная схема)
+     * @param mesh Указатель на сетку шестигранников
+     */
+    void convertHexahedralMesh6(const HexahedralMesh3D *mesh);
+    void convertHexahedralMesh(const HexahedralMesh3D *mesh, const int tetrahedronsInCube[][4], const int &count);
 private:
     std::vector<Tetrahedron> element_; //!< Массив шестигранных элементов
 };

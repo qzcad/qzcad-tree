@@ -137,7 +137,6 @@ void TetrahedralMesh3D::sweepBaseMesh(TriangleMesh2D *baseMesh, const double &z0
 
 void TetrahedralMesh3D::convertHexahedralMesh5(const HexahedralMesh3D *mesh)
 {
-    clear();
     const int tetrahedronsInCube[5][4] = {
         {0, 1, 2, 5},
         {0, 2, 7, 5},
@@ -145,6 +144,26 @@ void TetrahedralMesh3D::convertHexahedralMesh5(const HexahedralMesh3D *mesh)
         {0, 5, 7, 4},
         {2, 7, 5, 6}
     };
+    convertHexahedralMesh(mesh, tetrahedronsInCube, 5);
+}
+
+void TetrahedralMesh3D::convertHexahedralMesh6(const HexahedralMesh3D *mesh)
+{
+    const int tetrahedronsInCube[6][4] =
+    {
+        {0,5,1,6},
+        {0,1,2,6},
+        {0,2,3,6},
+        {0,3,7,6},
+        {0,7,4,6},
+        {0,4,5,6}
+    };
+    convertHexahedralMesh(mesh, tetrahedronsInCube, 6);
+}
+
+void TetrahedralMesh3D::convertHexahedralMesh(const HexahedralMesh3D *mesh, const int tetrahedronsInCube[][4], const int &count)
+{
+    clear();
     for (UInteger in = 0; in < mesh->nodesCount(); in++)
     {
         pushNode(mesh->node3d(in));
@@ -152,7 +171,7 @@ void TetrahedralMesh3D::convertHexahedralMesh5(const HexahedralMesh3D *mesh)
     for (UInteger ie = 0; ie < mesh->elementsCount(); ie++)
     {
         Hexahedral hexaheron = mesh->hexahedron(ie);
-        for (int j = 0; j < 5; j++)
+        for (int j = 0; j < count; j++)
             addElement(hexaheron[tetrahedronsInCube[j][0]],
                     hexaheron[tetrahedronsInCube[j][1]],
                     hexaheron[tetrahedronsInCube[j][2]],
