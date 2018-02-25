@@ -81,7 +81,7 @@ UIntegerVector Tetrahedron::face(const int &i) const
         face[1] = vertex_[2];
         face[2] = vertex_[3];
     }
-    else
+    else if (i == 3)
     {
         face[0] = vertex_[2];
         face[1] = vertex_[0];

@@ -2,6 +2,7 @@
 #undef __STRICT_ANSI__
 #include <math.h>
 #include <iostream>
+#include <algorithm>
 
 #include "consoleprogress.h"
 
@@ -223,46 +224,13 @@ void QuadrilateralMesh3D::backgroundGrid(const HexahedralMesh3D *mesh, std::func
         }
         ++progress;
     }
-    // delete all isolated elements
+    // delete all isolated elements and add border faces into the mesh
+    progress.restart(inner.size());
     for (std::list<ElementPointer>::iterator it = inner.begin(); it != inner.end();)
     {
-        short inner_faces_count = 0;
+        bool isWeak = false;
         ElementPointer el = *it;
-        for (std::list<ElementPointer>::iterator iit = inner.begin(); iit != inner.end(); iit++)
-        {
-            ElementPointer ell = *iit;
-            if (it != iit)
-            {
-                short common_nodes_count = 0;
-                for (int j = 0; j < 8; j++)
-                {
-                    if (ell->in(el->vertexNode(j)))
-                        ++common_nodes_count;
-                }
-                if (common_nodes_count == 4)
-                {
-                    ++inner_faces_count;
-                }
-                if (inner_faces_count == 3)
-                    break;
-            }
-        }
-        if (inner_faces_count < 3)
-        {
-            it = inner.erase(it);
-            it = inner.begin();
-            std::cout << '.' << std::ends;
-        }
-        else
-        {
-            it++;
-        }
-    }
-    // loop a list of background elements and add border faces into the mesh
-    for (ElementPointer el: inner)
-    {
-        int m = el->facesCount();
-        for (int j = 0; j < m; j++)
+        for (int j = 0; j < el->facesCount(); j++)
         {
             UIntegerVector f = el->face(j);
             Point3D p[4];
@@ -281,15 +249,69 @@ void QuadrilateralMesh3D::backgroundGrid(const HexahedralMesh3D *mesh, std::func
                     break;
                 }
             }
-            if (!isInner/* && border.find(f[0]) != border.end() && border.find(f[1]) != border.end() && border.find(f[2]) != border.end() && border.find(f[3]) != border.end()*/)
-                addElement(addNode(p[0], BORDER), addNode(p[1], BORDER), addNode(p[2], BORDER), addNode(p[3], BORDER));
+            if (!isInner)
+            {
+                UInteger index0 = addNode(p[0], BORDER);
+                UInteger index1 = addNode(p[1], BORDER);
+                UInteger index2 = addNode(p[2], BORDER);
+                UInteger index3 = addNode(p[3], BORDER);
+                addElement(index0, index1, index2, index3);
+                AdjacentSet a0 = node_[index0].adjacent;
+                AdjacentSet a1 = node_[index1].adjacent;
+                AdjacentSet a2 = node_[index2].adjacent;
+                AdjacentSet a3 = node_[index3].adjacent;
+                std::vector<UInteger> common01;
+                std::vector<UInteger> common12;
+                std::vector<UInteger> common23;
+                std::vector<UInteger> common30;
+                set_intersection(a0.begin(), a0.end(), a1.begin(), a1.end(), std::back_inserter(common01));
+                set_intersection(a1.begin(), a1.end(), a2.begin(), a2.end(), std::back_inserter(common12));
+                set_intersection(a2.begin(), a2.end(), a3.begin(), a3.end(), std::back_inserter(common23));
+                set_intersection(a3.begin(), a3.end(), a0.begin(), a0.end(), std::back_inserter(common30));
+                if (common01.size() > 2 || common12.size() > 2 || common23.size() > 2 || common30.size() > 2)
+                {
+                    isWeak = true;
+                    break;
+                }
+            }
             if (d < h)
                 h = d;
         }
+        if (isWeak)
+        {
+            for (std::list<ElementPointer>::iterator iit = inner.begin(); iit != inner.end();)
+            {
+                ElementPointer ell = *iit;
+                if (it != iit)
+                {
+                    short common_nodes_count = 0;
+                    for (int j = 0; j < ell->verticesCount(); j++)
+                    {
+                        if (ell->in(el->vertexNode(j)))
+                            ++common_nodes_count;
+                    }
+                    if (common_nodes_count == 4)
+                        iit = inner.erase(iit);
+                    else
+                        ++iit;
+                }
+                else
+                    ++iit;
+            }
+            it = inner.erase(it);
+            it = inner.begin();
+            progress.restart(inner.size());
+            clear();
+        }
+        else
+        {
+            it++;
+            ++progress;
+        }
     }
     // loop nodes of the mesh and find correct position
-//    h *= 0.25;
-//    const double dh = 0.5 * h;
+//    h *= 0.1;
+////    const double dh = 0.5 * h;
 //    UInteger corrected_count = node_.size();
 //    while (corrected_count > 0)
 //    {
@@ -297,11 +319,21 @@ void QuadrilateralMesh3D::backgroundGrid(const HexahedralMesh3D *mesh, std::func
 //        for (UInteger i = 0; i != node_.size(); ++i)
 //        {
 //            Point3D point = node_[i].point;
+//            AdjacentSet adjacent = node_[i].adjacent;
+//            Point3D n(0.0, 0.0, 0.0);
+//            for (UInteger elnum: adjacent)
+//            {
+//                Quadrilateral q = element_[elnum];
+//                int index = q.index(i);
+//                Point3D prev = node_[q[index - 1]].point;
+//                Point3D next = node_[q[index + 1]].point;
+//                n = n + normal3(point, prev, next);
+//            }
 //            double f = func(point.x(), point.y(), point.z()) - level;
 //            if (fabs(f) >= epsilon_)
 //            {
-//                Point3D g = grad(func, point, dh).normalized();
-//                Point3D p = (f < 0.0) ? (point + h * g) : (point - h * g);
+////                Point3D g = grad(func, point, dh).normalized();
+//                Point3D p = (f < 0.0) ? (point + h * n) : (point - h * n);
 //                double fp = func(p.x(), p.y(), p.z()) - level;
 //                if (signbit(f) != signbit(fp))
 //                {
@@ -349,7 +381,7 @@ void QuadrilateralMesh3D::backgroundGrid(const HexahedralMesh3D *mesh, std::func
             Point3D next = node_[q[index + 1]].point;
             n = n + normal3(point, prev, next);
         }
-        surface[i] = findBorder(point, n.normalized(), func, sqrt(3.0) * h, level);
+        surface[i] = findBorder(point, n.normalized(), func, 0.5 * h, level);
 //        surface[i] = findBorder(point, func, 0.25 * h, level);
         ++progress;
     }
@@ -514,6 +546,9 @@ void QuadrilateralMesh3D::distlenSmoothing(std::function<double (double, double,
             Point3D center = 0.25 * (A + B + C + D);
             Point3D p = findBorder(center, func, min(ab, ac) * 0.25, level);
             double d2b = center.distanceTo(p);
+//            double d2b = max(center.distanceTo(findBorder(0.5 * (A + B), func, min(ab, ac) * 0.25, level)),
+//                             max(center.distanceTo(findBorder(0.5 * (B + C), func, min(ab, ac) * 0.25, level)),
+//                                 max(center.distanceTo(findBorder(0.5 * (C + D), func, min(ab, ac) * 0.25, level)), center.distanceTo(findBorder(0.5 * (D + A), func, min(ab, ac) * 0.25, level)))));
             F += alpha * 0.5 * (ab*ab + ac*ac) + beta * d2b*d2b;
 
 //            Point3D N = AB.product(AC);
@@ -580,6 +615,7 @@ void QuadrilateralMesh3D::distlenSmoothing(std::function<double (double, double,
                 int index = q.index(i);
                 Point3D B = node_[q[index + 1]].point;
                 Point3D C = node_[q[index - 1]].point;
+                Point3D D = node_[q[index + 2]].point;
                 double step = 0.1;
                 int iic = 0;
                 do

@@ -258,7 +258,7 @@ Point3D Mesh3D::findBorder(const Point3D &point, const Point3D &normal, std::fun
 Point3D Mesh3D::findBorder(const Point3D &a, const Point3D &b, const Point3D &c, std::function<double (double, double, double)> func, double lb, double lc, double level)
 {
     Point3D point = ((1.0 - lb - lc) * a) + (lb * b) + (lc * c);
-    Point3D center = ((1.0 - 0.333 - 0.333) * a) + (0.333 * b) + (0.333 * c);
+    double h = (a.distanceTo(b) + a.distanceTo(c) + b.distanceTo(c)) / 3.0;
 //    Point3D n = normal3(a, b, c);
 //    double h = a.distanceTo(center);
 //    Point3D p0 = point - h * n;
@@ -270,7 +270,7 @@ Point3D Mesh3D::findBorder(const Point3D &a, const Point3D &b, const Point3D &c,
 //    return binary(p0, p1, func, level);
 //    if (a.isEqualTo(center, epsilon_) || b.isEqualTo(center, epsilon_) || c.isEqualTo(center, epsilon_))
 //        return a;
-    return findBorder(point, func, a.distanceTo(center), level);
+    return findBorder(point, func, 0.1 * h, level);
 
 //    Point3D ab(a, b);
 //    Point3D ac(a, c);
@@ -309,8 +309,7 @@ Point3D Mesh3D::findBorder(const Point3D &a, const Point3D &b, const Point3D &c,
 Point3D Mesh3D::findBorder(const Point3D &a, const Point3D &b, const Point3D &c, std::function<double (double, double, double)> func, Point3D n, double lb, double lc, double level)
 {
     Point3D point = ((1.0 - lb - lc) * a) + (lb * b) + (lc * c);
-    Point3D center = ((1.0 - 0.333 - 0.333) * a) + (0.333 * b) + (0.333 * c);
-    double h = a.distanceTo(center);
+    double h = (a.distanceTo(b) + a.distanceTo(c) + b.distanceTo(c)) / 3.0;
     Point3D p0 = point - h * n;
     Point3D p1 = point + h * n;
     if (fabs(func(point.x(), point.y(), point.z()) - level) < epsilon_)

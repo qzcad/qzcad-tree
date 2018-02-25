@@ -135,47 +135,39 @@ void TetrahedralMesh3D::sweepBaseMesh(TriangleMesh2D *baseMesh, const double &z0
     updateDomain();
 }
 
-void TetrahedralMesh3D::convertHexahedralMesh5(const HexahedralMesh3D *mesh)
-{
-    const int tetrahedronsInCube[5][4] = {
-        {0, 1, 2, 5},
-        {0, 2, 7, 5},
-        {0, 2, 3, 7},
-        {0, 5, 7, 4},
-        {2, 7, 5, 6}
-    };
-    convertHexahedralMesh(mesh, tetrahedronsInCube, 5);
-}
-
-void TetrahedralMesh3D::convertHexahedralMesh6(const HexahedralMesh3D *mesh)
-{
-    const int tetrahedronsInCube[6][4] =
-    {
-        {0,5,1,6},
-        {0,1,2,6},
-        {0,2,3,6},
-        {0,3,7,6},
-        {0,7,4,6},
-        {0,4,5,6}
-    };
-    convertHexahedralMesh(mesh, tetrahedronsInCube, 6);
-}
-
-void TetrahedralMesh3D::convertHexahedralMesh(const HexahedralMesh3D *mesh, const int tetrahedronsInCube[][4], const int &count)
+void TetrahedralMesh3D::convertHexahedralMesh(const HexahedralMesh3D *mesh)
 {
     clear();
     for (UInteger in = 0; in < mesh->nodesCount(); in++)
     {
         pushNode(mesh->node3d(in));
     }
+
     for (UInteger ie = 0; ie < mesh->elementsCount(); ie++)
     {
         Hexahedral hexaheron = mesh->hexahedron(ie);
-        for (int j = 0; j < count; j++)
-            addElement(hexaheron[tetrahedronsInCube[j][0]],
-                    hexaheron[tetrahedronsInCube[j][1]],
-                    hexaheron[tetrahedronsInCube[j][2]],
-                    hexaheron[tetrahedronsInCube[j][3]]);
+        Point3D center(0.0, 0.0, 0.0);
+        UInteger center_index;
+        for (int i = 0; i < 8; i++)
+        {
+            center = center + mesh->point3d(hexaheron[i]);
+        }
+        center.scale(1.0 / 8.0);
+        center_index = pushNode(center, INNER);
+        for (int i = 0; i < 6; i++)
+        {
+            UIntegerVector face = hexaheron.face(i);
+            Point3D p0 = mesh->point3d(face[0]);
+            Point3D p1 = mesh->point3d(face[1]);
+            Point3D p2 = mesh->point3d(face[2]);
+            Point3D p3 = mesh->point3d(face[3]);
+            Point3D face_center = 0.25 * (p0 + p1 + p2 + p3);
+            UInteger face_center_index = addNode(face_center, isBorderFace(face) == true ? BORDER : INNER);
+            addElement(face[0], face[1], center_index, face_center_index);
+            addElement(face[1], face[2], center_index, face_center_index);
+            addElement(face[2], face[3], center_index, face_center_index);
+            addElement(face[3], face[0], center_index, face_center_index);
+        }
     }
     std::cout << "Создана сетка тетраэдров: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
     updateDomain();

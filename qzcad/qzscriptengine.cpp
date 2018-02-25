@@ -552,6 +552,8 @@ QScriptValue QZScriptEngine::createBoundaryMesh(QScriptContext *context, QScript
             mesh = qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0));
         if (qscriptvalue_cast<QHexahedralMesh3D *>(context->argument(0)) != NULL)
             mesh = qscriptvalue_cast<QHexahedralMesh3D *>(context->argument(0));
+        if (qscriptvalue_cast<QTetrahedralMesh3D *>(context->argument(0)) != NULL)
+            mesh = qscriptvalue_cast<QTetrahedralMesh3D *>(context->argument(0));
         if (mesh == NULL)
             return context->throwError(tr("BoundaryMesh(mesh, func [, points]:  wrong type of the mesh argument"));
         if (dynamic_cast<Mesh2D *>(mesh) != NULL)
@@ -630,6 +632,44 @@ QScriptValue QZScriptEngine::createBoundaryMesh(QScriptContext *context, QScript
             QQuadrilateralMesh3D *quads = new QQuadrilateralMesh3D();
             quads->backgroundGrid(hmesh, func, 0.0, engine->globalObject().property("SLEVEL").toInt32(), engine->globalObject().property("OLEVEL").toInt32());
             return engine->newQObject(quads, QScriptEngine::ScriptOwnership);
+        }
+        if (dynamic_cast<TetrahedralMesh3D *>(mesh) != NULL)
+        {
+            TetrahedralMesh3D *tetrahedra = dynamic_cast<TetrahedralMesh3D *>(mesh);
+            std::list<msh::Point3D> pointList;
+            if (context->argumentCount() == 1)
+            {
+//                QSegmentMesh2D *segements = new QSegmentMesh2D();
+//                segements->extract(mesh2d);
+//                return engine->newQObject(segements, QScriptEngine::ScriptOwnership);
+            }
+
+            QScriptValue function = context->argument(1);
+            if (!function.isFunction())
+                return context->throwError(tr("BoundaryMesh(mesh, func [, points]: wrong type of the func argument"));
+            auto func = [&](double x, double y, double z)->double
+            {
+                QScriptValueList args;
+                args << x << y << z;
+                return function.call(QScriptValue(), args).toNumber();
+            };
+
+            if (context->argumentCount() == 3)
+            {
+                if (!context->argument(2).isArray())
+                    return context->throwError(tr("BoundaryMesh(mesh, func [, points]: wrong type of the points argument"));
+                QScriptValue array = context->argument(2);
+                for (int i = 0; i < array.property("length").toInteger(); i++)
+                {
+                    QPoint3D *point = qscriptvalue_cast<QPoint3D *>(array.property(i));
+                    if (point == NULL)
+                        return context->throwError(tr("BoundaryMesh(mesh, func [, points]: wrong type of the points element"));
+                    pointList.push_back(Point3D(point->x(), point->y(), point->z()));
+                }
+            }
+            QTriangleMesh3D *triangles = new QTriangleMesh3D();
+            triangles->backgroundGrid(tetrahedra, func, 0.0, engine->globalObject().property("SLEVEL").toInt32(), engine->globalObject().property("OLEVEL").toInt32());
+            return engine->newQObject(triangles, QScriptEngine::ScriptOwnership);
         }
     }
     return context->throwError(tr("BoundaryMesh(mesh, func [, points]: wrong number of arguments."));
@@ -1228,12 +1268,12 @@ QScriptValue QZScriptEngine::createTetrahedralMesh(QScriptContext *context, QScr
 {
     if (context->argumentCount() == 1)
     {
-        QHexahedralMesh3D *hmesh = qscriptvalue_cast<QHexahedralMesh3D *>(context->argument(0));
-        if (hmesh == NULL)
+        QHexahedralMesh3D *hexahedra = qscriptvalue_cast<QHexahedralMesh3D *>(context->argument(0));
+        if (hexahedra == NULL)
             return context->throwError(tr("TetrahedralMesh(m: HexahedralMesh[, func: Function]): m is not a hexahedral mesh"));
-        QTetrahedralMesh3D *tet = new QTetrahedralMesh3D();
-        tet->convertHexahedralMesh5(hmesh);
-        return engine->newQObject(tet, QScriptEngine::ScriptOwnership);
+        QTetrahedralMesh3D *tetrahedra = new QTetrahedralMesh3D();
+        tetrahedra->convertHexahedralMesh(hexahedra);
+        return engine->newQObject(tetrahedra, QScriptEngine::ScriptOwnership);
     }
     return context->throwError(tr("TetrahedralMesh(): wrong number of arguments."));
 }

@@ -1396,6 +1396,139 @@ void TriangleMesh3D::marchingTetrahedrons(const UInteger &xCount, const UInteger
     std::cout << "Марширующие тетраэдры: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
+void TriangleMesh3D::backgroundGrid(const TetrahedralMesh3D *mesh, std::function<double (double, double, double)> func, double level, int smooth, int optimize, bool useFlip)
+{
+    clear();
+    std::list<ElementPointer> inner;
+    double h = mesh->xMax() - mesh->xMin();
+    ConsoleProgress progress(mesh->elementsCount());
+    // make a list of background elements and a set of border points in this list
+    for (UInteger i = 0; i < mesh->elementsCount(); i++)
+    {
+        ElementPointer el = mesh->element(i);
+        int m = el->verticesCount();
+        std::vector<double> values(m);
+        int code = 0;
+        for (int j = 0; j < m; j++)
+        {
+            Point3D point = mesh->point3d(el->vertexNode(j));
+            double value = func(point.x(), point.y(), point.z());
+            values[j] = value;
+            if (value - level < epsilon_)
+                code |= (1 << j);
+        }
+        if (code == 0)
+        {
+            inner.push_back(el);
+        }
+        ++progress;
+    }
+    // delete all isolated elements and add border faces into the mesh
+    progress.restart(inner.size());
+    for (std::list<ElementPointer>::iterator it = inner.begin(); it != inner.end();)
+    {
+        bool isWeak = false;
+        ElementPointer el = *it;
+        for (int j = 0; j < el->facesCount(); j++)
+        {
+            UIntegerVector f = el->face(j);
+            Point3D p[3];
+            p[0] = mesh->point3d(f[0]);
+            p[1] = mesh->point3d(f[1]);
+            p[2] = mesh->point3d(f[2]);
+            double d = p[0].distanceTo(p[1]);
+            bool isInner = false;
+            // check an other element with these vertices
+            for (ElementPointer el1: inner)
+            {
+                if (el1 != el && el1->in(f[0]) && el1->in(f[1]) && el1->in(f[2]))
+                {
+                    isInner = true;
+                    break;
+                }
+            }
+            if (!isInner)
+            {
+                UInteger index0 = addNode(p[0], BORDER);
+                UInteger index1 = addNode(p[1], BORDER);
+                UInteger index2 = addNode(p[2], BORDER);
+                addElement(index0, index1, index2);
+                AdjacentSet a0 = node_[index0].adjacent;
+                AdjacentSet a1 = node_[index1].adjacent;
+                AdjacentSet a2 = node_[index2].adjacent;
+                std::vector<UInteger> common01;
+                std::vector<UInteger> common12;
+                std::vector<UInteger> common20;
+                set_intersection(a0.begin(), a0.end(), a1.begin(), a1.end(), std::back_inserter(common01));
+                set_intersection(a1.begin(), a1.end(), a2.begin(), a2.end(), std::back_inserter(common12));
+                set_intersection(a2.begin(), a2.end(), a0.begin(), a0.end(), std::back_inserter(common20));
+                if (common01.size() > 2 || common12.size() > 2 || common20.size() > 2)
+                {
+                    isWeak = true;
+                    break;
+                }
+            }
+            if (d < h)
+                h = d;
+        }
+        if (isWeak)
+        {
+            for (std::list<ElementPointer>::iterator iit = inner.begin(); iit != inner.end();)
+            {
+                ElementPointer ell = *iit;
+                if (it != iit)
+                {
+                    short common_nodes_count = 0;
+                    for (int j = 0; j < ell->verticesCount(); j++)
+                    {
+                        if (ell->in(el->vertexNode(j)))
+                            ++common_nodes_count;
+                    }
+                    if (common_nodes_count == 3)
+                        iit = inner.erase(iit);
+                    else
+                        ++iit;
+                }
+                else
+                    ++iit;
+            }
+            it = inner.erase(it);
+            it = inner.begin();
+            progress.restart(inner.size());
+            clear();
+        }
+        else
+        {
+            it++;
+            ++progress;
+        }
+    }
+    // loop nodes of the mesh and find correct position
+    progress.restart(node_.size());
+    std::vector<Point3D> surface(node_.size());
+    for (UInteger i = 0; i != node_.size(); ++i)
+    {
+        Point3D point = node_[i].point;
+        AdjacentSet adjacent = node_[i].adjacent;
+        Point3D n(0.0, 0.0, 0.0);
+        for (UInteger elnum: adjacent)
+        {
+            Triangle trinagle = element_[elnum];
+            int index = trinagle.index(i);
+            Point3D prev = node_[trinagle[index - 1]].point;
+            Point3D next = node_[trinagle[index + 1]].point;
+            n = n + normal3(point, prev, next);
+        }
+        surface[i] = findBorder(point, n.normalized(), func, 0.5*h, level);
+        ++progress;
+    }
+    for (UInteger i = 0; i != node_.size(); ++i) node_[i].point = surface[i];
+    laplacianSmoothing(func, level, smooth, useFlip);
+    distlenSmoothing(func, level, optimize, useFlip);
+    std::cout << "Surface traingular mesh: nodes - " << nodesCount() << ", elements - " << elementsCount() << std::endl;
+    updateDomain();
+}
+
 UInteger TriangleMesh3D::elementsCount() const
 {
     return element_.size();
@@ -1587,79 +1720,76 @@ double TriangleMesh3D::cfunction(const double &x, const double &y, const double 
     return sign * min_distance;
 }
 
-void TriangleMesh3D::laplacianSmoothing(std::function<double (double, double, double)> func, double level, int iter_num)
+void TriangleMesh3D::laplacianSmoothing(std::function<double (double, double, double)> func, double level, int iter_num, bool useFlip)
 {
-    auto functor = [&](const AdjacentSet &adjasentset, const UInteger &nnode)
-    {
-        const double alpha = 0.001;
-        const double beta = 1.0 - alpha;
-        double F = 0.0; // функционал
-        for (UInteger adj: adjasentset)
-        {
-            Triangle t = element_[adj];
-            int index = t.index(nnode);
-            Point3D A = node_[t[index]].point;
-            Point3D B = node_[t[index + 1]].point;
-            Point3D C = node_[t[index + 2]].point;
-            double d2b = distToBorder(A, B, C, func, 0.33333, 0.33333, level);
-            Point3D AB(A, B);
-            Point3D CA(C, A);
-            double ab = AB.length();
-            double ca = CA.length();
-            F += alpha * 0.5 * (ab*ab + ca*ca) + beta * d2b*d2b;
-        }
-        return F;
-    };
-    std::cout << "Сглаживание Лапласа: " << nodesCount() << " узлов, " << elementsCount() << " элементов." << std::endl;
+//    auto functor = [&](const AdjacentSet &adjasentset, const UInteger &nnode)
+//    {
+//        const double alpha = 0.001;
+//        const double beta = 1.0 - alpha;
+//        double F = 0.0; // функционал
+//        for (UInteger adj: adjasentset)
+//        {
+//            Triangle t = element_[adj];
+//            int index = t.index(nnode);
+//            Point3D A = node_[t[index]].point;
+//            Point3D B = node_[t[index + 1]].point;
+//            Point3D C = node_[t[index + 2]].point;
+//            double d2b = distToBorder(A, B, C, func, 0.33333, 0.33333, level);
+//            Point3D AB(A, B);
+//            Point3D CA(C, A);
+//            double ab = AB.length();
+//            double ca = CA.length();
+//            F += alpha * 0.5 * (ab*ab + ca*ca) + beta * d2b*d2b;
+//        }
+//        return F;
+//    };
+    std::cout << "Laplacian Smoothing: nodes - " << nodesCount() << ", elements - " << elementsCount() << "." << std::endl;
     for (short iit = 0; iit < iter_num; iit++)
     {
         ConsoleProgress progress(nodesCount());
         for (UInteger nnode = 0; nnode < nodesCount(); nnode++)
         {
             AdjacentSet adjacent = node_[nnode].adjacent;
-            Point3D prev = node_[nnode].point;
+//            Point3D prev = node_[nnode].point;
             Point3D point(0.0, 0.0, 0.0);
-            Point3D n(0.0, 0.0, 0.0);
             AdjacentSet neighbours;
             double avr_len = 0.0; // средняя длина ребра
-            double f = functor(adjacent, nnode);
-            for (auto epointer: adjacent)
+//            double f = functor(adjacent, nnode);
+            for (UInteger elnum: adjacent)
             {
-                Triangle t = element_[epointer];
-                int index = t.index(nnode);
-                Point3D a(node_[t[index]].point, node_[t[index + 1]].point);
-                Point3D b(node_[t[index]].point, node_[t[index + 2]].point);
-                neighbours.insert(t[index + 1]);
-                neighbours.insert(t[index + 2]);
-                avr_len += 0.5 * (a.length() + b.length());
-                n = n + normal3(point, node_[t[index + 1]].point, node_[t[index + 2]].point);
+                Triangle triangle = element_[elnum];
+                int index = triangle.index(nnode);
+                neighbours.insert(triangle[index + 1]);
+                neighbours.insert(triangle[index + 2]);
             }
-            avr_len /= (double)adjacent.size();
-            for (auto npointer: neighbours)
+            for (UInteger npointer: neighbours)
             {
                 point = point + node_[npointer].point;
             }
             point.scale(1.0 / (double)neighbours.size());
-            n = n.normalized();
-            n.scale(0.1 * avr_len);
-            Point3D p1 = point - n;
-            Point3D p2 = point + n;
-            if (signbit(func(p1.x(), p1.y(), p1.z()) - level) != signbit(func(p2.x(), p2.y(), p2.z()) - level))
-                node_[nnode].point = binary(p1, p2, func, level);
-//            node_[nnode].point = findBorder(point, func, 0.1 * avr_len, level);
-            if (functor(adjacent, nnode) > f) node_[nnode].point = prev;
+            for (UInteger elnum: adjacent)
+            {
+                Triangle triangle = element_[elnum];
+                int index = triangle.index(nnode);
+                Point3D a(point, node_[triangle[index - 1]].point);
+                Point3D b(point, node_[triangle[index + 1]].point);
+                avr_len += 0.5 * (a.length() + b.length());
+            }
+            avr_len /= (double)adjacent.size();
+            node_[nnode].point = findBorder(point, func, 0.1 * avr_len, level);
             ++progress;
         }
-        flip();
+        if (useFlip)
+            flip();
     }
 }
 
-void TriangleMesh3D::distlenSmoothing(std::function<double (double, double, double)> func, double level, int iter_num)
+void TriangleMesh3D::distlenSmoothing(std::function<double (double, double, double)> func, double level, int iter_num, bool useFlip)
 {
     auto functor = [&](const AdjacentSet &adjasentset, const UInteger &nnode)
     {
         // alpha = 0.001 is optimal for gradient searching
-        const double alpha = 0.0025;
+        const double alpha = 0.002;
         const double beta = 1.0 - alpha;
         double F = 0.0; // функционал
         for (UInteger adj: adjasentset)
@@ -1669,11 +1799,14 @@ void TriangleMesh3D::distlenSmoothing(std::function<double (double, double, doub
             Point3D A = node_[t[index]].point;
             Point3D B = node_[t[index + 1]].point;
             Point3D C = node_[t[index + 2]].point;
-            double d2b = distToBorder(A, B, C, func, 0.33333, 0.33333, level);
+//            double d2b = distToBorder(A, B, C, func, 0.33333333, 0.33333333, level);
             Point3D AB(A, B);
             Point3D AC(A, C);
             double ab = AB.length();
             double ac = AC.length();
+            Point3D center = 0.33333333333333333333 * (A + B + C);
+            Point3D p = findBorder(center, func, min(ab, ac) * 0.25, level);
+            double d2b = center.distanceTo(p);
             F += alpha * 0.5 * (ab*ab + ac*ac) + beta * d2b*d2b;
         }
         return F;
@@ -1684,7 +1817,7 @@ void TriangleMesh3D::distlenSmoothing(std::function<double (double, double, doub
     for (short iit = 0; iit < iter_num && optimized; iit++)
     {
 //        optimized = false;
-        flip();
+        if (useFlip) flip();
         ConsoleProgress progress(nodesCount());
         for (UInteger i = 0; i < nodesCount(); i++)
         {
@@ -1717,7 +1850,7 @@ void TriangleMesh3D::distlenSmoothing(std::function<double (double, double, doub
                         f_current = f_dir;
                     }
                     iic++;
-                } while (step >= 0.001 && iic < 100);
+                } while (step >= 0.001 && iic < 20);
                 /*if (iic == 3)*/step = 0.1;/*else step=0.001;*/
                 iic = 0;
                 do
@@ -1736,7 +1869,7 @@ void TriangleMesh3D::distlenSmoothing(std::function<double (double, double, doub
                         f_current = f_dir;
                     }
                     iic++;
-                } while (step >= 0.001 && iic < 100);
+                } while (step >= 0.001 && iic < 20);
                 iic = 0;
                 do
                 {
@@ -1754,7 +1887,7 @@ void TriangleMesh3D::distlenSmoothing(std::function<double (double, double, doub
                         f_current = f_dir;
                     }
                     iic++;
-                } while (step >= 0.001 && iic < 50);
+                } while (step >= 0.001 && iic < 10);
 
 //                Triangle t = element_[*it];
 //                int index = t.index(i);

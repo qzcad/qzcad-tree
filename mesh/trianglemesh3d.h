@@ -14,6 +14,7 @@
 #include "mesh3d.h"
 #include "triangle.h"
 #include "trianglemesh2d.h"
+#include "tetrahedralmesh3d.h"
 
 namespace msh {
 /**
@@ -104,6 +105,15 @@ public:
      */
     void marchingTetrahedrons(const UInteger &xCount, const UInteger &yCount, const UInteger &zCount, const double &xMin, const double &yMin, const double &zMin, const double &width, const double &height, const double &depth, std::function<double (double, double, double)> func, double level = 0.0, bool slice_x = false, bool slice_y = false, bool slice_z = false);
     /**
+     * @brief Метод построения стеки с использованием фоновых тетраэдров
+     * @param mesh Сетка тетраэдров
+     * @param func Функция области
+     * @param level Уровень нуля
+     * @param smooth Количество итераций сглаживания
+     * @param optimize Количество итераций оптимизации
+     */
+    void backgroundGrid(const TetrahedralMesh3D *mesh, std::function<double(double, double, double)> func, double level = 0.0, int smooth = 0, int optimize = 0, bool useFlip = true);
+    /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
      */
@@ -182,14 +192,14 @@ public:
      * @param level Линия уровня
      * @param iter_num Количесво итераций
      */
-    void laplacianSmoothing(std::function<double(double, double, double)> func, double level = 0, int iter_num = 1);
+    void laplacianSmoothing(std::function<double(double, double, double)> func, double level = 0, int iter_num = 1, bool useFlip = true);
     /**
      * @brief Процедура сглаживания на основе минимизации функционала расстояния-длины
      * @param func Функция области
      * @param level Линия уровня
      * @param iter_num Количесво итераций
      */
-    void distlenSmoothing(std::function<double(double, double, double)> func, double level = 0, int iter_num = 1);
+    void distlenSmoothing(std::function<double(double, double, double)> func, double level = 0, int iter_num = 1, bool useFlip = true);
 
 protected:
     /**

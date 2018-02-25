@@ -80,16 +80,10 @@ public:
      */
     void sweepBaseMesh(TriangleMesh2D *baseMesh, const double &z0, const double &z1, const double &phi0, const double &phi1, const double &k0, const double &k1, const int &zLayersCount);
     /**
-     * @brief Конвертировать шестигранники в тетраэдры (пяти элементная схема)
-     * @param mesh Указатель на сетку шестигранников
+     * @brief Конвертировать сетку шестигранников (используя схему Face-Centred: 24 тетраэдра на 1 шестигранник)
+     * @param Указатель на сетку шестигранников
      */
-    void convertHexahedralMesh5(const HexahedralMesh3D *mesh);
-    /**
-     * @brief Конвертировать шестигранники в тетраэдры (шести элементная схема)
-     * @param mesh Указатель на сетку шестигранников
-     */
-    void convertHexahedralMesh6(const HexahedralMesh3D *mesh);
-    void convertHexahedralMesh(const HexahedralMesh3D *mesh, const int tetrahedronsInCube[][4], const int &count);
+    void convertHexahedralMesh(const HexahedralMesh3D *mesh);
 private:
     std::vector<Tetrahedron> element_; //!< Массив шестигранных элементов
 };
