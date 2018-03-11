@@ -185,6 +185,13 @@ private:
      */
     static QScriptValue createMarchingCubes(QScriptContext *context, QScriptEngine *engine);
     /**
+     * @brief "Конструктор" сеток треугольных элементов (метод марширующих тетраэдров)
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Объект для использования в скриптах
+     */
+    static QScriptValue createMarchingTetrahedrons(QScriptContext *context, QScriptEngine *engine);
+    /**
      * @brief "Конструктор" сеток шестигранных элементов
      * @param context Контекст скрипта
      * @param engine Двигатель скрипта

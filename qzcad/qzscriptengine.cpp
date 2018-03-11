@@ -106,6 +106,8 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     globalObject().setProperty("ParametricTriangles", newFunction(createParametricTriangles));
     // Марширующие кубики
     globalObject().setProperty("MarchingCubes", newFunction(createMarchingCubes));
+    // Марширующие тетраэдры
+    globalObject().setProperty("MarchingTetrahedrons", newFunction(createMarchingTetrahedrons));
     // Параметрические кривые
     globalObject().setProperty("ParametricSegments", newFunction(createParametricSegments));
     // Сетка шестигранников
@@ -1178,56 +1180,109 @@ QScriptValue QZScriptEngine::createParametricTriangles(QScriptContext *context, 
 QScriptValue QZScriptEngine::createMarchingCubes(QScriptContext *context, QScriptEngine *engine)
 {
     if (8 <= context->argumentCount() && context->argumentCount() <= 11)
+    {
+        QString typeError = QObject::tr("MarchingCubes(xCount: Integer, yCount: Integer, zCount:Integer, origin: Point, width: Floating, height: Floating, depth: Floating, function: Function[, slice_x: Boolean, slice_y: Boolean, slice_z: Boolean]): wrong type of the (%1) argument.");
+        if (!context->argument(0).isNumber())
+            return context->throwError(typeError.arg("xCount"));
+        if (!context->argument(1).isNumber())
+            return context->throwError(typeError.arg("yCount"));
+        if (!context->argument(2).isNumber())
+            return context->throwError(typeError.arg("zCount"));
+        if (!context->argument(3).isQObject() || qscriptvalue_cast<QPoint3D *>(context->argument(3)) == NULL)
+            return context->throwError(typeError.arg("origin"));
+        if (!context->argument(4).isNumber())
+            return context->throwError(typeError.arg("width"));
+        if (!context->argument(5).isNumber())
+            return context->throwError(typeError.arg("height"));
+        if (!context->argument(6).isNumber())
+            return context->throwError(typeError.arg("depth"));
+        QScriptValue function = context->argument(7);
+        if (!function.isFunction())
+            return context->throwError(typeError.arg("function"));
+        if (context->argumentCount() >= 9 && !context->argument(8).isBool())
+            return context->throwError(typeError.arg("slice_x"));
+        if (context->argumentCount() >= 10 && !context->argument(9).isBool())
+            return context->throwError(typeError.arg("slice_y"));
+        if (context->argumentCount() == 11 && !context->argument(10).isBool())
+            return context->throwError(typeError.arg("slice_z"));
+        UInteger xCount = context->argument(0).toUInt32();
+        UInteger yCount = context->argument(1).toUInt32();
+        UInteger zCount = context->argument(2).toUInt32();
+        QPoint3D *origin = qscriptvalue_cast<QPoint3D *>(context->argument(3));
+        double width = context->argument(4).toNumber();
+        double height = context->argument(5).toNumber();
+        double depth = context->argument(6).toNumber();
+        bool slice_x = (context->argumentCount() >= 9) ? context->argument(8).toBool() : false;
+        bool slice_y = (context->argumentCount() >= 10) ? context->argument(9).toBool() : false;
+        bool slice_z = (context->argumentCount() == 11) ? context->argument(10).toBool() : false;
+        // R-функция
+        auto func = [&](double x, double y, double z)
         {
-            QString typeError = QObject::tr("MarchingCubes(xCount: Integer, yCount: Integer, zCount:Integer, origin: Point, width: Floating, height: Floating, depth: Floating, function: Function[, slice_x: Boolean, slice_y: Boolean, slice_z: Boolean]): argument type error (%1).");
-            std::list<msh::Point2D> pointList;
-            if (!context->argument(0).isNumber())
-                return context->throwError(typeError.arg("xCount"));
-            if (!context->argument(1).isNumber())
-                return context->throwError(typeError.arg("yCount"));
-            if (!context->argument(2).isNumber())
-                return context->throwError(typeError.arg("zCount"));
-            if (!context->argument(3).isQObject() || qscriptvalue_cast<QPoint3D *>(context->argument(3)) == NULL)
-                return context->throwError(typeError.arg("origin"));
-            if (!context->argument(4).isNumber())
-                return context->throwError(typeError.arg("width"));
-            if (!context->argument(5).isNumber())
-                return context->throwError(typeError.arg("height"));
-            if (!context->argument(6).isNumber())
-                return context->throwError(typeError.arg("depth"));
-            QScriptValue function = context->argument(7);
-            if (!function.isFunction())
-                return context->throwError(typeError.arg("function"));
-            if (context->argumentCount() >= 9 && !context->argument(8).isBool())
-                return context->throwError(typeError.arg("slice_x"));
-            if (context->argumentCount() >= 10 && !context->argument(9).isBool())
-                return context->throwError(typeError.arg("slice_y"));
-            if (context->argumentCount() == 11 && !context->argument(10).isBool())
-                return context->throwError(typeError.arg("slice_z"));
-            UInteger xCount = context->argument(0).toUInt32();
-            UInteger yCount = context->argument(1).toUInt32();
-            UInteger zCount = context->argument(2).toUInt32();
-            QPoint3D *origin = qscriptvalue_cast<QPoint3D *>(context->argument(3));
-            double width = context->argument(4).toNumber();
-            double height = context->argument(5).toNumber();
-            double depth = context->argument(6).toNumber();
-            bool slice_x = (context->argumentCount() >= 9) ? context->argument(8).toBool() : false;
-            bool slice_y = (context->argumentCount() >= 10) ? context->argument(9).toBool() : false;
-            bool slice_z = (context->argumentCount() == 11) ? context->argument(10).toBool() : false;
-            // R-функция
-            auto func = [&](double x, double y, double z)
-            {
-                QScriptValueList args;
-                args << x << y << z;
-                return function.call(QScriptValue(), args).toNumber();
-            };
+            QScriptValueList args;
+            args << x << y << z;
+            return function.call(QScriptValue(), args).toNumber();
+        };
 
-            QTriangleMesh3D *tmo = new QTriangleMesh3D();
-            tmo->marchingCubes(xCount, yCount, zCount, origin->x(), origin->y(), origin->z(), width, height, depth, func, 0.0, slice_x, slice_y, slice_z);
+        QTriangleMesh3D *tmo = new QTriangleMesh3D();
+        tmo->marchingCubes(xCount, yCount, zCount, origin->x(), origin->y(), origin->z(), width, height, depth, func, 0.0, slice_x, slice_y, slice_z, engine->globalObject().property("SLEVEL").toInt32(), engine->globalObject().property("OLEVEL").toInt32());
 
-            return engine->newQObject(tmo, QScriptEngine::ScriptOwnership);
-        }
-    return context->throwError(QObject::tr("MarchingCubes(xCount: Integer, yCount: Integer, zCount:Integer, origin: Point, width: Floating, height: Floating, depth: Floating, function: Function): arguments count error."));
+        return engine->newQObject(tmo, QScriptEngine::ScriptOwnership);
+    }
+    return context->throwError(QObject::tr("MarchingCubes(xCount: Integer, yCount: Integer, zCount:Integer, origin: Point, width: Floating, height: Floating, depth: Floating, function: Function):  wrong count of arguments."));
+}
+
+QScriptValue QZScriptEngine::createMarchingTetrahedrons(QScriptContext *context, QScriptEngine *engine)
+{
+    if (8 <= context->argumentCount() && context->argumentCount() <= 11)
+    {
+        QString typeError = QObject::tr("MarchingTetrahedrons(xCount: Integer, yCount: Integer, zCount:Integer, origin: Point, width: Floating, height: Floating, depth: Floating, function: Function[, slice_x: Boolean, slice_y: Boolean, slice_z: Boolean]): wrong type of the (%1) argument.");
+        if (!context->argument(0).isNumber())
+            return context->throwError(typeError.arg("xCount"));
+        if (!context->argument(1).isNumber())
+            return context->throwError(typeError.arg("yCount"));
+        if (!context->argument(2).isNumber())
+            return context->throwError(typeError.arg("zCount"));
+        if (!context->argument(3).isQObject() || qscriptvalue_cast<QPoint3D *>(context->argument(3)) == NULL)
+            return context->throwError(typeError.arg("origin"));
+        if (!context->argument(4).isNumber())
+            return context->throwError(typeError.arg("width"));
+        if (!context->argument(5).isNumber())
+            return context->throwError(typeError.arg("height"));
+        if (!context->argument(6).isNumber())
+            return context->throwError(typeError.arg("depth"));
+        QScriptValue function = context->argument(7);
+        if (!function.isFunction())
+            return context->throwError(typeError.arg("function"));
+        if (context->argumentCount() >= 9 && !context->argument(8).isBool())
+            return context->throwError(typeError.arg("slice_x"));
+        if (context->argumentCount() >= 10 && !context->argument(9).isBool())
+            return context->throwError(typeError.arg("slice_y"));
+        if (context->argumentCount() == 11 && !context->argument(10).isBool())
+            return context->throwError(typeError.arg("slice_z"));
+        UInteger xCount = context->argument(0).toUInt32();
+        UInteger yCount = context->argument(1).toUInt32();
+        UInteger zCount = context->argument(2).toUInt32();
+        QPoint3D *origin = qscriptvalue_cast<QPoint3D *>(context->argument(3));
+        double width = context->argument(4).toNumber();
+        double height = context->argument(5).toNumber();
+        double depth = context->argument(6).toNumber();
+        bool slice_x = (context->argumentCount() >= 9) ? context->argument(8).toBool() : false;
+        bool slice_y = (context->argumentCount() >= 10) ? context->argument(9).toBool() : false;
+        bool slice_z = (context->argumentCount() == 11) ? context->argument(10).toBool() : false;
+        // R-функция
+        auto func = [&](double x, double y, double z)
+        {
+            QScriptValueList args;
+            args << x << y << z;
+            return function.call(QScriptValue(), args).toNumber();
+        };
+
+        QTriangleMesh3D *tmo = new QTriangleMesh3D();
+        tmo->marchingTetrahedrons(xCount, yCount, zCount, origin->x(), origin->y(), origin->z(), width, height, depth, func, 0.0, slice_x, slice_y, slice_z, engine->globalObject().property("SLEVEL").toInt32(), engine->globalObject().property("OLEVEL").toInt32());
+
+        return engine->newQObject(tmo, QScriptEngine::ScriptOwnership);
+    }
+    return context->throwError(QObject::tr("MarchingTetrahedrons(xCount: Integer, yCount: Integer, zCount:Integer, origin: Point, width: Floating, height: Floating, depth: Floating, function: Function): wrong count of arguments."));
 }
 
 QScriptValue QZScriptEngine::createHexahedralMesh(QScriptContext *context, QScriptEngine *engine)

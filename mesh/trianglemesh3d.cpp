@@ -83,6 +83,7 @@ void TriangleMesh3D::cylinderDomain(const UInteger &rCount, const UInteger &lCou
     xMax_ = zMax_ = radius;
     yMin_ = 0.0;
     yMax_ = length;
+    printStats();
 }
 
 void TriangleMesh3D::cylinderDomain(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length, std::function<double (double, double, double)> func)
@@ -316,6 +317,7 @@ void TriangleMesh3D::cylinderDomain(const UInteger &rCount, const UInteger &lCou
     xMax_ = zMax_ = radius;
     yMin_ = 0.0;
     yMax_ = length;
+    printStats();
 }
 
 void TriangleMesh3D::coneDomain(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length)
@@ -370,6 +372,7 @@ void TriangleMesh3D::coneDomain(const UInteger &rCount, const UInteger &lCount, 
     xMax_ = zMax_ = (bottom_radius > top_radius ? bottom_radius : top_radius);
     yMin_ = 0.0;
     yMax_ = length;
+    printStats();
 }
 
 void TriangleMesh3D::coneDomain(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length, std::function<double (double, double, double)> func)
@@ -578,6 +581,7 @@ void TriangleMesh3D::coneDomain(const UInteger &rCount, const UInteger &lCount, 
     xMax_ = zMax_ = (bottom_radius > top_radius ? bottom_radius : top_radius);
     yMin_ = 0.0;
     yMax_ = length;
+    printStats();
 }
 
 void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vCount, std::function<Point3D (double, double)> domainFunction, std::function<double (double, double, double)> rfunc)
@@ -688,6 +692,7 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
             if (p0 != p1 && p1 != p2 && p0 != p2) addElement(p0, p1, p2);
         }
         updateDomain();
+        printStats();
         return;
     }
 
@@ -863,10 +868,11 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
             addElement(addNode(domainFunction(A.x(), A.y()), BORDER), addNode(domainFunction(B.x(), B.y()), BORDER), addNode(domainFunction(C.x(), C.y()), BORDER));
     }
     flip();
+    printStats();
     updateDomain();
 }
 
-void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCount, const UInteger &zCount, const double &xMin, const double &yMin, const double &zMin, const double &width, const double &height, const double &depth, std::function<double (double, double, double)> func, double level, bool slice_x, bool slice_y, bool slice_z)
+void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCount, const UInteger &zCount, const double &xMin, const double &yMin, const double &zMin, const double &width, const double &height, const double &depth, std::function<double (double, double, double)> func, double level, bool slice_x, bool slice_y, bool slice_z, int smooth, int optimize, bool useFlip)
 {
     clear();
     xMin_ = xMin;
@@ -1247,17 +1253,18 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
     {
         addElement(addNode(t.a, BORDER, delta), addNode(t.b, BORDER, delta), addNode(t.c, BORDER, delta));
     }
-    flip();
+    if (useFlip)
+        flip();
 
-    laplacianSmoothing(func_slice, level, 4);
+    laplacianSmoothing(func_slice, level, smooth, useFlip);
 
-    distlenSmoothing(func_slice, level, 8);
+    distlenSmoothing(func_slice, level, optimize, useFlip);
 
     evalNodalValues(func);
-    std::cout << "Марширующие кубы: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
+    printStats();
 }
 
-void TriangleMesh3D::marchingTetrahedrons(const UInteger &xCount, const UInteger &yCount, const UInteger &zCount, const double &xMin, const double &yMin, const double &zMin, const double &width, const double &height, const double &depth, std::function<double (double, double, double)> func, double level, bool slice_x, bool slice_y, bool slice_z)
+void TriangleMesh3D::marchingTetrahedrons(const UInteger &xCount, const UInteger &yCount, const UInteger &zCount, const double &xMin, const double &yMin, const double &zMin, const double &width, const double &height, const double &depth, std::function<double (double, double, double)> func, double level, bool slice_x, bool slice_y, bool slice_z, int smooth, int optimize, bool useFlip)
 {
     clear();
     xMin_ = xMin;
@@ -1312,6 +1319,7 @@ void TriangleMesh3D::marchingTetrahedrons(const UInteger &xCount, const UInteger
             { 2,  3,  0, -1, -1, -1, -1},
             {-1, -1, -1, -1, -1, -1, -1},
     };
+    std::list<CooTriangle> cootriangles;
     // lambda-функция для построенгия сечений области
     auto func_slice = [&](double x, double y, double z)
     {
@@ -1359,8 +1367,8 @@ void TriangleMesh3D::marchingTetrahedrons(const UInteger &xCount, const UInteger
                     Point3D edgeVertex[6];
                     for (int iVertex = 0; iVertex < 4; iVertex++)
                     {
-                        if(tetrahedronValue[iVertex] > -epsilon_)
-                            iFlagIndex |= 1<<iVertex; // если внутренний или граничный
+                        if(tetrahedronValue[iVertex] < epsilon_)
+                            iFlagIndex |= 1<<iVertex; // если внешний или граничный
                     }
                     int iEdgeFlags = tetrahedronEdgeFlags[iFlagIndex];
                     if (iEdgeFlags == 0)
@@ -1380,10 +1388,15 @@ void TriangleMesh3D::marchingTetrahedrons(const UInteger &xCount, const UInteger
                         Point3D t0 = edgeVertex[tetrahedronTriangles[iFlagIndex][3*iTriangle]];
                         Point3D t1 = edgeVertex[tetrahedronTriangles[iFlagIndex][3*iTriangle+1]];
                         Point3D t2 = edgeVertex[tetrahedronTriangles[iFlagIndex][3*iTriangle+2]];
-                        if (!t0.isEqualTo(t1, epsilon_) && !t0.isEqualTo(t2, epsilon_) && !t1.isEqualTo(t2, epsilon_))
+                        CooTriangle coot;
+                        coot.a = t0;
+                        coot.b = t1;
+                        coot.c = t2;
+                        cootriangles.push_back(coot);
+                        /*if (!t0.isEqualTo(t1, epsilon_) && !t0.isEqualTo(t2, epsilon_) && !t1.isEqualTo(t2, epsilon_))
                         {
                             addElementOrdered(t2, t1, t0);
-                        }
+                        }*/
                     }
                 }
                 z += hz;
@@ -1392,8 +1405,21 @@ void TriangleMesh3D::marchingTetrahedrons(const UInteger &xCount, const UInteger
         }
         x += hx;
     }
+    double delta = 0.2 * sqrt(hx*hx + hy*hy + hz*hz);
+    clearCooTriangles(cootriangles, func_slice, level, delta);
+    for (CooTriangle t: cootriangles)
+    {
+        addElement(addNode(t.a, BORDER, delta), addNode(t.b, BORDER, delta), addNode(t.c, BORDER, delta));
+    }
+    if (useFlip)
+        flip();
+
+    laplacianSmoothing(func_slice, level, smooth, useFlip);
+
+    distlenSmoothing(func_slice, level, optimize, useFlip);
+
     evalNodalValues(func);
-    std::cout << "Марширующие тетраэдры: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
+    printStats();
 }
 
 void TriangleMesh3D::backgroundGrid(const TetrahedralMesh3D *mesh, std::function<double (double, double, double)> func, double level, int smooth, int optimize, bool useFlip)
@@ -1503,9 +1529,7 @@ void TriangleMesh3D::backgroundGrid(const TetrahedralMesh3D *mesh, std::function
             ++progress;
         }
     }
-    // loop nodes of the mesh and find correct position
-    progress.restart(node_.size());
-    std::vector<Point3D> surface(node_.size());
+    std::vector<Point3D> normals(node_.size());
     for (UInteger i = 0; i != node_.size(); ++i)
     {
         Point3D point = node_[i].point;
@@ -1513,19 +1537,47 @@ void TriangleMesh3D::backgroundGrid(const TetrahedralMesh3D *mesh, std::function
         Point3D n(0.0, 0.0, 0.0);
         for (UInteger elnum: adjacent)
         {
-            Triangle trinagle = element_[elnum];
-            int index = trinagle.index(i);
-            Point3D prev = node_[trinagle[index - 1]].point;
-            Point3D next = node_[trinagle[index + 1]].point;
+            Triangle element = element_[elnum];
+            int index = element.index(i);
+            Point3D prev = node_[element[index - 1]].point;
+            Point3D next = node_[element[index + 1]].point;
             n = n + normal3(point, prev, next);
         }
-        surface[i] = findBorder(point, n.normalized(), func, 0.5*h, level);
+        normals[i] = n.normalized();
+    }
+    for (short j = 0; j < 10; j++)
+    {
+        for (UInteger i = 0; i != node_.size(); ++i)
+        {
+            AdjacentSet adjacent = node_[i].adjacent;
+            Point3D n = normals[i];
+            AdjacentSet neighbours;
+            for (UInteger elnum: adjacent)
+            {
+                Triangle element = element_[elnum];
+                int index = element.index(i);
+                neighbours.insert(element[index + 1]);
+                neighbours.insert(element[index - 1]);
+            }
+            for (UInteger npointer: neighbours)
+            {
+                n = n + normals[npointer];
+            }
+            normals[i] = n.normalized();
+        }
+    }
+    // loop nodes of the mesh and find correct position
+    progress.restart(node_.size());
+    std::vector<Point3D> surface(node_.size());
+    for (UInteger i = 0; i != node_.size(); ++i)
+    {
+        surface[i] = findBorder(node_[i].point, normals[i], func, 0.5 * h, level);
         ++progress;
     }
     for (UInteger i = 0; i != node_.size(); ++i) node_[i].point = surface[i];
     laplacianSmoothing(func, level, smooth, useFlip);
     distlenSmoothing(func, level, optimize, useFlip);
-    std::cout << "Surface traingular mesh: nodes - " << nodesCount() << ", elements - " << elementsCount() << std::endl;
+    printStats();
     updateDomain();
 }
 
@@ -1789,7 +1841,7 @@ void TriangleMesh3D::distlenSmoothing(std::function<double (double, double, doub
     auto functor = [&](const AdjacentSet &adjasentset, const UInteger &nnode)
     {
         // alpha = 0.001 is optimal for gradient searching
-        const double alpha = 0.002;
+        const double alpha = 0.001;
         const double beta = 1.0 - alpha;
         double F = 0.0; // функционал
         for (UInteger adj: adjasentset)
@@ -1804,20 +1856,19 @@ void TriangleMesh3D::distlenSmoothing(std::function<double (double, double, doub
             Point3D AC(A, C);
             double ab = AB.length();
             double ac = AC.length();
-            Point3D center = 0.33333333333333333333 * (A + B + C);
+            Point3D center = (A + B + C) / 3.0;
             Point3D p = findBorder(center, func, min(ab, ac) * 0.25, level);
             double d2b = center.distanceTo(p);
-            F += alpha * 0.5 * (ab*ab + ac*ac) + beta * d2b*d2b;
+            F += alpha * (ab*ab + ac*ac) + beta * d2b*d2b;
         }
         return F;
     };
 
     std::cout << "Сглаживание функционала расстояния-длины: " << nodesCount() << " узлов, " << elementsCount() << " элементов." << std::endl;
-    bool optimized = true;
-    for (short iit = 0; iit < iter_num && optimized; iit++)
+    for (short iit = 0; iit < iter_num; iit++)
     {
-//        optimized = false;
         if (useFlip) flip();
+        std::cout << iit+1 << " from " << iter_num << "...";
         ConsoleProgress progress(nodesCount());
         for (UInteger i = 0; i < nodesCount(); i++)
         {
@@ -1851,7 +1902,7 @@ void TriangleMesh3D::distlenSmoothing(std::function<double (double, double, doub
                     }
                     iic++;
                 } while (step >= 0.001 && iic < 20);
-                /*if (iic == 3)*/step = 0.1;/*else step=0.001;*/
+                step = 0.1;
                 iic = 0;
                 do
                 {
@@ -1870,6 +1921,7 @@ void TriangleMesh3D::distlenSmoothing(std::function<double (double, double, doub
                     }
                     iic++;
                 } while (step >= 0.001 && iic < 20);
+                step = 0.1;
                 iic = 0;
                 do
                 {
@@ -1969,6 +2021,11 @@ void TriangleMesh3D::distlenSmoothing(std::function<double (double, double, doub
         }
 //        flip();
     }
+}
+
+void TriangleMesh3D::printStats() const
+{
+    std::cout << "Triangle mesh (surface): " << nodesCount() << " node(s), " << elementsCount() << " element(s)." << std::endl;
 }
 
 

@@ -395,45 +395,46 @@ void MainWindow::on_actionSaveMesh_triggered()
     if (mesh)
     {
         QString fileName = QFileDialog::getSaveFileName(this, "qMesher: Сохранить дискретную модель", "", tr("Текстовые файлы (*.txt);;Любой файл (*)"));
-        if (fileName.isEmpty())
-            return;
-        QFile file(fileName);
-        if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
-            return;
-        ExportMeshDialog dialog(this);
-        dialog.exec();
-        if (dialog.result() == QDialog::Accepted)
+        if (!fileName.isEmpty())
         {
-            QTextStream out(&file);
-            out.setRealNumberPrecision(DBL_DIG);
-            int dim = mesh->dimesion();
-            int elementNodes = mesh->element(0)->verticesCount(); // определяем количество узлов в элементе
-            out << dim << ' ' << elementNodes;
-            out << ' ' << mesh->element(0)->facesCount(); // количество граней для устранения неоднозначности (3d: у четырехугольника и тетраэдра одинаковое количество узлов)
-            out << '\n';
-            out << mesh->nodesCount() << '\n';
-            for (msh::UInteger i = 0; i < mesh->nodesCount(); i++)
+            QFile file(fileName);
+            if (file.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text))
             {
-                msh::PointPointer point = mesh->node(i);
-                out << point->x() << " " << point->y() << " ";
-                if (dim == 3)
-                    out << point->z() << " ";
-                out << mesh->nodeType(i);
-                out << '\n';
-            }
-            out << mesh->elementsCount() << ' ' << dialog.isLayers() << '\n';
-            for (msh::UInteger i = 0; i < mesh->elementsCount(); i++)
-            {
-                msh::ElementPointer element = mesh->element(i);
-                for (int j = 0; j < element->verticesCount(); j++)
+                ExportMeshDialog dialog(this);
+                dialog.exec();
+                if (dialog.result() == QDialog::Accepted)
                 {
-                    out << element->vertexNode(j) << " ";
+                    QTextStream out(&file);
+                    out.setRealNumberPrecision(DBL_DIG);
+                    int dim = mesh->dimesion();
+                    int elementNodes = mesh->element(0)->verticesCount(); // определяем количество узлов в элементе
+                    out << dim << ' ' << elementNodes;
+                    out << ' ' << mesh->element(0)->facesCount(); // количество граней для устранения неоднозначности (3d: у четырехугольника и тетраэдра одинаковое количество узлов)
+                    out << '\n';
+                    out << mesh->nodesCount() << '\n';
+                    for (msh::UInteger i = 0; i < mesh->nodesCount(); i++)
+                    {
+                        msh::PointPointer point = mesh->node(i);
+                        out << point->x() << " " << point->y() << " ";
+                        if (dim == 3)
+                            out << point->z() << " ";
+                        out << mesh->nodeType(i);
+                        out << '\n';
+                    }
+                    out << mesh->elementsCount() << ' ' << dialog.isLayers() << '\n';
+                    for (msh::UInteger i = 0; i < mesh->elementsCount(); i++)
+                    {
+                        msh::ElementPointer element = mesh->element(i);
+                        for (int j = 0; j < element->verticesCount(); j++)
+                        {
+                            out << element->vertexNode(j) << " ";
+                        }
+                        if (dialog.isLayers()) out << mesh->layer(i);
+                        out << '\n';
+                    }
                 }
-                if (dialog.isLayers()) out << mesh->layer(i);
-                out << '\n';
             }
         }
-
         ui->pictureControl->getGlMeshPicture()->setMesh(mesh);
     }
 }

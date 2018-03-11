@@ -88,7 +88,7 @@ public:
      * @param func Функция, положительная во внутренних точка и отрицательная во внешних
      * @param level Уровень поверхности
      */
-    void marchingCubes(const UInteger &xCount, const UInteger &yCount, const UInteger &zCount, const double &xMin, const double &yMin, const double &zMin, const double &width, const double &height, const double &depth, std::function<double (double, double, double)> func, double level = 0.0, bool slice_x = false, bool slice_y = false, bool slice_z = false);
+    void marchingCubes(const UInteger &xCount, const UInteger &yCount, const UInteger &zCount, const double &xMin, const double &yMin, const double &zMin, const double &width, const double &height, const double &depth, std::function<double (double, double, double)> func, double level = 0.0, bool slice_x = false, bool slice_y = false, bool slice_z = false, int smooth = 0, int optimize = 0, bool useFlip = true);
     /**
      * @brief Метод марширующих тетраэдров
      * @param xCount Количество точек дискретизации по оси абсцисс
@@ -103,7 +103,7 @@ public:
      * @param func Функция, положительная во внутренних точка и отрицательная во внешних
      * @param level Уровень поверхности
      */
-    void marchingTetrahedrons(const UInteger &xCount, const UInteger &yCount, const UInteger &zCount, const double &xMin, const double &yMin, const double &zMin, const double &width, const double &height, const double &depth, std::function<double (double, double, double)> func, double level = 0.0, bool slice_x = false, bool slice_y = false, bool slice_z = false);
+    void marchingTetrahedrons(const UInteger &xCount, const UInteger &yCount, const UInteger &zCount, const double &xMin, const double &yMin, const double &zMin, const double &width, const double &height, const double &depth, std::function<double (double, double, double)> func, double level = 0.0, bool slice_x = false, bool slice_y = false, bool slice_z = false, int smooth = 0, int optimize = 0, bool useFlip = true);
     /**
      * @brief Метод построения стеки с использованием фоновых тетраэдров
      * @param mesh Сетка тетраэдров
@@ -200,7 +200,10 @@ public:
      * @param iter_num Количесво итераций
      */
     void distlenSmoothing(std::function<double(double, double, double)> func, double level = 0, int iter_num = 1, bool useFlip = true);
-
+    /**
+     * @brief Напечать статистику дискретной модели
+     */
+    void printStats() const;
 protected:
     /**
      * @brief Функция для подсчета значений углов треугольника

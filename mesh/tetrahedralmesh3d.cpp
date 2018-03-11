@@ -105,33 +105,46 @@ void TetrahedralMesh3D::sweepBaseMesh(TriangleMesh2D *baseMesh, const double &z0
         k += hk;
     }
     // формирование тетраэдров
+    // Julien Dompierre, Paul Labbé, Marie-Gabrielle, Vallet Ricardo Camarero
+    // "How to Subdivide Pyramids, Prisms and Hexahedra into Tetrahedra"
+    const int I[6][6] = {{0, 1, 2, 3, 4, 5},
+                         {1, 2, 0, 4, 5, 3},
+                         {2, 0, 1, 5, 3, 4},
+                         {3, 5, 4, 0, 2, 1},
+                         {4, 3, 5, 1, 0, 2},
+                         {5, 4, 3, 2, 1, 0}};
     for(int i = 0; i < zLayersCount; i++)
     {
         for(UInteger j = 0; j < baseMesh->elementsCount(); j++)
         {
             Triangle triangle = baseMesh->triangle(j);
-            UInteger node1 = triangle[0] + (UInteger)i * baseMesh->nodesCount();
-            UInteger node2 = triangle[1] + (UInteger)i * baseMesh->nodesCount();
-            UInteger node3 = triangle[2] + (UInteger)i * baseMesh->nodesCount();
-            UInteger node4 = triangle[0] + (UInteger)(i + 1) * baseMesh->nodesCount();
-            UInteger node5 = triangle[1] + (UInteger)(i + 1) * baseMesh->nodesCount();
-            UInteger node6 = triangle[2] + (UInteger)(i + 1) * baseMesh->nodesCount();
-            Point3D p2 = node_[triangle[1]].point;
-            Point3D p3 = node_[triangle[2]].point;
-            if (p2.x() < p3.x() || (p2.x() == p3.y() && p2.y() < p3.y()))
+            UInteger V[6];
+            int r = 0;
+            V[0] = triangle[0] + (UInteger)i * baseMesh->nodesCount();
+            V[1] = triangle[1] + (UInteger)i * baseMesh->nodesCount();
+            V[2] = triangle[2] + (UInteger)i * baseMesh->nodesCount();
+            V[3] = triangle[0] + (UInteger)(i + 1) * baseMesh->nodesCount();
+            V[4] = triangle[1] + (UInteger)(i + 1) * baseMesh->nodesCount();
+            V[5] = triangle[2] + (UInteger)(i + 1) * baseMesh->nodesCount();
+            if (V[0] < V[1] && V[0] < V[2]) r = 0;
+            if (V[1] < V[0] && V[1] < V[2]) r = 1;
+            if (V[2] < V[0] && V[2] < V[1]) r = 2;
+
+            if (std::min(V[I[r][1]], V[I[r][5]]) < std::min(V[I[r][2]], V[I[r][4]]))
             {
-                addElement(node1, node2, node3, node6);
-                addElement(node1, node2, node6, node5);
-                addElement(node1, node5, node6, node4);
+                addElement(V[I[r][0]], V[I[r][1]], V[I[r][2]], V[I[r][5]]);
+                addElement(V[I[r][0]], V[I[r][1]], V[I[r][5]], V[I[r][4]]);
+                addElement(V[I[r][0]], V[I[r][4]], V[I[r][5]], V[I[r][3]]);
             }
             else
             {
-                addElement(node1, node2, node3, node5);
-                addElement(node1, node5, node3, node6);
-                addElement(node1, node5, node6, node4);
+                addElement(V[I[r][0]], V[I[r][1]], V[I[r][2]], V[I[r][4]]);
+                addElement(V[I[r][0]], V[I[r][4]], V[I[r][2]], V[I[r][5]]);
+                addElement(V[I[r][0]], V[I[r][4]], V[I[r][5]], V[I[r][3]]);
             }
         }
     }
+    printStats();
     updateDomain();
 }
 
@@ -142,7 +155,140 @@ void TetrahedralMesh3D::convertHexahedralMesh(const HexahedralMesh3D *mesh)
     {
         pushNode(mesh->node3d(in));
     }
+    // Julien Dompierre, Paul Labbé, Marie-Gabrielle, Vallet Ricardo Camarero
+    // "How to Subdivide Pyramids, Prisms and Hexahedra into Tetrahedra"
+    const int index[8][8] = {{0, 1, 2, 3, 4, 5, 6, 7},
+                             {1, 0, 4, 5, 2, 3, 7, 6},
+                             {2, 1, 5, 6, 3, 0, 4, 7},
+                             {3, 0, 1, 2, 7, 4, 5, 6},
+                             {4, 0, 3, 7, 5, 1, 2, 6},
+                             {5, 1, 0, 4, 6, 2, 3, 7},
+                             {6, 2, 1, 5, 7, 3, 0, 4},
+                             {7, 3, 2, 6, 4, 0, 1, 5}};
+    for (UInteger ie = 0; ie < mesh->elementsCount(); ie++)
+    {
+        Hexahedral V = mesh->hexahedron(ie);
+        int bits = 0;
+        int n = 0;
+        int r = 0;
+        int a = 0;
+        UInteger minV;
+        int I[8];
+        minV = V[0];
+        for (int i = 0; i < 8; i++)
+        {
+            if (V[i] < minV)
+            {
+                minV = V[i];
+                r = i;
+            }
+        }
+        for (int i = 0; i < 8; i++)
+        {
+            I[i] = index[r][i];
+        }
+        if (std::min(V[I[1]], V[I[6]]) < std::min(V[I[2]], V[I[5]]))
+        {
+            bits |= 4;
+            n += 1;
+        }
+        if (std::min(V[I[3]], V[I[6]]) < std::min(V[I[2]], V[I[7]]))
+        {
+            bits |= 2;
+            n += 1;
+        }
+        if (std::min(V[I[4]], V[I[6]]) < std::min(V[I[5]], V[I[7]]))
+        {
+            bits |= 1;
+            n += 1;
+        }
+        if (bits == 0) a = 0;
+        if (bits == 1) a = 120;
+        if (bits == 2) a = 240;
+        if (bits == 3) a = 0;
+        if (bits == 4) a = 0;
+        if (bits == 5) a = 240;
+        if (bits == 6) a = 120;
+        if (bits == 7) a = 0;
+        if (a == 120)
+        {
+            int temp;
+            temp = I[1];
+            I[1] = I[4];
+            I[4] = I[3];
+            I[3] = temp;
 
+            temp = I[5];
+            I[5] = I[7];
+            I[7] = I[2];
+            I[2] = temp;
+        }
+        if (a == 240)
+        {
+            int temp;
+            temp = I[1];
+            I[1] = I[3];
+            I[3] = I[4];
+            I[4] = temp;
+
+            temp = I[5];
+            I[5] = I[2];
+            I[2] = I[7];
+            I[7] = temp;
+        }
+        if (n == 0)
+        {
+            addElement(V[I[0]], V[I[1]], V[I[2]], V[I[5]]);
+            addElement(V[I[0]], V[I[2]], V[I[7]], V[I[5]]);
+            addElement(V[I[0]], V[I[2]], V[I[3]], V[I[7]]);
+            addElement(V[I[0]], V[I[5]], V[I[7]], V[I[4]]);
+            addElement(V[I[2]], V[I[7]], V[I[5]], V[I[6]]);
+        }
+        if (n == 1)
+        {
+            addElement(V[I[0]], V[I[5]], V[I[7]], V[I[4]]);
+            addElement(V[I[0]], V[I[1]], V[I[7]], V[I[5]]);
+            addElement(V[I[1]], V[I[6]], V[I[7]], V[I[5]]);
+            addElement(V[I[0]], V[I[7]], V[I[2]], V[I[3]]);
+            addElement(V[I[0]], V[I[7]], V[I[1]], V[I[2]]);
+            addElement(V[I[1]], V[I[7]], V[I[6]], V[I[2]]);
+        }
+        if (n == 2)
+        {
+            addElement(V[I[0]], V[I[4]], V[I[5]], V[I[6]]);
+            addElement(V[I[0]], V[I[3]], V[I[7]], V[I[6]]);
+            addElement(V[I[0]], V[I[7]], V[I[4]], V[I[6]]);
+            addElement(V[I[0]], V[I[1]], V[I[2]], V[I[5]]);
+            addElement(V[I[0]], V[I[3]], V[I[6]], V[I[2]]);
+            addElement(V[I[0]], V[I[6]], V[I[5]], V[I[2]]);
+        }
+        if (n == 3)
+        {
+            addElement(V[I[0]], V[I[2]], V[I[3]], V[I[6]]);
+            addElement(V[I[0]], V[I[3]], V[I[7]], V[I[6]]);
+            addElement(V[I[0]], V[I[7]], V[I[4]], V[I[6]]);
+            addElement(V[I[0]], V[I[5]], V[I[6]], V[I[4]]);
+            addElement(V[I[1]], V[I[5]], V[I[6]], V[I[0]]);
+            addElement(V[I[1]], V[I[6]], V[I[2]], V[I[0]]);
+//            addElement(V[I[0]], V[I[1]], V[I[6]], V[I[5]]);
+//            addElement(V[I[0]], V[I[1]], V[I[2]], V[I[6]]);
+//            addElement(V[I[0]], V[I[2]], V[I[3]], V[I[6]]);
+//            addElement(V[I[0]], V[I[5]], V[I[6]], V[I[4]]);
+//            addElement(V[I[0]], V[I[6]], V[I[3]], V[I[7]]);
+//            addElement(V[I[0]], V[I[6]], V[I[7]], V[I[4]]);
+        }
+    }
+    printStats();
+    updateDomain();
+}
+
+void TetrahedralMesh3D::convertHexahedralMeshFC(const HexahedralMesh3D *mesh)
+{
+    clear();
+    for (UInteger in = 0; in < mesh->nodesCount(); in++)
+    {
+        pushNode(mesh->node3d(in));
+    }
     for (UInteger ie = 0; ie < mesh->elementsCount(); ie++)
     {
         Hexahedral hexaheron = mesh->hexahedron(ie);
@@ -169,8 +315,13 @@ void TetrahedralMesh3D::convertHexahedralMesh(const HexahedralMesh3D *mesh)
             addElement(face[3], face[0], center_index, face_center_index);
         }
     }
-    std::cout << "Создана сетка тетраэдров: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
+    printStats();
     updateDomain();
+}
+
+void TetrahedralMesh3D::printStats() const
+{
+    std::cout << "Tetrahedral mesh: " << nodesCount() << " node(s), " << elementsCount() << " element(s)." << std::endl;
 }
 
 }

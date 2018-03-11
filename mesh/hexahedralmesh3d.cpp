@@ -57,7 +57,7 @@ void HexahedralMesh3D::prismDomain(const UInteger &xCount, const UInteger &yCoun
     yMax_ = yMin + height;
     zMin_ = zMin;
     zMax_ = xMin + depth;
-    std::cout << "Создана равномерная сетка шестигранных элементов: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
+    printStats();
 }
 
 void HexahedralMesh3D::rotateBaseMesh(QuadrilateralMesh2D *baseMesh, const double &xDelta, const double &yDelta, const int &lCount, bool x_axes, bool withLayersInfo)
@@ -160,7 +160,7 @@ void HexahedralMesh3D::rotateBaseMesh(QuadrilateralMesh2D *baseMesh, const doubl
                 pushLayer(baseMesh->layer(i));
         }
     }
-    std::cout << "Создана сетка шестигранных элементов вращением плоского профиля: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
+    printStats();
 }
 
 void HexahedralMesh3D::rotateBaseMesh(QuadrilateralMesh2D *baseMesh, const double &xDelta, const double &yDelta, const double &angle, const int &lCount, bool x_axes, bool withLayersInfo)
@@ -264,7 +264,7 @@ void HexahedralMesh3D::rotateBaseMesh(QuadrilateralMesh2D *baseMesh, const doubl
                 pushLayer(baseMesh->layer(i));
         }
     }
-    std::cout << "Создана сетка шестигранных элементов вращением плоского профиля: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
+    printStats();
 }
 
 HexahedralMesh3D::HexahedralMesh3D(const HexahedralMesh3D &mesh) : Mesh3D(&mesh)
@@ -397,12 +397,18 @@ void HexahedralMesh3D::sweepBaseMesh(QuadrilateralMesh2D *baseMesh, const double
             addElement(nnode);
         }
     }
+    printStats();
     updateDomain();
 }
 
 Hexahedral HexahedralMesh3D::hexahedron(const UInteger &ie) const
 {
     return element_[ie];
+}
+
+void HexahedralMesh3D::printStats() const
+{
+    std::cout << "Hexahedral mesh: " << nodesCount() << " node(s), " << elementsCount() << " element(s)." << std::endl;
 }
 
 }

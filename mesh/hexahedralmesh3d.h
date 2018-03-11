@@ -132,6 +132,10 @@ public:
      * @return Шестигранник с номером ie
      */
     Hexahedral hexahedron(const UInteger &ie) const;
+    /**
+     * @brief Напечать статистику дискретной модели
+     */
+    void printStats() const;
 private:
     std::vector<Hexahedral> element_; //!< Массив шестигранных элементов
 };
