@@ -1059,7 +1059,31 @@ void MainWindow::on_actionMinAngleMetric_triggered()
                             max = j[i];
                     }
                 }
-                mesh->addDataVector("min angle, gradus", j);
+                mesh->addDataVector("", j);
+            }
+        }
+        if (dynamic_cast<msh::QuadrilateralMesh3D*>(mesh))
+        {
+            msh::QuadrilateralMesh3D *quads = dynamic_cast<msh::QuadrilateralMesh3D*>(mesh);
+            if (quads->elementsCount() > 0)
+            {
+                std::vector<double> j(quads->elementsCount());
+                for (msh::UInteger i = 0; i < quads->elementsCount(); i++)
+                {
+                    j[i] = quads->minAngle(i) * 180.0 / M_PI;
+                    if (i == 0)
+                    {
+                        min = max = j[i];
+                    }
+                    else
+                    {
+                        if (min > j[i])
+                            min = j[i];
+                        if (max < j[i])
+                            max = j[i];
+                    }
+                }
+                mesh->addDataVector("", j);
             }
         }
         std::cout << "Выполнено: " << min << " <= min(alpha) <= " << max << std::endl;

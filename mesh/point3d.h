@@ -123,12 +123,27 @@ public:
      * @return Координаты точки в заданной системе
      */
     Point3D inCoordSystem(const Point3D &Vx, const Point3D &Vy, const Point3D &Vz) const;
+    /**
+     * @brief Получить координаты точки, заданной в системе координат Vx, Vy, Vz, в декартовой системе
+     * @param Vx Вектор первого направления
+     * @param Vy Вектор второго напраления
+     * @param Vz Вектор третьего напраления
+     * @return Координаты точки в декартовой системе
+     */
     Point3D fromCoordSystem(const Point3D &Vx, const Point3D &Vy, const Point3D &Vz) const;
     /**
      * @brief Масштабировать координаты точки на коэффициент
      * @param d Коэффициент масштабирования
      */
     virtual void scale(const double &d);
+    /**
+     * @brief Вычислить угол B-this-C
+     * @param B Первая точка угла
+     * @param C Вторая точка угла
+     * @return Угол B-this-C в радианах
+     */
+    double angle(const Point3D &B, const Point3D &C) const;
+
     /// @name Операторы
     /// @{
     /// Присваивание

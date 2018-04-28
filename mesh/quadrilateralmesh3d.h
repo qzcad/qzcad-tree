@@ -134,6 +134,12 @@ public:
      * @param iter_num Количесво итераций
      */
     void distlenSmoothing(std::function<double(double, double, double)> func, double level = 0, int iter_num = 1);
+    /**
+     * @brief Вычислить значение минимального угла в элементе
+     * @param elNum Номер элемента
+     * @return Минимальный угол элемента (радианы)
+     */
+    double minAngle(const UInteger &elNum);
 protected:
     std::vector<Quadrilateral> element_; //!< Массив элементов
 };

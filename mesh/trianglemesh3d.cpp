@@ -1209,28 +1209,28 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
                 p[5].set(x + hx, y, z + hz);
                 p[6].set(x + hx, y + hy, z + hz);
                 p[7].set(x, y + hy, z + hz);
-                if (func(p[0].x(), p[0].y(), p[0].z()) - level < epsilon_) index |= 1;
-                if (func(p[1].x(), p[1].y(), p[1].z()) - level < epsilon_) index |= 2;
-                if (func(p[2].x(), p[2].y(), p[2].z()) - level < epsilon_) index |= 4;
-                if (func(p[3].x(), p[3].y(), p[3].z()) - level < epsilon_) index |= 8;
-                if (func(p[4].x(), p[4].y(), p[4].z()) - level < epsilon_) index |= 16;
-                if (func(p[5].x(), p[5].y(), p[5].z()) - level < epsilon_) index |= 32;
-                if (func(p[6].x(), p[6].y(), p[6].z()) - level < epsilon_) index |= 64;
-                if (func(p[7].x(), p[7].y(), p[7].z()) - level < epsilon_) index |= 128;
+                if (func_slice(p[0].x(), p[0].y(), p[0].z()) - level < epsilon_) index |= 1;
+                if (func_slice(p[1].x(), p[1].y(), p[1].z()) - level < epsilon_) index |= 2;
+                if (func_slice(p[2].x(), p[2].y(), p[2].z()) - level < epsilon_) index |= 4;
+                if (func_slice(p[3].x(), p[3].y(), p[3].z()) - level < epsilon_) index |= 8;
+                if (func_slice(p[4].x(), p[4].y(), p[4].z()) - level < epsilon_) index |= 16;
+                if (func_slice(p[5].x(), p[5].y(), p[5].z()) - level < epsilon_) index |= 32;
+                if (func_slice(p[6].x(), p[6].y(), p[6].z()) - level < epsilon_) index |= 64;
+                if (func_slice(p[7].x(), p[7].y(), p[7].z()) - level < epsilon_) index |= 128;
                 if (index != 0)
                 {
-                    if (edges[index] & 1) border[0] = binary(p[0], p[1], func, level);
-                    if (edges[index] & 2) border[1] = binary(p[1], p[2], func, level);
-                    if (edges[index] & 4) border[2] = binary(p[2], p[3], func, level);
-                    if (edges[index] & 8) border[3] = binary(p[3], p[0], func, level);
-                    if (edges[index] & 16) border[4] = binary(p[4], p[5], func, level);
-                    if (edges[index] & 32) border[5] = binary(p[5], p[6], func, level);
-                    if (edges[index] & 64) border[6] = binary(p[6], p[7], func, level);
-                    if (edges[index] & 128) border[7] = binary(p[7], p[4], func, level);
-                    if (edges[index] & 256) border[8] = binary(p[0], p[4], func, level);
-                    if (edges[index] & 512) border[9] = binary(p[1], p[5], func, level);
-                    if (edges[index] & 1024) border[10] = binary(p[2], p[6], func, level);
-                    if (edges[index] & 2048) border[11] = binary(p[3], p[7], func, level);
+                    if (edges[index] & 1) border[0] = binary(p[0], p[1], func_slice, level);
+                    if (edges[index] & 2) border[1] = binary(p[1], p[2], func_slice, level);
+                    if (edges[index] & 4) border[2] = binary(p[2], p[3], func_slice, level);
+                    if (edges[index] & 8) border[3] = binary(p[3], p[0], func_slice, level);
+                    if (edges[index] & 16) border[4] = binary(p[4], p[5], func_slice, level);
+                    if (edges[index] & 32) border[5] = binary(p[5], p[6], func_slice, level);
+                    if (edges[index] & 64) border[6] = binary(p[6], p[7], func_slice, level);
+                    if (edges[index] & 128) border[7] = binary(p[7], p[4], func_slice, level);
+                    if (edges[index] & 256) border[8] = binary(p[0], p[4], func_slice, level);
+                    if (edges[index] & 512) border[9] = binary(p[1], p[5], func_slice, level);
+                    if (edges[index] & 1024) border[10] = binary(p[2], p[6], func_slice, level);
+                    if (edges[index] & 2048) border[11] = binary(p[3], p[7], func_slice, level);
                     for (int t = 0; triangles[index][t] != -1; t += 3)
                     {
                         CooTriangle coot;
@@ -1786,12 +1786,14 @@ void TriangleMesh3D::laplacianSmoothing(std::function<double (double, double, do
 //            Point3D A = node_[t[index]].point;
 //            Point3D B = node_[t[index + 1]].point;
 //            Point3D C = node_[t[index + 2]].point;
-//            double d2b = distToBorder(A, B, C, func, 0.33333, 0.33333, level);
 //            Point3D AB(A, B);
-//            Point3D CA(C, A);
+//            Point3D AC(A, C);
 //            double ab = AB.length();
-//            double ca = CA.length();
-//            F += alpha * 0.5 * (ab*ab + ca*ca) + beta * d2b*d2b;
+//            double ac = AC.length();
+//            Point3D center = (A + B + C) / 3.0;
+//            Point3D p = findBorder(center, func, min(ab, ac) * 0.25, level);
+//            double d2b = center.distanceTo(p);
+//            F += alpha * (ab*ab + ac*ac) + beta * d2b*d2b;
 //        }
 //        return F;
 //    };
@@ -1829,6 +1831,7 @@ void TriangleMesh3D::laplacianSmoothing(std::function<double (double, double, do
             }
             avr_len /= (double)adjacent.size();
             node_[nnode].point = findBorder(point, func, 0.1 * avr_len, level);
+//            if (f < functor(adjacent, nnode)) node_[nnode].point = prev;
             ++progress;
         }
         if (useFlip)
@@ -1856,8 +1859,9 @@ void TriangleMesh3D::distlenSmoothing(std::function<double (double, double, doub
             Point3D AC(A, C);
             double ab = AB.length();
             double ac = AC.length();
+            double h = std::min(ab, ac) * 0.25;
             Point3D center = (A + B + C) / 3.0;
-            Point3D p = findBorder(center, func, min(ab, ac) * 0.25, level);
+            Point3D p = findBorder(center, func, h, level);
             double d2b = center.distanceTo(p);
             F += alpha * (ab*ab + ac*ac) + beta * d2b*d2b;
         }
@@ -1867,7 +1871,7 @@ void TriangleMesh3D::distlenSmoothing(std::function<double (double, double, doub
     std::cout << "Сглаживание функционала расстояния-длины: " << nodesCount() << " узлов, " << elementsCount() << " элементов." << std::endl;
     for (short iit = 0; iit < iter_num; iit++)
     {
-        if (useFlip) flip();
+        if (useFlip/* && iit < 4*/) flip();
         std::cout << iit+1 << " from " << iter_num << "...";
         ConsoleProgress progress(nodesCount());
         for (UInteger i = 0; i < nodesCount(); i++)
@@ -1877,145 +1881,183 @@ void TriangleMesh3D::distlenSmoothing(std::function<double (double, double, doub
             Point3D point = node.point;
             double f_current = functor(adjasent, i);
 
-            for (std::set<UInteger>::iterator it = adjasent.begin(); it != adjasent.end(); ++it)
-            {
-                Triangle t = element_[*it];
-                int index = t.index(i);
-                Point3D B = node_[t[index + 1]].point;
-                Point3D C = node_[t[index + 2]].point;
-                double step = 0.1;
-                int iic = 0;
-                do
-                {
-                    node_[i].point = findBorder(node_[i].point, B, C, func, step, 0.0, level);
-                    double f_dir = functor(adjasent, i);
-                    if (f_dir >= f_current)
-                    {
-                        node_[i].point = point;
-                        f_dir = f_current;
-                        step /= 10.0;
-                    }
-                    else
-                    {
-                        point = node_[i].point;
-                        f_current = f_dir;
-                    }
-                    iic++;
-                } while (step >= 0.001 && iic < 20);
-                step = 0.1;
-                iic = 0;
-                do
-                {
-                    node_[i].point = findBorder(node_[i].point, B, C, func, 0.0, step, level);
-                    double f_dir = functor(adjasent, i);
-                    if (f_dir >= f_current)
-                    {
-                        node_[i].point = point;
-                        f_dir = f_current;
-                        step /= 10.0;
-                    }
-                    else
-                    {
-                        point = node_[i].point;
-                        f_current = f_dir;
-                    }
-                    iic++;
-                } while (step >= 0.001 && iic < 20);
-                step = 0.1;
-                iic = 0;
-                do
-                {
-                    node_[i].point = findBorder(node_[i].point, B, C, func, step, step, level);
-                    double f_dir = functor(adjasent, i);
-                    if (f_dir >= f_current)
-                    {
-                        node_[i].point = point;
-                        f_dir = f_current;
-                        step /= 10.0;
-                    }
-                    else
-                    {
-                        point = node_[i].point;
-                        f_current = f_dir;
-                    }
-                    iic++;
-                } while (step >= 0.001 && iic < 10);
-
+//            for (std::set<UInteger>::iterator it = adjasent.begin(); it != adjasent.end(); ++it)
+//            {
 //                Triangle t = element_[*it];
 //                int index = t.index(i);
-//                Point3D A = node_[t[index]].point;
 //                Point3D B = node_[t[index + 1]].point;
 //                Point3D C = node_[t[index + 2]].point;
-//                double step = 0.01;
-//                bool isOptimizedTriangle = false;
-//                double f_dir = f_current;
-//                double l = step;
-//                double f_dir = 0.0;
-//                node_[i].point = findBorder(A, B, C, func_slice, l, l, level);
-//                f_dir = functor(adjasent);
-//                if (f_dir > f_current)
+//                double step = 0.1;
+//                int iic = 0;
+//                do
 //                {
-//                    node_[i].point = point; // revert changes
-//                }
-//                else
-//                {
-//                    while (f_dir < f_current && l < 0.3)
+//                    node_[i].point = findBorder(node_[i].point, B, C, func, step, 0.0, level);
+//                    double f_dir = functor(adjasent, i);
+//                    if (f_dir >= f_current)
+//                    {
+//                        node_[i].point = point;
+//                        f_dir = f_current;
+//                        step /= 10.0;
+//                    }
+//                    else
 //                    {
 //                        point = node_[i].point;
 //                        f_current = f_dir;
-//                        l += step;
-//                        node_[i].point = findBorder(A, B, C, func_slice, l, l, level);
-//                        f_dir = functor(adjasent);
 //                    }
-//                    node_[i].point = point;
-//                    optimized = isOptimizedTriangle = true;
-//                }
-//                if (!isOptimizedTriangle)
+//                    iic++;
+//                } while (step >= 0.001 && iic < 20);
+//                step = 0.1;
+//                iic = 0;
+//                do
 //                {
-//                    l = step;
-//                    node_[i].point = findBorder(A, B, C, func_slice, l, 0.0, level);
-//                    f_dir = functor(adjasent);
-//                    if (f_dir > f_current)
+//                    node_[i].point = findBorder(node_[i].point, B, C, func, 0.0, step, level);
+//                    double f_dir = functor(adjasent, i);
+//                    if (f_dir >= f_current)
 //                    {
-//                        node_[i].point = point; // revert changes
+//                        node_[i].point = point;
+//                        f_dir = f_current;
+//                        step /= 10.0;
 //                    }
 //                    else
 //                    {
-//                        while (f_dir < f_current && l < 0.6)
-//                        {
-//                            point = node_[i].point;
-//                            f_current = f_dir;
-//                            l += step;
-//                            node_[i].point = findBorder(A, B, C, func_slice, l, 0.0, level);
-//                            f_dir = functor(adjasent);
-//                        }
-//                        node_[i].point = point;
-//                        optimized = isOptimizedTriangle = true;
+//                        point = node_[i].point;
+//                        f_current = f_dir;
 //                    }
-//                }
-//                if (!isOptimizedTriangle)
+//                    iic++;
+//                } while (step >= 0.001 && iic < 20);
+//                step = 0.1;
+//                iic = 0;
+//                do
 //                {
-//                    l = step;
-//                    node_[i].point = findBorder(A, B, C, func_slice, 0, l, level);
-//                    f_dir = functor(adjasent);
-//                    if (f_dir > f_current)
+//                    node_[i].point = findBorder(node_[i].point, B, C, func, step, step, level);
+//                    double f_dir = functor(adjasent, i);
+//                    if (f_dir >= f_current)
 //                    {
-//                        node_[i].point = point; // revert changes
+//                        node_[i].point = point;
+//                        f_dir = f_current;
+//                        step /= 10.0;
 //                    }
 //                    else
 //                    {
-//                        while (f_dir < f_current && l < 0.6)
-//                        {
-//                            point = node_[i].point;
-//                            f_current = f_dir;
-//                            l += step;
-//                            node_[i].point = findBorder(A, B, C, func_slice, 0.0, l, level);
-//                            f_dir = functor(adjasent);
-//                        }
-//                        node_[i].point = point;
-//                        optimized =true;
+//                        point = node_[i].point;
+//                        f_current = f_dir;
 //                    }
-//                }
+//                    iic++;
+//                } while (step >= 0.001 && iic < 10);
+
+////                Triangle t = element_[*it];
+////                int index = t.index(i);
+////                Point3D A = node_[t[index]].point;
+////                Point3D B = node_[t[index + 1]].point;
+////                Point3D C = node_[t[index + 2]].point;
+////                double step = 0.01;
+////                bool isOptimizedTriangle = false;
+////                double f_dir = f_current;
+////                double l = step;
+////                double f_dir = 0.0;
+////                node_[i].point = findBorder(A, B, C, func_slice, l, l, level);
+////                f_dir = functor(adjasent);
+////                if (f_dir > f_current)
+////                {
+////                    node_[i].point = point; // revert changes
+////                }
+////                else
+////                {
+////                    while (f_dir < f_current && l < 0.3)
+////                    {
+////                        point = node_[i].point;
+////                        f_current = f_dir;
+////                        l += step;
+////                        node_[i].point = findBorder(A, B, C, func_slice, l, l, level);
+////                        f_dir = functor(adjasent);
+////                    }
+////                    node_[i].point = point;
+////                    optimized = isOptimizedTriangle = true;
+////                }
+////                if (!isOptimizedTriangle)
+////                {
+////                    l = step;
+////                    node_[i].point = findBorder(A, B, C, func_slice, l, 0.0, level);
+////                    f_dir = functor(adjasent);
+////                    if (f_dir > f_current)
+////                    {
+////                        node_[i].point = point; // revert changes
+////                    }
+////                    else
+////                    {
+////                        while (f_dir < f_current && l < 0.6)
+////                        {
+////                            point = node_[i].point;
+////                            f_current = f_dir;
+////                            l += step;
+////                            node_[i].point = findBorder(A, B, C, func_slice, l, 0.0, level);
+////                            f_dir = functor(adjasent);
+////                        }
+////                        node_[i].point = point;
+////                        optimized = isOptimizedTriangle = true;
+////                    }
+////                }
+////                if (!isOptimizedTriangle)
+////                {
+////                    l = step;
+////                    node_[i].point = findBorder(A, B, C, func_slice, 0, l, level);
+////                    f_dir = functor(adjasent);
+////                    if (f_dir > f_current)
+////                    {
+////                        node_[i].point = point; // revert changes
+////                    }
+////                    else
+////                    {
+////                        while (f_dir < f_current && l < 0.6)
+////                        {
+////                            point = node_[i].point;
+////                            f_current = f_dir;
+////                            l += step;
+////                            node_[i].point = findBorder(A, B, C, func_slice, 0.0, l, level);
+////                            f_dir = functor(adjasent);
+////                        }
+////                        node_[i].point = point;
+////                        optimized =true;
+////                    }
+////                }
+//            }
+
+            AdjacentSet neigbours;
+            std::list<Point3D> points;
+            for (UInteger elnum: adjasent)
+            {
+                Triangle t = element_[elnum];
+                int index = t.index(i);
+                neigbours.insert(t[index + 1]);
+                neigbours.insert(t[index + 2]);
+                points.push_back((node_[t[index + 1]].point + node_[t[index + 2]].point) / 2.0);
+            }
+            for (UInteger nnode: neigbours)
+                points.push_back(node_[nnode].point);
+            for (Point3D p: points)
+            {
+                double step = 0.1;
+                double h = (p - node_[i].point).length() * 0.25;
+                short local_iter = 0;
+                do
+                {
+                    Point3D A = node_[i].point;
+                    Point3D pp = (step * (p - A)) + A;
+                    node_[i].point = findBorder(pp, func, h, level);
+                    double f_dir = functor(adjasent, i);
+                    if (f_dir >= f_current)
+                    {
+                        node_[i].point = point;
+                        f_dir = f_current;
+                        step /= 10.0;
+                    }
+                    else
+                    {
+                        point = node_[i].point;
+                        f_current = f_dir;
+                    }
+                    ++local_iter;
+                } while (step >= 0.001 && local_iter < 10);
             }
             ++progress;
         }
@@ -2049,6 +2091,9 @@ double TriangleMesh3D::minAngle(const Point3D &A, const Point3D &B, const Point3
 {
     double alpha = 0.0, beta = 0.0, gamma = 0.0;
     angles(A, B, C, alpha, beta, gamma);
+//    double alpha = A.angle(C, B);
+//    double beta = B.angle(A, C);
+//    double gamma = M_PI - alpha - beta;
     return std::min(alpha, std::min(beta, gamma));
 }
 
@@ -2070,7 +2115,7 @@ bool TriangleMesh3D::inCircumSphere(const Point3D &P, const Point3D &A, const Po
 
     TriangleMesh2D::circumCircle(0, 0, a.x(), a.y(), b.x(), b.y(), c.x(), c.y(), xc, yc, r);
 
-    return p.distanceTo(Point3D(xc, yc, 0.0)) < r - epsilon_;
+    return epsilon_ < r - p.distanceTo(Point3D(xc, yc, 0.0));
 }
 
 bool TriangleMesh3D::inCircumCylinder(const Point2D &P, const Point2D &A, const Point2D &B, const Point2D &C, std::function<Point3D (double, double)> domainFunction)
@@ -2246,13 +2291,14 @@ bool TriangleMesh3D::insertDelaunayNode(const Point2D &point, const NodeType &ty
 
 void TriangleMesh3D::flip()
 {
-    std::cout << "Flip routine...";
+    std::cout << "Flip routine ";
     bool were_flips = true;
     int iic = 0;
     while (were_flips && iic < 40)
     {
         were_flips = false;
         ++iic;
+        std::cout << ' ';
         for (UInteger t = 0; t < element_.size(); t++)
         {
             Triangle triangle = element_[t];
@@ -2266,7 +2312,12 @@ void TriangleMesh3D::flip()
                 AdjacentSet a2 = node_[index2].adjacent;
                 std::vector<UInteger> common;
                 set_intersection(a0.begin(), a0.end(), a1.begin(), a1.end(), std::back_inserter(common));
-                if (common.size() > 2)std::cout << t << ": " << index0 << "," << index1;// << " : " << common[0] << ' ' << common[1] << ' ' << common[2] << ' ' << common[3] << "; ";
+                if (common.size() > 2)
+                {
+                    std::cout << "Bad mesh" << std::endl;
+                    were_flips = false;
+                    return;
+                }
                 if (common.size() == 2)
                 {
                     Point3D p0 = node_[index0].point;
@@ -2308,9 +2359,12 @@ void TriangleMesh3D::flip()
                     double tp = 0.0, tq = 0.0;
                     if (a2_af_common.size() == 0 && isSkew(p0, p1, p2, f, tp, tq) && tp > epsilon_ && tp < (1.0 - epsilon_) && tq > epsilon_ && tq < (1.0 - epsilon_))
                     {
-                        if (inCircumSphere(f, p0, p1, p2))
+//                        double min_c = std::min(minAngle(p0, p1, p2), minAngle(p0, f, p1));
+//                        double min_n = std::min(minAngle(p0, f, p2), minAngle(p2, f, p1));
+                        if (/*(min_n - min_c) > epsilon_*/inCircumSphere(f, p0, p1, p2))
                         {
-                            std::cout << "+ ";
+//                            std::cout << min_c << " " << min_n << std::endl;
+                            std::cout << '.';
                             node_[index0].adjacent.erase(t1);
                             node_[index1].adjacent.erase(t);
                             element_[t][i + 1] = indexf;
@@ -2338,7 +2392,9 @@ void TriangleMesh3D::clearCooTriangles(std::list<CooTriangle> &cootriangles, std
         Point3D a = (*it).a;
         Point3D b = (*it).b;
         Point3D c = (*it).c;
-        if (a.isEqualTo(b, delta) && a.isEqualTo(c, delta))
+        if ((a.isEqualTo(b, delta) && a.isEqualTo(c, delta)) ||
+                (b.isEqualTo(c, delta) && b.isEqualTo(a, delta)) ||
+                (c.isEqualTo(a, delta) && c.isEqualTo(b, delta)))
         {
             Point3D mc = findBorder((1.0 / 3.0) * (a + b + c), func, h, level);
             it = cootriangles.erase(it);
@@ -2397,8 +2453,12 @@ void TriangleMesh3D::clearCooTriangles(std::list<CooTriangle> &cootriangles, std
                 if ((*itt).c.isEqualTo(c, delta) || (*itt).c.isEqualTo(b, delta))
                     (*itt).c = mc;
             }
+
         }
-        else ++it;
+        else
+        {
+            ++it;
+        }
     }
     ConsoleProgress pb(cootriangles.size());
     it = cootriangles.begin();
@@ -2414,9 +2474,9 @@ void TriangleMesh3D::clearCooTriangles(std::list<CooTriangle> &cootriangles, std
             Point3D ai = (*itt).a;
             Point3D bi = (*itt).b;
             Point3D ci = (*itt).c;
-            if ((a.isEqualTo(ai, epsilon_) || a.isEqualTo(bi, epsilon_) || a.isEqualTo(ci, epsilon_)) &&
-                    (b.isEqualTo(ai, epsilon_) || b.isEqualTo(bi, epsilon_) || b.isEqualTo(ci, epsilon_)) &&
-                    (c.isEqualTo(ai, epsilon_) || c.isEqualTo(bi, epsilon_) || c.isEqualTo(ci, epsilon_)))
+            if ((a.isEqualTo(ai, delta) || a.isEqualTo(bi, delta) || a.isEqualTo(ci, delta)) &&
+                    (b.isEqualTo(ai, delta) || b.isEqualTo(bi, delta) || b.isEqualTo(ci, delta)) &&
+                    (c.isEqualTo(ai, delta) || c.isEqualTo(bi, delta) || c.isEqualTo(ci, delta)))
             {
                 itt = cootriangles.erase(itt);
                 isFind = true;

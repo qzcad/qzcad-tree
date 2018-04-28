@@ -1,6 +1,7 @@
 #include "point3d.h"
 #include <math.h>
 #include <iostream>
+#include <float.h>
 
 namespace msh
 {
@@ -156,6 +157,17 @@ void Point3D::scale(const double &d)
 {
     Point2D::scale(d);
     z_ *= d;
+}
+
+double Point3D::angle(const Point3D &B, const Point3D &C) const
+{
+    Point3D AB(*this, B);
+    Point3D AC(*this, C);
+    double ab = AB.length();
+    double ac = AC.length();
+    if (fabs(ab) < DBL_EPSILON || fabs(ac) < DBL_EPSILON)
+        return 0.0;
+    return acos((AB * AC) / ab / ac);
 }
 
 Point2D &Point3D::operator =(const Point3D &point)
