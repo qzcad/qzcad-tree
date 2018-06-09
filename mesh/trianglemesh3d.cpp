@@ -1454,6 +1454,7 @@ void TriangleMesh3D::backgroundGrid(const TetrahedralMesh3D *mesh, std::function
     for (std::list<ElementPointer>::iterator it = inner.begin(); it != inner.end();)
     {
         bool isWeak = false;
+        UInteger weak0, weak1;
         ElementPointer el = *it;
         for (int j = 0; j < el->facesCount(); j++)
         {
@@ -1488,9 +1489,30 @@ void TriangleMesh3D::backgroundGrid(const TetrahedralMesh3D *mesh, std::function
                 set_intersection(a0.begin(), a0.end(), a1.begin(), a1.end(), std::back_inserter(common01));
                 set_intersection(a1.begin(), a1.end(), a2.begin(), a2.end(), std::back_inserter(common12));
                 set_intersection(a2.begin(), a2.end(), a0.begin(), a0.end(), std::back_inserter(common20));
-                if (common01.size() > 2 || common12.size() > 2 || common20.size() > 2)
+//                if (common01.size() > 2 || common12.size() > 2 || common20.size() > 2)
+//                {
+//                    isWeak = true;
+//                    break;
+//                }
+                if (common01.size() > 2)
                 {
                     isWeak = true;
+                    weak0 = f[0];
+                    weak1 = f[1];
+                    break;
+                }
+                if (common12.size() > 2)
+                {
+                    isWeak = true;
+                    weak0 = f[1];
+                    weak1 = f[2];
+                    break;
+                }
+                if (common20.size() > 2)
+                {
+                    isWeak = true;
+                    weak0 = f[2];
+                    weak1 = f[0];
                     break;
                 }
             }
@@ -1499,29 +1521,38 @@ void TriangleMesh3D::backgroundGrid(const TetrahedralMesh3D *mesh, std::function
         }
         if (isWeak)
         {
-            for (std::list<ElementPointer>::iterator iit = inner.begin(); iit != inner.end();)
+            UInteger power = 1000000;
+            std::list<ElementPointer>::iterator min_ptr = inner.end();
+            for (std::list<ElementPointer>::iterator iit = inner.begin(); iit != inner.end(); iit++)
             {
                 ElementPointer ell = *iit;
-                if (it != iit)
+                if (ell->in(weak0) || ell->in(weak1))
                 {
-                    short common_nodes_count = 0;
+                    UInteger p = 0;
                     for (int j = 0; j < ell->verticesCount(); j++)
                     {
-                        if (ell->in(el->vertexNode(j)))
-                            ++common_nodes_count;
+                        for (ElementPointer el1: inner)
+                        {
+                            if (el1->in(ell->vertexNode(j))) p++;
+                        }
                     }
-                    if (common_nodes_count == 3)
-                        iit = inner.erase(iit);
-                    else
-                        ++iit;
+//                        p += mesh->adjacentCount(ell->vertexNode(j));
+                    if (p < power)
+                    {
+                        power = p;
+                        min_ptr = iit;
+
+                    }
                 }
-                else
-                    ++iit;
             }
-            it = inner.erase(it);
-            it = inner.begin();
-            progress.restart(inner.size());
-            clear();
+            if (min_ptr != inner.end())
+            {
+                inner.erase(min_ptr);
+                it = inner.begin();
+                progress.restart(inner.size());
+                clear();
+            }
+            else it++;
         }
         else
         {

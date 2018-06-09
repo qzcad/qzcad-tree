@@ -303,7 +303,13 @@ void QuadrilateralMesh3D::backgroundGrid(const HexahedralMesh3D *mesh, std::func
                 {
                     UInteger p = 0;
                     for (int j = 0; j < ell->verticesCount(); j++)
-                        p += mesh->adjacentCount(ell->vertexNode(j));
+                    {
+                        for (ElementPointer el1: inner)
+                        {
+                            if (el1->in(ell->vertexNode(j))) p++;
+                        }
+                    }
+//                        p += mesh->adjacentCount(ell->vertexNode(j));
                     if (p < power)
                     {
                         power = p;
