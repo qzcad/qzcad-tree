@@ -4,6 +4,8 @@
 #include <iostream>
 #include <float.h>
 
+//#include <omp.h>
+
 namespace msh {
 HexahedralMesh3D::HexahedralMesh3D() : Mesh3D(NULL)
 {
@@ -409,6 +411,141 @@ Hexahedral HexahedralMesh3D::hexahedron(const UInteger &ie) const
 void HexahedralMesh3D::printStats() const
 {
     std::cout << "Hexahedral mesh: " << nodesCount() << " node(s), " << elementsCount() << " element(s)." << std::endl;
+}
+
+void HexahedralMesh3D::delNode(const UInteger &nnumber)
+{
+    if (nnumber >= nodesCount()) return;
+    if (!node_[nnumber].adjacent.empty())
+    {
+        AdjacentSet A = node_[nnumber].adjacent;
+        UInteger shift = 0;
+//        std::cout << A.size();
+        for (UInteger elnum: A)
+        {
+            delElement(elnum - shift);
+            shift++;
+        }
+//        while (!node_[nnumber].adjacent.empty())
+//        {
+//            UInteger elnum = *(node_[nnumber].adjacent.begin());
+//            std::cout /*<< node_[nnumber].adjacent.size()*/ << '!';
+//            delElement(elnum);
+//        }
+    }
+    {
+//        for (UInteger i = nnumber + 1; i < nodesCount(); i++)
+//        {
+//            AdjacentSet A = node_[i].adjacent;
+//            for (UInteger elnum: A)
+//            {
+//                Hexahedral h = element_[elnum];
+//                int index = h.index(i);
+//                if (index != -1)
+//                {
+//                    element_[elnum][index] = i - 1;
+//                }
+//            }
+//        }
+        for (std::vector<Hexahedral>::iterator el = element_.begin(); el != element_.end(); el++)
+        {
+            for (int i = 0; i < 8; i++)
+            {
+                if ((*el)[i] > nnumber)
+                    (*el)[i] -= 1;
+            }
+        }
+//#pragma omp parallel for
+//        for (UInteger j = 0; j < elementsCount(); j++)
+//        {
+//            for (int i = 0; i < 8; i++)
+//            {
+//                if (element_[j][i] > nnumber)
+//                    element_[j][i] -= 1;
+//            }
+//        }
+        node_.erase(node_.begin() + nnumber);
+    }
+}
+
+void HexahedralMesh3D::delElement(const UInteger &elnum)
+{
+    /*Hexahedral h = element_[elnum];
+    node_[h[0]].adjacent.remove(elnum);
+    node_[h[1]].adjacent.remove(elnum);
+    node_[h[2]].adjacent.remove(elnum);
+    node_[h[3]].adjacent.remove(elnum);
+    node_[h[4]].adjacent.remove(elnum);
+    node_[h[5]].adjacent.remove(elnum);
+    node_[h[6]].adjacent.remove(elnum);
+    node_[h[7]].adjacent.remove(elnum);
+    for (int i = 0; i < 8; i++)
+    {
+        node_[h[i]].adjacent.remove(elnum);
+//        std::cout << h[i] << ' ';
+//        if (node_[h[i]].adjacent.empty())
+//        {
+////            std::cout << ">>";
+//            delNode(h[i]);
+//        }
+    }
+    for (std::vector<Node3D>::iterator it = node_.begin(); it != node_.end(); it++)
+    {
+//        AdjacentSet A;
+        for (AdjacentSet::iterator e = (*it).adjacent.begin(); e != (*it).adjacent.end(); e++)
+        {
+            if ((*e) > elnum)
+            {
+//                A.insert((*e) - 1);
+                (*e) -= 1;
+            }
+//            else
+//            {
+//                A.insert((*e));
+//            }
+        }
+//        (*it).adjacent = A;
+    }
+//#pragma omp parallel for
+//    for (UInteger i = 0; i < nodesCount(); i++)
+//    {
+//        AdjacentSet A;
+//        for (AdjacentSet::iterator e = node_[i].adjacent.begin(); e != node_[i].adjacent.end(); e++)
+//        {
+//            if ((*e) > elnum)
+//            {
+//                A.insert((*e) - 1);
+//            }
+//            else
+//            {
+//                A.insert((*e));
+//            }
+//        }
+//        node_[i].adjacent = A;
+//    }
+    element_.erase(element_.begin() + elnum);*/
+}
+
+void HexahedralMesh3D::clearFuncNodes(std::function<double (double, double, double)> func, UInteger maxCount)
+{
+    UInteger i = 0;
+    UInteger c = nodesCount();
+    UInteger nc = c;
+    while (i < nc && c - nc < maxCount)
+    {
+        Point3D p = node_[i].point;
+        if (func(p.x(), p.y(), p.z()) < 0.0)
+        {
+            delNode(i);
+//            p.print();
+//            std::cout << ' ' << func(p.x(), p.y(), p.z()) << std::endl;
+        }
+        else
+        {
+            i += 1;
+        }
+        nc = nodesCount();
+    }
 }
 
 }

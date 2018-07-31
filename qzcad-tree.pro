@@ -8,4 +8,5 @@ SUBDIRS += \
     console_test \
     qzmatrix_test \
     qzio \
-    openmp_test
+    openmp_test \
+    DataStructTimeTest

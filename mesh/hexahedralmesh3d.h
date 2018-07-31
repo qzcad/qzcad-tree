@@ -136,6 +136,9 @@ public:
      * @brief Напечать статистику дискретной модели
      */
     void printStats() const;
+    void delNode(const UInteger &nnumber);
+    void delElement(const UInteger &elnum);
+    void clearFuncNodes(std::function<double(double, double, double)> func, UInteger maxCount);
 private:
     std::vector<Hexahedral> element_; //!< Массив шестигранных элементов
 };
