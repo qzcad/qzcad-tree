@@ -9,6 +9,8 @@
 #define ADJACENTSET_H
 
 #include <set>
+#include "integer.h"
+
 namespace msh
 {
 /**

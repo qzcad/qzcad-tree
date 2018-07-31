@@ -139,7 +139,16 @@ public:
      * @param elNum Номер элемента
      * @return Минимальный угол элемента (радианы)
      */
-    double minAngle(const UInteger &elNum);
+    double minAngle(const UInteger &elNum) const;
+    /**
+     * @brief Вычислить значение максимального угла в элементе
+     * @param elNum Номер элемента
+     * @return Минимальный угол элемента (радианы)
+     */
+    double maxAngle(const UInteger &elNum) const;
+    double maxAngle(const Point3D &A, const Point3D &B, const Point3D &C, const Point3D &D) const;
+    void flip();
+    void refineTopology(std::function<double(double, double, double)> func, double level = 0);
 protected:
     std::vector<Quadrilateral> element_; //!< Массив элементов
 };

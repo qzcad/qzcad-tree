@@ -3,6 +3,7 @@
 #include <math.h>
 #include <iostream>
 #include <algorithm>
+#include <set>
 
 #include "consoleprogress.h"
 
@@ -381,6 +382,8 @@ void QuadrilateralMesh3D::backgroundGrid(const HexahedralMesh3D *mesh, std::func
     for (UInteger i = 0; i != node_.size(); ++i) node_[i].point = surface[i];
     laplacianSmoothing(func, level, smooth);
     distlenSmoothing(func, level, optimize);
+    refineTopology(func, level);
+    distlenSmoothing(func, level, optimize);
     std::cout << "Surface quadrilateral mesh: nodes - " << nodesCount() << ", elements - " << elementsCount() << std::endl;
     updateDomain();
 }
@@ -513,7 +516,10 @@ void QuadrilateralMesh3D::laplacianSmoothing(std::function<double (double, doubl
             node_[nnode].point = findBorder(point, func, 0.1 * avr_len, level);
             ++progress;
         }
+//        if ((iit + 1) % 4 == 0)
+            flip();
     }
+//    refineTopology(func, level);
 }
 
 void QuadrilateralMesh3D::distlenSmoothing(std::function<double (double, double, double)> func, double level, int iter_num)
@@ -664,7 +670,7 @@ void QuadrilateralMesh3D::distlenSmoothing(std::function<double (double, double,
 //                    iic++;
 //                } while (step >= 0.001 && iic < 10);
 //            }
-            AdjacentSet neigbours;
+            std::set<UInteger> neigbours;
             std::list<Point3D> points;
             for (UInteger elnum: adjasent)
             {
@@ -703,10 +709,13 @@ void QuadrilateralMesh3D::distlenSmoothing(std::function<double (double, double,
             }
             ++progress;
         }
+        if ((iit + 1) % 4 == 0)
+            flip();
     }
+    //refineTopology(func, level);
 }
 
-double QuadrilateralMesh3D::minAngle(const UInteger &elNum)
+double QuadrilateralMesh3D::minAngle(const UInteger &elNum) const
 {
     Quadrilateral quad = element_[elNum];
     Point3D A = node_[quad[0]].point;
@@ -718,5 +727,247 @@ double QuadrilateralMesh3D::minAngle(const UInteger &elNum)
     double c = C.angle(B, D);
     double d = D.angle(C, A);
     return std::max(std::max(a, b), std::max(c, d));
+}
+
+double QuadrilateralMesh3D::maxAngle(const UInteger &elNum) const
+{
+    Quadrilateral quad = element_[elNum];
+    Point3D A = node_[quad[0]].point;
+    Point3D B = node_[quad[1]].point;
+    Point3D C = node_[quad[2]].point;
+    Point3D D = node_[quad[3]].point;
+    return maxAngle(A, B, C, D);
+}
+
+double QuadrilateralMesh3D::maxAngle(const Point3D &A, const Point3D &B, const Point3D &C, const Point3D &D) const
+{
+    double a = A.angle(D, B);
+    double b = B.angle(A, C);
+    double c = C.angle(B, D);
+    double d = D.angle(C, A);
+    return std::max(std::max(a, b), std::max(c, d));
+}
+
+void QuadrilateralMesh3D::flip()
+{
+    std::cout << "Flip routine ";
+    bool were_flips = true;
+    int iic = 0;
+    while (were_flips && iic < 40)
+    {
+        were_flips = false;
+        ++iic;
+        std::cout << ' ';
+        for (UInteger quad_index = 0; quad_index < element_.size(); quad_index++)
+        {
+            Quadrilateral quad = element_[quad_index];
+            for (int i = 0; i < 4; i++)
+            {
+                UInteger index0 = quad[i + 0];
+                UInteger index1 = quad[i + 1];
+                UInteger index2 = quad[i + 2];
+                UInteger index3 = quad[i + 3];
+                AdjacentSet a0 = node_[index0].adjacent;
+                AdjacentSet a1 = node_[index1].adjacent;
+//                AdjacentSet a2 = node_[index2].adjacent;
+//                AdjacentSet a3 = node_[index3].adjacent;
+                std::vector<UInteger> common;
+                set_intersection(a0.begin(), a0.end(), a1.begin(), a1.end(), std::back_inserter(common));
+                if (common.size() > 2)
+                {
+//                    std::cout << "Bad mesh" << std::endl;
+                    were_flips = false;
+//                    return;
+                }
+                if (common.size() == 2)
+                {
+                    Point3D p0 = node_[index0].point;
+                    Point3D p1 = node_[index1].point;
+                    Point3D p2 = node_[index2].point;
+                    Point3D p3 = node_[index3].point;
+                    UInteger index_of_flip_node2;
+                    UInteger index_of_flip_node3;
+                    int subindex2 = -1, subindex3 = -1;
+                    Point3D f2, f3;
+                    UInteger flip_quad_index;
+//                    AdjacentSet af2, af3;
+                    if (common[0] != quad_index)
+                    {
+                        flip_quad_index = common[0];
+                    }
+                    else
+                    {
+                        flip_quad_index = common[1];
+                    }
+                    if (element_[flip_quad_index][1] == index0 && element_[flip_quad_index][0] == index1)
+                    {
+                        subindex2 = 2;
+                        subindex3 = 3;
+                        index_of_flip_node2 = element_[flip_quad_index][subindex2];
+                        index_of_flip_node3 = element_[flip_quad_index][subindex3];
+                    }
+                    else if (element_[flip_quad_index][2] == index0 && element_[flip_quad_index][1] == index1)
+                    {
+                        subindex2 = 3;
+                        subindex3 = 0;
+                        index_of_flip_node2 = element_[flip_quad_index][subindex2];
+                        index_of_flip_node3 = element_[flip_quad_index][subindex3];
+                    }
+                    else if (element_[flip_quad_index][3] == index0 && element_[flip_quad_index][2] == index1)
+                    {
+                        subindex2 = 0;
+                        subindex3 = 1;
+                        index_of_flip_node2 = element_[flip_quad_index][subindex2];
+                        index_of_flip_node3 = element_[flip_quad_index][subindex3];
+                    }
+                    else if (element_[flip_quad_index][0] == index0 && element_[flip_quad_index][3] == index1)
+                    {
+                        subindex2 = 1;
+                        subindex3 = 2;
+                        index_of_flip_node2 = element_[flip_quad_index][subindex2];
+                        index_of_flip_node3 = element_[flip_quad_index][subindex3];
+                    }
+                    f2 = node_[index_of_flip_node2].point;
+                    f3 = node_[index_of_flip_node3].point;
+                    double current_angle = std::max(maxAngle(p0, p1, p2, p3), maxAngle(f2, f3, p0, p1));
+                    double angle2 = std::max(maxAngle(f3, p1, p2, p3), maxAngle(f2, f3, p3, p0));
+                    double angle3 = std::max(maxAngle(p0, f2, p2, p3), maxAngle(f2, f3, p1, p2));
+//                    node_[index_of_flip_node].adjacent.sort();
+//                    af = node_[index_of_flip_node].adjacent;
+//                    std::vector<UInteger> a2_af_common;
+//                    set_intersection(a2.begin(), a2.end(), af.begin(), af.end(), std::back_inserter(a2_af_common));
+                    double tp0 = 0.0, tq0 = 0.0;
+                    double tp1 = 0.0, tq1 = 0.0;
+                    double tp2 = 0.0, tq2 = 0.0;
+                    const double delta = 0.1;
+                    if (angle3 < current_angle && angle3 < angle2 && (isSkew(p0, p1, p2, f2, tp0, tq0) && tp0 > delta && tp0 < (1.0 - delta) && tq0 > delta && tq0 < (1.0 - delta)) &&
+                            (isSkew(p0, p1, p3, f2, tp1, tq1) && tp1 > delta && tp1 < (1.0 - delta) && tq1 > delta && tq1 < (1.0 - delta)) &&
+                            (isSkew(p0, p1, p2, f3, tp2, tq2) && tp2 > delta && tp2 < (1.0 - delta) && tq2 > delta && tq2 < (1.0 - delta)))
+                    {
+                        std::cout << '.';
+                        node_[index0].adjacent.erase(flip_quad_index);
+                        node_[index1].adjacent.erase(quad_index);
+                        element_[quad_index][i + 1] = index_of_flip_node2;
+                        node_[index_of_flip_node2].adjacent.insert(quad_index);
+                        element_[flip_quad_index][subindex2 - 1] = index2;
+                        node_[index2].adjacent.insert(flip_quad_index);
+                        were_flips = true;
+                        break;
+                    }
+                    if (angle2 < current_angle && angle2 < angle3 && (isSkew(p0, p1, p3, f3, tp0, tq0) && tp0 > delta && tp0 < (1.0 - delta) && tq0 > delta && tq0 < (1.0 - delta)) &&
+                            (isSkew(p0, p1, p2, f3, tp1, tq1) && tp1 > delta && tp1 < (1.0 - delta) && tq1 > delta && tq1 < (1.0 - delta)) &&
+                            (isSkew(p0, p1, p3, f2, tp2, tq2) && tp2 > delta && tp2 < (1.0 - delta) && tq2 > delta && tq2 < (1.0 - delta)))
+                    {
+                        std::cout << '.';
+                        node_[index1].adjacent.erase(flip_quad_index);
+                        node_[index0].adjacent.erase(quad_index);
+                        element_[quad_index][i + 0] = index_of_flip_node3;
+                        node_[index_of_flip_node3].adjacent.insert(quad_index);
+                        element_[flip_quad_index][subindex3 + 1] = index3;
+                        node_[index3].adjacent.insert(flip_quad_index);
+                        were_flips = true;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    std::cout << iic << std::endl;
+}
+
+void QuadrilateralMesh3D::refineTopology(std::function<double(double, double, double)> func, double level)
+{
+    const double alpha = 2.44;
+    std::list<std::vector<Point3D>> emesh;
+    for (Quadrilateral quad: element_)
+    {
+        Point3D p0 = point3d(quad[0]);
+        Point3D p1 = point3d(quad[1]);
+        Point3D p2 = point3d(quad[2]);
+        Point3D p3 = point3d(quad[3]);
+        if (maxAngle(p0, p1, p2, p3) >= alpha)
+        {
+            if ((p0.angle(p3, p1) >= alpha && p2.angle(p1, p3) >= alpha) || (p1.angle(p0, p2) >= alpha && p3.angle(p2, p0) >= alpha))
+            {
+                std::vector<Point3D> t(3);
+                Point3D c = 0.25 * (p0 + p1 + p2 + p3);
+                t[0] = p0; t[1] = p1; t[2] = c;
+                emesh.push_back(t);
+                t[0] = p1; t[1] = p2; t[2] = c;
+                emesh.push_back(t);
+                t[0] = p2; t[1] = p3; t[2] = c;
+                emesh.push_back(t);
+                t[0] = p3; t[1] = p0; t[2] = c;
+                emesh.push_back(t);
+            }
+            else if (p1.angle(p0, p2) >= alpha && p3.angle(p2, p0) >= alpha)
+            {
+                std::vector<Point3D> t0(3), t1(3);
+                t0[0] = p0; t0[1] = p1; t0[2] = p3;
+                t1[0] = p1; t1[1] = p2; t1[2] = p3;
+                emesh.push_back(t0);
+                emesh.push_back(t1);
+            }
+            else
+            {
+                std::vector<Point3D> t0(3), t1(3);
+                t0[0] = p0; t0[1] = p1; t0[2] = p2;
+                t1[0] = p0; t1[1] = p2; t1[2] = p3;
+                emesh.push_back(t0);
+                emesh.push_back(t1);
+            }
+        }
+        else
+        {
+            std::vector<Point3D> t(4);
+            t[0] = p0; t[1] = p1; t[2] = p2; t[3] = p3;
+            emesh.push_back(t);
+        }
+    }
+    clear();
+    std::cout<<emesh.size();
+    for (std::vector<Point3D> pol: emesh)
+    {
+        if (pol.size() == 3)
+        {
+            Point3D p0 = pol[0];
+            Point3D p1 = pol[1];
+            Point3D p2 = pol[2];
+            Point3D c = 1.0 / 3.0 * (p0 + p1 + p2);
+//            double h = c.distanceTo(p0);
+            Point3D c01 = 0.5 * (p0 + p1);
+            Point3D c12 = 0.5 * (p1 + p2);
+            Point3D c20 = 0.5 * (p2 + p0);
+//            Point3D c01 = findBorder(0.5 * (p0 + p1), func, h, level);
+//            Point3D c12 = findBorder(0.5 * (p1 + p2), func, h, level);
+//            Point3D c20 = findBorder(0.5 * (p2 + p0), func, h, level);
+//            c = findBorder(c, func, h, level);
+            addElement(addNode(p0, BORDER), addNode(c01, BORDER), addNode(c, BORDER), addNode(c20, BORDER));
+            addElement(addNode(p1, BORDER), addNode(c12, BORDER), addNode(c, BORDER), addNode(c01, BORDER));
+            addElement(addNode(p2, BORDER), addNode(c20, BORDER), addNode(c, BORDER), addNode(c12, BORDER));
+        }
+        else
+        {
+            Point3D p0 = pol[0];
+            Point3D p1 = pol[1];
+            Point3D p2 = pol[2];
+            Point3D p3 = pol[3];
+            Point3D c = 0.25 * (p0 + p1 + p2 + p3);
+            Point3D c01 = 0.5 * (p0 + p1);
+            Point3D c12 = 0.5 * (p1 + p2);
+            Point3D c23 = 0.5 * (p2 + p3);
+            Point3D c30 = 0.5 * (p3 + p0);
+//            double h = c.distanceTo(p0);
+//            Point3D c01 = findBorder(0.5 * (p0 + p1), func, h, level);
+//            Point3D c12 = findBorder(0.5 * (p1 + p2), func, h, level);
+//            Point3D c23 = findBorder(0.5 * (p2 + p3), func, h, level);
+//            Point3D c30 = findBorder(0.5 * (p3 + p0), func, h, level);
+//            c = findBorder(c, func, h, level);
+            addElement(addNode(p0, BORDER), addNode(c01, BORDER), addNode(c, BORDER), addNode(c30, BORDER));
+            addElement(addNode(p1, BORDER), addNode(c12, BORDER), addNode(c, BORDER), addNode(c01, BORDER));
+            addElement(addNode(p2, BORDER), addNode(c23, BORDER), addNode(c, BORDER), addNode(c12, BORDER));
+            addElement(addNode(p3, BORDER), addNode(c30, BORDER), addNode(c, BORDER), addNode(c23, BORDER));
+        }
+    }
 }
 }

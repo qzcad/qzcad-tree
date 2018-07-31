@@ -5,6 +5,7 @@
 #include <limits>
 #include <math.h>
 #include <time.h>
+#include <set>
 
 #include "consoleprogress.h"
 
@@ -84,7 +85,7 @@ void SegmentMesh2D::MarchingQuads(const UInteger &xCount, const UInteger &yCount
         node_[num].type = CHARACTER;
     }
     laplacianSmoothing(func, level, smooth);
-    curvatureSmoothing(func, level, 0.05, optimize);
+//    curvatureSmoothing(func, level, 0.05, optimize);
     distlenSmoothing(func, level, optimize);
     std::cout << "Segments mesh: nodes - " << nodesCount() << " elements - " << elementsCount() << std::endl;
 }
@@ -432,7 +433,7 @@ void SegmentMesh2D::backgroundGrid(const Mesh2D *mesh2d, std::function<double(do
         node_[num].type = CHARACTER;
     }
     laplacianSmoothing(func, level, smooth);
-    curvatureSmoothing(func, level, 0.05, optimize);
+//    curvatureSmoothing(func, level, 0.05, optimize);
     distlenSmoothing(func, level, optimize);
     std::cout << "Segments mesh: nodes - " << nodesCount() << " elements - " << elementsCount() << std::endl;
     updateDomain();

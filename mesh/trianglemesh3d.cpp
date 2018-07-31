@@ -2,6 +2,7 @@
 #undef __STRICT_ANSI__
 #include <math.h>
 #include <map>
+#include <set>
 #include <climits>
 #include <iostream>
 #include <algorithm>
@@ -13,7 +14,7 @@
 
 namespace msh {
 
-TriangleMesh3D::TriangleMesh3D() : Mesh3D(NULL)
+TriangleMesh3D::TriangleMesh3D() : Mesh3D(nullptr)
 {
     xMin_ = -1.0;
     xMax_ = 1.0;
@@ -36,8 +37,8 @@ TriangleMesh3D::TriangleMesh3D(const TriangleMesh3D *mesh) : Mesh3D(mesh)
 void TriangleMesh3D::cylinderDomain(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length)
 {
     clear();
-    double hphi = 2.0 * M_PI / (double)rCount;
-    double hl = length / (double)lCount;
+    double hphi = 2.0 * M_PI / static_cast<double>(rCount);
+    double hl = length / static_cast<double>(lCount);
     double phi = 0.0;
     // формирование массива узлов
     for (UInteger i = 0; i < rCount; i++)
@@ -89,7 +90,7 @@ void TriangleMesh3D::cylinderDomain(const UInteger &rCount, const UInteger &lCou
 void TriangleMesh3D::cylinderDomain(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length, std::function<double (double, double, double)> func)
 {
     clear();
-    const double xi_max = (double)lCount * 2.0 * M_PI / (double)rCount;
+    const double xi_max = static_cast<double>(lCount) * 2.0 * M_PI / static_cast<double>(rCount);
     const double xi_max_2 = xi_max / 2.0;
 
     auto local_func = [&](double xi, double eta)
@@ -121,13 +122,13 @@ void TriangleMesh3D::cylinderDomain(const UInteger &rCount, const UInteger &lCou
         charPoints2d.push_back(Point2D(xi_max, 0.0));
         charPoints2d.push_back(Point2D(xi_max, 2.0 * M_PI));
     }
-    double dl = xi_max / (double)lCount;
-    double dphi = 2.0 * M_PI / (double)rCount;
+    double dl = xi_max / static_cast<double>(lCount);
+    double dphi = 2.0 * M_PI / static_cast<double>(rCount);
     // двоичный поиск вдоль шва
     for (UInteger i = 0; i < lCount; i++)
     {
-        double xi0 = (double)i * dl;
-        double xi1 = (double)(i + 1) * dl;
+        double xi0 = static_cast<double>(i) * dl;
+        double xi1 = static_cast<double>(i + 1) * dl;
         double eta = 0.0;
         double val0 = local_func(xi0, eta);
         double val1 = local_func(xi1, eta);
@@ -155,8 +156,8 @@ void TriangleMesh3D::cylinderDomain(const UInteger &rCount, const UInteger &lCou
     {
         double xi0 = 0.0;
         double xi1 = xi_max;
-        double eta0 = (double)i * dphi;
-        double eta1 = (double)(i + 1) * dphi;
+        double eta0 = static_cast<double>(i) * dphi;
+        double eta1 = static_cast<double>(i + 1) * dphi;
         for (double xi = xi0; xi <= xi1; xi += xi1)
         {
             double val0 = local_func(xi, eta0);
@@ -323,8 +324,8 @@ void TriangleMesh3D::cylinderDomain(const UInteger &rCount, const UInteger &lCou
 void TriangleMesh3D::coneDomain(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length)
 {
     clear();
-    double hphi = 2.0 * M_PI / (double)rCount;
-    double hl = length / (double)lCount;
+    double hphi = 2.0 * M_PI / static_cast<double>(rCount);
+    double hl = length / static_cast<double>(lCount);
     double phi = 0.0;
     // формирование массива узлов
     for (UInteger i = 0; i < rCount; i++)
@@ -378,7 +379,7 @@ void TriangleMesh3D::coneDomain(const UInteger &rCount, const UInteger &lCount, 
 void TriangleMesh3D::coneDomain(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length, std::function<double (double, double, double)> func)
 {
     clear();
-    const double xi_max = (double)lCount * 2.0 * M_PI / (double)rCount;
+    const double xi_max = static_cast<double>(lCount) * 2.0 * M_PI / static_cast<double>(rCount);
     const double xi_max_2 = xi_max / 2.0;
 
     auto conePoint3d = [&](const double &xi, const double &eta)
@@ -420,13 +421,13 @@ void TriangleMesh3D::coneDomain(const UInteger &rCount, const UInteger &lCount, 
         charPoints2d.push_back(Point2D(xi_max, 0.0));
         charPoints2d.push_back(Point2D(xi_max, 2.0 * M_PI));
     }
-    double dxi = xi_max / (double)lCount;
-    double dphi = 2.0 * M_PI / (double)rCount;
+    double dxi = xi_max / static_cast<double>(lCount);
+    double dphi = 2.0 * M_PI / static_cast<double>(rCount);
     // двоичный поиск вдоль шва
     for (UInteger i = 0; i < lCount; i++)
     {
-        double xi0 = (double)i * dxi;
-        double xi1 = (double)(i + 1) * dxi;
+        double xi0 = static_cast<double>(i) * dxi;
+        double xi1 = static_cast<double>(i + 1) * dxi;
         double eta = 0.0;
         double val0 = local_func(xi0, eta);
         double val1 = local_func(xi1, eta);
@@ -454,8 +455,8 @@ void TriangleMesh3D::coneDomain(const UInteger &rCount, const UInteger &lCount, 
     {
         double xi0 = 0.0;
         double xi1 = length;
-        double eta0 = (double)i * dphi;
-        double eta1 = (double)(i + 1) * dphi;
+        double eta0 = static_cast<double>(i) * dphi;
+        double eta1 = static_cast<double>(i + 1) * dphi;
         for (double xi = xi0; xi <= xi1; xi += xi1)
         {
             double val0 = local_func(xi, eta0);
@@ -596,8 +597,8 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
             Point2D p2;
         } ParametricTriangle;
         std::list<ParametricTriangle> triangles;
-        double du = 1.0 / (double)(uCount - 1);
-        double dv = 1.0 / (double)(vCount - 1);
+        double du = 1.0 / static_cast<double>(uCount - 1);
+        double dv = 1.0 / static_cast<double>(vCount - 1);
         double u = 0.0;
         for (UInteger i = 0; i < uCount - 1; i++)
         {
@@ -614,7 +615,7 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
             }
             u += du;
         }
-        int count = 0;
+        /*int count = 0;
         std::list<ParametricTriangle>::iterator t = triangles.begin();
         while ( t != triangles.end() && count < 500000)
         {
@@ -682,7 +683,7 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
             ++t;
             count++;
         }
-        std::cout << count << std::endl;
+        std::cout << count << std::endl;*/
         for (std::list<ParametricTriangle>::iterator t = triangles.begin(); t != triangles.end(); ++t)
         {
             ParametricTriangle tri = *t;
@@ -734,13 +735,13 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
     {
         charPoints2d.push_back(Point2D(0.0, 1.0));
     }
-    double du = 1.0 / (double)uCount;
-    double dv = 1.0 / (double)vCount;
+    double du = 1.0 / static_cast<double>(uCount);
+    double dv = 1.0 / static_cast<double>(vCount);
     // двоичный поиск по первому направлению
     for (UInteger i = 0; i < uCount; i++)
     {
-        double u0 = (double)i * du;
-        double u1 = (double)(i + 1) * du;
+        double u0 = static_cast<double>(i) * du;
+        double u1 = static_cast<double>(i + 1) * du;
         double v[] = {0.0, 1.0};
         for (int j = 0; j < 2; j++)
         {
@@ -767,8 +768,8 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
     for (UInteger i = 0; i < vCount; i++)
     {
         double u[] = {0.0, 1.0};
-        double v0 = (double)i * dv;
-        double v1 = (double)(i + 1) * dv;
+        double v0 = static_cast<double>(i) * dv;
+        double v1 = static_cast<double>(i + 1) * dv;
         for (int j = 0; j < 2; j++)
         {
             double val0 = local_func(u[j], v0);
@@ -1169,9 +1170,9 @@ void TriangleMesh3D::marchingCubes(const UInteger &xCount, const UInteger &yCoun
                               {0, 9, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
                               {0, 3, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
                               {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1} };
-    double hx = width / (double)(xCount - 1);
-    double hy = height / (double)(yCount - 1);
-    double hz = depth / (double)(zCount - 1);
+    double hx = width / static_cast<double>(xCount - 1);
+    double hy = height / static_cast<double>(yCount - 1);
+    double hz = depth / static_cast<double>(zCount - 1);
     double xc = xMin + width / 2.0;
     double yc = yMin + height / 2.0;
     double zc = zMin + depth / 2.0;
@@ -1273,9 +1274,9 @@ void TriangleMesh3D::marchingTetrahedrons(const UInteger &xCount, const UInteger
     yMax_ = yMin + height;
     zMin_ = zMin;
     zMax_ = zMin + depth;
-    double hx = width / (double)(xCount - 1);
-    double hy = height / (double)(yCount - 1);
-    double hz = depth / (double)(zCount - 1);
+    double hx = width / static_cast<double>(xCount - 1);
+    double hy = height / static_cast<double>(yCount - 1);
+    double hz = depth / static_cast<double>(zCount - 1);
     double xc = xMin + width / 2.0;
     double yc = yMin + height / 2.0;
     double zc = zMin + depth / 2.0;
@@ -1733,16 +1734,20 @@ void TriangleMesh3D::clearElements()
 
 void TriangleMesh3D::add(const TriangleMesh3D *mesh)
 {
+    UInteger count = 0;
     std::vector<UInteger> nodesPointers(mesh->nodesCount());
     for (UInteger i = 0; i < mesh->nodesCount(); i++)
     {
+        UInteger nc = nodesCount();
         nodesPointers[i] = addNode(mesh->node_[i]);
+        if (nc <= nodesPointers[i]) count++;
     }
     for (UInteger i = 0; i < mesh->elementsCount(); i++)
     {
         Triangle triangle = mesh->element_[i];
         addElement(nodesPointers[triangle[0]], nodesPointers[triangle[1]], nodesPointers[triangle[2]]);
     }
+    std::cout << "Added " << count << " new nodes." << std::endl;
     updateDomain();
 }
 
@@ -1851,7 +1856,7 @@ void TriangleMesh3D::laplacianSmoothing(std::function<double (double, double, do
             {
                 point = point + node_[npointer].point;
             }
-            point.scale(1.0 / (double)neighbours.size());
+            point.scale(1.0 / static_cast<double>(neighbours.size()));
             for (UInteger elnum: adjacent)
             {
                 Triangle triangle = element_[elnum];
@@ -1860,7 +1865,7 @@ void TriangleMesh3D::laplacianSmoothing(std::function<double (double, double, do
                 Point3D b(point, node_[triangle[index + 1]].point);
                 avr_len += 0.5 * (a.length() + b.length());
             }
-            avr_len /= (double)adjacent.size();
+            avr_len /= static_cast<double>(adjacent.size());
             node_[nnode].point = findBorder(point, func, 0.1 * avr_len, level);
 //            if (f < functor(adjacent, nnode)) node_[nnode].point = prev;
             ++progress;
@@ -2053,15 +2058,17 @@ void TriangleMesh3D::distlenSmoothing(std::function<double (double, double, doub
 ////                }
 //            }
 
-            AdjacentSet neigbours;
+            std::set<UInteger> neigbours;
             std::list<Point3D> points;
             for (UInteger elnum: adjasent)
             {
                 Triangle t = element_[elnum];
                 int index = t.index(i);
-                neigbours.insert(t[index + 1]);
-                neigbours.insert(t[index + 2]);
-                points.push_back((node_[t[index + 1]].point + node_[t[index + 2]].point) / 2.0);
+                UInteger code1 = t[index + 1];
+                UInteger code2 = t[index + 2];
+                neigbours.insert(code1);
+                neigbours.insert(code2);
+                points.push_back((node_[code1].point + node_[code2].point) / 2.0);
             }
             for (UInteger nnode: neigbours)
                 points.push_back(node_[nnode].point);
@@ -2144,9 +2151,9 @@ bool TriangleMesh3D::inCircumSphere(const Point3D &P, const Point3D &A, const Po
 
     double xc = 0.0, yc = 0.0, r = 0.0;
 
-    TriangleMesh2D::circumCircle(0, 0, a.x(), a.y(), b.x(), b.y(), c.x(), c.y(), xc, yc, r);
+    return TriangleMesh2D::circumCircle(p.x(), p.y(), a.x(), a.y(), b.x(), b.y(), c.x(), c.y(), xc, yc, r);
 
-    return epsilon_ < r - p.distanceTo(Point3D(xc, yc, 0.0));
+//    return epsilon_ < r - p.distanceTo(Point3D(xc, yc, 0.0));
 }
 
 bool TriangleMesh3D::inCircumCylinder(const Point2D &P, const Point2D &A, const Point2D &B, const Point2D &C, std::function<Point3D (double, double)> domainFunction)
@@ -2214,11 +2221,11 @@ Point2D TriangleMesh3D::circumCylinderCenter(const Point2D &A, const Point2D &B,
     dv *= 3.0;
     for (int i = 0; i < 21; i++)
     {
-        double u = u_min + (double)i * du / 20.0;
+        double u = u_min + static_cast<double>(i) * du / 20.0;
 
         for (int j = 0; j < 21; j++)
         {
-            double v = v_min + (double)j * dv / 20.0;
+            double v = v_min + static_cast<double>(j) * dv / 20.0;
             Point3D p = domainFunction(u, v);
             double d = circum.distanceTo((p - A3).inCoordSystem(Vx, Vy, Vz));
             if (d < d0)
@@ -2330,9 +2337,9 @@ void TriangleMesh3D::flip()
         were_flips = false;
         ++iic;
         std::cout << ' ';
-        for (UInteger t = 0; t < element_.size(); t++)
+        for (UInteger triangle_index = 0; triangle_index < element_.size(); triangle_index++)
         {
-            Triangle triangle = element_[t];
+            Triangle triangle = element_[triangle_index];
             for (int i = 0; i < 3; i++)
             {
                 UInteger index0 = triangle[i];
@@ -2354,37 +2361,38 @@ void TriangleMesh3D::flip()
                     Point3D p0 = node_[index0].point;
                     Point3D p1 = node_[index1].point;
                     Point3D p2 = node_[index2].point;
-                    UInteger indexf;
+                    UInteger index_of_flip_node;
                     int subindex;
                     Point3D f;
-                    UInteger t1;
+                    UInteger flip_triangle_index;
                     AdjacentSet af;
-                    if (common[0] != t)
+                    if (common[0] != triangle_index)
                     {
-                        t1 = common[0];
+                        flip_triangle_index = common[0];
                     }
                     else
                     {
-                        t1 = common[1];
+                        flip_triangle_index = common[1];
                     }
 
-                    if (element_[t1][0] != index0 && element_[t1][0] != index1)
+                    if (element_[flip_triangle_index][0] != index0 && element_[flip_triangle_index][0] != index1)
                     {
-                        indexf = element_[t1][0];
+                        index_of_flip_node = element_[flip_triangle_index][0];
                         subindex = 0;
                     }
-                    else if (element_[t1][1] != index0 && element_[t1][1] != index1)
+                    else if (element_[flip_triangle_index][1] != index0 && element_[flip_triangle_index][1] != index1)
                     {
-                        indexf = element_[t1][1];
+                        index_of_flip_node = element_[flip_triangle_index][1];
                         subindex = 1;
                     }
                     else
                     {
-                        indexf = element_[t1][2];
+                        index_of_flip_node = element_[flip_triangle_index][2];
                         subindex = 2;
                     }
-                    f = node_[indexf].point;
-                    af = node_[indexf].adjacent;
+                    f = node_[index_of_flip_node].point;
+//                    node_[index_of_flip_node].adjacent.sort();
+                    af = node_[index_of_flip_node].adjacent;
                     std::vector<UInteger> a2_af_common;
                     set_intersection(a2.begin(), a2.end(), af.begin(), af.end(), std::back_inserter(a2_af_common));
                     double tp = 0.0, tq = 0.0;
@@ -2396,12 +2404,12 @@ void TriangleMesh3D::flip()
                         {
 //                            std::cout << min_c << " " << min_n << std::endl;
                             std::cout << '.';
-                            node_[index0].adjacent.erase(t1);
-                            node_[index1].adjacent.erase(t);
-                            element_[t][i + 1] = indexf;
-                            node_[indexf].adjacent.insert(t);
-                            element_[t1][subindex - 1] = index2;
-                            node_[index2].adjacent.insert(t1);
+                            node_[index0].adjacent.erase(flip_triangle_index);
+                            node_[index1].adjacent.erase(triangle_index);
+                            element_[triangle_index][i + 1] = index_of_flip_node;
+                            node_[index_of_flip_node].adjacent.insert(triangle_index);
+                            element_[flip_triangle_index][subindex - 1] = index2;
+                            node_[index2].adjacent.insert(flip_triangle_index);
                             were_flips = true;
                             break;
                         }

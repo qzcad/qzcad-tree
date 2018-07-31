@@ -1,4 +1,5 @@
 #include "point3d.h"
+#undef __STRICT_ANSI__
 #include <math.h>
 #include <iostream>
 #include <float.h>
@@ -232,7 +233,7 @@ bool isSkew(const Point3D &P0, const Point3D &P1, const Point3D &Q0, const Point
 {
     Point3D AB = P1 - P0;
     Point3D AC = Q1 - P0;
-    Point3D N = AB.product(AC);
+    Point3D N = 0.5 * (AB.product(AC) + AB.product(Q0 - P0));
     Point3D Vx = AB.normalized();
     Point3D Vz = N.normalized();
     Point3D Vy = Vz.product(Vx);
