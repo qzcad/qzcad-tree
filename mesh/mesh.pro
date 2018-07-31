@@ -41,7 +41,8 @@ SOURCES += mesh.cpp \
     nameddoublevector.cpp \
     tetrahedralmesh3d.cpp \
     tetrahedron.cpp \
-    voxelmesh.cpp
+    voxelmesh.cpp \
+    meshlist.cpp
 
 HEADERS += mesh.h \
     point.h \
@@ -76,7 +77,8 @@ HEADERS += mesh.h \
     nameddoublevector.h \
     tetrahedralmesh3d.h \
     tetrahedron.h \
-    voxelmesh.h
+    voxelmesh.h \
+    meshlist.h
 unix:!symbian {
     maemo5 {
         target.path = /opt/usr/lib
