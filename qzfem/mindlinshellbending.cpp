@@ -18,6 +18,7 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh,
     Dc_(0, 0) = D_(2, 2); Dc_(0, 1) = 0.0;
     Dc_(1, 0) = 0.0; Dc_(1, 1) = D_(2, 2);
     alpha_ = alphaT;
+    thickness_func_ = nullptr;
 }
 
 MindlinShellBending::MindlinShellBending(Mesh3D *mesh,
@@ -32,6 +33,27 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh,
     D_ = D;
     Dc_ = Dc;
     alpha_ = alphaT;
+    thickness_func_ = nullptr;
+}
+
+MindlinShellBending::MindlinShellBending(Mesh3D *mesh, std::function<double (double, double, double)> thickness_func, const DoubleMatrix &planeStressMatrix, const std::list<FemCondition *> &conditions, double alphaT) :
+    Fem2D(mesh, 6, conditions)
+{
+    D_ = planeStressMatrix;
+    Dc_.resize(2, 2);
+    Dc_(0, 0) = D_(2, 2); Dc_(0, 1) = 0.0;
+    Dc_(1, 0) = 0.0; Dc_(1, 1) = D_(2, 2);
+    alpha_ = alphaT;
+    thickness_func_ = thickness_func;
+}
+
+MindlinShellBending::MindlinShellBending(Mesh3D *mesh, std::function<double (double, double, double)> thickness_func, const DoubleMatrix &D, const DoubleMatrix &Dc, const std::list<FemCondition *> &conditions, double alphaT) :
+    Fem2D(mesh, 6, conditions)
+{
+    D_ = D;
+    Dc_ = Dc;
+    alpha_ = alphaT;
+    thickness_func_ = thickness_func;
 }
 
 /*
@@ -271,8 +293,10 @@ void MindlinShellBending::buildGlobalMatrix()
     D_.print();
     std::cout << "Dc:" << std::endl;
     Dc_.print();
-    std::cout << "Thickness: " << thickness_ << std::endl;
-
+    if (thickness_func_ == nullptr)
+        std::cout << "Thickness: " << thickness_ << std::endl;
+    else
+        std::cout << "Thickness is variable." << std::endl;
     // температурные деформации
     DoubleVector epsilon0(3, 0.0);
     epsilon0(0) = alpha_;
@@ -292,6 +316,7 @@ void MindlinShellBending::buildGlobalMatrix()
         Point3D B = *(dynamic_cast<const Point3D *>(mesh_->node(element->vertexNode(1))));
         Point3D C = *(dynamic_cast<const Point3D *>(mesh_->node(element->vertexNode(2))));
         DoubleMatrix lambda = cosinuses(A, B, C);
+        DoubleMatrix lambdaT = lambda.transpose();
         DoubleMatrix T(freedom_ * elementNodes, freedom_ * elementNodes, 0.0);
         DoubleVector epsilonForce(freedom_ * elementNodes, 0.0);
         for (UInteger i = 0; i <= (freedom_ * elementNodes - 3); i += 3)
@@ -351,13 +376,34 @@ void MindlinShellBending::buildGlobalMatrix()
                 Bc(0, i * freedom_ + 2) = dNdX(i);  Bc(0, i * freedom_ + 3) = N(i);
                 Bc(1, i * freedom_ + 2) = dNdY(i);  Bc(1, i * freedom_ + 4) = N(i);
             }
-
+            if (thickness_func_ != nullptr)
+            {
+                double xLocal = x * N;
+                double yLocal = y * N;
+                Point3D pl(lambdaT(0, 0) * xLocal + lambdaT(0, 1) * yLocal,
+                           lambdaT(1, 0) * xLocal + lambdaT(1, 1) * yLocal,
+                           lambdaT(2, 0) * xLocal + lambdaT(2, 1) * yLocal);
+                Point3D pLocal = pl + A;
+                thickness_ = thickness_func_(pLocal.x(), pLocal.y(), pLocal.z());
+            }
             local += jacobian * w * thickness_ * (Bm.transpose() * D_ * Bm);
             local += jacobian * w * thickness_*thickness_*thickness_ / 12.0 * (Bf.transpose() * D_ * Bf);
             local += jacobian * w * kappa * thickness_ * (Bc.transpose() * Dc_ * Bc);
 
             epsilonForce += jacobian * w * thickness_ * ((Bm.transpose() * D_) * epsilon0);
         } // ig
+        double max_local = -1.0E20;
+        for (UInteger i = 0; i < freedom_ * elementNodes; i++)
+        {
+            for (UInteger j = 0; j < freedom_ * elementNodes; j++)
+            {
+                if (max_local < local(i, j)) max_local = local(i, j);
+            }
+        }
+        for (UInteger i = 0; i < elementNodes; i++)
+        {
+            local(i * freedom_ + 5, i * freedom_ + 5) = max_local * 1.0E-3;
+        }
 
         DoubleMatrix surf = T.transpose() * local * T;
         // Ансамблирование
@@ -763,6 +809,19 @@ void MindlinShellBending::processSolution(const DoubleVector &displacement)
 
             DoubleVector dLocal = T * dis;
 
+            if (thickness_func_ != NULL)
+            {
+                double xLocal = x * N;
+                double yLocal = y * N;
+
+                Point3D pl(lambdaT(0, 0) * xLocal + lambdaT(0, 1) * yLocal,
+                           lambdaT(1, 0) * xLocal + lambdaT(1, 1) * yLocal,
+                           lambdaT(2, 0) * xLocal + lambdaT(2, 1) * yLocal);
+                // вычисление объемных сил
+                Point3D pLocal = pl + A;
+                thickness_ = thickness_func_(pLocal.x(), pLocal.y(), pLocal.z());
+            }
+
             sigma_membrane = (D_ * Bm) * dLocal;
             sigma_plate = thickness_ / 2.0 * ((D_ * Bf) * dLocal);
             sigma[0] = sigma_membrane[0] + sigma_plate[0];
@@ -808,6 +867,35 @@ void MindlinShellBending::processSolution(const DoubleVector &displacement)
     mesh_->addDataVector("Tau XZ", TauXZ);
     mesh_->addDataVector("Tau YZ", TauYZ);
     mesh_->addDataVector("von Mises", mises);
+
+    std::vector<double> ForceX(nodesCount, 0.0);
+    std::vector<double> ForceY(nodesCount, 0.0);
+    std::vector<double> ForceZ(nodesCount, 0.0);
+
+    for (UInteger i = 0; i < nodesCount; i++)
+    {
+        ForceX[i] = force_[freedom_ * i];
+        ForceY[i] = force_[freedom_ * i + 1UL];
+        ForceZ[i] = force_[freedom_ * i + 2UL];
+        ForceZ[i] = force_[freedom_ * i + 2UL];
+//        theta_x[i] = displacement[freedom_ * i + 3UL];
+//        theta_y[i] = displacement[freedom_ * i + 4UL];
+//        theta_z[i] = displacement[freedom_ * i + 5UL];
+    }
+
+    mesh_->addDataVector("Force X", ForceX);
+    mesh_->addDataVector("Force Y", ForceY);
+    mesh_->addDataVector("Force Z", ForceZ);
+    if (thickness_func_ != nullptr)
+    {
+        std::vector<double> thickness(nodesCount, 0.0);
+        for (UInteger i = 0; i < nodesCount; i++)
+        {
+            Point3D point = *(dynamic_cast<const Point3D *>(mesh_->node(i)));
+            thickness[i] = thickness_func_(point.x(), point.y(), point.z());
+        }
+        mesh_->addDataVector("Thickness", thickness);
+    }
 }
 /*
 MindlinShellBending::MindlinShellBending(Mesh3D *mesh,

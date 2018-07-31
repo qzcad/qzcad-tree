@@ -45,7 +45,8 @@ public:
      * @param conditions Список условий (нагрузок и граничных условий)
      */
    // MindlinShellBending(Mesh3D *mesh, double thickness, const std::vector<double> &strain, const std::vector<double> &stress, double nu, const std::list<FemCondition *> &conditions);
-
+    MindlinShellBending(Mesh3D *mesh, std::function<double(double, double, double)> thickness_func, const DoubleMatrix &planeStressMatrix, const std::list<FemCondition *> &conditions, double alphaT = 0.0);
+    MindlinShellBending(Mesh3D *mesh, std::function<double(double, double, double)> thickness_func, const DoubleMatrix &D, const DoubleMatrix &Dc, const std::list<FemCondition *> &conditions, double alphaT = 0.0);
 protected:
     /**
      * @brief Метод для построения глобальной матрицы системы
@@ -66,6 +67,7 @@ protected:
     DoubleMatrix D_; //!< Матрица упругости
     DoubleMatrix Dc_; //!< Матрица упругости
     double alpha_; //!< Коэффициент температурного напряжения
+    std::function<double(double, double, double)> thickness_func_;
 };
 
 #endif // MINDLINSHELLBENDING_H

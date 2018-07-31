@@ -894,7 +894,7 @@ QScriptValue QZScriptEngine::createRuppert(QScriptContext *context, QScriptEngin
                 return engine->newQObject(qtm, QScriptEngine::ScriptOwnership);
             }
             QTriangleMesh2D  *qtm = new QTriangleMesh2D();
-            qtm->ruppert(xCount, yCount, origin->x(), origin->y(), width, height, func, pointList);
+            qtm->ruppert(xCount, yCount, origin->x(), origin->y(), width, height, func, pointList, true);
             return engine->newQObject(qtm, QScriptEngine::ScriptOwnership);
         }
     return context->throwError(QObject::tr("ruppert(xCount: Integer, yCount: Integer, origin: Point, width: Floating, height: Floating): arguments count error."));
@@ -2670,6 +2670,36 @@ QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine
 
             fem_ = new MindlinShellBending (mesh, //!
                                             h,
+                                            D,
+                                            conditions);
+            fem_->solve();
+            setMesh(mesh);
+        }
+        else if (context->argument(1).isFunction() && context->argument(2).isNumber() && context->argument(3).isNumber())
+        {
+            QScriptValue h_func = context->argument(1);
+            double E = context->argument(2).toNumber();
+            double nu = context->argument(3).toNumber();
+
+            DoubleMatrix D;
+
+            auto thickness_func = [&](double x, double y, double z) -> double
+            {
+                QScriptValueList args;
+                args << x << y << z;
+                QScriptValue value = h_func.call(QScriptValue(), args);
+                return value.toNumber();
+            };
+
+            if (context->argument(4).isNumber())
+                D = Fem2D::evalPlaneStressMatrix(E, nu, context->argument(4).toNumber());
+            else
+                D = Fem2D::evalPlaneStressMatrix(E, nu);
+
+            if (fem_ != NULL) delete fem_;
+
+            fem_ = new MindlinShellBending (mesh, //!
+                                            thickness_func,
                                             D,
                                             conditions);
             fem_->solve();
