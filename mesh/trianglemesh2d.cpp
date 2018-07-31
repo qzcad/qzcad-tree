@@ -23,8 +23,8 @@ TriangleMesh2D::TriangleMesh2D() : Mesh2D(NULL)
 void TriangleMesh2D::rectangleDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height)
 {
     clear();
-    double hx = width / (double)(xCount - 1);
-    double hy = height / (double)(yCount - 1);
+    double hx = width / static_cast<double>(xCount - 1);
+    double hy = height / static_cast<double>(yCount - 1);
     xMin_ = xMin;
     xMax_ = xMin + width;
     yMin_ = yMin;
@@ -34,10 +34,10 @@ void TriangleMesh2D::rectangleDomain(const UInteger &xCount, const UInteger &yCo
     // формирование массива узлов
     for (UInteger i = 0; i < xCount; i++)
     {
-        double x = xMin + (double) i * hx;
+        double x = xMin + static_cast<double>(i) * hx;
         for (UInteger j = 0; j < yCount; j++)
         {
-            double y = yMin + (double) j * hy;
+            double y = yMin + static_cast<double>(j) * hy;
             Point2D point(x, y);
 
             if ((i == 0 && j == 0) || (i == 0 && j == yCount - 1) || (i == xCount - 1 && j == 0) || (i == xCount - 1 && j == yCount - 1))
@@ -83,8 +83,8 @@ void TriangleMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yC
     xMax_ = xMin + width;
     yMin_ = yMin;
     yMax_ = yMin + height;
-    const double hx = width / (double)(xCount - 1);
-    const double hy = height / (double)(yCount - 1);
+    const double hx = width / static_cast<double>(xCount - 1);
+    const double hy = height / static_cast<double>(yCount - 1);
     double minDistance = 0.4 * sqrt(hx*hx + hy*hy);
     std::map<UInteger, UInteger> nodesMap;
     // формирование массива узлов
@@ -93,10 +93,10 @@ void TriangleMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yC
 #endif
     for (UInteger i = 0; i < xCount; i++)
     {
-        double x = xMin + (double) i * hx;
+        double x = xMin +  static_cast<double>(i) * hx;
         for (UInteger j = 0; j < yCount; j++)
         {
-            double y = yMin + (double) j * hy;
+            double y = yMin +  static_cast<double>(j) * hy;
             Point2D point(x, y);
 
             if (func(x, y) >= 0.0)
@@ -525,7 +525,7 @@ void TriangleMesh2D::delaunay(const SegmentMesh2D &mesh, std::function<double (d
                 addElement(triangle->vertexNode(0) - 4UL, triangle->vertexNode(1) - 4UL, triangle->vertexNode(2) - 4UL);
         }
     }
-    std::cout << "Done in " << (double)(clock() - start) / CLOCKS_PER_SEC << "s: " << nodesCount() << " nodes, " << elementsCount() << " elements." << std::endl;
+    std::cout << "Done in " <<  static_cast<double>(clock() - start) /  static_cast<double>(CLOCKS_PER_SEC) << "s: " << nodesCount() << " nodes, " << elementsCount() << " elements." << std::endl;
     evalNodalValues(func);
     xMin_ = smesh.xMin(); xMax_ = smesh.xMax();
     yMin_ = smesh.yMin(); yMax_ = smesh.yMax();
@@ -576,7 +576,7 @@ void TriangleMesh2D::ruppert(const SegmentMesh2D &mesh, std::function<double (do
                 addNode(B, triangulation.types[triangle->vertexNode(1)]),
                 addNode(C, triangulation.types[triangle->vertexNode(2)]));
     }
-    std::cout << "Done in " << (double)(clock() - start) / CLOCKS_PER_SEC << "s: " << nodesCount() << " nodes, " << elementsCount() << " elements." << std::endl;
+    std::cout << "Done in " <<  static_cast<double>(clock() - start) /  static_cast<double>(CLOCKS_PER_SEC) << "s: " << nodesCount() << " nodes, " << elementsCount() << " elements." << std::endl;
     evalNodalValues(func);
     xMin_ = smesh.xMin(); xMax_ = smesh.xMax();
     yMin_ = smesh.yMin(); yMax_ = smesh.yMax();
@@ -595,7 +595,7 @@ void TriangleMesh2D::ruppert(const UInteger &xCount, const UInteger &yCount, con
     superRuppert(triangulation, &mesh, func);
     if (refineArea)
     {
-        areaRefinement(6.0 * (width / (double)(xCount - 1) * height / (double)(yCount - 1)), func, triangulation);
+        areaRefinement(6.0 * (width /  static_cast<double>(xCount - 1) * height /  static_cast<double>(yCount - 1)), func, triangulation);
         superRuppert(triangulation, &mesh, func);
     }
 
@@ -682,8 +682,8 @@ void TriangleMesh2D::ruppert(const UInteger &xCount, const UInteger &yCount, con
 
     if (refineArea)
     {
-        areaRefinement(3.0 * (width / (double)(xCount - 1) * height / (double)(yCount - 1)), func_a, triangulation);
-        areaRefinement(3.0 * (width / (double)(xCount - 1) * height / (double)(yCount - 1)), func_b, triangulation);
+        areaRefinement(3.0 * (width /  static_cast<double>(xCount - 1) * height /  static_cast<double>(yCount - 1)), func_a, triangulation);
+        areaRefinement(3.0 * (width /  static_cast<double>(xCount - 1) * height /  static_cast<double>(yCount - 1)), func_b, triangulation);
         superRuppert(triangulation, &mesh, NULL);
     }
 

@@ -14,19 +14,19 @@ HexahedralMesh3D::HexahedralMesh3D() : Mesh3D(NULL)
 void HexahedralMesh3D::prismDomain(const UInteger &xCount, const UInteger &yCount, const UInteger &zCount, const double &xMin, const double &yMin, const double &zMin, const double &width, const double &height, const double &depth)
 {
     clear();
-    double hx = width / (double)(xCount - 1);
-    double hy = height / (double)(yCount - 1);
-    double hz = depth / (double)(zCount - 1);
+    double hx = width / static_cast<double>(xCount - 1);
+    double hy = height / static_cast<double>(yCount - 1);
+    double hz = depth / static_cast<double>(zCount - 1);
     // формирование массива узлов
     for (UInteger i = 0; i < xCount; i++)
     {
-        double x = xMin + (double) i * hx;
+        double x = xMin + static_cast<double>(i) * hx;
         for (UInteger j = 0; j < yCount; j++)
         {
-            double y = yMin + (double) j * hy;
+            double y = yMin + static_cast<double>(j) * hy;
             for (UInteger k = 0; k < zCount; k++)
             {
-                double z = zMin + (double)k * hz;
+                double z = zMin + static_cast<double>(k) * hz;
                 Point3D point(x, y, z);
 
                 //                if ((i == 0 && j == 0) || (i == 0 & j == yCount - 1) || (i == xCount - 1 && j == 0) || (i == xCount - 1 & j == yCount - 1))
@@ -78,7 +78,7 @@ void HexahedralMesh3D::rotateBaseMesh(QuadrilateralMesh2D *baseMesh, const doubl
     UInteger i;
     // текущий угол поворта
     double phi;
-    double delta_phi = 2.0 * M_PI / (double) lCount;
+    double delta_phi = 2.0 * M_PI / static_cast<double>(lCount);
     // номера вершин шестигранника
     UInteger nodes_pointers[8];
     UInteger baseNodesCount = baseMesh->nodesCount();
@@ -86,7 +86,7 @@ void HexahedralMesh3D::rotateBaseMesh(QuadrilateralMesh2D *baseMesh, const doubl
     // формирование узлов
     for(int iz = 0; iz < lCount; iz++)
     {
-        phi = (double)iz * delta_phi;
+        phi = static_cast<double>(iz) * delta_phi;
 
         for(i = 0; i < baseNodesCount; i++)
         {
@@ -181,7 +181,7 @@ void HexahedralMesh3D::rotateBaseMesh(QuadrilateralMesh2D *baseMesh, const doubl
     UInteger i;
     // текущий угол поворта
     double phi;
-    double delta_phi = angle * M_PI / ((double) lCount * 180.0);
+    double delta_phi = angle * M_PI / (static_cast<double>(lCount) * 180.0);
     // номера вершин шестигранника
     UInteger nodes_pointers[8];
     UInteger baseNodesCount = baseMesh->nodesCount();
@@ -189,7 +189,7 @@ void HexahedralMesh3D::rotateBaseMesh(QuadrilateralMesh2D *baseMesh, const doubl
     // формирование узлов
     for(int iz = 0; iz <= lCount; iz++)
     {
-        phi = (double)iz * delta_phi;
+        phi = static_cast<double>(iz) * delta_phi;
 
         for(i = 0; i < baseNodesCount; i++)
         {
@@ -359,9 +359,9 @@ void HexahedralMesh3D::clearElements()
 void HexahedralMesh3D::sweepBaseMesh(QuadrilateralMesh2D *baseMesh, const double &z0, const double &z1, const double &phi0, const double &phi1, const double &k0, const double &k1, const int &zLayersCount)
 {
     clear();
-    double hz = (z1 - z0) / (double)zLayersCount;
-    double hphi = (phi1 - phi0) / (double)zLayersCount;
-    double hk = (k1 - k0) / (double)zLayersCount;
+    double hz = (z1 - z0) / static_cast<double>(zLayersCount);
+    double hphi = (phi1 - phi0) / static_cast<double>(zLayersCount);
+    double hk = (k1 - k0) / static_cast<double>(zLayersCount);
     double z = z0;
     double phi = phi0;
     double k = k0;
@@ -388,14 +388,14 @@ void HexahedralMesh3D::sweepBaseMesh(QuadrilateralMesh2D *baseMesh, const double
         {
             Quadrilateral quad = baseMesh->quadrilateral(j);
             std::vector<UInteger> nnode(8);
-            nnode[0] = quad[0] + (UInteger)i * baseMesh->nodesCount();
-            nnode[1] = quad[1] + (UInteger)i * baseMesh->nodesCount();
-            nnode[2] = quad[2] + (UInteger)i * baseMesh->nodesCount();
-            nnode[3] = quad[3] + (UInteger)i * baseMesh->nodesCount();
-            nnode[4] = quad[0] + (UInteger)(i + 1) * baseMesh->nodesCount();
-            nnode[5] = quad[1] + (UInteger)(i + 1) * baseMesh->nodesCount();
-            nnode[6] = quad[2] + (UInteger)(i + 1) * baseMesh->nodesCount();
-            nnode[7] = quad[3] + (UInteger)(i + 1) * baseMesh->nodesCount();
+            nnode[0] = quad[0] + static_cast<UInteger>(i) * baseMesh->nodesCount();
+            nnode[1] = quad[1] + static_cast<UInteger>(i) * baseMesh->nodesCount();
+            nnode[2] = quad[2] + static_cast<UInteger>(i) * baseMesh->nodesCount();
+            nnode[3] = quad[3] + static_cast<UInteger>(i) * baseMesh->nodesCount();
+            nnode[4] = quad[0] + static_cast<UInteger>(i + 1) * baseMesh->nodesCount();
+            nnode[5] = quad[1] + static_cast<UInteger>(i + 1) * baseMesh->nodesCount();
+            nnode[6] = quad[2] + static_cast<UInteger>(i + 1) * baseMesh->nodesCount();
+            nnode[7] = quad[3] + static_cast<UInteger>(i + 1) * baseMesh->nodesCount();
             addElement(nnode);
         }
     }

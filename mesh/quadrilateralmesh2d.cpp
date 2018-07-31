@@ -31,15 +31,15 @@ void QuadrilateralMesh2D::rectangleDomain(const UInteger &xCount,
 
 {
     clear();
-    double hx = width / (double)(xCount - 1);
-    double hy = height / (double)(yCount - 1);
+    double hx = width / static_cast<double>(xCount - 1);
+    double hy = height / static_cast<double>(yCount - 1);
     // формирование массива узлов
     for (UInteger i = 0; i < xCount; i++)
     {
-        double x = xMin + (double) i * hx;
+        double x = xMin + static_cast<double>(i) * hx;
         for (UInteger j = 0; j < yCount; j++)
         {
-            double y = yMin + (double) j * hy;
+            double y = yMin + static_cast<double>(j) * hy;
             Point2D point(x, y);
 
             if ((i == 0 && j == 0) || (i == 0 && j == yCount - 1) || (i == xCount - 1 && j == 0) || (i == xCount - 1 && j == yCount - 1))
@@ -71,14 +71,14 @@ void QuadrilateralMesh2D::quadDomain(const UInteger &xCount, const UInteger &yCo
                                          const Point2D &v2, const Point2D &v3)
 {
     clear();
-    double hx = 2.0 / (double)(xCount - 1);
-    double hy = 2.0 / (double)(yCount - 1);
+    double hx = 2.0 / static_cast<double>(xCount - 1);
+    double hy = 2.0 / static_cast<double>(yCount - 1);
     for (UInteger i = 0; i < xCount; i++)
     {
-        double xi = -1.0 + (double) i * hx;
+        double xi = -1.0 + static_cast<double>(i) * hx;
         for (UInteger j = 0; j < yCount; j++)
         {
-            double eta = -1.0 + (double) j * hy;
+            double eta = -1.0 + static_cast<double>(j) * hy;
             Point2D point = isoFunc(0, xi, eta) * v0  + isoFunc(1, xi, eta) * v1 + isoFunc(2, xi, eta) * v2 + isoFunc(3, xi, eta) * v3;
 
             if ((i == 0 && j == 0) || (i == 0 && j == yCount - 1) || (i == xCount - 1 && j == 0) || (i == xCount - 1 && j == yCount - 1))
@@ -112,7 +112,7 @@ void QuadrilateralMesh2D::triangleDomain(const UInteger &count, const Point2D &v
     Point2D c12 = (v1 + v2) / 2.0; // центр стороны, соединяющей вершину 1 и 2
     Point2D c20 = (v2 + v0) / 2.0; // центр стороны, соединяющей вершину 2 и 0
     UInteger sideCount = count / 2 + 1;
-    double h = 2.0 / (double)(sideCount - 1); // шаг изо-сетки
+    double h = 2.0 / static_cast<double>(sideCount - 1); // шаг изо-сетки
     Point2D quads [][4] = {
         {c20, v0, c01, center},
         {c01, v1, c12, center},
@@ -123,10 +123,10 @@ void QuadrilateralMesh2D::triangleDomain(const UInteger &count, const Point2D &v
         UInteger nodeNumber[sideCount * sideCount];
         for (UInteger i = 0; i < sideCount; i++)
         {
-            double xi = -1.0 + (double) i * h;
+            double xi = -1.0 + static_cast<double>(i) * h;
             for (UInteger j = 0; j < sideCount; j++)
             {
-                double eta = -1.0 + (double) j * h;
+                double eta = -1.0 + static_cast<double>(j) * h;
                 Point2D point = isoFunc(0, xi, eta) * quads[q][0]  +
                         isoFunc(1, xi, eta) * quads[q][1] +
                         isoFunc(2, xi, eta) * quads[q][2] +
@@ -354,8 +354,8 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
     yMax_ = yMin + height;
     std::clock_t start;
     double duration;
-    const double hx = width / (double)(xCount - 1);
-    const double hy = height / (double)(yCount - 1);
+    const double hx = width / static_cast<double>(xCount - 1);
+    const double hy = height / static_cast<double>(yCount - 1);
     const double iso_dist = sqrt(hx*hx + hy*hy);
     std::cout << "Building initial mesh..." << std::endl;
     ConsoleProgress progress_bar(xCount-1);
@@ -365,10 +365,10 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
 #endif
     for (UInteger i = 0; i < xCount-1; i++)
     {
-        double x = xMin + (double) i * hx;
+        double x = xMin + static_cast<double>(i) * hx;
         for (UInteger j = 0; j < yCount-1; j++)
         {
-            double y = yMin + (double) j * hy;
+            double y = yMin + static_cast<double>(j) * hy;
 
 
             if (func(x, y) > epsilon_ && func(x + hx, y) > epsilon_ && func(x + hx, y + hy) > epsilon_ && func(x, y + hy) > epsilon_)
@@ -385,7 +385,7 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
         }
         ++progress_bar;
     }
-    duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+    duration = ( std::clock() - start ) / static_cast<double>(CLOCKS_PER_SEC);
     std::cout << "Done in " << duration << " seconds." << std::endl;
     UInteger baseElementCount = elementsCount();
     std::vector<Point2D> normal(nodesCount()); // нормали к узлам
@@ -480,7 +480,7 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
             }
         } // for i
     }
-    duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+    duration = ( std::clock() - start ) /  static_cast<double>(CLOCKS_PER_SEC);
     std::cout << "Done in " << duration << " seconds." << std::endl;
     // поиск изо-точек на границе
     std::vector<UInteger> iso(nodesCount()); // изо-точки (номера)
@@ -540,7 +540,7 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
             min_n->type = CHARACTER;
         }
     }
-    duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+    duration = ( std::clock() - start ) /  static_cast<double>(CLOCKS_PER_SEC);
     std::cout << "Done in " << duration << " seconds." << std::endl;
 //    std::cout << "Smoothing border...";
 //    for (int iii = 0; iii < 4; iii++)
@@ -647,7 +647,7 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
             }
         }
     }
-    duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+    duration = ( std::clock() - start ) /  static_cast<double>(CLOCKS_PER_SEC);
     std::cout << "Done in " << duration << " seconds." << std::endl;
     SegmentMesh2D smesh;
     std::vector<UInteger> snum(nodesCount()); // изо-точки (номера)
@@ -709,12 +709,12 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
                         }
                     }
                 }
-                node_[i].point = (1.0 / (double)acount) * nn;
+                node_[i].point = (1.0 /  static_cast<double>(acount)) * nn;
             }
         } // for i
         std::cout << '*';
     }
-    duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+    duration = ( std::clock() - start ) /  static_cast<double>(CLOCKS_PER_SEC);
     std::cout << "Done in " << duration << " seconds." << std::endl;
 
     std::cout << "Local optimization smoothing...";
@@ -777,7 +777,7 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
             ++progress_bar;
         } // for i
     }
-    duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+    duration = ( std::clock() - start ) /  static_cast<double>(CLOCKS_PER_SEC);
     std::cout << "Done in " << duration << " seconds." << std::endl;
 //    minimizeFunctional();
     evalNodalValues(func);
@@ -818,13 +818,13 @@ void QuadrilateralMesh2D::minimizeFunctional()
         /*if (p23.length() < h)*/ h += p23.length();
         /*if (p30.length() < h)*/ h += p30.length();
     }
-    h /= (4.0 * (double)elementsCount());
+    h /= (4.0 *  static_cast<double>(elementsCount()));
     std::cout << "The mesh-defined functional, h = " << h << ", epsilon = " << h*h << ", zeroth approximation: " << functional(x0) << std::endl;
     start = std::clock();
     CoordinateFunction func = std::bind(&QuadrilateralMesh2D::functional, this, std::placeholders::_1);
 //    std::vector<double> x = descentGradient(func, x0, h, h*h);
     std::vector<double> x = conjugateGradient(func, x0, 0.01 * h, 0.0001*h, 40, false);
-    double duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+    double duration = ( std::clock() - start ) /  static_cast<double>(CLOCKS_PER_SEC);
     std::cout << "Done in " << duration << " seconds." << std::endl;
     std::cout << functional(x) << std::endl;
     for (UInteger i = 0; i < node_.size(); i++)
@@ -973,8 +973,8 @@ double QuadrilateralMesh2D::functional(const std::vector<double> &vars)
 template<typename TopFunc, typename BottomFunc, typename LeftFunc, typename RightFunc>
 void QuadrilateralMesh2D::addTransfiniteMesh(TopFunc top, BottomFunc bottom, LeftFunc left, RightFunc right, const UInteger &xiCount, const UInteger &etaCount)
 {
-    const double hXi = 1.0 / (double)(xiCount - 1);
-    const double hEta = 1.0 / (double)(etaCount - 1);
+    const double hXi = 1.0 /  static_cast<double>(xiCount - 1);
+    const double hEta = 1.0 /  static_cast<double>(etaCount - 1);
     double xi = 0.0;
     double eta = 0.0;
     UInteger nodeNumber[xiCount * etaCount];

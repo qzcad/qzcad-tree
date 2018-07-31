@@ -134,7 +134,7 @@ Point3D Mesh3D::normal(const UIntegerVector &face) const
         Point3D next = (i == fs - 1) ? node_[face[0]].point : node_[face[i + 1]].point;
         n = n + normal3(prev, curr, next);
     }
-    n.scale(1.0 / (double)fs);
+    n.scale(1.0 / static_cast<double>(fs));
     return n.normalized();
 }
 

@@ -3,6 +3,8 @@
 #include <math.h>
 #include <iostream>
 
+#include "integer.h"
+
 namespace msh {
 
 TetrahedralMesh3D::TetrahedralMesh3D() : Mesh3D(NULL)
@@ -82,9 +84,9 @@ void TetrahedralMesh3D::clearElements()
 void TetrahedralMesh3D::sweepBaseMesh(TriangleMesh2D *baseMesh, const double &z0, const double &z1, const double &phi0, const double &phi1, const double &k0, const double &k1, const int &zLayersCount)
 {
     clear();
-    double hz = (z1 - z0) / (double)zLayersCount;
-    double hphi = (phi1 - phi0) / (double)zLayersCount;
-    double hk = (k1 - k0) / (double)zLayersCount;
+    double hz = (z1 - z0) / static_cast<double>(zLayersCount);
+    double hphi = (phi1 - phi0) / static_cast<double>(zLayersCount);
+    double hk = (k1 - k0) / static_cast<double>(zLayersCount);
     double z = z0;
     double phi = phi0;
     double k = k0;
@@ -120,12 +122,12 @@ void TetrahedralMesh3D::sweepBaseMesh(TriangleMesh2D *baseMesh, const double &z0
             Triangle triangle = baseMesh->triangle(j);
             UInteger V[6];
             int r = 0;
-            V[0] = triangle[0] + (UInteger)i * baseMesh->nodesCount();
-            V[1] = triangle[1] + (UInteger)i * baseMesh->nodesCount();
-            V[2] = triangle[2] + (UInteger)i * baseMesh->nodesCount();
-            V[3] = triangle[0] + (UInteger)(i + 1) * baseMesh->nodesCount();
-            V[4] = triangle[1] + (UInteger)(i + 1) * baseMesh->nodesCount();
-            V[5] = triangle[2] + (UInteger)(i + 1) * baseMesh->nodesCount();
+            V[0] = triangle[0] + static_cast<UInteger>(i) * baseMesh->nodesCount();
+            V[1] = triangle[1] + static_cast<UInteger>(i) * baseMesh->nodesCount();
+            V[2] = triangle[2] + static_cast<UInteger>(i) * baseMesh->nodesCount();
+            V[3] = triangle[0] + static_cast<UInteger>(i + 1) * baseMesh->nodesCount();
+            V[4] = triangle[1] + static_cast<UInteger>(i + 1) * baseMesh->nodesCount();
+            V[5] = triangle[2] + static_cast<UInteger>(i + 1) * baseMesh->nodesCount();
             if (V[0] < V[1] && V[0] < V[2]) r = 0;
             if (V[1] < V[0] && V[1] < V[2]) r = 1;
             if (V[2] < V[0] && V[2] < V[1]) r = 2;

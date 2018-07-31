@@ -34,8 +34,8 @@ void SegmentMesh2D::MarchingQuads(const UInteger &xCount, const UInteger &yCount
     yMin_ = yMin;
     yMax_ = yMin + height;
 
-    const double hx = width / (double)(xCount - 1);
-    const double hy = height / (double)(yCount - 1);
+    const double hx = width / static_cast<double>(xCount - 1);
+    const double hy = height / static_cast<double>(yCount - 1);
 //    const double tolerance = 0.2;
 
     ConsoleProgress progress(xCount - 1);
@@ -174,8 +174,8 @@ void SegmentMesh2D::contourGraph(const UInteger &xCount, const UInteger &yCount,
     xMax_ = xMin + width;
     yMin_ = yMin;
     yMax_ = yMin + height;
-    const double hx = width / (double)(xCount - 1);
-    const double hy = height / (double)(yCount - 1);
+    const double hx = width / static_cast<double>(xCount - 1);
+    const double hy = height / static_cast<double>(yCount - 1);
     double maxf = 0.0;
     double h = 0.0;
 
@@ -196,13 +196,13 @@ void SegmentMesh2D::contourGraph(const UInteger &xCount, const UInteger &yCount,
     }
     std::cout << "max(f) = " << maxf << std::endl;
 
-    h = maxf / (double)contours;
+    h = maxf / static_cast<double>(contours);
 
     for (int i = 1; i < contours; i++)
     {
         SegmentMesh2D S;
         std::list<Point2D> C;
-        S.MarchingQuads(xCount, yCount, xMin, yMin, width, height, func, C, 0.0 + (double)i * h, smooth, optimize);
+        S.MarchingQuads(xCount, yCount, xMin, yMin, width, height, func, C, 0.0 +  static_cast<double>(i) * h, smooth, optimize);
         for (UInteger j = 0; j < S.elementsCount(); j++)
         {
             addElement(pushNode(S.node(S.element_[j][0]), S.nodeType(S.element_[j][0])), pushNode(S.node(S.element_[j][1]), S.nodeType(S.element_[j][1])));
@@ -221,8 +221,8 @@ void SegmentMesh2D::frontGraph(const UInteger &xCount, const UInteger &yCount, c
     xMax_ = xMin + width;
     yMin_ = yMin;
     yMax_ = yMin + height;
-    const double hx = width / (double)(xCount - 1);
-    const double hy = height / (double)(yCount - 1);
+    const double hx = width /  static_cast<double>(xCount - 1);
+    const double hy = height /  static_cast<double>(yCount - 1);
     double maxf = 0.0;
 //    double h = 0.0;
 
@@ -276,13 +276,13 @@ void SegmentMesh2D::frontGraph(const UInteger &xCount, const UInteger &yCount, c
     }
     std::cout << "max(f) = " << maxf << std::endl;
 
-    double h = maxf / (double)contours;
+    double h = maxf /  static_cast<double>(contours);
 
     for (int i = 1; i < contours; i++)
     {
         SegmentMesh2D S;
         std::list<Point2D> C;
-        S.MarchingQuads(xCount, yCount, xMin, yMin, width, height, contour_func, C, (double)i * h, smooth, optimize);
+        S.MarchingQuads(xCount, yCount, xMin, yMin, width, height, contour_func, C,  static_cast<double>(i) * h, smooth, optimize);
         for (UInteger j = 0; j < S.elementsCount(); j++)
         {
             addElement(pushNode(S.node(S.element_[j][0]), S.nodeType(S.element_[j][0])), pushNode(S.node(S.element_[j][1]), S.nodeType(S.element_[j][1])));
@@ -302,7 +302,7 @@ void SegmentMesh2D::frontGraph(const UInteger &xCount, const UInteger &yCount, c
 
 void SegmentMesh2D::parametricDomain(const UInteger &count, const double &tmin, const double &tmax, std::function<Point2D (double)> domainFunction)
 {
-    double h = (tmax - tmin) / (double)(count - 1);
+    double h = (tmax - tmin) /  static_cast<double>(count - 1);
     double t = tmin;
     std::vector<double> parametric_nodes;
     bool isClosed = (domainFunction(tmin)).isEqualTo(domainFunction(tmax), epsilon_);
@@ -631,7 +631,7 @@ void SegmentMesh2D::laplacianSmoothing(std::function<double(double, double)> fun
             }
         }
     }
-    std::cout << "Done in " << (double)(clock() - start) / CLOCKS_PER_SEC << "s." << std::endl;
+    std::cout << "Done in " <<  static_cast<double>(clock() - start) /  static_cast<double>(CLOCKS_PER_SEC) << "s." << std::endl;
 }
 
 void SegmentMesh2D::distlenSmoothing(std::function<double (double, double)> func, double level, int iter_num)
@@ -766,7 +766,7 @@ void SegmentMesh2D::distlenSmoothing(std::function<double (double, double)> func
             ++progress;
         }
     }
-    std::cout << "Done in " << (double)(clock() - start) / CLOCKS_PER_SEC << "s." << std::endl;
+    std::cout << "Done in " <<  static_cast<double>(clock() - start) /  static_cast<double>(CLOCKS_PER_SEC) << "s." << std::endl;
 }
 
 void SegmentMesh2D::curvatureSmoothing(std::function<double (double, double)> func, double level, double alpha, int iter_num)
@@ -801,7 +801,7 @@ void SegmentMesh2D::curvatureSmoothing(std::function<double (double, double)> fu
         }
         std::cout << std::endl;
     }
-    std::cout << "Done in " << (double)(clock() - start) / CLOCKS_PER_SEC << "s: " << nodesCount() << " nodes, " << elementsCount() << " elements." << std::endl;
+    std::cout << "Done in " <<  static_cast<double>(clock() - start) /  static_cast<double>(CLOCKS_PER_SEC) << "s: " << nodesCount() << " nodes, " << elementsCount() << " elements." << std::endl;
 }
 
 double SegmentMesh2D::cfunction(const double &x, const double &y)

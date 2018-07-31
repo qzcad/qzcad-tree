@@ -38,7 +38,7 @@ double line(const double &x, const double &y, const double &x1, const double &y1
 
 double regular(const double &x, const double &y, const double &r, const int &n)
 {
-    double a = 2.0 * M_PI / (double)n;
+    double a = 2.0 * M_PI /  static_cast<double>(n);
     double res = line(x, y, r, 0.0, r * cos(a), r * sin(a));
     double alpha = a;
     double x1 = r * cos(a);

@@ -26,8 +26,8 @@ QuadrilateralMesh3D::QuadrilateralMesh3D(const QuadrilateralMesh3D *mesh) : Mesh
 void QuadrilateralMesh3D::cylinderDomain(const UInteger &rCount, const UInteger &lCount, const double &radius, const double &length)
 {
     clear();
-    double hphi = 2.0 * M_PI / (double)rCount;
-    double hl = length / (double)lCount;
+    double hphi = 2.0 * M_PI / static_cast<double>(rCount);
+    double hl = length / static_cast<double>(lCount);
     double phi = 0.0;
     // формирование массива узлов
     for (UInteger i = 0; i < rCount; i++)
@@ -77,8 +77,8 @@ void QuadrilateralMesh3D::cylinderDomain(const UInteger &rCount, const UInteger 
 void QuadrilateralMesh3D::cylinderDomain(const UInteger &rCount, const UInteger &lCount, std::function<double (double)> radius, const double &length)
 {
     clear();
-    double hphi = 2.0 * M_PI / (double)rCount;
-    double hl = length / (double)lCount;
+    double hphi = 2.0 * M_PI / static_cast<double>(rCount);
+    double hl = length / static_cast<double>(lCount);
     double phi = 0.0;
     double r_max = 0.0;
     // формирование массива узлов
@@ -131,8 +131,8 @@ void QuadrilateralMesh3D::cylinderDomain(const UInteger &rCount, const UInteger 
 void QuadrilateralMesh3D::coneDomain(const UInteger &rCount, const UInteger &lCount, const double &bottom_radius, const double &top_radius, const double &length)
 {
     clear();
-    double hxi = 1.0 / (double)rCount;
-    double heta = 1.0 / (double)lCount;
+    double hxi = 1.0 / static_cast<double>(rCount);
+    double heta = 1.0 / static_cast<double>(lCount);
     double xi = 0.0;
     double radius;
     double phi;
@@ -503,7 +503,7 @@ void QuadrilateralMesh3D::laplacianSmoothing(std::function<double (double, doubl
             {
                 point = point + node_[npointer].point;
             }
-            point.scale(1.0 / (double)neighbours.size());
+            point.scale(1.0 /  static_cast<double>(neighbours.size()));
             for (UInteger elnum: adjacent)
             {
                 Quadrilateral q = element_[elnum];
@@ -512,7 +512,7 @@ void QuadrilateralMesh3D::laplacianSmoothing(std::function<double (double, doubl
                 Point3D b(point, node_[q[index + 1]].point);
                 avr_len += 0.5 * (a.length() + b.length());
             }
-            avr_len /= (double)adjacent.size();
+            avr_len /=  static_cast<double>(adjacent.size());
             node_[nnode].point = findBorder(point, func, 0.1 * avr_len, level);
             ++progress;
         }
