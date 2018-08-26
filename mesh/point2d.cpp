@@ -1,4 +1,5 @@
 #include <math.h>
+#include <float.h>
 #include <iostream>
 #include "point2d.h"
 
@@ -67,7 +68,8 @@ Point2D &Point2D::operator =(const Point2D &point)
 
 bool operator ==(const Point2D &leftPoint, const Point2D &rightPoint)
 {
-    return (leftPoint.x() == rightPoint.x()) && (leftPoint.y() == rightPoint.y());
+//    return (leftPoint.x() == rightPoint.x()) && (leftPoint.y() == rightPoint.y());
+    return fabs(leftPoint.x() - rightPoint.x()) < DBL_EPSILON && fabs(leftPoint.y() - rightPoint.y()) < DBL_EPSILON;
 }
 
 const Point2D operator -(const Point2D &point)
@@ -92,7 +94,8 @@ double Point2D::operator *(const Point2D &point) const
 
 bool operator <(const Point2D &leftPoint, const Point2D &rightPoint)
 {
-    return  (leftPoint.x() < rightPoint.x()) || (leftPoint.x() == rightPoint.x() && leftPoint.y() < rightPoint.y());
+//    return (leftPoint.x() < rightPoint.x()) || (leftPoint.x() == rightPoint.x() && leftPoint.y() < rightPoint.y());
+    return (leftPoint.x() < rightPoint.x()) || (fabs(leftPoint.x() - rightPoint.x()) < DBL_EPSILON && leftPoint.y() < rightPoint.y());
 }
 
 const Point2D operator *(double dec, const Point2D &point)
@@ -180,6 +183,17 @@ void Point2D::scale(const double &d)
 {
     Point1D::scale(d);
     y_ *= d;
+}
+
+double Point2D::angle(const Point2D &B, const Point2D &C) const
+{
+    Point2D AB(*this, B);
+    Point2D AC(*this, C);
+    double ab = AB.length();
+    double ac = AC.length();
+    if (fabs(ab) < DBL_EPSILON || fabs(ac) < DBL_EPSILON)
+        return 0.0;
+    return acos((AB * AC) / ab / ac);
 }
 
 bool isCrossed(const Point2D &P0, const Point2D &P1, const Point2D &Q0, const Point2D &Q1, double &p, double &q)

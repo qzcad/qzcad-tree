@@ -165,6 +165,13 @@ public:
      * @return
      */
     friend bool isCrossed(const Point2D &P0, const Point2D &P1, const Point2D &Q0, const Point2D &Q1, double &p, double &q);
+    /**
+     * @brief Вычислить угол B-this-C
+     * @param B Первая точка угла
+     * @param C Вторая точка угла
+     * @return Угол B-this-C в радианах
+     */
+    double angle(const Point2D &B, const Point2D &C) const;
 private:
     double y_; //!< Ордината точки
 };

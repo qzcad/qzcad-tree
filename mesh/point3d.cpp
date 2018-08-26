@@ -188,15 +188,15 @@ double Point3D::operator *(const Point3D &point) const
 bool operator <=(const Point3D &leftPoint, const Point3D &rightPoint)
 {
     return  (leftPoint.x() <= rightPoint.x()) ||
-            (leftPoint.x() == rightPoint.x() && leftPoint.y() <= rightPoint.y()) ||
-            (leftPoint.x() == rightPoint.x() && leftPoint.y() == rightPoint.y() && leftPoint.z() <= rightPoint.z());
+            (fabs(leftPoint.x() - rightPoint.x()) < DBL_EPSILON && leftPoint.y() <= rightPoint.y()) ||
+            (fabs(leftPoint.x() - rightPoint.x()) < DBL_EPSILON && fabs(leftPoint.y() - rightPoint.y()) < DBL_EPSILON && leftPoint.z() <= rightPoint.z());
 }
 
 bool operator <(const Point3D &leftPoint, const Point3D &rightPoint)
 {
     return  (leftPoint.x() < rightPoint.x()) ||
-            (leftPoint.x() == rightPoint.x() && leftPoint.y() < rightPoint.y()) ||
-            (leftPoint.x() == rightPoint.x() && leftPoint.y() == rightPoint.y() && leftPoint.z() < rightPoint.z());
+            (fabs(leftPoint.x() - rightPoint.x()) < DBL_EPSILON && leftPoint.y() < rightPoint.y()) ||
+            (fabs(leftPoint.x() - rightPoint.x()) < DBL_EPSILON && fabs(leftPoint.y() - rightPoint.y()) < DBL_EPSILON && leftPoint.z() < rightPoint.z());
 }
 
 const Point3D operator /(const Point3D &point, double dec)
@@ -226,7 +226,7 @@ const Point3D operator -(const Point3D &point)
 
 bool operator ==(const Point3D &leftPoint, const Point3D &rightPoint)
 {
-    return (leftPoint.x() == rightPoint.x()) && (leftPoint.y() == rightPoint.y()) && (leftPoint.z() == rightPoint.z());
+    return fabs(leftPoint.x() - rightPoint.x()) < DBL_EPSILON && fabs(leftPoint.y() - rightPoint.y()) < DBL_EPSILON && fabs(leftPoint.z() - rightPoint.z()) < DBL_EPSILON;
 }
 
 bool isSkew(const Point3D &P0, const Point3D &P1, const Point3D &Q0, const Point3D &Q1, double &p, double &q)
