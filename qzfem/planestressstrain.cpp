@@ -1,6 +1,7 @@
 #include "planestressstrain.h"
 
 #include <iostream>
+#include <cfloat>
 #include <math.h>
 
 #include "rowdoublematrix.h"
@@ -17,6 +18,51 @@ PlaneStressStrain::PlaneStressStrain(Mesh2D *mesh,
     thickness_ = thickness;
     D_ = elasticMatrix;
     alpha_ = alphaT;
+}
+
+void PlaneStressStrain::solve(std::function<double (double, double)> func, double delta, int maxiter)
+{
+    mesh_->clearDataVectors();
+    for (int i = 0; i < maxiter; i++)
+    {
+        DoubleVector char_vec;
+        dimension_ = mesh_->nodesCount() * freedom_;
+        global_.resize(dimension_);
+        force_.resize(dimension_);
+        force_.set(0.0);
+        std::cout << "Iteration " << i + 1 << " from " << maxiter << std::endl;
+        buildGlobalMatrix();
+        buildGlobalVector();
+        processInitialValues();
+        DoubleVector solution = solveLinearSystem();
+        char_vec = adaptationVector(solution);
+        double d = char_vec.max() - char_vec.min();
+        std::list<UInteger> elements;
+        for (UInteger elnum = 0; elnum < mesh_->elementsCount(); elnum++)
+        {
+            ElementPointer element = mesh_->element(elnum);
+            bool needSubdivision = false;
+            for (int j = 0; j < element->verticesCount(); j++)
+            {
+                if ((fabs(char_vec[element->vertexNode(j)] - char_vec[element->vertexNode(j + 1)]) / fabs(d)) >= delta)
+                    needSubdivision = true;
+            }
+            if (needSubdivision) elements.push_back(elnum);
+        }
+        if (!elements.empty() && i < maxiter - 1)
+        {
+            std::cout << elements.size() << " elements must be subdivided!" << std::endl;
+            if (dynamic_cast<TriangleMesh2D*>(mesh_) != nullptr)
+                dynamic_cast<TriangleMesh2D*>(mesh_)->subdivide(elements, func);
+            else if (dynamic_cast<QuadrilateralMesh2D*>(mesh_) != nullptr)
+                dynamic_cast<QuadrilateralMesh2D*>(mesh_)->subdivide(elements, func);
+        }
+        else
+        {
+            processSolution(solution);
+            break;
+        }
+    }
 }
 
 void PlaneStressStrain::buildGlobalMatrix()
@@ -101,6 +147,8 @@ void PlaneStressStrain::buildGlobalMatrix()
             {
                 jacobian = isoQuad4(xi, eta, x, y, N, dNdX, dNdY);
             }
+            if (jacobian <= 0.0)
+                std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Poor shape element: " << elNum << std::endl;
             //
             DoubleMatrix B(3, elementNodes * freedom_, 0.0);
             for (UInteger i = 0; i < elementNodes; i++)
@@ -418,4 +466,104 @@ void PlaneStressStrain::processSolution(const DoubleVector &displacement)
     mesh_->addDataVector("Sigma Y", SigmaY);
     mesh_->addDataVector("Tau XY", TauXY);
     mesh_->addDataVector("von Mises", mises);
+}
+
+DoubleVector PlaneStressStrain::adaptationVector(const DoubleVector &displacement)
+{
+    UInteger nodesCount = mesh_->nodesCount(); // количество узлов сетки
+    UInteger elementsCount = mesh_->elementsCount(); // количество элементов
+    UInteger elementNodes = 0; // количество узлов в элементе
+
+    if (dynamic_cast<TriangleMesh2D*>(mesh_) != nullptr)
+    {
+        elementNodes = 3;
+    }
+    else if (dynamic_cast<QuadrilateralMesh2D*>(mesh_) != nullptr)
+    {
+        elementNodes = 4;
+    }
+
+    DoubleVector mises(nodesCount, 0.0);
+
+    double xi[elementNodes];
+    double eta[elementNodes];
+    if (dynamic_cast<TriangleMesh2D*>(mesh_) != nullptr)
+    {
+        xi[0] = 0.0; eta[0] = 0.0;
+        xi[1] = 1.0; eta[1] = 0.0;
+        xi[2] = 0.0; eta[2] = 1.0;
+    }
+    else if (dynamic_cast<QuadrilateralMesh2D*>(mesh_) !=nullptr)
+    {
+        xi[0] = -1.0; eta[0] = -1.0;
+        xi[1] =  1.0; eta[1] = -1.0;
+        xi[2] =  1.0; eta[2] =  1.0;
+        xi[3] = -1.0; eta[3] =  1.0;
+    }
+
+    std::cout << "Stresses Recovery...";
+    ConsoleProgress progressBar(elementsCount);
+    for (UInteger elNum = 0; elNum < elementsCount; elNum++)
+    {
+
+        ++progressBar;
+
+        DoubleVector x(elementNodes);
+        DoubleVector y(elementNodes);
+        // извлечение координат узлов
+        ElementPointer element = mesh_->element(elNum);
+        for (UInteger i = 0; i < elementNodes; i++)
+        {
+            PointPointer point = mesh_->node(element->vertexNode(i));
+            x[i] = point->x();
+            y[i] = point->y();
+        }
+
+        for (UInteger inode = 0; inode < elementNodes; inode++)
+        {
+            DoubleVector N(elementNodes);
+            DoubleVector dNdX(elementNodes);
+            DoubleVector dNdY(elementNodes);
+            DoubleMatrix dis((size_type)(freedom_ * elementNodes), (size_type)1);
+            DoubleMatrix sigma((size_type)3, (size_type)1);
+            if (dynamic_cast<TriangleMesh2D*>(mesh_) != nullptr)
+            {
+                isoTriangle3(x[inode], eta[inode], x, y, N, dNdX, dNdY);
+            }
+            else if (dynamic_cast<QuadrilateralMesh2D*>(mesh_) != nullptr)
+            {
+                isoQuad4(xi[inode], eta[inode], x, y, N, dNdX, dNdY);
+            }
+            //
+            DoubleMatrix B(3, elementNodes * freedom_, 0.0);
+            for (UInteger i = 0; i < elementNodes; i++)
+            {
+                B(0, i * freedom_) = dNdX(i);
+                                                B(1, i * freedom_ + 1) = dNdY(i);
+                B(2, i * freedom_) = dNdY(i);   B(2, i * freedom_ + 1) = dNdX(i);
+            }
+
+            for (UInteger i = 0; i < elementNodes; i++)
+            {
+                dis(i * freedom_, 0) = displacement[freedom_ * element->vertexNode(i)];
+                dis(i * freedom_ + 1, 0) = displacement[freedom_ * element->vertexNode(i) + 1];
+            }
+
+            sigma = (D_ * B) * dis;
+            mises[element->vertexNode(inode)] += sqrt(sigma(0,0)*sigma(0,0) - sigma(0,0)*sigma(1,0) + sigma(1,0)*sigma(1,0) + 3.0 * sigma(2,0)*sigma(2,0)); // general plane stress
+        }
+    } //for elNum
+    for (UInteger i = 0; i < nodesCount; i++)
+    {
+        mises[i] /= static_cast<double>(mesh_->adjacentCount(i));
+    }
+    return mises;
+//    DoubleVector dsp(nodesCount);
+//    for (UInteger i = 0; i < nodesCount; i++)
+//    {
+////        dsp[i] = displacement[freedom_ * i];
+////        dsp[i] = displacement[freedom_ * i + 1];
+//        dsp[i] = sqrt(displacement[freedom_ * i] * displacement[freedom_ * i] + displacement[freedom_ * i + 1] * displacement[freedom_ * i + 1]);
+//    }
+//    return  dsp;
 }

@@ -42,6 +42,7 @@ public:
                       const DoubleMatrix &elasticMatrix,
                       const std::list<FemCondition *> &conditions,
                       double alphaT = 0.0);
+    virtual void solve(std::function<double(double, double)> func, double delta=0.2, int maxiter=3);
 protected:
     /**
      * @brief Метод для построения глобальной матрицы системы
@@ -56,6 +57,7 @@ protected:
      * @param nodalValues
      */
     virtual void processSolution(const DoubleVector &displacement);
+    DoubleVector adaptationVector(const DoubleVector &displacement);
 protected:
     double thickness_; //!< Толщина объекта
     DoubleMatrix D_; //!< Матрица упругости

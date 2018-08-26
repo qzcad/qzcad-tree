@@ -47,6 +47,7 @@ public:
    // MindlinShellBending(Mesh3D *mesh, double thickness, const std::vector<double> &strain, const std::vector<double> &stress, double nu, const std::list<FemCondition *> &conditions);
     MindlinShellBending(Mesh3D *mesh, std::function<double(double, double, double)> thickness_func, const DoubleMatrix &planeStressMatrix, const std::list<FemCondition *> &conditions, double alphaT = 0.0);
     MindlinShellBending(Mesh3D *mesh, std::function<double(double, double, double)> thickness_func, const DoubleMatrix &D, const DoubleMatrix &Dc, const std::list<FemCondition *> &conditions, double alphaT = 0.0);
+    virtual void solve(std::function<double(double, double, double)> func, double delta=0.2, int maxiter=3);
 protected:
     /**
      * @brief Метод для построения глобальной матрицы системы
@@ -62,6 +63,7 @@ protected:
      */
     virtual void processSolution(const DoubleVector &displacement);
     DoubleMatrix cosinuses(const Point3D &A, const Point3D &B, const Point3D &C);
+    DoubleVector adaptationVector(const DoubleVector &displacement);
 protected:
     double thickness_; //!< Толщина объекта
     DoubleMatrix D_; //!< Матрица упругости

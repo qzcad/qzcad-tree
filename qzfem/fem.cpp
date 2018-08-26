@@ -225,7 +225,7 @@ DoubleVector Fem::solveLinearSystem(bool cg)
     if(cg)
     {
         RowDoubleMatrix rdm(global_);
-        return rdm.preconditionedConjugateGradient(force_);
+        return rdm.conjugateGradient(force_);
     }
     return global_.cholesky(force_);
 }

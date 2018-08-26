@@ -56,6 +56,51 @@ MindlinShellBending::MindlinShellBending(Mesh3D *mesh, std::function<double (dou
     thickness_func_ = thickness_func;
 }
 
+void MindlinShellBending::solve(std::function<double (double, double, double)> func, double delta, int maxiter)
+{
+    mesh_->clearDataVectors();
+    for (int i = 0; i < maxiter; i++)
+    {
+        DoubleVector char_vec;
+        dimension_ = mesh_->nodesCount() * freedom_;
+        global_.resize(dimension_);
+        force_.resize(dimension_);
+        force_.set(0.0);
+        std::cout << "Iteration " << i + 1 << " from " << maxiter << std::endl;
+        buildGlobalMatrix();
+        buildGlobalVector();
+        processInitialValues();
+        DoubleVector solution = solveLinearSystem();
+        char_vec = adaptationVector(solution);
+        double d = char_vec.max() - char_vec.min();
+        std::list<UInteger> elements;
+        for (UInteger elnum = 0; elnum < mesh_->elementsCount(); elnum++)
+        {
+            ElementPointer element = mesh_->element(elnum);
+            bool needSubdivision = false;
+            for (int j = 0; j < element->verticesCount(); j++)
+            {
+                if ((fabs(char_vec[element->vertexNode(j)] - char_vec[element->vertexNode(j + 1)]) / fabs(d)) >= delta)
+                    needSubdivision = true;
+            }
+            if (needSubdivision) elements.push_back(elnum);
+        }
+        if (!elements.empty() && i < maxiter - 1)
+        {
+            std::cout << elements.size() << " elements must be subdivided!" << std::endl;
+            if (dynamic_cast<TriangleMesh3D*>(mesh_) != nullptr)
+                dynamic_cast<TriangleMesh3D*>(mesh_)->subdivide(elements, func);
+            else if (dynamic_cast<QuadrilateralMesh3D*>(mesh_) != nullptr)
+                dynamic_cast<QuadrilateralMesh3D*>(mesh_)->subdivide(elements, func);
+        }
+        else
+        {
+            processSolution(solution);
+            break;
+        }
+    }
+}
+
 /*
 MindlinShellBending::MindlinShellBending(Mesh3D *mesh,
                                          const std::vector<double> &thickness,
@@ -1332,4 +1377,161 @@ DoubleMatrix MindlinShellBending::cosinuses(const Point3D &A, const Point3D &B, 
     lambda(1, 0) = Vy.x(); lambda(1, 1) = Vy.y(); lambda(1, 2) = Vy.z();
     lambda(2, 0) = Vz.x(); lambda(2, 1) = Vz.y(); lambda(2, 2) = Vz.z();
     return lambda;
+}
+
+DoubleVector MindlinShellBending::adaptationVector(const DoubleVector &displacement)
+{
+    UInteger nodesCount = mesh_->nodesCount();
+    UInteger elementsCount = mesh_->elementsCount();
+    UInteger elementNodes = 0; // количество узлов в элементе
+    if (dynamic_cast<TriangleMesh3D*>(mesh_) != nullptr)
+    {
+        elementNodes = 3;
+    }
+    else if (dynamic_cast<QuadrilateralMesh3D*>(mesh_) != nullptr)
+    {
+        elementNodes = 4;
+    }
+    // вычисление напряжений
+    DoubleVector mises(nodesCount, 0.0);
+
+    double xi[elementNodes];
+    double eta[elementNodes];
+    if (dynamic_cast<TriangleMesh3D*>(mesh_) != nullptr)
+    {
+        xi[0] = 0.0; eta[0] = 0.0;
+        xi[1] = 1.0; eta[1] = 0.0;
+        xi[2] = 0.0; eta[2] = 1.0;
+    }
+    else if (dynamic_cast<QuadrilateralMesh3D*>(mesh_) != nullptr)
+    {
+        xi[0] = -1.0; eta[0] = -1.0;
+        xi[1] =  1.0; eta[1] = -1.0;
+        xi[2] =  1.0; eta[2] =  1.0;
+        xi[3] = -1.0; eta[3] =  1.0;
+    }
+
+    std::cout << "Stresses Recovery...";
+    ConsoleProgress progressBar(elementsCount);
+    for (UInteger elNum = 0; elNum < elementsCount; elNum++)
+    {
+
+        ++progressBar;
+
+        ElementPointer element = mesh_->element(elNum);
+        Point3D A = *(dynamic_cast<const Point3D *>(mesh_->node(element->vertexNode(0))));
+        Point3D B = *(dynamic_cast<const Point3D *>(mesh_->node(element->vertexNode(1))));
+        Point3D C = *(dynamic_cast<const Point3D *>(mesh_->node(element->vertexNode(2))));
+        DoubleMatrix lambda = cosinuses(A, B, C);
+        DoubleMatrix T(freedom_ * elementNodes, freedom_ * elementNodes, 0.0);
+
+        for (UInteger i = 0; i <= (freedom_ * elementNodes - 3); i += 3)
+        {
+            for (UInteger ii = 0; ii < 3; ii++)
+                for (UInteger jj = 0; jj < 3; jj++)
+                    T(ii + i, jj + i) = lambda(ii, jj);
+        }
+
+        DoubleMatrix lambdaT = lambda.transpose();
+
+        DoubleVector x(elementNodes);
+        DoubleVector y(elementNodes);
+        // извлечение координат узлов
+        for (UInteger i = 0; i < elementNodes; i++)
+        {
+            Point3D point = *(dynamic_cast<const Point3D *>(mesh_->node(element->vertexNode(i))));
+            Point3D pp = point - A;
+            x[i] = lambda(0, 0) * pp.x() + lambda(0, 1) * pp.y() + lambda(0, 2) * pp.z();
+            y[i] = lambda(1, 0) * pp.x() + lambda(1, 1) * pp.y() + lambda(1, 2) * pp.z();
+        }
+
+        for (UInteger inode = 0; inode < elementNodes; inode++)
+        {
+            DoubleVector N(elementNodes);
+            DoubleVector dNdX(elementNodes);
+            DoubleVector dNdY(elementNodes);
+            DoubleVector dis((size_type)(freedom_ * elementNodes), 0.0);
+            DoubleVector sigma_membrane((size_type)3, 0.0);
+            DoubleVector sigma_plate((size_type)3, 0.0);
+            DoubleVector sigma((size_type)3, 0.0);
+            DoubleVector tau((size_type)2, 0.0);
+
+            // якобиан
+            if (dynamic_cast<TriangleMesh3D*>(mesh_) != NULL)
+            {
+                isoTriangle3(xi[inode], eta[inode], x, y, N, dNdX, dNdY);
+            }
+            else if (dynamic_cast<QuadrilateralMesh3D*>(mesh_) != NULL)
+            {
+                isoQuad4(xi[inode], eta[inode], x, y, N, dNdX, dNdY);
+            }
+            //
+            DoubleMatrix Bm(3, freedom_ * elementNodes, 0.0);
+            DoubleMatrix Bf(3, freedom_ * elementNodes, 0.0);
+            DoubleMatrix Bc(2, freedom_ * elementNodes, 0.0);
+            for (UInteger i = 0; i < elementNodes; i++)
+            {
+                Bm(0, i * freedom_) = dNdX(i);
+                                                    Bm(1, i * freedom_ + 1) = dNdY(i);
+                Bm(2, i * freedom_) = dNdY(i);      Bm(2, i * freedom_ + 1) = dNdX(i);
+
+                Bf(0, i * freedom_ + 3) = dNdX(i);
+                                                    Bf(1, i * freedom_ + 4) = dNdY(i);
+                Bf(2, i * freedom_ + 3) = dNdY(i);  Bf(2, i * freedom_ + 4) = dNdX(i);
+
+                Bc(0, i * freedom_ + 2) = dNdX(i);  Bc(0, i * freedom_ + 3) = N(i);
+                Bc(1, i * freedom_ + 2) = dNdY(i);  Bc(1, i * freedom_ + 4) = N(i);
+            }
+
+            for (UInteger i = 0; i < elementNodes; i++)
+            {
+                dis(freedom_ * i) = displacement[freedom_ * element->vertexNode(i)];
+                dis(freedom_ * i + 1) = displacement[freedom_ * element->vertexNode(i) + 1UL];
+                dis(freedom_ * i + 2) = displacement[freedom_ * element->vertexNode(i) + 2UL];
+                dis(freedom_ * i + 3) = displacement[freedom_ * element->vertexNode(i) + 3UL];
+                dis(freedom_ * i + 4) = displacement[freedom_ * element->vertexNode(i) + 4UL];
+                dis(freedom_ * i + 5) = displacement[freedom_ * element->vertexNode(i) + 5UL];
+            }
+
+            DoubleVector dLocal = T * dis;
+
+            if (thickness_func_ != NULL)
+            {
+                double xLocal = x * N;
+                double yLocal = y * N;
+
+                Point3D pl(lambdaT(0, 0) * xLocal + lambdaT(0, 1) * yLocal,
+                           lambdaT(1, 0) * xLocal + lambdaT(1, 1) * yLocal,
+                           lambdaT(2, 0) * xLocal + lambdaT(2, 1) * yLocal);
+                // вычисление объемных сил
+                Point3D pLocal = pl + A;
+                thickness_ = thickness_func_(pLocal.x(), pLocal.y(), pLocal.z());
+            }
+
+            sigma_membrane = (D_ * Bm) * dLocal;
+            sigma_plate = thickness_ / 2.0 * ((D_ * Bf) * dLocal);
+            sigma[0] = sigma_membrane[0] + sigma_plate[0];
+            sigma[1] = sigma_membrane[1] + sigma_plate[1];
+            sigma[2] = sigma_membrane[2] + sigma_plate[2];
+            tau = (Dc_ * Bc) * dLocal;
+
+            DoubleMatrix localSigma(3, 3, 0.0);
+            localSigma(0, 0) = sigma(0); localSigma(0, 1) = sigma(2); localSigma(0, 2) = tau(0);
+            localSigma(1, 0) = sigma(2); localSigma(1, 1) = sigma(1); localSigma(1, 2) = tau(1);
+            localSigma(2, 0) = tau(0);   localSigma(2, 1) = tau(1);   localSigma(2, 2) = 0.0;
+
+            DoubleMatrix SG = lambdaT * localSigma * lambda;
+
+            double von = sqrt(0.5) * sqrt((SG(0, 0) - SG(1, 1)) * (SG(0, 0) - SG(1, 1)) +
+                                          (SG(1, 1) - SG(2, 2)) * (SG(1, 1) - SG(2, 2)) +
+                                          (SG(2, 2) - SG(0, 0)) * (SG(2, 2) - SG(0, 0)) +
+                                          6.0 * (SG(0, 1) * SG(0, 1) + SG(1, 2) * SG(1, 2) + SG(0, 2) * SG(0, 2)));
+            mises[element->vertexNode(inode)] += von;
+        }
+    } //for elNum
+    for (UInteger i = 0; i < nodesCount; i++)
+    {
+        mises[i] /= (double)mesh_->adjacentCount(i);
+    }
+    return mises;
 }
