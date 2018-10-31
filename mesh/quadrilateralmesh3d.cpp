@@ -189,7 +189,7 @@ void QuadrilateralMesh3D::coneDomain(const UInteger &rCount, const UInteger &lCo
     yMax_ = length;
 }
 
-void QuadrilateralMesh3D::backgroundGrid(const HexahedralMesh3D *mesh, std::function<double (double, double, double)> func, double level, int smooth, int optimize)
+std::list<ElementPointer> QuadrilateralMesh3D::backgroundGrid(const HexahedralMesh3D *mesh, std::function<double (double, double, double)> func, double level, int smooth, int optimize, bool useFlip)
 {
     clear();
     std::list<ElementPointer> inner;
@@ -207,7 +207,7 @@ void QuadrilateralMesh3D::backgroundGrid(const HexahedralMesh3D *mesh, std::func
             Point3D point = mesh->point3d(el->vertexNode(j));
             double value = func(point.x(), point.y(), point.z());
             values[j] = value;
-            if (value - level <= -epsilon_)
+            if (value - level < epsilon_)
                 code |= (1 << j);
         }
         if (code == 0)
@@ -380,12 +380,16 @@ void QuadrilateralMesh3D::backgroundGrid(const HexahedralMesh3D *mesh, std::func
         ++progress;
     }
     for (UInteger i = 0; i != node_.size(); ++i) node_[i].point = surface[i];
-    laplacianSmoothing(func, level, smooth);
-    distlenSmoothing(func, level, optimize);
-    refineTopology(func, level);
-    distlenSmoothing(func, level, optimize);
+    laplacianSmoothing(func, level, smooth, useFlip);
+    distlenSmoothing(func, level, optimize, useFlip);
+//    refineTopology(func, level);
+//    distlenSmoothing(func, level, optimize);
     std::cout << "Surface quadrilateral mesh: nodes - " << nodesCount() << ", elements - " << elementsCount() << std::endl;
+//    std::list<UInteger> ee;
+//    ee.push_back(0); ee.push_back(1); ee.push_back(2);ee.push_back(3);ee.push_back(4);
+//    subdivide(ee, func);
     updateDomain();
+    return inner;
 }
 
 UInteger QuadrilateralMesh3D::elementsCount() const
@@ -477,7 +481,7 @@ void QuadrilateralMesh3D::clearElements()
     element_.clear();
 }
 
-void QuadrilateralMesh3D::laplacianSmoothing(std::function<double (double, double, double)> func, double level, int iter_num)
+void QuadrilateralMesh3D::laplacianSmoothing(std::function<double (double, double, double)> func, double level, int iter_num, bool useFlip)
 {
     std::cout << "Laplacian Smoothing: nodes - " << nodesCount() << ", elements - " << elementsCount() << "." << std::endl;
     for (short iit = 0; iit < iter_num; iit++)
@@ -516,13 +520,13 @@ void QuadrilateralMesh3D::laplacianSmoothing(std::function<double (double, doubl
             node_[nnode].point = findBorder(point, func, 0.1 * avr_len, level);
             ++progress;
         }
-//        if ((iit + 1) % 4 == 0)
+        if (useFlip && (iit + 1) % 4 == 0)
             flip();
     }
 //    refineTopology(func, level);
 }
 
-void QuadrilateralMesh3D::distlenSmoothing(std::function<double (double, double, double)> func, double level, int iter_num)
+void QuadrilateralMesh3D::distlenSmoothing(std::function<double (double, double, double)> func, double level, int iter_num, bool useFlip)
 {
     auto functor = [&](const AdjacentSet &adjasentset, const UInteger &nnode)
     {
@@ -709,15 +713,15 @@ void QuadrilateralMesh3D::distlenSmoothing(std::function<double (double, double,
             }
             ++progress;
         }
-        if ((iit + 1) % 4 == 0)
+        if (useFlip && (iit + 1) % 4 == 0)
             flip();
     }
     //refineTopology(func, level);
 }
 
-double QuadrilateralMesh3D::minAngle(const UInteger &elNum) const
+double QuadrilateralMesh3D::minAngle(const UInteger &elnum) const
 {
-    Quadrilateral quad = element_[elNum];
+    Quadrilateral quad = element_[elnum];
     Point3D A = node_[quad[0]].point;
     Point3D B = node_[quad[1]].point;
     Point3D C = node_[quad[2]].point;
@@ -726,12 +730,12 @@ double QuadrilateralMesh3D::minAngle(const UInteger &elNum) const
     double b = B.angle(A, C);
     double c = C.angle(B, D);
     double d = D.angle(C, A);
-    return std::max(std::max(a, b), std::max(c, d));
+    return std::min(std::min(a, b), std::min(c, d));
 }
 
-double QuadrilateralMesh3D::maxAngle(const UInteger &elNum) const
+double QuadrilateralMesh3D::maxAngle(const UInteger &elnum) const
 {
-    Quadrilateral quad = element_[elNum];
+    Quadrilateral quad = element_[elnum];
     Point3D A = node_[quad[0]].point;
     Point3D B = node_[quad[1]].point;
     Point3D C = node_[quad[2]].point;
@@ -967,6 +971,172 @@ void QuadrilateralMesh3D::refineTopology(std::function<double(double, double, do
             addElement(addNode(p1, BORDER), addNode(c12, BORDER), addNode(c, BORDER), addNode(c01, BORDER));
             addElement(addNode(p2, BORDER), addNode(c23, BORDER), addNode(c, BORDER), addNode(c12, BORDER));
             addElement(addNode(p3, BORDER), addNode(c30, BORDER), addNode(c, BORDER), addNode(c23, BORDER));
+        }
+    }
+    if (func != nullptr)
+    {
+        double h = sqrt((xMax_ - xMin_) * (xMax_ - xMin_) + (yMax_ - yMin_) * (yMax_ - yMin_) + (zMax_ - zMin_) * (zMax_ - zMin_)) / static_cast<double>(nodesCount());
+        for (UInteger i = 0; i < nodesCount(); i++)
+        {
+            if (node_[i].type == BORDER)
+                node_[i].point = findBorder(node_[i].point, func, h, level);
+        }
+    }
+}
+
+void QuadrilateralMesh3D::subdivide(std::list<UInteger> eNumbers, std::function<double(double, double, double)> func)
+{
+    int quad_table [][2][37] =
+        {
+            /*0*/{{0, 0, 3, 3, -1},
+                  {0, 3, 3, 0, -1}
+            },
+            /*1*/{{0, 0, 1, 1, 0, 0, 3, 1, 1, 3, 3, 1, -1},
+                  {0, 1, 1, 0, 1, 3, 3, 1, 1, 3, 0, 0, -1}
+            },
+            /*2*/{{0, 0, 2, 2, 0, 3, 3, 2, 2, 3, 3, 2, -1},
+                  {0, 3, 1, 0, 3, 3, 1, 1, 1, 1, 0, 0, -1}
+            },
+            /*3*/{{0, 0, 1, 1, 0, 0, 1, 1, 0, 3, 2, 1, 3, 3, 2, 2, 3, 3, 2, 2, 2, 1, 1, 2, 1, 2, 2, 1, -1},
+                  {0, 1, 1, 0, 1, 3, 2, 1, 3, 3, 2, 2, 3, 1, 1, 2, 1, 0, 0, 1, 1, 1, 2, 2, 1, 1, 0, 0, -1}
+            },
+            /*4*/{{0, 0, 2, 2, 2, 2, 3, 3, 3, 3, 0, 2, -1},
+                  {0, 3, 3, 2, 2, 3, 3, 2, 2, 0, 0, 2, -1}
+            },
+            /*5*/{{0, 0, 1, 1, 0, 0, 1, 1, 0, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 1, 1, 2, 1, 2, 3, 1, -1},
+                  {0, 1, 1, 0, 1, 3, 2, 1, 3, 3, 2, 2, 3, 3, 2, 2, 2, 2, 0, 1, 1, 1, 2, 2, 1, 1, 0, 0, -1}
+            },
+            /*6*/{{0, 0, 1, 1, 0, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 0, 1, 2, 2, 1, 1, 2, -1},
+                  {0, 3, 2, 1, 3, 3, 2, 2, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, -1}
+            },
+            /*7*/{{0, 0, 1, 1, 0, 0, 1, 1, 0, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 1, 1, 2, 2, 1, 1, 2, -1},
+                  {0, 1, 1, 0, 1, 3, 2, 1, 3, 3, 2, 2, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, -1}
+            },
+            /*8*/{{0, 0, 1, 3, 0, 0, 1, 1, 1, 1, 3, 3, -1},
+                  {0, 2, 2, 0, 2, 3, 3, 2, 2, 3, 3, 0, -1}
+            },
+            /*9*/{{0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 3, 2, 2, 3, 3, 2, 2, 1, 1, 2, 1, 2, 3, 1, -1},
+                  {0, 1, 1, 0, 1, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 0, 1, 1, 1, 2, 2, 1, 1, 0, 0, -1}
+            },
+            /*A*/{{0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 0, 1, 2, 2, 1, 1, 2, -1},
+                  {0, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, -1}
+            },
+            /*B*/{{0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 1, 1, 2, 2, 1, 1, 2, -1},
+                  {0, 1, 1, 0, 1, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, -1}
+            },
+            /*C*/{{0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 3, 0, 1, 2, 2, 1, 1, 2, -1},
+                  {0, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 0, 1, 2, 0, 0, 1, 1, 1, 1, 2, 2, -1}
+            },
+            /*D*/{{0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 3, 1, 1, 2, 2, 1, 1, 2, -1},
+                  {0, 1, 1, 0, 1, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 0, 1, 2, 0, 0, 1, 1, 1, 1, 2, 2, -1}
+            },
+            /*E*/{{0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 3, 3, 2, 2, 2, 2, 0, 1, 1, 1, 2, 2, -1},
+                  {0, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 1, 1, 2, 1, 0, 0, 1, 1, 0, 0, 1, 1, 2, 2, 1, -1}
+            },
+            /*F*/{{0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, -1},
+                  {0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, -1}
+            },
+        }; // the table of indexes
+    AdjacentSet refined_nodes;
+    AdjacentSet refined_quads;
+    Node3D local_nodes[4][4];
+    const double h = 1.0 / 3.0;
+    // build a set of nodes that connect refined elements
+    for (UInteger elnum: eNumbers)
+    {
+        Quadrilateral quad = element_[elnum];
+        for (int i = 0; i < 4; i++)
+        {
+            AdjacentSet a = node_[quad[i]].adjacent;
+            refined_quads.insert(a.begin(), a.end());
+            refined_nodes.insert(quad[i]);
+        }
+    }
+    for (UInteger elnum: refined_quads)
+    {
+        Quadrilateral quad = element_[elnum];
+        Node3D n0 = node_[quad[0]];
+        Node3D n1 = node_[quad[1]];
+        Node3D n2 = node_[quad[2]];
+        Node3D n3 = node_[quad[3]];
+        int code = 0;
+        for (int i = 0; i < 4; i++)
+        {
+            Node3D bottom;
+            Node3D top;
+            if (i == 0)
+            {
+                bottom.point = n0.point;
+                top.point = n3.point;
+            }
+            else if (i == 3)
+            {
+                bottom.point = n1.point;
+                top.point = n2.point;
+            }
+            else
+            {
+                bottom.point = n0.point + static_cast<double>(i) * h * (n1.point - n0.point);
+                top.point = n3.point + static_cast<double>(i) * h * (n2.point - n3.point);
+            }
+
+            for (int j = 0; j < 4; j++)
+            {
+                Node3D current;
+                current.type = BORDER;
+                if (j == 0)
+                    current.point = bottom.point;
+                else if (j == 3)
+                    current.point = top.point;
+                else
+                    current.point = bottom.point + static_cast<double>(j) * h * (top.point - bottom.point);
+
+                local_nodes[i][j] = current;
+            }
+        }
+        if (refined_nodes.find(quad[0]) != refined_nodes.end())
+            code |= 1;
+        if (refined_nodes.find(quad[1]) != refined_nodes.end())
+            code |= 2;
+        if (refined_nodes.find(quad[2]) != refined_nodes.end())
+            code |= 4;
+        if (refined_nodes.find(quad[3]) != refined_nodes.end())
+            code |= 8;
+        if (code != 0)
+        {
+            node_[quad[0]].adjacent.erase(elnum);
+            node_[quad[1]].adjacent.erase(elnum);
+            node_[quad[2]].adjacent.erase(elnum);
+            node_[quad[3]].adjacent.erase(elnum);
+            for(int i = 0; quad_table[code][0][i] != -1; i += 4)
+            {
+                quad[3] = addNode(local_nodes[quad_table[code][0][i + 0]][quad_table[code][1][i + 0]]);
+                quad[2] = addNode(local_nodes[quad_table[code][0][i + 1]][quad_table[code][1][i + 1]]);
+                quad[1] = addNode(local_nodes[quad_table[code][0][i + 2]][quad_table[code][1][i + 2]]);
+                quad[0] = addNode(local_nodes[quad_table[code][0][i + 3]][quad_table[code][1][i + 3]]);
+                if (i == 0)
+                {
+                    element_[elnum] = quad;
+                    node_[quad[0]].adjacent.insert(elnum);
+                    node_[quad[1]].adjacent.insert(elnum);
+                    node_[quad[2]].adjacent.insert(elnum);
+                    node_[quad[3]].adjacent.insert(elnum);
+                }
+                else
+                {
+                    addElement(quad);
+                }
+            }
+        }
+    }
+
+    if (func != nullptr)
+    {
+        double h = sqrt((xMax_ - xMin_) * (xMax_ - xMin_) + (yMax_ - yMin_) * (yMax_ - yMin_) + (zMax_ - zMin_) * (zMax_ - zMin_)) / static_cast<double>(nodesCount());
+        for (UInteger i = 0; i < nodesCount(); i++)
+        {
+            if (node_[i].type == BORDER)
+                node_[i].point = findBorder(node_[i].point, func, h);
         }
     }
 }

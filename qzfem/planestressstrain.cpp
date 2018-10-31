@@ -38,17 +38,38 @@ void PlaneStressStrain::solve(std::function<double (double, double)> func, doubl
         char_vec = adaptationVector(solution);
         double d = char_vec.max() - char_vec.min();
         std::list<UInteger> elements;
+        AdjacentSet elset;
         for (UInteger elnum = 0; elnum < mesh_->elementsCount(); elnum++)
         {
             ElementPointer element = mesh_->element(elnum);
             bool needSubdivision = false;
             for (int j = 0; j < element->verticesCount(); j++)
             {
-                if ((fabs(char_vec[element->vertexNode(j)] - char_vec[element->vertexNode(j + 1)]) / fabs(d)) >= delta)
-                    needSubdivision = true;
+                for (int k = j + 1; k < element->verticesCount(); k++)
+                    if ((fabs(char_vec[element->vertexNode(j)] - char_vec[element->vertexNode(k)]) / fabs(d)) >= delta)
+                        needSubdivision = true;
             }
-            if (needSubdivision) elements.push_back(elnum);
+//            double avr = 0.0;
+//            for (int j = 0; j < element->verticesCount(); j++)
+//            {
+//                avr += char_vec[element->vertexNode(j)];
+//            }
+//            avr /= static_cast<double>(element->verticesCount());
+//            for (int j = 0; j < element->verticesCount(); j++)
+//            {
+//                for (int k = j + 1; k < element->verticesCount(); k++)
+//                    if ((fabs(char_vec[element->vertexNode(j)] - char_vec[element->vertexNode(k)]) / fabs(avr)) >= delta)
+//                        needSubdivision = true;
+//            }
+//            if (needSubdivision) elements.push_back(elnum);
+            if (needSubdivision)
+                for (int j = 0; j < element->verticesCount(); j++)
+                {
+                    AdjacentSet a = mesh_->adjacent(element->vertexNode(j));
+                    elset.insert(a.begin(), a.end());
+                }
         }
+        std::copy(elset.begin(), elset.end(), std::back_inserter(elements));
         if (!elements.empty() && i < maxiter - 1)
         {
             std::cout << elements.size() << " elements must be subdivided!" << std::endl;
@@ -78,13 +99,13 @@ void PlaneStressStrain::buildGlobalMatrix()
     quadrature(line_count, line_points, line_weights);
 
     UInteger elementNodes = 0; // количество узлов в элементе
-    if (dynamic_cast<TriangleMesh2D*>(mesh_) != NULL)
+    if (dynamic_cast<TriangleMesh2D*>(mesh_) != nullptr)
     {
         elementNodes = 3;
         gaussPoints = 3;
         quadrature(gaussPoints, gxi, geta, gweight);
     }
-    else if (dynamic_cast<QuadrilateralMesh2D*>(mesh_) != NULL)
+    else if (dynamic_cast<QuadrilateralMesh2D*>(mesh_) != nullptr)
     {
         gaussPoints = line_count * line_count;
         gxi.resize(gaussPoints);

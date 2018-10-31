@@ -1,4 +1,6 @@
 #include "mesh3d.h"
+#include <ctime>
+#include <iostream>
 #include <math.h>
 #include "point3d.h"
 
@@ -361,6 +363,85 @@ Point3D Mesh3D::point3d(const UInteger &nnumber) const
 Node3D Mesh3D::node3d(const UInteger &nnumber) const
 {
     return node_[nnumber];
+}
+
+void Mesh3D::laplacianSmoothing(int iter_num)
+{
+    std::cout << "Laplacian smoothing...";
+    std::clock_t start = std::clock();
+    // сглаживание Лапласа
+    for (int iter = 0; iter < iter_num; iter++)
+    {
+        for (UInteger i = 0; i < nodesCount(); i++)
+        {
+            if (node_[i].type == INNER)
+            {
+                Point3D nn(0.0, 0.0, 0.0);
+                AdjacentSet adjacent = node_[i].adjacent;
+                int acount = 0;
+                for (UInteger elnum: adjacent)
+                {
+                    ElementPointer eptr = element(elnum);
+                    int index = eptr->index(i);
+                    nn = nn + node_[eptr->vertexNode(index - 1)].point;
+                    nn = nn + node_[eptr->vertexNode(index + 1)].point;
+                    acount += 2;
+                }
+                node_[i].point = (1.0 /  static_cast<double>(acount)) * nn;
+            }
+        } // for i
+        std::cout << '*';
+    }
+    double duration = static_cast<double>(std::clock() - start) /  static_cast<double>(CLOCKS_PER_SEC);
+    std::cout << "Done in " << duration << " seconds." << std::endl;
+}
+
+double Mesh3D::lengthAspect(const UInteger &elnum) const
+{
+    ElementPointer e = element(elnum);
+    double min = node_[e->vertexNode(0)].point.distanceTo(node_[e->vertexNode(1)].point);
+    double max = min;
+    for (int i = 1; i < e->verticesCount(); i++)
+    {
+        double d = node_[e->vertexNode(i)].point.distanceTo(node_[e->vertexNode(i + 1)].point);
+        if (d < min) min = d;
+        if (d > max) max = d;
+    }
+    return min / max;
+}
+
+double Mesh3D::faceArea(const UIntegerVector &face) const
+{
+    if (face.size() == 3)
+    {
+        Point3D A = node_[face[0]].point;
+        Point3D B = node_[face[1]].point;
+        Point3D C = node_[face[2]].point;
+        double a = A.distanceTo(B);
+        double b = B.distanceTo(C);
+        double c = C.distanceTo(A);
+        double p = (a + b + c) / 2.0;
+        return sqrt(p * (p - a) * (p - b) * (p - c));
+    }
+    else if (face.size() == 4)
+    {
+        Point3D p0 = node_[face[0]].point;
+        Point3D p1 = node_[face[1]].point;
+        Point3D p2 = node_[face[2]].point;
+        Point3D p3 = node_[face[3]].point;
+        // стороны
+        double a = p0.distanceTo(p1);
+        double b = p1.distanceTo(p2);
+        double c = p2.distanceTo(p3);
+        double d = p3.distanceTo(p0);
+        // диагонали
+        double d1 = p0.distanceTo(p2);
+        double d2 = p1.distanceTo(p3);
+        // функция для вычисления квадрата числа (C++0x)
+        auto sqr = [](double value) { return value * value; };
+        return sqrt(4.0 * sqr(d1) * sqr(d2) - sqr(sqr(b) + sqr(d) - sqr(a) - sqr(c))) / 4.0;
+    }
+    return  0.0;
 }
 }
 

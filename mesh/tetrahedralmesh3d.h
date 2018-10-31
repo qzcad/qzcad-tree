@@ -13,6 +13,10 @@
 #include "mesh3d.h"
 #include "tetrahedron.h"
 #include "trianglemesh2d.h"
+namespace msh {
+class TetrahedralMesh3D;
+}
+#include "trianglemesh3d.h"
 #include "hexahedralmesh3d.h"
 
 namespace msh {
@@ -50,6 +54,7 @@ public:
      * @return Площадь поверхности дискретной модели
      */
     virtual double surfaceArea() const;
+    void addElement(const Tetrahedron &t);
     /**
      * @brief Добавить элемент к  сетке
      * @param node0 Номер узла в вершине 0
@@ -63,6 +68,7 @@ public:
      * @param Массив ссылок (номеров) на узлы
      */
     void addElement(const std::vector<UInteger> &nodes_ref);
+    void addElement(const UInteger &i0, const UInteger &i1, const UInteger &i2, const UInteger &i3, const UInteger &i4, const UInteger &i5);
     /**
      * @brief Метод очищает информацию об елементах
      */
@@ -93,6 +99,42 @@ public:
      * @brief Напечать статистику дискретной модели
      */
     void printStats() const;
+    /**
+     * @brief Триангуляция Делоне контура функциональной модели
+     * @param mesh Объект-конутр
+     * @param func Указатель на функцию области. Если он равен nullptr, то используется сfunction.
+     * @see TriangleMesh3D::cfunction
+     */
+    void delaunay(const TriangleMesh3D &mesh, std::function<double(double, double, double)> func);
+    /**
+     * @brief Метод построения стеки с использованием фоновых тетраэдров
+     * @param mesh Сетка шестигранников
+     * @param func Функция области
+     * @param level Уровень нуля
+     * @param smooth Количество итераций сглаживания
+     * @param optimize Количество итераций оптимизации
+     */
+    void backgroundGrid(const TetrahedralMesh3D *mesh, std::function<double(double, double, double)> func, double level = 0.0, int smooth = 0, int optimize = 0);
+    void localFubctionalOptimization(int maxiter=2);
+    /**
+     * @brief Вычислить соотношение длин сторон (минимальной к максимальной)
+     * @param elnum Номер элемента
+     * @return Соотношение длин сторон (минимальной к максимальной)
+     */
+    virtual double lengthAspect(const UInteger &elnum) const;
+    /**
+     * @brief Вычислить значение минимального угла в элементе
+     * @param elnum Номер элемента
+     * @return Минимальный угол элемента (радианы)
+     */
+    virtual double minAngle(const UInteger &elnum) const;
+    /**
+     * @brief Вычислить значение максимального угла в элементе
+     * @param elnum Номер элемента
+     * @return Минимальный угол элемента (радианы)
+     */
+    virtual double maxAngle(const UInteger &elnum) const;
+    void subdivide(std::list<UInteger> eNumbers, std::function<double(double, double, double)> func);
 private:
     std::vector<Tetrahedron> element_; //!< Массив шестигранных элементов
 };

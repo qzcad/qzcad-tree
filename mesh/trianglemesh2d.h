@@ -49,7 +49,7 @@ public:
      * @param func Функция области
      * @param charPoint Список характерных точек
      */
-    void functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, std::function<double(Point2D, Point2D)> distance = nullptr);
+    void functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, int smooth = 0, int optimize = 0);
     /**
      * @brief Конструктор копирования
      * @param mesh Экземпляр объекта для копирования
@@ -105,25 +105,25 @@ public:
      * Для линейных функций формы треугольного элемента значение якобиана не зависит от параметров xi (L1) и eta (L2).
      * @return Значение якобиана элемента номер elementNum
      */
-    double jacobian(const UInteger &elementNum);
-    /**
-     * @brief Вычислить соотношение длин сторон (минимальной к максимальной)
-     * @param elNum Номер элемента
-     * @return Соотношение длин сторон (минимальной к максимальной)
-     */
-    double lengthAspect(const UInteger &elNum);
+    double jacobian(const UInteger &elementNum) const;
     /**
      * @brief Вычислить значение минимального угла в элементе
      * @param elNum Номер элемента
      * @return Минимальный угол элемента (радианы)
      */
-    double minAngle(const UInteger &elNum);
+    virtual double minAngle(const UInteger &elNum) const;
+    /**
+     * @brief Вычислить значение максимального угла в элементе
+     * @param elNum Номер элемента
+     * @return Минимальный угол элемента (радианы)
+     */
+    virtual double maxAngle(const UInteger &elNum) const;
     /**
      * @brief Вычислить соотношение углов элемента
      * @param elNum Номер элемента
      * @return Соотношение углов элемента (радианы)
      */
-    double angleAspect(const UInteger &elNum);
+    double angleAspect(const UInteger &elNum) const;
     /**
      * @brief Триангуляция Делоне контура функциональной модели
      * @param mesh Объект-конутр
@@ -279,6 +279,11 @@ public:
                              double &xc,
                              double &yc,
                              double &r);
+    /**
+     * @brief Разбить элементы (сгустить сетку)
+     * @param eNumbers Список номеров элементов
+     */
+    void subdivide(std::list<UInteger> eNumbers, std::function<double(double, double)> func);
 protected:
     std::vector<Triangle> element_; //!< Массив элементов
     typedef std::vector<Triangle>::iterator ElementIterator;

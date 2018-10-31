@@ -214,6 +214,7 @@
      </property>
      <addaction name="actionJacobianMetric"/>
      <addaction name="actionMinAngleMetric"/>
+     <addaction name="actionMaxAngleMetric"/>
      <addaction name="actionLengthAspect"/>
      <addaction name="actionAngleAspect"/>
     </widget>
@@ -271,6 +272,8 @@
      <addaction name="separator"/>
      <addaction name="actionRectangleScript"/>
      <addaction name="actionRoundRectangleScript"/>
+     <addaction name="action_rectangle_x_y_left_bottom_w_h"/>
+     <addaction name="action_rectangle_x_y_left_bottom_w_h_r"/>
      <addaction name="separator"/>
      <addaction name="actionConvexScript"/>
      <addaction name="actionRegularScript"/>
@@ -949,6 +952,21 @@
   <action name="actionCylinderScript">
    <property name="text">
     <string>Область, ограниченная цилиндром с образующей Oz: cylinder(x, y, z, r, h)</string>
+   </property>
+  </action>
+  <action name="action_rectangle_x_y_left_bottom_w_h">
+   <property name="text">
+    <string>Прямоугольная область: rectangle(x, y, left, bottom, w, h)  </string>
+   </property>
+  </action>
+  <action name="action_rectangle_x_y_left_bottom_w_h_r">
+   <property name="text">
+    <string>Прямоугольная область со скурглением: rectangle(x, y, left, bottom, w, h, r)</string>
+   </property>
+  </action>
+  <action name="actionMaxAngleMetric">
+   <property name="text">
+    <string>Максимальный угол</string>
    </property>
   </action>
  </widget>

@@ -43,7 +43,7 @@ std::vector<double> conjugateGradient(CoordinateFunction Functional, const std::
 //        double f1 = Functional(xk);
 //        double resid = fabs(f1 - f0);
 
-        if (messages) std::cout << "residual: " << resid << std::endl;
+        if (messages && k % 100 == 0) std::cout << "residual: " << resid << std::endl;
         if (resid < epsilon) break;
 
         dxk = dxk1;
@@ -162,7 +162,7 @@ std::vector<double> descentGradient(CoordinateFunction Functional, const std::ve
 
         fxk = fxk1;
 
-        if (messages && (k%10 == 0)) std::cout << "residual: " << residual << std::endl;
+        if (messages && (k%100 == 0)) std::cout << "residual: " << residual << std::endl;
     }
     return xk;
 }

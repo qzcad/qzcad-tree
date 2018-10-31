@@ -36,6 +36,16 @@ UInteger &Hexahedral::operator [](int i)
     return vertex_[d];
 }
 
+const UInteger &Hexahedral::operator [](int i) const
+{
+    int d = i % 8;
+
+    if (i < 0)
+        return vertex_[(d == 0) ? d : d + 8];
+
+    return vertex_[d];
+}
+
 Hexahedral &Hexahedral::operator =(const Hexahedral &hexahedral)
 {
     if (this != &hexahedral)

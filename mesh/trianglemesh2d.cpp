@@ -6,7 +6,7 @@
 #include <climits>
 #include <algorithm>
 #include <float.h>
-#include <time.h>
+#include <ctime>
 #ifdef WITH_OPENMP
 #include <omp.h>
 #endif
@@ -76,7 +76,7 @@ void TriangleMesh2D::rectangleDomain(const UInteger &xCount, const UInteger &yCo
     std::cout << "Создана равномерная сетка треугольных элементов: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
-void TriangleMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, std::function<double(Point2D, Point2D)> distance)
+void TriangleMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, int smooth, int optimize)
 {
     clear();
     xMin_ = xMin;
@@ -85,62 +85,55 @@ void TriangleMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yC
     yMax_ = yMin + height;
     const double hx = width / static_cast<double>(xCount - 1);
     const double hy = height / static_cast<double>(yCount - 1);
-    double minDistance = 0.4 * sqrt(hx*hx + hy*hy);
-    std::map<UInteger, UInteger> nodesMap;
-    // формирование массива узлов
-#ifdef WITH_OPENMP
-#pragma omp parallel for
-#endif
-    for (UInteger i = 0; i < xCount; i++)
-    {
-        double x = xMin +  static_cast<double>(i) * hx;
-        for (UInteger j = 0; j < yCount; j++)
-        {
-            double y = yMin +  static_cast<double>(j) * hy;
-            Point2D point(x, y);
-
-            if (func(x, y) >= 0.0)
-            {
-#ifdef WITH_OPENMP
-#pragma omp critical
-#endif
-                nodesMap[i * yCount + j] = pushNode(point, INNER);
-            }
-        }
-    }
-
-    // формирование начальной сетки
+    const double iso_dist = sqrt(hx*hx + hy*hy);
+//    double minDistance = 0.4 * sqrt(hx*hx + hy*hy);
+    std::clock_t start;
+    double duration;
+    std::cout << "Building initial mesh..." << std::endl;
+    ConsoleProgress progress_bar(xCount-1);
+    start = std::clock();
     const double xCenter = (xMax_ + xMin_) / 2.0;
     const double yCenter = (yMax_ + yMin_) / 2.0;
 #ifdef WITH_OPENMP
 #pragma omp parallel for
 #endif
-    for (UInteger i = 0; i < xCount - 1; i++)
+    for (UInteger i = 0; i < xCount-1; i++)
     {
-        for (UInteger j = 0; j < yCount - 1; j++)
+        double x = xMin + static_cast<double>(i) * hx;
+        for (UInteger j = 0; j < yCount-1; j++)
         {
-            std::map<UInteger, UInteger>::iterator iter0 = nodesMap.find(i * yCount + j);
-            std::map<UInteger, UInteger>::iterator iter1 = nodesMap.find((i + 1) * yCount + j);
-            std::map<UInteger, UInteger>::iterator iter2 = nodesMap.find((i + 1) * yCount + j + 1);
-            std::map<UInteger, UInteger>::iterator iter3 = nodesMap.find(i * yCount + j + 1);
-            if (iter0 != nodesMap.end() && iter1 != nodesMap.end() && iter2 != nodesMap.end() && iter3 != nodesMap.end())
+            double y = yMin + static_cast<double>(j) * hy;
+
+
+            if (func(x, y) > epsilon_ && func(x + hx, y) > epsilon_ && func(x + hx, y + hy) > epsilon_ && func(x, y + hy) > epsilon_)
             {
-                // Для симметричности сетки необходимо смена направления диагоналей в зависимости от четверти области
-                Point2D p0 = node_[iter0->second].point;
-                Point2D p1 = node_[iter1->second].point;
-                Point2D p2 = node_[iter2->second].point;
-                Point2D p3 = node_[iter3->second].point;
-                if (distance != nullptr) minDistance = 0.4 * distance(p0, p3); // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                if ((xCenter <= p0.x() && yCenter <= p0.y() && xCenter <= p1.x() && yCenter <= p1.y() && xCenter <= p2.x() && yCenter <= p2.y() && xCenter <= p3.x() && yCenter <= p3.y())
+                Point2D point0(x, y);
+                Point2D point1(x + hx, y);
+                Point2D point2(x + hx, y + hy);
+                Point2D point3(x, y + hy);
+#ifdef WITH_OPENMP
+#pragma omp critical
+#endif
+                UInteger p0 = addNode(point0, INNER);
+                UInteger p1 = addNode(point1, INNER);
+                UInteger p2 = addNode(point2, INNER);
+                UInteger p3 = addNode(point3, INNER);
+                if ((xCenter <= point0.x() && yCenter <= point0.y() &&
+                     xCenter <= point1.x() && yCenter <= point1.y() &&
+                     xCenter <= point2.x() && yCenter <= point2.y() &&
+                     xCenter <= point3.x() && yCenter <= point3.y())
                         ||
-                        (xCenter >= p0.x() && yCenter >= p0.y() && xCenter >= p1.x() && yCenter >= p1.y() && xCenter >= p2.x() && yCenter >= p2.y() && xCenter >= p3.x() && yCenter >= p3.y()))
+                        (xCenter >= point0.x() && yCenter >= point0.y() &&
+                         xCenter >= point1.x() && yCenter >= point1.y() &&
+                         xCenter >= point2.x() && yCenter >= point2.y() &&
+                         xCenter >= point3.x() && yCenter >= point3.y()))
                 {
 #ifdef WITH_OPENMP
 #pragma omp critical
                     {
 #endif
-                        addElement(iter0->second, iter1->second, iter3->second);
-                        addElement(iter1->second, iter2->second, iter3->second);
+                        addElement(p0, p1, p3);
+                        addElement(p1, p2, p3);
 #ifdef WITH_OPENMP
                     } // omp critical
 #endif
@@ -151,72 +144,81 @@ void TriangleMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yC
 #pragma omp critical
                     {
 #endif
-                    addElement(iter0->second, iter1->second, iter2->second);
-                    addElement(iter0->second, iter2->second, iter3->second);
+                    addElement(p0, p1, p2);
+                    addElement(p0, p2, p3);
 #ifdef WITH_OPENMP
                     } // omp critical
 #endif
                 } // else
             }
-            else if (iter1 != nodesMap.end() && iter2 != nodesMap.end() && iter3 != nodesMap.end())
-            {
-                addElement(iter1->second, iter2->second, iter3->second);
-            }
-            else if (iter0 != nodesMap.end() && iter2 != nodesMap.end() && iter3 != nodesMap.end())
-            {
-                addElement(iter0->second, iter2->second, iter3->second);
-            }
-            else if (iter0 != nodesMap.end() && iter1 != nodesMap.end() && iter3 != nodesMap.end())
-            {
-                addElement(iter0->second, iter1->second, iter3->second);
-            }
-            else if (iter0 != nodesMap.end() && iter1 != nodesMap.end() && iter2 != nodesMap.end())
-            {
-                addElement(iter0->second, iter1->second, iter2->second);
-            }
         }
+        ++progress_bar;
     }
-
-    std::vector<Point2D> normal(nodesCount()); // нормали к узлам
-    std::vector<UInteger> iso(nodesCount()); // изо-точки (номера)
+    duration = ( std::clock() - start ) / static_cast<double>(CLOCKS_PER_SEC);
+    std::cout << "Done in " << duration << " seconds." << std::endl;
     UInteger baseElementCount = elementsCount();
+    std::vector<Point2D> normal(nodesCount()); // нормали к узлам
     // построение нормалей для всех узлов начальной сетки
+    std::cout << "Calculating normals..." << std::endl;
+    start = std::clock();
 #ifdef WITH_OPENMP
 #pragma omp parallel for
 #endif
     for (UInteger i = 0; i < normal.size(); i++)
     {
         Point2D currentPoint = node_[i].point;
-        AdjacentSet triangles = node_[i].adjacent;
+        AdjacentSet quads = node_[i].adjacent;
         // обработка смежных элементов
-        for (AdjacentSet::iterator it = triangles.begin(); it != triangles.end(); ++it)
+        for (AdjacentSet::iterator it = quads.begin(); it != quads.end(); ++it)
         {
-            Triangle tri = element_[*it];
-            Point2D prevPoint;
-            Point2D nextPoint;
+            Triangle element = element_[*it];
+            Point2D prevPoint = node_[element[element.index(i) - 1]].point;
+            Point2D nextPoint = node_[element[element.index(i) + 1]].point;
             Point2D prevNormal;
             Point2D nextNormal;
-            if (tri[0] == i)
-            {
-                prevPoint = node_[tri[2]].point;
-                nextPoint = node_[tri[1]].point;
-            }
-            else if (tri[1] == i)
-            {
-                prevPoint = node_[tri[0]].point;
-                nextPoint = node_[tri[2]].point;
-            }
-            else // if (tri[2] == i)
-            {
-                prevPoint = node_[tri[1]].point;
-                nextPoint = node_[tri[0]].point;
-            }
             prevNormal.set((currentPoint.y() - prevPoint.y()), -(currentPoint.x() - prevPoint.x()));
             nextNormal.set((nextPoint.y() - currentPoint.y()), -(nextPoint.x() - currentPoint.x()));
             normal[i] = normal[i] + prevNormal.normalized() + nextNormal.normalized();
         }
     }
+    for (short iter = 0; iter < 3; iter++)
+    {
+        for (UInteger i = 0; i < normal.size(); i++)
+        {
+            if (normal[i].length() > epsilon_)
+            {
+                Point2D nn = normal[i].normalized();
+                AdjacentSet adjacent = node_[i].adjacent;
+                for (UInteger elnum: adjacent)
+                {
+                    Triangle element = element_[elnum];
+                    UInteger prev_index = element[element.index(i) - 1];
+                    UInteger next_index = element[element.index(i) + 1];
+                    std::vector<UInteger> prev_intersect;
+                    std::vector<UInteger> next_intersect;
+                    set_intersection(adjacent.begin(), adjacent.end(), node_[prev_index].adjacent.begin(), node_[prev_index].adjacent.end(), std::back_inserter(prev_intersect));
+                    set_intersection(adjacent.begin(), adjacent.end(), node_[next_index].adjacent.begin(), node_[next_index].adjacent.end(), std::back_inserter(next_intersect));
+                    if (prev_intersect.size() == 1)
+                    {
+                        nn = nn + normal[prev_index].normalized();
+                    }
+                    if (next_intersect.size() == 1)
+                    {
+                        nn = nn + normal[next_index].normalized();
+                    }
+                }
+                normal[i] = nn.normalized();
+
+            }
+        } // for i
+    }
+    duration = ( std::clock() - start ) /  static_cast<double>(CLOCKS_PER_SEC);
+    std::cout << "Done in " << duration << " seconds." << std::endl;
     // поиск изо-точек на границе
+    std::vector<UInteger> iso(nodesCount()); // изо-точки (номера)
+    std::cout << "Searching iso-points...";
+    progress_bar.restart(normal.size());
+    start = std::clock();
 #ifdef WITH_OPENMP
 #pragma omp parallel for schedule(static, 1)
 #endif
@@ -229,76 +231,34 @@ void TriangleMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yC
             Point2D current = node_[i].point;
             // двоичный поиск граничной точки
             Point2D inner = current;
-            Point2D outer = current + sqrt(hx*hx + hy*hy) * n;
+            Point2D outer = current + iso_dist * n;
             Point2D borderPoint;
-            NodeType nodeType = BORDER;
-            if (func(outer.x(), outer.y()) > 0.0)
+            if (func(outer.x(), outer.y()) > epsilon_)
             {
                 // внешняя точка перескачила через границу и попала внутрь
                 // ищем внешнюю точку пошагово сканированием
                 outer = current;
-                while (func(outer.x(), outer.y()) >= 0.0)
-                    outer = outer + (0.0001 * sqrt(hx*hx + hy*hy)) * n;
+                while (func(outer.x(), outer.y()) >= epsilon_)
+                    outer = outer + (0.0001 * iso_dist) * n;
             }
             borderPoint = binary(inner, outer, func);
-
-//            // поиск соответствующей характерной точки
-//            for (std::list<Point2D>::iterator cPoint = charPoint.begin(); cPoint != charPoint.end(); ++cPoint)
-//            {
-//                if (mid.distanceTo(*cPoint) < minDistance)
-//                {
-//                    mid = *cPoint;
-//                    nodeType = CHARACTER;
-//                    //charPoint.erase(cPoint);
-//                    break;
-//                }
-//            }
-
-            // сравнение с существующими изо-точками перед всатвкой
-            bool isExist = false;
-            for (UInteger j = 0; j < i; j++)
-            {
-                if (iso[j] < ULONG_MAX)
-                {
-                    Point2D border = node_[iso[j]].point;
-                    if ((distance == nullptr && border.distanceTo(borderPoint) < minDistance) ||
-                            (distance != nullptr && distance(border, borderPoint) < minDistance))
-                    {
-                        iso[i] = iso[j];
-                        isExist = true;
-                        break;
-                    }
-                }
-            }
-            if (!isExist)
-            {
-                if ((distance == nullptr && current.distanceTo(borderPoint) < minDistance) ||
-                        (distance != nullptr && distance(current, borderPoint) < minDistance))
-                {
-                    node_[i].point = borderPoint;
-                    node_[i].type = nodeType;
-                    iso[i] = i;
-                }
-                else
-                {
 #ifdef WITH_OPENMP
 #pragma omp critical
 #endif
-                    iso[i] = pushNode(borderPoint, nodeType);
-                }
-            }
-        }
-    }
+            iso[i] = pushNode(borderPoint, BORDER);
+        } // if
+        ++progress_bar;
+    } // for i
     // для характерных точек, которым не нашлась пара на этапе формирования нормалей, используем метод близжайшего узла
     for (std::list<Point2D>::iterator cPoint = charPoint.begin(); cPoint != charPoint.end(); ++cPoint)
     {
         std::vector<Node2D>::iterator min_n;
-        double min_d = 10.0 * minDistance;
+        double min_d = 10.0 * iso_dist;
         for (std::vector<Node2D>::iterator n = node_.begin(); n != node_.end(); ++n)
         {
             if (n->type == BORDER)
             {
-                double d = (distance == nullptr) ? (n->point).distanceTo(*cPoint) : distance(n->point, *cPoint);
+                double d = (n->point).distanceTo(*cPoint);
                 if (d < min_d)
                 {
                     min_d = d;
@@ -312,53 +272,70 @@ void TriangleMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yC
             min_n->type = CHARACTER;
         }
     }
+    duration = ( std::clock() - start ) /  static_cast<double>(CLOCKS_PER_SEC);
+    std::cout << "Done in " << duration << " seconds." << std::endl;
+    std::cout << "Building boundary elements..." << std::endl;
+    start = std::clock();
     // Форимрование приграничного слоя элементов
     for (UInteger i = 0; i < baseElementCount; i++)
     {
-        Triangle triangle = element_[i];
+        Triangle element = element_[i];
         for (int j = 0; j < 3; j++)
         {
-            if (iso[triangle[j]] < ULONG_MAX && iso[triangle[j + 1]] < ULONG_MAX)
+            if (iso[element[j]] < ULONG_MAX && iso[element[j + 1]] < ULONG_MAX)
             {
-                AdjacentSet adjacent = node_[triangle[j]].adjacent;
-                int adjacnetCount = 0;
-                // обработка смежных элементов
-                for (AdjacentSet::iterator it = adjacent.begin(); it != adjacent.end(); ++it)
+                AdjacentSet adjacent0 = node_[element[j]].adjacent;
+                AdjacentSet adjacent1 = node_[element[j + 1]].adjacent;
+                std::vector<UInteger> intersection;
+                set_intersection(adjacent0.begin(), adjacent0.end(), adjacent1.begin(), adjacent1.end(), std::back_inserter(intersection));
+                if (intersection.size() == 1)
                 {
-                    Triangle atri = element_[*it];
-                    if (atri.in(triangle[j]) && atri.in(triangle[j + 1]))
-                        ++adjacnetCount;
-                }
-                if (adjacnetCount == 1)
-                {
-                    // из двух возможных способов гегенрации треугольников выбирается тот, для которого минимальные углы будут максимальными
-                    Point2D p0 = node_[triangle[j + 1]].point;
-                    Point2D p1 = node_[triangle[j]].point;
-                    Point2D p2 = node_[iso[triangle[j]]].point;
-                    Point2D p3 = node_[iso[triangle[j+ 1]]].point;
-                    double ma1 = minAngle(p0, p1, p3);
-                    double mb1 = minAngle(p1, p2, p3);
-                    double ma2 = minAngle(p0, p1, p2);
-                    double mb2 = minAngle(p0, p2, p3);
-                    if (std::min(ma1, mb1) > std::min(ma2, mb2))
-                    {
-                        if (triangle[j + 1] != iso[triangle[j + 1]] && triangle[j] != iso[triangle[j + 1]])
-                            addElement(triangle[j + 1], triangle[j], iso[triangle[j + 1]]);
-                        if (triangle[j] != iso[triangle[j]] && iso[triangle[j]] != iso[triangle[j + 1]])
-                            addElement(triangle[j], iso[triangle[j]], iso[triangle[j + 1]]);
-                    } // if
-                    else
-                    {
-                        if (triangle[j] != iso[triangle[j]] && triangle[j + 1] != iso[triangle[j]])
-                            addElement(triangle[j + 1], triangle[j], iso[triangle[j]]);
-                        if (triangle[j + 1] != iso[triangle[j + 1]] && iso[triangle[j]] != iso[triangle[j + 1]])
-                            addElement(triangle[j + 1], iso[triangle[j]], iso[triangle[j + 1]]);
-                    } // else
+                    addElement(element[j + 1], element[j], iso[element[j]]);
+                    addElement(element[j + 1], iso[element[j]], iso[element[j + 1]]);
                 }
             }
         }
     }
+    duration = ( std::clock() - start ) /  static_cast<double>(CLOCKS_PER_SEC);
+    std::cout << "Done in " << duration << " seconds." << std::endl;
+    SegmentMesh2D smesh;
+    std::vector<UInteger> snum(nodesCount()); // изо-точки (номера)
+    for (UInteger i = 0; i < nodesCount(); i++)
+        if (node_[i].type == BORDER || node_[i].type == CHARACTER)
+            snum[i] = smesh.pushNode(node_[i].point, node_[i].type);
+        else
+            snum[i] = ULONG_MAX;
+
+    for (UInteger i = 0; i < elementsCount(); i++)
+    {
+        Triangle element = element_[i];
+        for (int j = 0; j < 3; j++)
+        {
+            if (snum[element[j]] < ULONG_MAX && snum[element[j + 1]] < ULONG_MAX)
+            {
+                AdjacentSet adjacent0 = node_[element[j]].adjacent;
+                AdjacentSet adjacent1 = node_[element[j + 1]].adjacent;
+                std::vector<UInteger> intersection;
+                set_intersection(adjacent0.begin(), adjacent0.end(), adjacent1.begin(), adjacent1.end(), std::back_inserter(intersection));
+                if (intersection.size() == 1)
+                {
+                    smesh.addElement(snum[element[j + 1]], snum[element[j]]);
+                }
+            }
+        }
+    }
+    smesh.distlenSmoothing(func, 0.0, optimize);
+
+    for (UInteger i = 0; i < nodesCount(); i++)
+        if (snum[i] < ULONG_MAX) node_[i].point = smesh.point2d(snum[i]);
+
+    laplacianSmoothing(2);
     flip();
+    for (int i = 0; i < smooth; i++)
+    {
+        laplacianSmoothing(1);
+        flip();
+    }
     evalNodalValues(func);
     // the end.
     std::cout << "Создана сетка треугольных элементов для функционального объекта: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
@@ -440,7 +417,7 @@ void TriangleMesh2D::addElement(const std::vector<UInteger> &nodes_ref)
     addElement(triangle);
 }
 
-double TriangleMesh2D::jacobian(const UInteger &elementNum)
+double TriangleMesh2D::jacobian(const UInteger &elementNum) const
 {
     const Triangle tri = element_[elementNum];
     const Point2D p0 = node_[tri[0]].point;
@@ -462,21 +439,7 @@ double TriangleMesh2D::jacobian(const UInteger &elementNum)
     return j[0][0] * j[1][1] - j[0][1] * j[1][0];
 }
 
-double TriangleMesh2D::lengthAspect(const UInteger &elNum)
-{
-    const Triangle tri = element_[elNum];
-    const Point2D p0 = node_[tri[0]].point;
-    const Point2D p1 = node_[tri[1]].point;
-    const Point2D p2 = node_[tri[2]].point;
-    const double d01 = p0.distanceTo(p1);
-    const double d12 = p1.distanceTo(p2);
-    const double d20 = p2.distanceTo(p0);
-    double min = std::min(d01, std::min(d12, d20));
-    double max = std::max(d01, std::max(d12, d20));
-    return min / max;
-}
-
-double TriangleMesh2D::minAngle(const UInteger &elNum)
+double TriangleMesh2D::minAngle(const UInteger &elNum) const
 {
     const Triangle tri = element_[elNum];
     const Point2D p0 = node_[tri[0]].point;
@@ -485,7 +448,18 @@ double TriangleMesh2D::minAngle(const UInteger &elNum)
     return minAngle(p0, p1, p2);
 }
 
-double TriangleMesh2D::angleAspect(const UInteger &elNum)
+double TriangleMesh2D::maxAngle(const UInteger &elNum) const
+{
+    const Triangle tri = element_[elNum];
+    const Point2D A = node_[tri[0]].point;
+    const Point2D B = node_[tri[1]].point;
+    const Point2D C = node_[tri[2]].point;
+    double alpha = 0.0, beta = 0.0, gamma = 0.0;
+    angles(A, B, C, alpha, beta, gamma);
+    return std::max(alpha, std::max(beta, gamma));
+}
+
+double TriangleMesh2D::angleAspect(const UInteger &elNum) const
 {
     const Triangle tri = element_[elNum];
     const Point2D p0 = node_[tri[0]].point;
@@ -897,7 +871,7 @@ TriangleMesh2D::Triangulation TriangleMesh2D::superDelaunay(SegmentMesh2D *mesh,
 {
     double super_width = mesh->xMax() - mesh->xMin();
     double super_height = mesh->yMax() - mesh->yMin();
-    double h = ((super_width > super_height) ? super_width : super_height);
+    double h = 1.5 * sqrt(super_height*super_height + super_width*super_width);
     Point2D super0(mesh->xMin() - h, mesh->yMin() - h);
     Point2D super1(mesh->xMax() + h, mesh->yMin() - h);
     Point2D super2(mesh->xMax() + h, mesh->yMax() + h);
@@ -1256,6 +1230,83 @@ bool TriangleMesh2D::circumCircle(const double &xp, const double &yp, const doub
     dy = yp - yc;
     drsqr = dx * dx + dy * dy;
     return (drsqr <= rsqr);
+}
+
+void TriangleMesh2D::subdivide(std::list<UInteger> eNumbers, std::function<double(double, double)> func)
+{
+    int table [][13] = {
+        {0, 1, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, // 0
+        {0, 1, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, // 1
+        {0, 1, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, // 2
+        {0, 3, 2,  3,  1,  2, -1, -1, -1, -1, -1, -1, -1}, // 3
+        {0, 1, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, // 4
+        {0, 1, 5,  1,  2,  5, -1, -1, -1, -1, -1, -1, -1}, // 5
+        {0, 1, 4,  0,  4,  2, -1, -1, -1, -1, -1, -1, -1}, // 6
+        {0, 3, 5,  1,  4,  3,  2,  5,  4,  3,  4,  5, -1}  // 7
+    };
+    AdjacentSet refined_nodes;
+    AdjacentSet refined_elements;
+    Node2D local[6];
+    for (UInteger elnum: eNumbers)
+    {
+        Triangle triangle = element_[elnum];
+        for (int i = 0; i < 3; i++)
+        {
+            AdjacentSet a = node_[triangle[i]].adjacent;
+            refined_elements.insert(a.begin(), a.end());
+            refined_nodes.insert(triangle[i]);
+        }
+    }
+    for (UInteger elnum: refined_elements)
+    {
+        Triangle triangle = element_[elnum];
+        Node2D n0 = node_[triangle[0]];
+        Node2D n1 = node_[triangle[1]];
+        Node2D n2 = node_[triangle[2]];
+        int code = 0;
+        local[0] = n0;
+        local[1] = n1;
+        local[2] = n2;
+        local[3].point = 0.5 * (n0.point + n1.point); local[3].type = (n0.type == INNER || n1.type == INNER) ? INNER : BORDER;
+        local[4].point = 0.5 * (n1.point + n2.point); local[4].type = (n1.type == INNER || n2.type == INNER) ? INNER : BORDER;
+        local[5].point = 0.5 * (n2.point + n0.point); local[5].type = (n2.type == INNER || n0.type == INNER) ? INNER : BORDER;
+        if (local[3].type == BORDER && func != nullptr)
+            local[3].point = findBorder(local[3].point, func, 0.5 * (n0.point.distanceTo(n1.point) + n0.point.distanceTo(n2.point)));
+        if (local[4].type == BORDER && func != nullptr)
+            local[4].point = findBorder(local[4].point, func, 0.5 * (n0.point.distanceTo(n1.point) + n0.point.distanceTo(n2.point)));
+        if (local[5].type == BORDER && func != nullptr)
+            local[5].point = findBorder(local[5].point, func, 0.5 * (n0.point.distanceTo(n1.point) + n0.point.distanceTo(n2.point)));
+        if (refined_nodes.find(triangle[0]) != refined_nodes.end())
+            code |= 1;
+        if (refined_nodes.find(triangle[1]) != refined_nodes.end())
+            code |= 2;
+        if (refined_nodes.find(triangle[2]) != refined_nodes.end())
+            code |= 4;
+        if (code != 0)
+        {
+            node_[triangle[0]].adjacent.erase(elnum);
+            node_[triangle[1]].adjacent.erase(elnum);
+            node_[triangle[2]].adjacent.erase(elnum);
+            for(int i = 0; table[code][i] != -1; i += 3)
+            {
+                triangle[0] = addNode(local[table[code][i]]);
+                triangle[1] = addNode(local[table[code][i + 1]]);
+                triangle[2] = addNode(local[table[code][i + 2]]);
+                if (i == 0)
+                {
+                    element_[elnum] = triangle;
+                    node_[triangle[0]].adjacent.insert(elnum);
+                    node_[triangle[1]].adjacent.insert(elnum);
+                    node_[triangle[2]].adjacent.insert(elnum);
+                }
+                else
+                {
+                    addElement(triangle);
+                }
+            }
+        }
+    }
+    flip();
 }
 
 }

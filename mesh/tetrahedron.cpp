@@ -28,6 +28,16 @@ UInteger &Tetrahedron::operator [](int i)
     return vertex_[d];
 }
 
+const UInteger &Tetrahedron::operator [](int i) const
+{
+    int d = i % 4;
+
+    if (i < 0)
+        return vertex_[(d == 0) ? d : d + 4];
+
+    return vertex_[d];
+}
+
 Tetrahedron &Tetrahedron::operator =(const Tetrahedron &tetrahedron)
 {
     if (this != &tetrahedron)

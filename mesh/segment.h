@@ -69,7 +69,7 @@ public:
      * @param s Отрезок, с которым необходимо сравниться
      * @return ,если пара соединенных узлов совпадает
      */
-    bool isSame(const Segment &s);
+    bool isSame(const Segment &s) const;
     /**
      * @brief Проверка принадлежности узла элементу
      * @param node Номер (хеш-код) узла

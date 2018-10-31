@@ -345,7 +345,7 @@ QuadrilateralMesh2D::QuadrilateralMesh2D(const QuadrilateralMesh2D *mesh) :
     element_ = mesh->element_;
 }
 
-void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint)
+void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double (double, double)> func, std::list<Point2D> charPoint, int smooth, int optimize)
 {
     clear();
     xMin_ = xMin;
@@ -680,105 +680,18 @@ void QuadrilateralMesh2D::functionalDomain(const UInteger &xCount, const UIntege
             }
         }
     }
-    smesh.distlenSmoothing(func);
+    smesh.distlenSmoothing(func, 0.0, optimize);
     for (UInteger i = 0; i < nodesCount(); i++)
         if (snum[i] < ULONG_MAX) node_[i].point = smesh.point2d(snum[i]);
 
-    std::cout << "Laplacian smoothing...";
-    start = std::clock();
     // сглаживание Лапласа
-    for (int iter = 0; iter < 4; iter++)
-    {
-        for (UInteger i = 0; i < nodesCount(); i++)
-        {
-            if (node_[i].type == INNER)
-            {
-                Point2D nn(0.0, 0.0);
-                AdjacentSet adjacent = node_[i].adjacent;
-                int acount = 0;
-                for (AdjacentSet::iterator it = adjacent.begin(); it != adjacent.end(); ++it)
-                {
-                    Quadrilateral aquad = element_[*it];
-                    for (int nnode = 0; nnode < 4; nnode++)
-                    {
-                        if (aquad[nnode] == i)
-                        {
-                            nn = nn + node_[aquad[nnode+1]].point;
-                            nn = nn + node_[aquad[nnode-1]].point;
-                            acount += 2;
-                        }
-                    }
-                }
-                node_[i].point = (1.0 /  static_cast<double>(acount)) * nn;
-            }
-        } // for i
-        std::cout << '*';
-    }
-    duration = ( std::clock() - start ) /  static_cast<double>(CLOCKS_PER_SEC);
-    std::cout << "Done in " << duration << " seconds." << std::endl;
+    laplacianSmoothing(smooth);
+    localFubctionalOptimization(optimize);
 
-    std::cout << "Local optimization smoothing...";
-    start = std::clock();
-    // проект сглаживания путем локальной минимизации функционала
-    for (int iii = 0; iii < 16; iii++)
-    {
-        progress_bar.restart(nodesCount());
-        for (UInteger i = 0; i < nodesCount(); i++)
-        {
-            if (node_[i].type == INNER)
-            {
-                Point2D point = node_[i].point;
-                std::vector<double> x0(2);
-                std::vector<double> x(2);
-                AdjacentSet adjacent = node_[i].adjacent;
-
-                auto functor = [&](const std::vector<double> &vars){
-                    double f = 0.0;
-                    for (AdjacentSet::iterator it = adjacent.begin(); it != adjacent.end(); ++it)
-                    {
-                        Quadrilateral el = element_[*it];
-                        double x[4];
-                        double y[4];
-                        for (int j = 0; j < 4; j++)
-                        {
-                            UInteger nnode = el[j];
-                            if(nnode == i)
-                            {
-                                x[j] = vars[0];
-                                y[j] = vars[1];
-                            }
-                            else
-                            {
-                                x[j] = node_[nnode].point.x();
-                                y[j] = node_[nnode].point.y();
-                            }
-                        }
-                        // Рассмотрим 4х-угольник как 4 треугольника, определенных на его углах
-                        double a [][4] = {{x[0],    x[1],   x[2],   x[3]},
-                                          {y[0],    y[1],   y[2],   y[3]}};
-                        double b [][4] = {{x[1],    x[2],   x[3],   x[0]},
-                                          {y[1],    y[2],   y[3],   y[0]}};
-                        double c [][4] = {{x[3],    x[0],   x[1],   x[2]},
-                                          {y[3],    y[0],   y[1],   y[2]}};
-                        for (int q = 0; q < 4; q++)
-                        {
-                            double area = (b[0][q] - a[0][q]) * (c[1][q] - a[1][q]) - (b[1][q] - a[1][q]) * (c[0][q] - a[0][q]);
-                            f += exp(-10.0 * area);
-                        }
-                    }
-                    return f;
-                };
-
-                x0[0] = point.x();
-                x0[1] = point.y();
-                x = conjugateGradient(functor, x0, 0.01 * iso_dist, 0.0001 * iso_dist, 40, false);
-                node_[i].point.set(x[0], x[1]);
-            }
-            ++progress_bar;
-        } // for i
-    }
-    duration = ( std::clock() - start ) /  static_cast<double>(CLOCKS_PER_SEC);
-    std::cout << "Done in " << duration << " seconds." << std::endl;
+//    std::list<UInteger> ee;
+//    ee.push_back(0); ee.push_back(1); ee.push_back(2);
+//    subdivide(ee, func);
+//    subdivide(ee, func);
 //    minimizeFunctional();
     evalNodalValues(func);
     // the end.
@@ -819,11 +732,11 @@ void QuadrilateralMesh2D::minimizeFunctional()
         /*if (p30.length() < h)*/ h += p30.length();
     }
     h /= (4.0 *  static_cast<double>(elementsCount()));
-    std::cout << "The mesh-defined functional, h = " << h << ", epsilon = " << h*h << ", zeroth approximation: " << functional(x0) << std::endl;
+    std::cout << "The mesh-defined functional, h = " << 0.001 * h << ", epsilon = " << 0.000001 * h << ", t = " << log10(static_cast<double>(element_.size()) * 4.0) << ", zeroth approximation: " << functional(x0) << std::endl;
     start = std::clock();
     CoordinateFunction func = std::bind(&QuadrilateralMesh2D::functional, this, std::placeholders::_1);
-//    std::vector<double> x = descentGradient(func, x0, h, h*h);
-    std::vector<double> x = conjugateGradient(func, x0, 0.01 * h, 0.0001*h, 40, false);
+    std::vector<double> x = descentGradient(func, x0, 0.001 * h, 0.00000001 * h, 10000, true);
+//    std::vector<double> x = conjugateGradient(func, x0, 0.001 * h, 0.000001 * h, 5000, true);
     double duration = ( std::clock() - start ) /  static_cast<double>(CLOCKS_PER_SEC);
     std::cout << "Done in " << duration << " seconds." << std::endl;
     std::cout << functional(x) << std::endl;
@@ -895,6 +808,356 @@ void QuadrilateralMesh2D::clearElements()
     element_.clear();
 }
 
+void QuadrilateralMesh2D::subdivide(std::list<UInteger> eNumbers, std::function<double(double, double)> func)
+{
+//    int quad_table [][2][37] =
+//        {
+//            /*0*/{{0, 0, 3, 3, -1},
+//                  {0, 3, 3, 0, -1}
+//            },
+//            /*1*/{{0, 0, 1, 1, 0, 0, 3, 1, 1, 3, 3, 1, -1},
+//                  {0, 1, 1, 0, 1, 3, 3, 1, 1, 3, 0, 0, -1}
+//            },
+//            /*2*/{{0, 0, 2, 2, 0, 3, 3, 2, 2, 3, 3, 2, -1},
+//                  {0, 3, 1, 0, 3, 3, 1, 1, 1, 1, 0, 0, -1}
+//            },
+//            /*3*/{{0, 0, 1, 1, 0, 0, 1, 1, 0, 3, 2, 1, 3, 3, 2, 2, 3, 3, 2, 2, 2, 1, 1, 2, 1, 2, 2, 1, -1},
+//                  {0, 1, 1, 0, 1, 3, 2, 1, 3, 3, 2, 2, 3, 1, 1, 2, 1, 0, 0, 1, 1, 1, 2, 2, 1, 1, 0, 0, -1}
+//            },
+//            /*4*/{{0, 0, 2, 2, 2, 2, 3, 3, 3, 3, 0, 2, -1},
+//                  {0, 3, 3, 2, 2, 3, 3, 2, 2, 0, 0, 2, -1}
+//            },
+//            /*5*/{{0, 0, 1, 1, 0, 0, 1, 1, 0, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 1, 1, 2, 1, 2, 3, 1, -1},
+//                  {0, 1, 1, 0, 1, 3, 2, 1, 3, 3, 2, 2, 3, 3, 2, 2, 2, 2, 0, 1, 1, 1, 2, 2, 1, 1, 0, 0, -1}
+//            },
+//            /*6*/{{0, 0, 1, 1, 0, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 0, 1, 2, 2, 1, 1, 2, -1},
+//                  {0, 3, 2, 1, 3, 3, 2, 2, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, -1}
+//            },
+//            /*7*/{{0, 0, 1, 1, 0, 0, 1, 1, 0, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 1, 1, 2, 2, 1, 1, 2, -1},
+//                  {0, 1, 1, 0, 1, 3, 2, 1, 3, 3, 2, 2, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, -1}
+//            },
+//            /*8*/{{0, 0, 1, 3, 0, 0, 1, 1, 1, 1, 3, 3, -1},
+//                  {0, 2, 2, 0, 2, 3, 3, 2, 2, 3, 3, 0, -1}
+//            },
+//            /*9*/{{0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 3, 2, 2, 3, 3, 2, 2, 1, 1, 2, 1, 2, 3, 1, -1},
+//                  {0, 1, 1, 0, 1, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 0, 1, 1, 1, 2, 2, 1, 1, 0, 0, -1}
+//            },
+//            /*A*/{{0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 0, 1, 2, 2, 1, 1, 2, -1},
+//                  {0, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, -1}
+//            },
+//            /*B*/{{0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 1, 1, 2, 2, 1, 1, 2, -1},
+//                  {0, 1, 1, 0, 1, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, -1}
+//            },
+//            /*C*/{{0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 3, 0, 1, 2, 2, 1, 1, 2, -1},
+//                  {0, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 0, 1, 2, 0, 0, 1, 1, 1, 1, 2, 2, -1}
+//            },
+//            /*D*/{{0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 3, 1, 1, 2, 2, 1, 1, 2, -1},
+//                  {0, 1, 1, 0, 1, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 0, 1, 2, 0, 0, 1, 1, 1, 1, 2, 2, -1}
+//            },
+//            /*E*/{{0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 3, 3, 2, 2, 2, 2, 0, 1, 1, 1, 2, 2, -1},
+//                  {0, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 1, 1, 2, 1, 0, 0, 1, 1, 0, 0, 1, 1, 2, 2, 1, -1}
+//            },
+//            /*F*/{{0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, -1},
+//                  {0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, -1}
+//            },
+//        }; // the table of indexes
+    int quad_table [][2][37] =
+        {
+            /*0*/{{0, 0, 3, 3, -1},
+                  {0, 3, 3, 0, -1}
+            },
+            /*1*/{{0, 0, 3, 3, -1},
+                  {0, 3, 3, 0, -1}
+            },
+            /*2*/{{0, 0, 3, 3, -1},
+                  {0, 3, 3, 0, -1}
+            },
+            /*3*/{{0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 1, 0, 3, 2, -1},
+                  {0, 3, 2, 0, 0, 2, 2, 0, 0, 2, 3, 0, 2, 3, 3, 2, -1}
+            },
+            /*4*/{{0, 0, 3, 3, -1},
+                  {0, 3, 3, 0, -1}
+            },
+            /*5*/{{0, 0, 3, 3, -1},
+                  {0, 3, 3, 0, -1}
+            },
+            /*6*/{{0, 0, 1, 1, 0, 1, 3, 3, 3, 1, 1, 3, 3, 1, 0, 3, -1},
+                  {0, 3, 2, 1, 0, 1, 1, 0, 1, 1, 2, 2, 2, 2, 3, 3, -1}
+            },
+            /*7*/{{0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 2, 1, 3, 3, 1, 0, 3, 3, -1},
+                  {0, 3, 2, 0, 0, 2, 1, 0, 0, 1, 1, 0, 1, 2, 2, 1, 2, 3, 3, 2, -1}
+            },
+            /*8*/{{0, 0, 3, 3, -1},
+                  {0, 3, 3, 0, -1}
+            },
+            /*9*/{{0, 0, 2, 3, 0, 0, 2, 2, 0, 0, 3, 2, 3, 2, 2, 3, -1},
+                  {0, 1, 1, 0, 1, 2, 2, 1, 2, 3, 3, 2, 0, 1, 2, 3, -1}
+            },
+            /*A*/{{0, 0, 3, 3, -1},
+                  {0, 3, 3, 0, -1}
+            },
+            /*B*/{{0, 0, 1, 1, 0, 0, 2, 1, 0, 0, 3, 2, 1, 1, 2, 2, 2, 2, 3, 3, -1},
+                  {0, 1, 1, 0, 1, 2, 2, 1, 2, 3, 3, 2, 0, 1, 2, 0, 0, 2, 3, 0, -1}
+            },
+            /*C*/{{0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 0, 1, 2, 3, -1},
+                  {0, 3, 3, 1, 1, 3, 3, 1, 1, 3, 3, 0, 0, 1, 1, 0, -1}
+            },
+            /*D*/{{0, 0, 2, 3, 0, 0, 1, 2, 0, 0, 1, 1, 2, 1, 1, 2, 3, 2, 2, 3, -1},
+                  {0, 1, 1, 0, 1, 2, 2, 1, 2, 3, 3, 2, 1, 2, 3, 3, 0, 1, 3, 3, -1}
+            },
+            /*E*/{{0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 1, 2, 0, 1, 3, 3, -1},
+                  {0, 3, 3, 1, 1, 3, 3, 2, 2, 3, 3, 2, 2, 1, 1, 2, 0, 1, 1, 0, -1}
+            },
+            /*F*/{{0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, -1},
+                  {0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, -1}
+            },
+        }; // the table of indexes
+    AdjacentSet refined_nodes;
+    AdjacentSet refined_quads;
+    Node2D local_nodes[4][4];
+    const double h = 1.0 / 3.0;
+    // build a set of nodes that connect refined elements
+    for (UInteger elnum: eNumbers)
+    {
+        Quadrilateral quad = element_[elnum];
+        for (int i = 0; i < 4; i++)
+        {
+            AdjacentSet a = node_[quad[i]].adjacent;
+            refined_quads.insert(a.begin(), a.end());
+            refined_nodes.insert(quad[i]);
+        }
+    }
+    for (UInteger elnum: refined_quads)
+    {
+        Quadrilateral quad = element_[elnum];
+        Node2D n0 = node_[quad[0]];
+        Node2D n1 = node_[quad[1]];
+        Node2D n2 = node_[quad[2]];
+        Node2D n3 = node_[quad[3]];
+        int code = 0;
+        for (int i = 0; i < 4; i++)
+        {
+            Node2D bottom;
+            Node2D top;
+            if (i == 0)
+            {
+                bottom.point = n0.point;
+                top.point = n3.point;
+            }
+            else if (i == 3)
+            {
+                bottom.point = n1.point;
+                top.point = n2.point;
+            }
+            else
+            {
+                bottom.point = n0.point + static_cast<double>(i) * h * (n1.point - n0.point);
+                top.point = n3.point + static_cast<double>(i) * h * (n2.point - n3.point);
+            }
+
+            for (int j = 0; j < 4; j++)
+            {
+                Node2D current;
+                if (i == 0 && j == 0)
+                    current.type = n0.type;
+                else if (i == 3 && j == 0)
+                    current.type = n1.type;
+                else if (i == 3 && j == 3)
+                    current.type = n2.type;
+                else if (i == 0 && j == 3)
+                    current.type = n3.type;
+                else if(i == 0 && (n3.type == BORDER || n3.type == CHARACTER) && (n0.type == BORDER || n0.type == CHARACTER))
+                    current.type = BORDER;
+                else if(i == 3 && (n1.type == BORDER || n1.type == CHARACTER) && (n2.type == BORDER || n2.type == CHARACTER))
+                    current.type = BORDER;
+                else if(j == 0 && (n0.type == BORDER || n0.type == CHARACTER) && (n1.type == BORDER || n1.type == CHARACTER))
+                    current.type = BORDER;
+                else if(j == 3 && (n2.type == BORDER || n2.type == CHARACTER) && (n3.type == BORDER || n3.type == CHARACTER))
+                    current.type = BORDER;
+                else
+                    current.type = INNER;
+
+                if (j == 0)
+                    current.point = bottom.point;
+                else if (j == 3)
+                    current.point = top.point;
+                else
+                    current.point = bottom.point + static_cast<double>(j) * h * (top.point - bottom.point);
+
+                if (current.type == BORDER && func != nullptr)
+                    current.point = findBorder(current.point, func, 0.5 * (n0.point.distanceTo(n1.point) + n0.point.distanceTo(n2.point)));
+//                if (current.type == BORDER) current.type = CHARACTER;
+                local_nodes[i][j] = current;
+
+            }
+        }
+        if (refined_nodes.find(quad[0]) != refined_nodes.end())
+            code |= 1;
+        if (refined_nodes.find(quad[1]) != refined_nodes.end())
+            code |= 2;
+        if (refined_nodes.find(quad[2]) != refined_nodes.end())
+            code |= 4;
+        if (refined_nodes.find(quad[3]) != refined_nodes.end())
+            code |= 8;
+        if (code != 0)
+        {
+            node_[quad[0]].adjacent.erase(elnum);
+            node_[quad[1]].adjacent.erase(elnum);
+            node_[quad[2]].adjacent.erase(elnum);
+            node_[quad[3]].adjacent.erase(elnum);
+            for(int i = 0; quad_table[code][0][i] != -1; i += 4)
+            {
+                quad[3] = addNode(local_nodes[quad_table[code][0][i + 0]][quad_table[code][1][i + 0]]);
+                quad[2] = addNode(local_nodes[quad_table[code][0][i + 1]][quad_table[code][1][i + 1]]);
+                quad[1] = addNode(local_nodes[quad_table[code][0][i + 2]][quad_table[code][1][i + 2]]);
+                quad[0] = addNode(local_nodes[quad_table[code][0][i + 3]][quad_table[code][1][i + 3]]);
+                if (i == 0)
+                {
+                    element_[elnum] = quad;
+                    node_[quad[0]].adjacent.insert(elnum);
+                    node_[quad[1]].adjacent.insert(elnum);
+                    node_[quad[2]].adjacent.insert(elnum);
+                    node_[quad[3]].adjacent.insert(elnum);
+                }
+                else
+                {
+                    addElement(quad);
+                }
+            }
+        }
+    }
+}
+
+void QuadrilateralMesh2D::localFubctionalOptimization(int maxiter, bool print_values)
+{
+    std::cout << "Local optimization smoothing..." << std::endl;
+    std::clock_t start = std::clock();
+    std::vector<double> g(node_.size() * 2UL);
+    // проект сглаживания путем локальной минимизации функционала
+    for (int iii = 0; iii < maxiter; iii++)
+    {
+        if (print_values)
+        {
+            for (UInteger i = 0; i < node_.size(); i++)
+            {
+                    g[i * 2UL] = node_[i].point.x();
+                    g[i * 2UL + 1UL] = node_[i].point.y();
+            }
+            std::cout << "F = " << functional(g) << std::endl;
+        }
+
+        ConsoleProgress progress_bar(nodesCount());
+
+        for (UInteger i = 0; i < nodesCount(); i++)
+        {
+            if (node_[i].type == INNER)
+            {
+                Point2D point = node_[i].point;
+                std::vector<double> x0(2);
+                std::vector<double> x(2);
+                AdjacentSet adjacent = node_[i].adjacent;
+                double avr_dist = 0.0;
+
+                for (UInteger elnum: adjacent)
+                {
+                    Quadrilateral el = element_[elnum];
+                    int index = el.index(i);
+                    Point2D prev = node_[el[index - 1]].point;
+                    Point2D next = node_[el[index + 1]].point;
+                    avr_dist += point.distanceTo(prev) + point.distanceTo(next);
+                }
+
+                avr_dist /= static_cast<double>(2 * adjacent.size());
+
+                auto functor = [&](const std::vector<double> &vars){
+                    double f = 0.0;
+                    for (AdjacentSet::iterator it = adjacent.begin(); it != adjacent.end(); ++it)
+                    {
+                        Quadrilateral el = element_[*it];
+                        double x[4];
+                        double y[4];
+                        int r = 0;
+                        for (int j = 0; j < 4; j++)
+                        {
+                            UInteger nnode = el[j];
+                            if(nnode == i)
+                            {
+                                x[j] = vars[0];
+                                y[j] = vars[1];
+                                r = j;
+                            }
+                            else
+                            {
+                                x[j] = node_[nnode].point.x();
+                                y[j] = node_[nnode].point.y();
+                            }
+                        }
+                        // Рассмотрим 4х-угольник как 4 треугольника, определенных на его углах
+                        double a [][4] = {{x[0],    x[1],   x[2],   x[3]},
+                                          {y[0],    y[1],   y[2],   y[3]}};
+                        double b [][4] = {{x[1],    x[2],   x[3],   x[0]},
+                                          {y[1],    y[2],   y[3],   y[0]}};
+                        double c [][4] = {{x[3],    x[0],   x[1],   x[2]},
+                                          {y[3],    y[0],   y[1],   y[2]}};
+                        for (int q = 0; q < 4; q++)
+                        {
+                            double area = (b[0][q] - a[0][q]) * (c[1][q] - a[1][q]) - (b[1][q] - a[1][q]) * (c[0][q] - a[0][q]);
+//                            double area = (b[0][r] - a[0][r]) * (c[1][r] - a[1][r]) - (b[1][r] - a[1][r]) * (c[0][r] - a[0][r]);
+                            f += exp(-10.0 * area);
+                        }
+                    }
+                    return f;
+                };
+
+                x0[0] = point.x();
+                x0[1] = point.y();
+                x = conjugateGradient(functor, x0, 0.01 * avr_dist, 0.0001 * avr_dist, 40, false);
+                node_[i].point.set(x[0], x[1]);
+            }
+            ++progress_bar;
+        } // for i
+    }
+    if (print_values)
+    {
+        for (UInteger i = 0; i < node_.size(); i++)
+        {
+            g[i * 2UL] = node_[i].point.x();
+            g[i * 2UL + 1UL] = node_[i].point.y();
+        }
+        std::cout << "F = " << functional(g) << std::endl;
+    }
+    double duration = static_cast<double>(std::clock() - start) /  static_cast<double>(CLOCKS_PER_SEC);
+    std::cout << "Done in " << duration << " seconds." << std::endl;
+}
+
+double QuadrilateralMesh2D::minAngle(const UInteger &elNum) const
+{
+    Quadrilateral quad = element_[elNum];
+    Point2D A = node_[quad[0]].point;
+    Point2D B = node_[quad[1]].point;
+    Point2D C = node_[quad[2]].point;
+    Point2D D = node_[quad[3]].point;
+    double a = A.angle(D, B);
+    double b = B.angle(A, C);
+    double c = C.angle(B, D);
+    double d = D.angle(C, A);
+    return std::min(std::min(a, b), std::min(c, d));
+}
+
+double QuadrilateralMesh2D::maxAngle(const UInteger &elNum) const
+{
+    Quadrilateral quad = element_[elNum];
+    Point2D A = node_[quad[0]].point;
+    Point2D B = node_[quad[1]].point;
+    Point2D C = node_[quad[2]].point;
+    Point2D D = node_[quad[3]].point;
+    double a = A.angle(D, B);
+    double b = B.angle(A, C);
+    double c = C.angle(B, D);
+    double d = D.angle(C, A);
+    return std::max(std::max(a, b), std::max(c, d));
+}
+
 double QuadrilateralMesh2D::isoFunc(const UInteger &i, const double &xi, const double &eta)
 {
     switch (i)
@@ -914,7 +1177,9 @@ double QuadrilateralMesh2D::isoFunc(const UInteger &i, const double &xi, const d
 double QuadrilateralMesh2D::functional(const std::vector<double> &vars)
 {
     double f = 0.0;
-    double t = log(4.0 * element_.size() + 1.0) + 1.0;
+//    double t = log(4.0 * element_.size() + 1.0) + 1.0;
+//    double t = log10(static_cast<double>(element_.size()) * 4.0);
+    double t = 10.0;
 //    const double alpha = 0.5;
 //    const double beta = 1.0 - alpha;
     for (auto el: element_)

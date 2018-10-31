@@ -30,6 +30,7 @@
 #include "quadrilateralmesh3d.h"
 #include "trianglemesh2d.h"
 #include "trianglemesh3d.h"
+#include "tetrahedralmesh3d.h"
 #include "hexahedralmesh3d.h"
 
 #include "exportmeshdialog.h"
@@ -78,7 +79,7 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
     msh::MeshPointer meshPtr = ui->pictureControl->getGlMeshPicture()->releaseMesh();
-    if (meshPtr != NULL) delete meshPtr; // чистим старые данные
+    if (meshPtr != nullptr) delete meshPtr; // чистим старые данные
     delete highlighter;
     delete stdRedirector;
     delete ui;
@@ -640,8 +641,8 @@ void MainWindow::on_actionLoadMesh_triggered()
         case 4:
             if (facesCount == 1)
                 mesh = new msh::QuadrilateralMesh3D();
-//            else
-//                mesh = new msh::TetrahedralMeshD(); // TODO
+            else
+                mesh = new msh::TetrahedralMesh3D(); // TODO
             break;
         case 8:
             mesh = new msh::HexahedralMesh3D();
@@ -767,7 +768,7 @@ void MainWindow::on_actionElasticFem_triggered()
 void MainWindow::on_actionLoadNodeValue_triggered()
 {
     msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
-    if (mesh != NULL)
+    if (mesh != nullptr)
     {
         QString fileName = QFileDialog::getOpenFileName(this, "Загрузить значение в узле", "", tr("Текстовые файлы (*.txt);;Любой файл (*)"));
         if (fileName.isEmpty())
@@ -805,7 +806,7 @@ void MainWindow::on_actionLoadNodeValue_triggered()
 void MainWindow::on_actionLoadElementValue_triggered()
 {
     msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
-    if (mesh != NULL)
+    if (mesh != nullptr)
     {
         QString fileName = QFileDialog::getOpenFileName(this, "Загрузить значение на элементе", "", tr("Текстовые файлы (*.txt);;Любой файл (*)"));
         if (fileName.isEmpty())
@@ -843,7 +844,7 @@ void MainWindow::on_actionLoadElementValue_triggered()
 void MainWindow::on_actionExtremeValuesStatistica_triggered()
 {
     msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
-    if (mesh != NULL)
+    if (mesh != nullptr)
     {
         ui->tabWidget->setCurrentIndex(2); // switch to terminal's tab
         msh::NamedDoubleVector ndv = ui->pictureControl->getGlMeshPicture()->dataVector();
@@ -917,7 +918,7 @@ void MainWindow::on_actionRunScript_triggered()
         std::cout << "Uncaught exception at line " << line << ": " << result.toString().toStdString() << std::endl;
     }
     std::cout << "QZScriptEngine finished in " << time.elapsed() << " ms." << std::endl;
-    if (engine.mesh() != NULL)
+    if (engine.mesh() != nullptr)
     {
 //        clearMesh(ui->pictureControl->getGlMeshPicture()->releaseMesh());
         ui->pictureControl->getGlMeshPicture()->setMesh(engine.mesh());
@@ -933,7 +934,7 @@ void MainWindow::on_actionRunScript_triggered()
 void MainWindow::on_actionJacobianMetric_triggered()
 {
     msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
-    if (mesh != NULL)
+    if (mesh != nullptr)
     {
         ui->tabWidget->setCurrentIndex(2); // switch to terminal's tab
         std::cout << std::endl;
@@ -971,35 +972,31 @@ void MainWindow::on_actionJacobianMetric_triggered()
 void MainWindow::on_actionLengthAspect_triggered()
 {
     msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
-    if (mesh != NULL)
+    if (mesh != nullptr)
     {
         ui->tabWidget->setCurrentIndex(2); // switch to terminal's tab
         std::cout << std::endl;
         std::cout << "Вычисление соотношений длин сторон элементов... ";
-        double min = 0.0, max = 0.0;
-        if (dynamic_cast<msh::TriangleMesh2D*>(mesh))
+        double min = 10000.0, max = 0.0;
+        if (mesh->elementsCount() > 0)
         {
-            msh::TriangleMesh2D *triangles = dynamic_cast<msh::TriangleMesh2D*>(mesh);
-            if (triangles->elementsCount() > 0)
+            std::vector<double> length_aspect(mesh->elementsCount());
+            for (msh::UInteger i = 0; i < mesh->elementsCount(); i++)
             {
-                std::vector<double> j(triangles->elementsCount());
-                for (msh::UInteger i = 0; i < triangles->elementsCount(); i++)
+                length_aspect[i] = mesh->lengthAspect(i);
+                if (i == 0)
                 {
-                    j[i] = triangles->lengthAspect(i);
-                    if (i == 0)
-                    {
-                        min = max = j[i];
-                    }
-                    else
-                    {
-                        if (min > j[i])
-                            min = j[i];
-                        if (max < j[i])
-                            max = j[i];
-                    }
+                    min = max = length_aspect[i];
                 }
-                mesh->addDataVector("length ratio", j);
+                else
+                {
+                    if (min > length_aspect[i])
+                        min = length_aspect[i];
+                    if (max < length_aspect[i])
+                        max = length_aspect[i];
+                }
             }
+            mesh->addDataVector("length ratio", length_aspect);
         }
         std::cout << "Выполнено: " << min << "<= aspect(l) <= " << max << std::endl;
     }
@@ -1008,83 +1005,31 @@ void MainWindow::on_actionLengthAspect_triggered()
 void MainWindow::on_actionMinAngleMetric_triggered()
 {
     msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
-    if (mesh != NULL)
+    if (mesh != nullptr)
     {
         ui->tabWidget->setCurrentIndex(2); // switch to terminal's tab
         std::cout << std::endl;
         std::cout << "Вычисление значений минимальных углов... ";
         double min = 0.0, max = 0.0;
-        if (dynamic_cast<msh::TriangleMesh2D*>(mesh))
+        if (mesh->elementsCount() > 0)
         {
-            msh::TriangleMesh2D *triangles = dynamic_cast<msh::TriangleMesh2D*>(mesh);
-            if (triangles->elementsCount() > 0)
+            std::vector<double> angle(mesh->elementsCount());
+            for (msh::UInteger i = 0; i < mesh->elementsCount(); i++)
             {
-                std::vector<double> j(triangles->elementsCount());
-                for (msh::UInteger i = 0; i < triangles->elementsCount(); i++)
+                angle[i] = mesh->minAngle(i) * 180.0 / M_PI;
+                if (i == 0)
                 {
-                    j[i] = triangles->minAngle(i) * 180.0 / M_PI;
-                    if (i == 0)
-                    {
-                        min = max = j[i];
-                    }
-                    else
-                    {
-                        if (min > j[i])
-                            min = j[i];
-                        if (max < j[i])
-                            max = j[i];
-                    }
+                    min = max = angle[i];
                 }
-                mesh->addDataVector("min angle, gradus", j);
-            }
-        }
-        if (dynamic_cast<msh::TriangleMesh3D*>(mesh))
-        {
-            msh::TriangleMesh3D *triangles = dynamic_cast<msh::TriangleMesh3D*>(mesh);
-            if (triangles->elementsCount() > 0)
-            {
-                std::vector<double> j(triangles->elementsCount());
-                for (msh::UInteger i = 0; i < triangles->elementsCount(); i++)
+                else
                 {
-                    j[i] = triangles->minAngle(i) * 180.0 / M_PI;
-                    if (i == 0)
-                    {
-                        min = max = j[i];
-                    }
-                    else
-                    {
-                        if (min > j[i])
-                            min = j[i];
-                        if (max < j[i])
-                            max = j[i];
-                    }
+                    if (min > angle[i])
+                        min = angle[i];
+                    if (max < angle[i])
+                        max = angle[i];
                 }
-                mesh->addDataVector("", j);
             }
-        }
-        if (dynamic_cast<msh::QuadrilateralMesh3D*>(mesh))
-        {
-            msh::QuadrilateralMesh3D *quads = dynamic_cast<msh::QuadrilateralMesh3D*>(mesh);
-            if (quads->elementsCount() > 0)
-            {
-                std::vector<double> j(quads->elementsCount());
-                for (msh::UInteger i = 0; i < quads->elementsCount(); i++)
-                {
-                    j[i] = quads->minAngle(i) * 180.0 / M_PI;
-                    if (i == 0)
-                    {
-                        min = max = j[i];
-                    }
-                    else
-                    {
-                        if (min > j[i])
-                            min = j[i];
-                        if (max < j[i])
-                            max = j[i];
-                    }
-                }
-                mesh->addDataVector("", j);
-            }
+            mesh->addDataVector("min angle", angle);
         }
         std::cout << "Выполнено: " << min << " <= min(alpha) <= " << max << std::endl;
     }
@@ -1093,35 +1038,31 @@ void MainWindow::on_actionMinAngleMetric_triggered()
 void MainWindow::on_actionAngleAspect_triggered()
 {
     msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
-    if (mesh != NULL)
+    if (mesh != nullptr)
     {
         ui->tabWidget->setCurrentIndex(2); // switch to terminal's tab
         std::cout << std::endl;
         std::cout << "Вычисление соотношений углов... ";
         double min = 0.0, max = 0.0;
-        if (dynamic_cast<msh::TriangleMesh2D*>(mesh))
+        if (mesh->elementsCount() > 0)
         {
-            msh::TriangleMesh2D *triangles = dynamic_cast<msh::TriangleMesh2D*>(mesh);
-            if (triangles->elementsCount() > 0)
+            std::vector<double> angle(mesh->elementsCount());
+            for (msh::UInteger i = 0; i < mesh->elementsCount(); i++)
             {
-                std::vector<double> j(triangles->elementsCount());
-                for (msh::UInteger i = 0; i < triangles->elementsCount(); i++)
+                angle[i] = mesh->minAngle(i) / mesh->maxAngle(i);
+                if (i == 0)
                 {
-                    j[i] = triangles->angleAspect(i);
-                    if (i == 0)
-                    {
-                        min = max = j[i];
-                    }
-                    else
-                    {
-                        if (min > j[i])
-                            min = j[i];
-                        if (max < j[i])
-                            max = j[i];
-                    }
+                    min = max = angle[i];
                 }
-                mesh->addDataVector("angle ratio", j);
+                else
+                {
+                    if (min > angle[i])
+                        min = angle[i];
+                    if (max < angle[i])
+                        max = angle[i];
+                }
             }
+            mesh->addDataVector("angle ratio", angle);
         }
         std::cout << "Выполнено: " << min << "<= aspect(alpha) <= " << max << std::endl;
     }
@@ -1313,7 +1254,7 @@ void MainWindow::on_actionCuboidScript_triggered()
 void MainWindow::on_actionExportSTL_triggered()
 {
     msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
-    if (mesh != NULL)
+    if (mesh != nullptr)
     {
         QString fileName = QFileDialog::getSaveFileName(this, "qMesher: Экспорт в STL", "", tr("STL-файлы (*.stl);;Любой файл (*)"));
         if (fileName.isEmpty())
@@ -1328,7 +1269,7 @@ void MainWindow::on_actionExportSTL_triggered()
         for (msh::UInteger i = 0; i < mesh->elementsCount(); i++)
         {
             msh::ElementPointer element = mesh->element(i);
-            if (dynamic_cast<const msh::Segment *>(element) == NULL && (mesh->dimesion() == 2 || mesh->isBorderElement(element)))
+            if (dynamic_cast<const msh::Segment *>(element) == nullptr && (mesh->dimesion() == 2 || mesh->isBorderElement(element)))
             {
                 for (int p = 0; p < element->facesCount(); p++)
                 {
@@ -1378,4 +1319,49 @@ void MainWindow::on_actionCylinderScript_triggered()
 {
     QString command = "cylinder(x, y, z, radius, height)";
     ui->codeEditor->insertPlainText(command);
+}
+
+void MainWindow::on_action_rectangle_x_y_left_bottom_w_h_triggered()
+{
+    QString command = "rectangle(x, y, l, b, w, h)";
+    ui->codeEditor->insertPlainText(command);
+}
+
+void MainWindow::on_action_rectangle_x_y_left_bottom_w_h_r_triggered()
+{
+    QString command = "rectangle(x, y, l, b, w, h, r)";
+    ui->codeEditor->insertPlainText(command);
+}
+
+void MainWindow::on_actionMaxAngleMetric_triggered()
+{
+    msh::MeshPointer mesh = ui->pictureControl->getGlMeshPicture()->getMesh();
+    if (mesh != nullptr)
+    {
+        ui->tabWidget->setCurrentIndex(2); // switch to terminal's tab
+        std::cout << std::endl;
+        std::cout << "Вычисление значений максимальных углов... ";
+        double min = 0.0, max = 0.0;
+        if (mesh->elementsCount() > 0)
+        {
+            std::vector<double> angle(mesh->elementsCount());
+            for (msh::UInteger i = 0; i < mesh->elementsCount(); i++)
+            {
+                angle[i] = mesh->maxAngle(i) * 180.0 / M_PI;
+                if (i == 0)
+                {
+                    min = max = angle[i];
+                }
+                else
+                {
+                    if (min > angle[i])
+                        min = angle[i];
+                    if (max < angle[i])
+                        max = angle[i];
+                }
+            }
+            mesh->addDataVector("max angle", angle);
+        }
+        std::cout << "Выполнено: " << min << " <= max(alpha) <= " << max << std::endl;
+    }
 }

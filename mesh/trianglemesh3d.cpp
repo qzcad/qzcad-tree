@@ -1423,7 +1423,7 @@ void TriangleMesh3D::marchingTetrahedrons(const UInteger &xCount, const UInteger
     printStats();
 }
 
-void TriangleMesh3D::backgroundGrid(const TetrahedralMesh3D *mesh, std::function<double (double, double, double)> func, double level, int smooth, int optimize, bool useFlip)
+std::list<ElementPointer> TriangleMesh3D::backgroundGrid(const TetrahedralMesh3D *mesh, std::function<double (double, double, double)> func, double level, int smooth, int optimize, bool useFlip)
 {
     clear();
     std::list<ElementPointer> inner;
@@ -1609,8 +1609,13 @@ void TriangleMesh3D::backgroundGrid(const TetrahedralMesh3D *mesh, std::function
     for (UInteger i = 0; i != node_.size(); ++i) node_[i].point = surface[i];
     laplacianSmoothing(func, level, smooth, useFlip);
     distlenSmoothing(func, level, optimize, useFlip);
+//    std::list<UInteger> ee;
+//    ee.push_back(0); ee.push_back(1); ee.push_back(2);ee.push_back(3);ee.push_back(4);
+//    subdivide(ee, func);
+//    subdivide(ee, func);
     printStats();
     updateDomain();
+    return  inner;
 }
 
 UInteger TriangleMesh3D::elementsCount() const
@@ -1717,14 +1722,24 @@ double TriangleMesh3D::area(const Point3D &p0, const Point3D &p1, const Point3D 
     return sqrt(p * (p - a) * (p - b) * (p - c)); // формула Герона
 }
 
-double TriangleMesh3D::minAngle(const UInteger &elNum)
+double TriangleMesh3D::minAngle(const UInteger &elnum) const
 {
-    const Triangle tri = element_[elNum];
+    const Triangle tri = element_[elnum];
     const Point3D p0 = node_[tri[0]].point;
     const Point3D p1 = node_[tri[1]].point;
     const Point3D p2 = node_[tri[2]].point;
-    //    if (minAngle(p0, p1, p2) < 0.1) std::cout << elNum << " ";
     return minAngle(p0, p1, p2);
+}
+
+double TriangleMesh3D::maxAngle(const UInteger &elnum) const
+{
+    const Triangle tri = element_[elnum];
+    const Point3D A = node_[tri[0]].point;
+    const Point3D B = node_[tri[1]].point;
+    const Point3D C = node_[tri[2]].point;
+    double alpha = 0.0, beta = 0.0, gamma = 0.0;
+    angles(A, B, C, alpha, beta, gamma);
+    return std::max(alpha, std::max(beta, gamma));
 }
 
 void TriangleMesh3D::clearElements()
@@ -2108,8 +2123,89 @@ void TriangleMesh3D::printStats() const
     std::cout << "Triangle mesh (surface): " << nodesCount() << " node(s), " << elementsCount() << " element(s)." << std::endl;
 }
 
+void TriangleMesh3D::subdivide(std::list<UInteger> eNumbers, std::function<double (double, double, double)> func)
+{
+    int table [][13] = {
+        {0, 1, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, // 0
+        {0, 1, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, // 1
+        {0, 1, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, // 2
+        {0, 3, 2,  3,  1,  2, -1, -1, -1, -1, -1, -1, -1}, // 3
+        {0, 1, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}, // 4
+        {0, 1, 5,  1,  2,  5, -1, -1, -1, -1, -1, -1, -1}, // 5
+        {0, 1, 4,  0,  4,  2, -1, -1, -1, -1, -1, -1, -1}, // 6
+        {0, 3, 5,  1,  4,  3,  2,  5,  4,  3,  4,  5, -1}  // 7
+    };
+    AdjacentSet refined_nodes;
+    AdjacentSet refined_elements;
+    Node3D local[6];
+    for (UInteger elnum: eNumbers)
+    {
+        Triangle triangle = element_[elnum];
+        for (int i = 0; i < 3; i++)
+        {
+            AdjacentSet a = node_[triangle[i]].adjacent;
+            refined_elements.insert(a.begin(), a.end());
+            refined_nodes.insert(triangle[i]);
+        }
+    }
+    for (UInteger elnum: refined_elements)
+    {
+        Triangle triangle = element_[elnum];
+        Node3D n0 = node_[triangle[0]];
+        Node3D n1 = node_[triangle[1]];
+        Node3D n2 = node_[triangle[2]];
+        int code = 0;
+        local[0] = n0;
+        local[1] = n1;
+        local[2] = n2;
+        local[3].point = 0.5 * (n0.point + n1.point); local[3].type = BORDER;
+        local[4].point = 0.5 * (n1.point + n2.point); local[4].type = BORDER;
+        local[5].point = 0.5 * (n2.point + n0.point); local[5].type = BORDER;
+        if (refined_nodes.find(triangle[0]) != refined_nodes.end())
+            code |= 1;
+        if (refined_nodes.find(triangle[1]) != refined_nodes.end())
+            code |= 2;
+        if (refined_nodes.find(triangle[2]) != refined_nodes.end())
+            code |= 4;
+        if (code != 0)
+        {
+            node_[triangle[0]].adjacent.erase(elnum);
+            node_[triangle[1]].adjacent.erase(elnum);
+            node_[triangle[2]].adjacent.erase(elnum);
+            for(int i = 0; table[code][i] != -1; i += 3)
+            {
+                triangle[0] = addNode(local[table[code][i]]);
+                triangle[1] = addNode(local[table[code][i + 1]]);
+                triangle[2] = addNode(local[table[code][i + 2]]);
+                if (i == 0)
+                {
+                    element_[elnum] = triangle;
+                    node_[triangle[0]].adjacent.insert(elnum);
+                    node_[triangle[1]].adjacent.insert(elnum);
+                    node_[triangle[2]].adjacent.insert(elnum);
+                }
+                else
+                {
+                    addElement(triangle);
+                }
+            }
+        }
+    }
 
-bool TriangleMesh3D::angles(const Point3D &A, const Point3D &B, const Point3D &C, double &alpha, double &beta, double &gamma)
+    if (func != nullptr)
+    {
+        double h = sqrt((xMax_ - xMin_) * (xMax_ - xMin_) + (yMax_ - yMin_) * (yMax_ - yMin_) + (zMax_ - zMin_) * (zMax_ - zMin_)) / static_cast<double>(nodesCount());
+        for (UInteger i = 0; i < nodesCount(); i++)
+        {
+            if (node_[i].type == BORDER)
+                node_[i].point = findBorder(node_[i].point, func, h);
+        }
+    }
+
+    flip();
+}
+
+bool TriangleMesh3D::angles(const Point3D &A, const Point3D &B, const Point3D &C, double &alpha, double &beta, double &gamma) const
 {
     Point3D AB = B - A;
     Point3D AC = C - A;
@@ -2125,7 +2221,7 @@ bool TriangleMesh3D::angles(const Point3D &A, const Point3D &B, const Point3D &C
     return TriangleMesh2D::angles(a, b, c, alpha, beta, gamma);
 }
 
-double TriangleMesh3D::minAngle(const Point3D &A, const Point3D &B, const Point3D &C)
+double TriangleMesh3D::minAngle(const Point3D &A, const Point3D &B, const Point3D &C) const
 {
     double alpha = 0.0, beta = 0.0, gamma = 0.0;
     angles(A, B, C, alpha, beta, gamma);
@@ -2151,9 +2247,9 @@ bool TriangleMesh3D::inCircumSphere(const Point3D &P, const Point3D &A, const Po
 
     double xc = 0.0, yc = 0.0, r = 0.0;
 
-    return TriangleMesh2D::circumCircle(p.x(), p.y(), a.x(), a.y(), b.x(), b.y(), c.x(), c.y(), xc, yc, r);
+//    return TriangleMesh2D::circumCircle(p.x(), p.y(), a.x(), a.y(), b.x(), b.y(), c.x(), c.y(), xc, yc, r);
 
-//    return epsilon_ < r - p.distanceTo(Point3D(xc, yc, 0.0));
+    return epsilon_ < r - p.distanceTo(Point3D(xc, yc, 0.0));
 }
 
 bool TriangleMesh3D::inCircumCylinder(const Point2D &P, const Point2D &A, const Point2D &B, const Point2D &C, std::function<Point3D (double, double)> domainFunction)

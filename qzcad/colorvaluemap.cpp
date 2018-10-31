@@ -24,9 +24,9 @@ QColor ColorValueMap::color(const double &value, int colors)
     QColor result;
     switch (colorMap_) {
     case GREYSCALE:
-        result.setRgbF(scaleOn(value, 0.0, 1.0, colors),
-                       scaleOn(value, 0.0, 1.0, colors),
-                       scaleOn(value, 0.0, 1.0, colors));
+        result.setRgbF(scaleOn(value, 0.2, 0.975, colors),
+                       scaleOn(value, 0.2, 0.975, colors),
+                       scaleOn(value, 0.2, 0.975, colors));
         break;
     case SPRING:
         result.setRgbF(1.0,
@@ -66,18 +66,18 @@ QColor ColorValueMap::color(const double &value, int colors)
 
 double ColorValueMap::scaleOn(const double &value, const double &a, const double &b, int colors)
 {
-    double h = (b - a) / (double)colors;
-    int j = (int)round(((b - a) * (value - min_) / (max_ - min_)) / h);
-    return a + (double)j * h;
+    double h = (b - a) / static_cast<double>(colors);
+    int j = static_cast<int>(round(((b - a) * (value - min_) / (max_ - min_)) / h));
+    return a + static_cast<double>(j) * h;
 }
 
 double ColorValueMap::scaleOn(const double &value, const double &min, const double &max, const double &a, const double &b, int colors)
 {
     if (value < min) return a;
     if (value > max) return b;
-    double h = (b - a) / (double)colors;
-    int j = (int)round(((b - a) * (value - min) / (max - min)) / h);
-    return a + (double)j * h;
+    double h = (b - a) / static_cast<double>(colors);
+    int j = static_cast<int>(round(((b - a) * (value - min) / (max - min)) / h));
+    return a + static_cast<double>(j) * h;
 }
 
 double ColorValueMap::max() const

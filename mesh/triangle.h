@@ -90,6 +90,12 @@ public:
      * @return Индекс (значение от 0 до verticesCount() - 1) если такой номер найден, -1 - иначе
      */
     virtual int index(const UInteger &node) const;
+    /**
+     * @brief Проверка на совпадение треугольников (с точностью до порядка обхода)
+     * @param t Треугольник для проверки
+     * @return true, если this и t обладают одинаковым набором кодов узлов
+     */
+    bool isSame(const Triangle &t) const;
 private:
     UInteger vertex_[3]; //!< Вершины треугольника (номера или хеш-коды)
 };

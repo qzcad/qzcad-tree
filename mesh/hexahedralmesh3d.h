@@ -81,16 +81,11 @@ public:
      */
     virtual ElementPointer element(const UInteger &number) const;
     /**
-     * @brief Вычислить площадь грани (грань - четырехугольник)
-     * @param face Список номеров узлов, определяющих грань
-     * @return Площадь грани
-     */
-    double faceArea(const UIntegerVector &face) const;
-    /**
      * @brief Вычислить площадь поверхности дискретной модели
      * @return Площадь поверхности дискретной модели
      */
     virtual double surfaceArea() const;
+    void addElement(const Hexahedral &hex);
     /**
      * @brief Добавить элемент к  сетке
      * @param node0 Номер узла в вершине 0
@@ -139,6 +134,40 @@ public:
     void delNode(const UInteger &nnumber);
     void delElement(const UInteger &elnum);
     void clearFuncNodes(std::function<double(double, double, double)> func, UInteger maxCount);
+    /**
+     * @brief Метод построения стеки с использованием фоновых шестигранников
+     * @param mesh Сетка шестигранников
+     * @param func Функция области
+     * @param level Уровень нуля
+     * @param smooth Количество итераций сглаживания
+     * @param optimize Количество итераций оптимизации
+     */
+    void backgroundGrid(const HexahedralMesh3D *mesh, std::function<double(double, double, double)> func, double level = 0.0, int smooth = 0, int optimize = 0);
+    void localFubctionalOptimization(int maxiter=2, double t=20.0);
+    /**
+     * @brief Вычислить соотношение длин сторон (минимальной к максимальной)
+     * @param elnum Номер элемента
+     * @return Соотношение длин сторон (минимальной к максимальной)
+     */
+    virtual double lengthAspect(const UInteger &elnum) const;
+    /**
+     * @brief Вычислить значение минимального угла в элементе
+     * @param elnum Номер элемента
+     * @return Минимальный угол элемента (радианы)
+     */
+    virtual double minAngle(const UInteger &elnum) const;
+    /**
+     * @brief Вычислить значение максимального угла в элементе
+     * @param elnum Номер элемента
+     * @return Минимальный угол элемента (радианы)
+     */
+    virtual double maxAngle(const UInteger &elnum) const;
+    /**
+     * @brief Разбить элементы (сгустить сетку)
+     * @param eNumbers Список номеров элементов
+     * @param func Указатель на фукнцию для адаптации к границе
+     */
+    void subdivide(std::list<UInteger> eNumbers, std::function<double(double, double, double)> func);
 private:
     std::vector<Hexahedral> element_; //!< Массив шестигранных элементов
 };

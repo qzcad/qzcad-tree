@@ -230,6 +230,23 @@ public:
      * @return Координаты градиента
      */
     static Point2D grad(std::function<double(double, double)> func, const Point2D &p, const double &h);
+    /**
+     * @brief Процедура сглаживания Лапласа
+     * @param iter_num Количесво итераций
+     */
+    void laplacianSmoothing(int iter_num = 1);
+    /**
+     * @brief Вычислить соотношение длин сторон (минимальной к максимальной)
+     * @param elnum Номер элемента
+     * @return Соотношение длин сторон (минимальной к максимальной)
+     */
+    virtual double lengthAspect(const UInteger &elnum) const;
+    /**
+     * @brief Вычислить площадь грани (грань - четырехугольник)
+     * @param face Список номеров узлов, определяющих грань
+     * @return Площадь грани
+     */
+    virtual double faceArea(const UIntegerVector &face) const;
 protected:
     std::vector<Node2D> node_; //!< массив узлов
     double xMin_; //!< минимальное значение ординаты

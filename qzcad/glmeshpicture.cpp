@@ -259,18 +259,18 @@ void GLMeshPicture::drawColorBar()
     if (isLighting_) glDisable(GL_LIGHTING);
 
     int nc = 9;
-    double bar_step = length / (double)nc;
-    double value_step = (max - min) / (double)nc;
+    double bar_step = length / static_cast<double>(nc);
+    double value_step = (max - min) / static_cast<double>(nc);
     glEnable(GL_POLYGON_OFFSET_FILL);
     glPolygonOffset(1.0, 1.0);
     for (int i = 0; i < nc; i++)
     {
-        qglColor(map_.color(min + (double)(i+1) * value_step));
+        qglColor(map_.color(min + static_cast<double>(i) * value_step + 0.5 * value_step));
         glBegin(GL_POLYGON);
-        glVertex3d(right - width, top - length + (double)i * bar_step, maxVal);
-        glVertex3d(right, top - length + (double)i * bar_step, maxVal);
-        glVertex3d(right, top - length + (double)(i+1) * bar_step, maxVal);
-        glVertex3d(right - width, top - length + (double)(i+1) * bar_step, maxVal);
+        glVertex3d(right - width, top - length + static_cast<double>(i) * bar_step, maxVal);
+        glVertex3d(right, top - length + static_cast<double>(i) * bar_step, maxVal);
+        glVertex3d(right, top - length + static_cast<double>(i+1) * bar_step, maxVal);
+        glVertex3d(right - width, top - length + static_cast<double>(i+1) * bar_step, maxVal);
         glEnd();
     }
     glDisable(GL_POLYGON_OFFSET_FILL);
@@ -278,16 +278,16 @@ void GLMeshPicture::drawColorBar()
     for (int i = 0; i < nc; i++)
     {
         glBegin(GL_LINE_LOOP);
-        glVertex3d(right - width, top - length + (double)i * bar_step, maxVal);
-        glVertex3d(right, top - length + (double)i * bar_step, maxVal);
-        glVertex3d(right, top - length + (double)(i+1) * bar_step, maxVal);
-        glVertex3d(right - width, top - length + (double)(i+1) * bar_step, maxVal);
+        glVertex3d(right - width, top - length + static_cast<double>(i) * bar_step, maxVal);
+        glVertex3d(right, top - length + static_cast<double>(i) * bar_step, maxVal);
+        glVertex3d(right, top - length + static_cast<double>(i+1) * bar_step, maxVal);
+        glVertex3d(right - width, top - length + static_cast<double>(i+1) * bar_step, maxVal);
         glEnd();
     }
     qglColor (textColor_);
     glDisable(GL_DEPTH_TEST);
     for (int i = 0; i < nc; i++)
-        renderText (right+0.01, top - length + (double)i * bar_step - 0.4 * bar_step, maxVal, QString::number(min + (double)(i) * value_step));
+        renderText (right+0.01, top - length + static_cast<double>(i) * bar_step - 0.4 * bar_step, maxVal, QString::number(min + static_cast<double>(i) * value_step));
     renderText (right+0.01, top - 0.4 * bar_step, maxVal, QString::number(max));
     if (mesh_ && valueIndex_ < mesh_->dataVectorsCount())
         renderText (right + 0.01, top + 0.6 * bar_step, maxVal, QString::fromStdString(mesh_->data(valueIndex_).name()));
@@ -760,7 +760,7 @@ void GLMeshPicture::paintGL()
                 drawFace(face, GL_LINES, 1.0, 1.0);
                 drawFace(face, GL_POINTS, 1.0, 4.0);
             }
-            else if (mesh_->dimesion() == 2 || mesh_->isBorderElement(element))
+            else if ((mesh_->dimesion() == 2 || mesh_->isBorderElement(element)) /*(mesh_->node(element->vertexNode(0))->x() > 0.01 || mesh_->node(element->vertexNode(1))->x() > 0.01 || mesh_->node(element->vertexNode(2))->x() > 0.01 || mesh_->node(element->vertexNode(3))->x() > 0.01 || mesh_->node(element->vertexNode(4))->x() > 0.01 || mesh_->node(element->vertexNode(5))->x() > 0.01 || mesh_->node(element->vertexNode(6))->x() > 0.01 || mesh_->node(element->vertexNode(7))->x() > 0.01)*/)
             {
                 for (int p = 0; p < element->facesCount(); p++)
                 {

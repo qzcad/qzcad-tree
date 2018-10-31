@@ -78,6 +78,15 @@ protected:
      */
     void quadrature(int count, DoubleVector &xi, DoubleVector &eta, DoubleVector &weight);
     /**
+     * @brief Метод для генерации квадратур для интегрирования на отрезке [0; 1] для интегрирования на тетраэдре
+     * @param count Количество точек в квадратуре (1, 3, 4)
+     * @param xi Координата первого направления
+     * @param eta Координата второго направления
+     * @param mu Координата третьего направления
+     * @param weight Массив для записи весовых коэффициентов соответствующих координат
+     */
+    void quadrature(int count, DoubleVector &xi, DoubleVector &eta, DoubleVector &mu, DoubleVector &weight);
+    /**
      * @brief Процедура ансамля локальной матрицы в глобальную
      * @param element Указатель на элемент сетки
      * @param local Локальная матрица

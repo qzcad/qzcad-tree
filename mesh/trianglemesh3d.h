@@ -14,6 +14,9 @@
 #include "mesh3d.h"
 #include "triangle.h"
 #include "trianglemesh2d.h"
+namespace msh {
+class TriangleMesh3D;
+}
 #include "tetrahedralmesh3d.h"
 
 namespace msh {
@@ -112,7 +115,7 @@ public:
      * @param smooth Количество итераций сглаживания
      * @param optimize Количество итераций оптимизации
      */
-    void backgroundGrid(const TetrahedralMesh3D *mesh, std::function<double(double, double, double)> func, double level = 0.0, int smooth = 0, int optimize = 0, bool useFlip = true);
+    std::list<ElementPointer> backgroundGrid(const TetrahedralMesh3D *mesh, std::function<double(double, double, double)> func, double level = 0.0, int smooth = 0, int optimize = 0, bool useFlip = true);
     /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
@@ -165,10 +168,16 @@ public:
     virtual double area(const Point3D &p0, const Point3D &p1, const Point3D &p2) const;
     /**
      * @brief Вычислить значение минимального угла в элементе
-     * @param elNum Номер элемента
+     * @param elnum Номер элемента
      * @return Минимальный угол элемента (радианы)
      */
-    double minAngle(const UInteger &elNum);
+    virtual double minAngle(const UInteger &elnum) const;
+    /**
+     * @brief Вычислить значение максимального угла в элементе
+     * @param elnum Номер элемента
+     * @return Минимальный угол элемента (радианы)
+     */
+    virtual double maxAngle(const UInteger &elnum) const;
     /**
      * @brief Метод очищает информацию об елементах
      */
@@ -204,6 +213,12 @@ public:
      * @brief Напечать статистику дискретной модели
      */
     void printStats() const;
+    /**
+     * @brief Разбить элементы (сгустить сетку)
+     * @param eNumbers Список номеров элементов
+     * @param func Указатель на функции линии уровня границы
+     */
+    void subdivide(std::list<UInteger> eNumbers, std::function<double(double, double, double)> func);
 protected:
     /**
      * @brief Функция для подсчета значений углов треугольника
@@ -220,7 +235,7 @@ protected:
      *    A --- B
      *       c
      */
-    bool angles(const Point3D &A, const Point3D &B, const Point3D &C, double &alpha, double &beta, double &gamma);
+    bool angles(const Point3D &A, const Point3D &B, const Point3D &C, double &alpha, double &beta, double &gamma) const;
     /**
      * @brief Метод находит значение минимального угла в треугольнике, определенном координатами вершин
      * @param A Координаты вершины
@@ -228,7 +243,7 @@ protected:
      * @param C Координаты вершины
      * @return Значение минимального угла в треугольнике (радианы)
      */
-    double minAngle(const Point3D &A, const Point3D &B, const Point3D &C);
+    double minAngle(const Point3D &A, const Point3D &B, const Point3D &C) const;
     /**
      * @brief Метод проверяет попадание точки P в сферу, для которой описанная окружность треугольника ABC является диаметральным сечением
      * @param P Координаты точки для проверки

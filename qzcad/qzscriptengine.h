@@ -26,7 +26,7 @@ public:
      * @brief Конструктор по умолчанию
      * @param parent Указатель на родительский объект
      */
-    explicit QZScriptEngine(QObject *parent = 0);
+    explicit QZScriptEngine(QObject *parent = nullptr);
     /**
      * @brief Получить значение точности (машинного нуля) вычислений (минимальное растояние между двумя неравными числами)
      * @return Текущее значение точности
@@ -369,6 +369,27 @@ private:
      */
     static QScriptValue planeStressStrain(QScriptContext *context, QScriptEngine *engine);
     /**
+     * @brief МКЭ: двумерные задачи упругости, адаптивный анализ
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны, то будет найдено решение задачи, иначе engine->undefinedValue()
+     */
+    static QScriptValue planeStressStrainAdaptive(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief МКЭ: трехмерные задачи упругости
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны, то будет найдено решение задачи, иначе engine->undefinedValue()
+     */
+    static QScriptValue volumeStressStrain(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief МКЭ: трехмерные задачи упругости, адаптивный анализ
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны, то будет найдено решение задачи, иначе engine->undefinedValue()
+     */
+    static QScriptValue volumeStressStrainAdaptive(QScriptContext *context, QScriptEngine *engine);
+    /**
      * @brief МКЭ: плоское напряжение
      * @param context Контекст скрипта
      * @param engine Двигатель скрипта
@@ -445,6 +466,13 @@ private:
      * @return Если аргументы корректны, то матрица 3x3
      */
     static QScriptValue createPlaneStressMatrix(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief Функция создания матриц связи напряжений и деформаций. Случай трехмерных напряжений
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны, то матрица 3x3
+     */
+    static QScriptValue createVolumeStressMatrix(QScriptContext *context, QScriptEngine *engine);
     /**
      * @brief Функция создания матриц связи напряжений и деформаций. Случай плоских напряжений для ламината
      * @param context Контекст скрипта

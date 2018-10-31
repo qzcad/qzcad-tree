@@ -61,7 +61,7 @@ public:
      * @param smooth Количество итераций сглаживания
      * @param optimize Количество итераций оптимизации
      */
-    void backgroundGrid(const HexahedralMesh3D *mesh, std::function<double(double, double, double)> func, double level = 0.0, int smooth = 0, int optimize = 0);
+    std::list<ElementPointer> backgroundGrid(const HexahedralMesh3D *mesh, std::function<double(double, double, double)> func, double level = 0.0, int smooth = 0, int optimize = 0, bool useFlip = true);
     /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
@@ -126,29 +126,35 @@ public:
      * @param level Линия уровня
      * @param iter_num Количесво итераций
      */
-    void laplacianSmoothing(std::function<double(double, double, double)> func, double level = 0, int iter_num = 1);
+    void laplacianSmoothing(std::function<double(double, double, double)> func, double level = 0, int iter_num = 1, bool useFlip = true);
     /**
      * @brief Процедура сглаживания на основе минимизации функционала расстояния-длины
      * @param func Функция области
      * @param level Линия уровня
      * @param iter_num Количесво итераций
      */
-    void distlenSmoothing(std::function<double(double, double, double)> func, double level = 0, int iter_num = 1);
+    void distlenSmoothing(std::function<double(double, double, double)> func, double level = 0, int iter_num = 1, bool useFlip = true);
     /**
      * @brief Вычислить значение минимального угла в элементе
-     * @param elNum Номер элемента
+     * @param elnum Номер элемента
      * @return Минимальный угол элемента (радианы)
      */
-    double minAngle(const UInteger &elNum) const;
+    virtual double minAngle(const UInteger &elnum) const;
     /**
      * @brief Вычислить значение максимального угла в элементе
-     * @param elNum Номер элемента
+     * @param elnum Номер элемента
      * @return Минимальный угол элемента (радианы)
      */
-    double maxAngle(const UInteger &elNum) const;
+    virtual double maxAngle(const UInteger &elnum) const;
     double maxAngle(const Point3D &A, const Point3D &B, const Point3D &C, const Point3D &D) const;
     void flip();
     void refineTopology(std::function<double(double, double, double)> func, double level = 0);
+    /**
+     * @brief Разбить элементы (сгустить сетку)
+     * @param eNumbers Список номеров элементов
+     * @param func Указатель на функции линии уровня границы
+     */
+    void subdivide(std::list<UInteger> eNumbers, std::function<double(double, double, double)> func);
 protected:
     std::vector<Quadrilateral> element_; //!< Массив элементов
 };

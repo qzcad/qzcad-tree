@@ -41,6 +41,12 @@ public:
      */
     UInteger &operator [] (int i);
     /**
+     * @brief Константный оператор доступа к вершине по индексу
+     * @param i Индекс вершины тетраэдра
+     * @return Номер узла, на который ссылается вершина
+     */
+    const UInteger &operator [](int i) const;
+    /**
      * @brief Оператор присвоения
      * @param hexahedral Объект-тетраэдр для копирования
      * @return Копию объекта hexahedral

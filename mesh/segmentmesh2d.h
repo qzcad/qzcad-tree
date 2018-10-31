@@ -203,6 +203,24 @@ public:
      * @return Расстояние до ближайшей точки границы со знаком "+" для внутренних точек
      */
     double cfunction(const double &x, const double &y);
+    /**
+     * @brief Вычислить значение минимального угла в элементе
+     * @param elNum Номер элемента
+     * @return Минимальный угол элемента (радианы)
+     */
+    virtual double minAngle(const UInteger &elNum) const;
+    /**
+     * @brief Вычислить значение максимального угла в элементе
+     * @param elNum Номер элемента
+     * @return Минимальный угол элемента (радианы)
+     */
+    virtual double maxAngle(const UInteger &elNum) const;
+    /**
+     * @brief Вычислить площадь грани (грань - четырехугольник)
+     * @param face Список номеров узлов, определяющих грань
+     * @return Площадь грани
+     */
+    virtual double faceArea(const UIntegerVector &face) const;
 protected:
     void cellContours(const Point2D &p0, const Point2D &p1, const Point2D &p2, const Point2D &p3, const double &v0, const double &v1, const double &v2, const double &v3, std::function<double(double, double)> func, double level = 0.0, std::function<double(Point2D, Point2D)> distance = nullptr);
 private:

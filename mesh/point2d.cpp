@@ -1,3 +1,4 @@
+#undef __STRICT_ANSI__
 #include <math.h>
 #include <float.h>
 #include <iostream>
@@ -193,6 +194,8 @@ double Point2D::angle(const Point2D &B, const Point2D &C) const
     double ac = AC.length();
     if (fabs(ab) < DBL_EPSILON || fabs(ac) < DBL_EPSILON)
         return 0.0;
+    if (AC.product(AB) < 0.0)
+        return 2.0 * M_PI - acos((AB * AC) / ab / ac);
     return acos((AB * AC) / ab / ac);
 }
 

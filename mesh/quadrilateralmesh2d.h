@@ -83,7 +83,7 @@ public:
      * @param func Функция области
      * @param charPoint Список характерных точек
      */
-    void functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint);
+    void functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, int smooth = 0, int optimize = 0);
     /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
@@ -136,6 +136,30 @@ public:
      * @brief Метод очищает информацию об елементах
      */
     virtual void clearElements();
+    /**
+     * @brief Разбить элементы (сгустить сетку)
+     * @param eNumbers Список номеров элементов
+     * @param func Указатель на фукнцию для адаптации к границе
+     */
+    void subdivide(std::list<UInteger> eNumbers, std::function<double(double, double)> func);
+    /**
+     * @brief Сглаживание на основе минимизации функционала с целью устранения вырожденныхъ элемнетов
+     * @param maxiter Число итетраций
+     * @param print_values Флаг печати значений функционала
+     */
+    void localFubctionalOptimization(int maxiter=16, bool print_values=true);
+    /**
+     * @brief Вычислить значение минимального угла в элементе
+     * @param elNum Номер элемента
+     * @return Минимальный угол элемента (радианы)
+     */
+    virtual double minAngle(const UInteger &elNum) const;
+    /**
+     * @brief Вычислить значение максимального угла в элементе
+     * @param elNum Номер элемента
+     * @return Минимальный угол элемента (радианы)
+     */
+    virtual double maxAngle(const UInteger &elNum) const;
 protected:
     /**
      * @brief Функция формы изопараметрического четырехугольного элемента

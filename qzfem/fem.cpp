@@ -147,6 +147,42 @@ void Fem::quadrature(int count, DoubleVector &xi, DoubleVector &eta, DoubleVecto
     weight.scale(0.5); // площадь единичного треугольника равна 0,5
 }
 
+void Fem::quadrature(int count, DoubleVector &xi, DoubleVector &eta, DoubleVector &mu, DoubleVector &weight)
+{
+    xi.resize(count);
+    eta.resize(count);
+    mu.resize(count);
+    weight.resize(count);
+    switch (count)
+    {
+    case 1:
+        xi(0) = 1.0 / 4.0;  eta(0) = 1.0 / 4.0; mu(0) = 1.0/ 4.0; weight(0) = 1.0 / 6.0;
+        break;
+    case 4://////////////////////////////////////////////////////////////
+        xi(0) = (5.0 + 3.0 * sqrt(5.0)) / 20.0;  eta(0) = (5.0 - sqrt(5.0)) / 20.0; mu(0) = (5.0 - sqrt(5.0)) / 20.0; weight(0) = 1.0 / 24.0;
+        //
+        xi(1) = (5.0 - sqrt(5.0)) / 20.0;  eta(1) = (5.0 + 3.0 * sqrt(5.0)) / 20.0; mu(1) = (5.0 - sqrt(5.0)) / 20.0; weight(1) = 1.0 / 24.0;
+        //
+        xi(2) = (5.0 - sqrt(5.0)) / 20.0;  eta(2) = (5.0 - sqrt(5.0)) / 20.0; mu(2) = (5.0 + 3.0 * sqrt(5.0)) / 20.0; weight(2) = 1.0 / 24.0;
+        //
+        xi(3) = (5.0 - sqrt(5.0)) / 20.0;  eta(3) = (5.0 - sqrt(5.0)) / 20.0; mu(3) = (5.0 - sqrt(5.0)) / 20.0; weight(3) = 1.0 / 24.0;
+        break;
+    case 5: /////////////////////////////////////////////////////////////
+        xi(0) = 1.0 / 4.0;  eta(0) = 1.0 / 4.0; mu(0) = 1.0/ 4.0; weight(0) = -4.0 / 30.0;
+        //
+        xi(1) = 1.0 / 2.0;  eta(1) = 1.0 / 6.0; mu(1) = 1.0/ 6.0; weight(1) = 9.0 / 120.0;
+        //
+        xi(2) = 1.0 / 6.0;  eta(2) = 1.0 / 2.0; mu(2) = 1.0/ 6.0; weight(2) = 9.0 / 120.0;
+        //
+        xi(3) = 1.0 / 6.0;  eta(3) = 1.0 / 6.0; mu(3) = 1.0/ 2.0; weight(3) = 9.0 / 120.0;
+        //
+        xi(4) = 1.0 / 6.0;  eta(4) = 1.0 / 6.0; mu(4) = 1.0/ 6.0; weight(4) = 9.0 / 120.0;
+        break;
+    default:
+        xi(0) = 1.0 / 4.0;  eta(0) = 1.0 / 4.0; mu(0) = 1.0/ 4.0; weight(0) = 1.0 / 6.0;
+    }
+}
+
 void Fem::assembly(ElementPointer element, const DoubleMatrix &local)
 {
     UInteger index_i = 0;

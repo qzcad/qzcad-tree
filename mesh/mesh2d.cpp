@@ -1,4 +1,6 @@
 #include "mesh2d.h"
+#include <ctime>
+#include <iostream>
 #include <math.h>
 namespace msh
 {
@@ -355,5 +357,84 @@ Point2D Mesh2D::grad(std::function<double (double, double)> func, const Point2D 
     double y = p.y();
     return Point2D((func(x + h, y) - func(x - h, y)) / (2.0 * h),
                    (func(x, y + h) - func(x, y - h)) / (2.0 * h));
+}
+
+void Mesh2D::laplacianSmoothing(int iter_num)
+{
+    std::cout << "Laplacian smoothing...";
+    std::clock_t start = std::clock();
+    // сглаживание Лапласа
+    for (int iter = 0; iter < iter_num; iter++)
+    {
+        for (UInteger i = 0; i < nodesCount(); i++)
+        {
+            if (node_[i].type == INNER)
+            {
+                Point2D nn(0.0, 0.0);
+                AdjacentSet adjacent = node_[i].adjacent;
+                int acount = 0;
+                for (UInteger elnum: adjacent)
+                {
+                    ElementPointer eptr = element(elnum);
+                    int index = eptr->index(i);
+                    nn = nn + node_[eptr->vertexNode(index - 1)].point;
+                    nn = nn + node_[eptr->vertexNode(index + 1)].point;
+                    acount += 2;
+                }
+                node_[i].point = (1.0 /  static_cast<double>(acount)) * nn;
+            }
+        } // for i
+        std::cout << '*';
+    }
+    double duration = static_cast<double>(std::clock() - start) /  static_cast<double>(CLOCKS_PER_SEC);
+    std::cout << "Done in " << duration << " seconds." << std::endl;
+}
+
+double Mesh2D::lengthAspect(const UInteger &elnum) const
+{
+    ElementPointer e = element(elnum);
+    double min = node_[e->vertexNode(0)].point.distanceTo(node_[e->vertexNode(1)].point);
+    double max = min;
+    for (int i = 1; i < e->verticesCount(); i++)
+    {
+        double d = node_[e->vertexNode(i)].point.distanceTo(node_[e->vertexNode(i + 1)].point);
+        if (d < min) min = d;
+        if (d > max) max = d;
+    }
+    return min / max;
+}
+
+double Mesh2D::faceArea(const UIntegerVector &face) const
+{
+    if (face.size() == 3)
+    {
+        Point2D A = node_[face[0]].point;
+        Point2D B = node_[face[1]].point;
+        Point2D C = node_[face[2]].point;
+        double a = A.distanceTo(B);
+        double b = B.distanceTo(C);
+        double c = C.distanceTo(A);
+        double p = (a + b + c) / 2.0;
+        return sqrt(p * (p - a) * (p - b) * (p - c));
+    }
+    else if (face.size() == 4)
+    {
+        Point2D p0 = node_[face[0]].point;
+        Point2D p1 = node_[face[1]].point;
+        Point2D p2 = node_[face[2]].point;
+        Point2D p3 = node_[face[3]].point;
+        // стороны
+        double a = p0.distanceTo(p1);
+        double b = p1.distanceTo(p2);
+        double c = p2.distanceTo(p3);
+        double d = p3.distanceTo(p0);
+        // диагонали
+        double d1 = p0.distanceTo(p2);
+        double d2 = p1.distanceTo(p3);
+        // функция для вычисления квадрата числа (C++0x)
+        auto sqr = [](double value) { return value * value; };
+        return sqrt(4.0 * sqr(d1) * sqr(d2) - sqr(sqr(b) + sqr(d) - sqr(a) - sqr(c))) / 4.0;
+    }
+    return  0.0;
 }
 }

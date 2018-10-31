@@ -217,6 +217,24 @@ public:
      */
     virtual void clearElements() = 0;
     /**
+     * @brief Вычислить соотношение длин сторон (минимальной к максимальной)
+     * @param elnum Номер элемента
+     * @return Соотношение длин сторон (минимальной к максимальной)
+     */
+    virtual double lengthAspect(const UInteger &elnum) const = 0;
+    /**
+     * @brief Вычислить значение минимального угла в элементе
+     * @param elNum Номер элемента
+     * @return Минимальный угол элемента (радианы)
+     */
+    virtual double minAngle(const UInteger &elNum) const = 0;
+    /**
+     * @brief Вычислить значение максимального угла в элементе
+     * @param elNum Номер элемента
+     * @return Минимальный угол элемента (радианы)
+     */
+    virtual double maxAngle(const UInteger &elNum) const = 0;
+    /**
      * @brief Метод очищает дискретную модель
      */
     virtual void clear();
@@ -230,6 +248,12 @@ public:
      * @return Степень грани (число смежных элементов)
      */
     virtual int facePower(const UIntegerVector &face) const;
+    /**
+     * @brief Вычислить площадь грани (грань - четырехугольник)
+     * @param face Список номеров узлов, определяющих грань
+     * @return Площадь грани
+     */
+    virtual double faceArea(const UIntegerVector &face) const = 0;
 
 protected:
     std::vector<int> layer_; //!< Массив с номером слоя для каждого элемента

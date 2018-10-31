@@ -834,6 +834,21 @@ double SegmentMesh2D::cfunction(const double &x, const double &y)
     return min_distance * sign;
 }
 
+double SegmentMesh2D::minAngle(const UInteger &elNum) const
+{
+    return 3.14159265359;
+}
+
+double SegmentMesh2D::maxAngle(const UInteger &elNum) const
+{
+    return 3.14159265359;
+}
+
+double SegmentMesh2D::faceArea(const UIntegerVector &face) const
+{
+    return 0.0;
+}
+
 void SegmentMesh2D::cellContours(const Point2D &p0, const Point2D &p1, const Point2D &p2, const Point2D &p3, const double &v0, const double &v1, const double &v2, const double &v3, std::function<double (double, double)> func, double level, std::function<double(Point2D, Point2D)> distance)
 {
     Point2D border[4]; // массив координат пересечения с границей области

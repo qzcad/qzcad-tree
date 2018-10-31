@@ -22,20 +22,21 @@
 #include "mindlinplatelaminated.h"
 #include "mindlinshellbending.h"
 #include "mindlinshelllaminated.h"
+#include "volumestressstrain.h"
 
 #include "qzscriptengine.h"
 
 //using namespace msh;
 
 double QZScriptEngine::epsilon_ = 1.0E-6;
-Mesh *QZScriptEngine::mesh_ = NULL;
-Fem *QZScriptEngine::fem_ = NULL;
+Mesh *QZScriptEngine::mesh_ = nullptr;
+Fem *QZScriptEngine::fem_ = nullptr;
 
 QZScriptEngine::QZScriptEngine(QObject *parent) :
     QScriptEngine(parent)
 {
-    mesh_ = NULL;
-    fem_ = NULL;
+    mesh_ = nullptr;
+    fem_ = nullptr;
     // Операция приблизительного равентсва
     globalObject().setProperty("approx", newFunction(approx));
     // Переопределение печати
@@ -133,6 +134,9 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     globalObject().setProperty("ElasticFem", newFunction(elasticFem));
     globalObject().setProperty("MindlinFem", newFunction(mindlinFem));
     globalObject().setProperty("Fem2D", newFunction(planeStressStrain));
+    globalObject().setProperty("FemA2D", newFunction(planeStressStrainAdaptive));
+    globalObject().setProperty("Fem3D", newFunction(volumeStressStrain));
+    globalObject().setProperty("FemA3D", newFunction(volumeStressStrainAdaptive));
     globalObject().setProperty("PlaneStress", newFunction(planeStress));
     globalObject().setProperty("PlaneStrain", newFunction(planeStrain));
 
@@ -163,6 +167,11 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     globalObject().setProperty("SLEVEL", 0); // число итераций сглаживания
     globalObject().setProperty("OLEVEL", 0); // число итераций оптимизации
 
+    globalObject().setProperty("ADAPT", false); // Флаг использования адаптивного анализа
+    globalObject().setProperty("ADELTA", 1.0); // Порог разбиения при адаптации
+    globalObject().setProperty("ALEVEL", 1); // число итераций адаптации
+    globalObject().setProperty("AFUNC", 0); // функция для пероекции при адаптации
+
     globalObject().setProperty("MindlinShell", newFunction(mindlinShell));
 
     globalObject().setProperty("values", newFunction(reportValues));
@@ -171,6 +180,7 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     globalObject().setProperty("PlaneStressMatrix", newFunction(createPlaneStressMatrix));
     globalObject().setProperty("LaminaStressMatrix", newFunction(createLaminaStressMatrix));
     globalObject().setProperty("LaminaShearMatrix", newFunction(createLaminaShearMatrix));
+    globalObject().setProperty("VolumeStressMatrix", newFunction(createVolumeStressMatrix));
 }
 
 double QZScriptEngine::epsilon()
@@ -190,7 +200,7 @@ Mesh *QZScriptEngine::mesh()
 
 void QZScriptEngine::setMesh(Mesh *mesh)
 {
-    if (mesh_ != NULL)
+    if (mesh_ != nullptr)
         delete mesh_;
 
     mesh_ = mesh;
@@ -265,7 +275,7 @@ QScriptValue QZScriptEngine::createQuadrilateralMesh2D(QScriptContext *context, 
         QString typeError = QObject::tr("Quads2D(count: Integer, center: Point, radius: Floating, part: {1, 2, 4}): argument type error (%1).");
         if (!context->argument(0).isNumber())
             return context->throwError(typeError.arg("count"));
-        if (!context->argument(1).isQObject() || qscriptvalue_cast<QPoint2D *>(context->argument(1)) == NULL)
+        if (!context->argument(1).isQObject() || qscriptvalue_cast<QPoint2D *>(context->argument(1)) == nullptr)
             return context->throwError(typeError.arg("center"));
         if (!context->argument(2).isNumber())
             return context->throwError(typeError.arg("radius"));
@@ -288,7 +298,7 @@ QScriptValue QZScriptEngine::createQuadrilateralMesh2D(QScriptContext *context, 
             return context->throwError(typeError.arg("xCount"));
         if (!context->argument(1).isNumber())
             return context->throwError(typeError.arg("yCount"));
-        if (!context->argument(2).isQObject() || qscriptvalue_cast<QPoint2D *>(context->argument(2)) == NULL)
+        if (!context->argument(2).isQObject() || qscriptvalue_cast<QPoint2D *>(context->argument(2)) == nullptr)
             return context->throwError(typeError.arg("origin"));
         if (!context->argument(3).isNumber())
             return context->throwError(typeError.arg("width"));
@@ -314,7 +324,7 @@ QScriptValue QZScriptEngine::createQuadrilateralMesh2D(QScriptContext *context, 
             return context->throwError(typeError.arg("xCount"));
         if (!context->argument(1).isNumber())
             return context->throwError(typeError.arg("yCount"));
-        if (!context->argument(2).isQObject() || qscriptvalue_cast<QPoint2D *>(context->argument(2)) == NULL)
+        if (!context->argument(2).isQObject() || qscriptvalue_cast<QPoint2D *>(context->argument(2)) == nullptr)
             return context->throwError(typeError.arg("origin"));
         if (!context->argument(3).isNumber())
             return context->throwError(typeError.arg("width"));
@@ -349,7 +359,7 @@ QScriptValue QZScriptEngine::createQuadrilateralMesh2D(QScriptContext *context, 
         }
 
         QQuadrilateralMesh2D *qmo = new QQuadrilateralMesh2D();
-        qmo->functionalDomain(xCount, yCount, origin->x(), origin->y(), width, height, func, pointList);
+        qmo->functionalDomain(xCount, yCount, origin->x(), origin->y(), width, height, func, pointList, engine->globalObject().property("SLEVEL").toInt32(), engine->globalObject().property("OLEVEL").toInt32());
 
         return engine->newQObject(qmo, QScriptEngine::ScriptOwnership);
     }
@@ -366,7 +376,7 @@ QScriptValue QZScriptEngine::createMarchingQuads(QScriptContext *context, QScrip
             return context->throwError(typeError.arg("xCount"));
         if (!context->argument(1).isNumber())
             return context->throwError(typeError.arg("yCount"));
-        if (!context->argument(2).isQObject() || qscriptvalue_cast<QPoint2D *>(context->argument(2)) == NULL)
+        if (!context->argument(2).isQObject() || qscriptvalue_cast<QPoint2D *>(context->argument(2)) == nullptr)
             return context->throwError(typeError.arg("origin"));
         if (!context->argument(3).isNumber())
             return context->throwError(typeError.arg("width"));
@@ -492,7 +502,7 @@ QScriptValue QZScriptEngine::createContourGraph(QScriptContext *context, QScript
             return context->throwError(typeError.arg("xCount"));
         if (!context->argument(1).isNumber())
             return context->throwError(typeError.arg("yCount"));
-        if (!context->argument(2).isQObject() || qscriptvalue_cast<QPoint2D *>(context->argument(2)) == NULL)
+        if (!context->argument(2).isQObject() || qscriptvalue_cast<QPoint2D *>(context->argument(2)) == nullptr)
             return context->throwError(typeError.arg("origin"));
         if (!context->argument(3).isNumber())
             return context->throwError(typeError.arg("width"));
@@ -547,18 +557,18 @@ QScriptValue QZScriptEngine::createBoundaryMesh(QScriptContext *context, QScript
 {
     if (context->argumentCount() >= 1 && context->argumentCount() <= 3)
     {
-        Mesh *mesh = NULL;
-        if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != NULL)
+        Mesh *mesh = nullptr;
+        if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != nullptr)
             mesh = qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0));
-        if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != NULL)
+        if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != nullptr)
             mesh = qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0));
-        if (qscriptvalue_cast<QHexahedralMesh3D *>(context->argument(0)) != NULL)
+        if (qscriptvalue_cast<QHexahedralMesh3D *>(context->argument(0)) != nullptr)
             mesh = qscriptvalue_cast<QHexahedralMesh3D *>(context->argument(0));
-        if (qscriptvalue_cast<QTetrahedralMesh3D *>(context->argument(0)) != NULL)
+        if (qscriptvalue_cast<QTetrahedralMesh3D *>(context->argument(0)) != nullptr)
             mesh = qscriptvalue_cast<QTetrahedralMesh3D *>(context->argument(0));
-        if (mesh == NULL)
+        if (mesh == nullptr)
             return context->throwError(tr("BoundaryMesh(mesh, func [, points]:  wrong type of the mesh argument"));
-        if (dynamic_cast<Mesh2D *>(mesh) != NULL)
+        if (dynamic_cast<Mesh2D *>(mesh) != nullptr)
         {
             Mesh2D *mesh2d = dynamic_cast<Mesh2D *>(mesh);
             std::list<msh::Point2D> pointList;
@@ -588,7 +598,7 @@ QScriptValue QZScriptEngine::createBoundaryMesh(QScriptContext *context, QScript
                 for (int i = 0; i < array.property("length").toInteger(); i++)
                 {
                     QPoint2D *point = qscriptvalue_cast<QPoint2D *>(array.property(i));
-                    if (point == NULL)
+                    if (point == nullptr)
                         return context->throwError(tr("BoundaryMesh(mesh, func [, points]: wrong type of the points element"));
                     pointList.push_back(Point2D(point->x(), point->y()));
                 }
@@ -597,7 +607,7 @@ QScriptValue QZScriptEngine::createBoundaryMesh(QScriptContext *context, QScript
             segements->backgroundGrid(mesh2d, func, pointList, 0.0, engine->globalObject().property("SLEVEL").toInt32(), engine->globalObject().property("OLEVEL").toInt32());
             return engine->newQObject(segements, QScriptEngine::ScriptOwnership);
         }
-        if (dynamic_cast<HexahedralMesh3D *>(mesh) != NULL)
+        if (dynamic_cast<HexahedralMesh3D *>(mesh) != nullptr)
         {
             HexahedralMesh3D *hmesh = dynamic_cast<HexahedralMesh3D *>(mesh);
             std::list<msh::Point3D> pointList;
@@ -626,7 +636,7 @@ QScriptValue QZScriptEngine::createBoundaryMesh(QScriptContext *context, QScript
                 for (int i = 0; i < array.property("length").toInteger(); i++)
                 {
                     QPoint3D *point = qscriptvalue_cast<QPoint3D *>(array.property(i));
-                    if (point == NULL)
+                    if (point == nullptr)
                         return context->throwError(tr("BoundaryMesh(mesh, func [, points]: wrong type of the points element"));
                     pointList.push_back(Point3D(point->x(), point->y(), point->z()));
                 }
@@ -635,7 +645,7 @@ QScriptValue QZScriptEngine::createBoundaryMesh(QScriptContext *context, QScript
             quads->backgroundGrid(hmesh, func, 0.0, engine->globalObject().property("SLEVEL").toInt32(), engine->globalObject().property("OLEVEL").toInt32());
             return engine->newQObject(quads, QScriptEngine::ScriptOwnership);
         }
-        if (dynamic_cast<TetrahedralMesh3D *>(mesh) != NULL)
+        if (dynamic_cast<TetrahedralMesh3D *>(mesh) != nullptr)
         {
             TetrahedralMesh3D *tetrahedra = dynamic_cast<TetrahedralMesh3D *>(mesh);
             std::list<msh::Point3D> pointList;
@@ -664,7 +674,7 @@ QScriptValue QZScriptEngine::createBoundaryMesh(QScriptContext *context, QScript
                 for (int i = 0; i < array.property("length").toInteger(); i++)
                 {
                     QPoint3D *point = qscriptvalue_cast<QPoint3D *>(array.property(i));
-                    if (point == NULL)
+                    if (point == nullptr)
                         return context->throwError(tr("BoundaryMesh(mesh, func [, points]: wrong type of the points element"));
                     pointList.push_back(Point3D(point->x(), point->y(), point->z()));
                 }
@@ -686,7 +696,7 @@ QScriptValue QZScriptEngine::createTriangleMesh2D(QScriptContext *context, QScri
             return context->throwError(typeError.arg("xCount"));
         if (!context->argument(1).isNumber())
             return context->throwError(typeError.arg("yCount"));
-        if (!context->argument(2).isQObject() || qscriptvalue_cast<QPoint2D *>(context->argument(2)) == NULL)
+        if (!context->argument(2).isQObject() || qscriptvalue_cast<QPoint2D *>(context->argument(2)) == nullptr)
             return context->throwError(typeError.arg("origin"));
         if (!context->argument(3).isNumber())
             return context->throwError(typeError.arg("width"));
@@ -711,7 +721,7 @@ QScriptValue QZScriptEngine::createTriangleMesh2D(QScriptContext *context, QScri
             return context->throwError(typeError.arg("xCount"));
         if (!context->argument(1).isNumber())
             return context->throwError(typeError.arg("yCount"));
-        if (!context->argument(2).isQObject() || qscriptvalue_cast<QPoint2D *>(context->argument(2)) == NULL)
+        if (!context->argument(2).isQObject() || qscriptvalue_cast<QPoint2D *>(context->argument(2)) == nullptr)
             return context->throwError(typeError.arg("origin"));
         if (!context->argument(3).isNumber())
             return context->throwError(typeError.arg("width"));
@@ -746,7 +756,7 @@ QScriptValue QZScriptEngine::createTriangleMesh2D(QScriptContext *context, QScri
         }
 
         QTriangleMesh2D *tmo = new QTriangleMesh2D();
-        tmo->functionalDomain(xCount, yCount, origin->x(), origin->y(), width, height, func, pointList);
+        tmo->functionalDomain(xCount, yCount, origin->x(), origin->y(), width, height, func, pointList, engine->globalObject().property("SLEVEL").toInt32(), engine->globalObject().property("OLEVEL").toInt32());
 
         return engine->newQObject(tmo, QScriptEngine::ScriptOwnership);
     }
@@ -757,7 +767,7 @@ QScriptValue QZScriptEngine::createDelaunay(QScriptContext *context, QScriptEngi
 {
     if (context->argumentCount() == 1 || context->argumentCount() == 2)
     {
-        if (!context->argument(0).isObject() || qscriptvalue_cast<QSegmentMesh2D *>(context->argument(0)) == NULL)
+        if (!context->argument(0).isObject() || qscriptvalue_cast<QSegmentMesh2D *>(context->argument(0)) == nullptr)
             return context->throwError("Delaunay(mesh: Segments2D[, func: Function]): wrong type of the parameter: mesh");
         SegmentMesh2D *mesh = qscriptvalue_cast<QSegmentMesh2D *>(context->argument(0));
 
@@ -787,7 +797,7 @@ QScriptValue QZScriptEngine::createRuppert(QScriptContext *context, QScriptEngin
 {
     if (context->argumentCount() >= 1 && context->argumentCount() <= 4)
     {
-        if (!context->argument(0).isObject() || qscriptvalue_cast<QSegmentMesh2D *>(context->argument(0)) == NULL)
+        if (!context->argument(0).isObject() || qscriptvalue_cast<QSegmentMesh2D *>(context->argument(0)) == nullptr)
             return context->throwError("Ruppert(mesh: Segments2D[, func: Function, min_angle=0.436332: Floating, max_area=0: Floating]): wrong type of the parameter: mesh");
         SegmentMesh2D *mesh = qscriptvalue_cast<QSegmentMesh2D *>(context->argument(0));
         if (context->argumentCount() >= 2)
@@ -823,7 +833,7 @@ QScriptValue QZScriptEngine::createRuppert(QScriptContext *context, QScriptEngin
                 return context->throwError(typeError.arg("xCount"));
             if (!context->argument(1).isNumber())
                 return context->throwError(typeError.arg("yCount"));
-            if (!context->argument(2).isQObject() || qscriptvalue_cast<QPoint2D *>(context->argument(2)) == NULL)
+            if (!context->argument(2).isQObject() || qscriptvalue_cast<QPoint2D *>(context->argument(2)) == nullptr)
                 return context->throwError(typeError.arg("origin"));
             if (!context->argument(3).isNumber())
                 return context->throwError(typeError.arg("width"));
@@ -1188,7 +1198,7 @@ QScriptValue QZScriptEngine::createMarchingCubes(QScriptContext *context, QScrip
             return context->throwError(typeError.arg("yCount"));
         if (!context->argument(2).isNumber())
             return context->throwError(typeError.arg("zCount"));
-        if (!context->argument(3).isQObject() || qscriptvalue_cast<QPoint3D *>(context->argument(3)) == NULL)
+        if (!context->argument(3).isQObject() || qscriptvalue_cast<QPoint3D *>(context->argument(3)) == nullptr)
             return context->throwError(typeError.arg("origin"));
         if (!context->argument(4).isNumber())
             return context->throwError(typeError.arg("width"));
@@ -1242,7 +1252,7 @@ QScriptValue QZScriptEngine::createMarchingTetrahedrons(QScriptContext *context,
             return context->throwError(typeError.arg("yCount"));
         if (!context->argument(2).isNumber())
             return context->throwError(typeError.arg("zCount"));
-        if (!context->argument(3).isQObject() || qscriptvalue_cast<QPoint3D *>(context->argument(3)) == NULL)
+        if (!context->argument(3).isQObject() || qscriptvalue_cast<QPoint3D *>(context->argument(3)) == nullptr)
             return context->throwError(typeError.arg("origin"));
         if (!context->argument(4).isNumber())
             return context->throwError(typeError.arg("width"));
@@ -1287,6 +1297,31 @@ QScriptValue QZScriptEngine::createMarchingTetrahedrons(QScriptContext *context,
 
 QScriptValue QZScriptEngine::createHexahedralMesh(QScriptContext *context, QScriptEngine *engine)
 {
+    if (context->argumentCount() == 2)
+    {
+        Mesh *mesh = nullptr;
+        if (qscriptvalue_cast<QHexahedralMesh3D *>(context->argument(0)) != nullptr)
+            mesh = qscriptvalue_cast<QHexahedralMesh3D *>(context->argument(0));
+        if (mesh == nullptr)
+            return context->throwError(tr("HexahedralMesh(mesh, func):  wrong type of the mesh argument"));
+        if (dynamic_cast<HexahedralMesh3D *>(mesh) != nullptr)
+        {
+            HexahedralMesh3D *hmesh = dynamic_cast<HexahedralMesh3D *>(mesh);
+            std::list<msh::Point3D> pointList;
+            QScriptValue function = context->argument(1);
+            if (!function.isFunction())
+                return context->throwError(tr("HexahedralMesh(mesh, func): wrong type of the func argument"));
+            auto func = [&](double x, double y, double z)->double
+            {
+                QScriptValueList args;
+                args << x << y << z;
+                return function.call(QScriptValue(), args).toNumber();
+            };
+            QHexahedralMesh3D *hex = new QHexahedralMesh3D();
+            hex->backgroundGrid(hmesh, func, 0.0, engine->globalObject().property("SLEVEL").toInt32(), engine->globalObject().property("OLEVEL").toInt32());
+            return engine->newQObject(hex, QScriptEngine::ScriptOwnership);
+        }
+    }
     if (context->argumentCount() == 7)
     {
         // uniform hexahedral mesh
@@ -1297,7 +1332,7 @@ QScriptValue QZScriptEngine::createHexahedralMesh(QScriptContext *context, QScri
             return context->throwError(typeError.arg("yCount"));
         if (!context->argument(2).isNumber())
             return context->throwError(typeError.arg("zCount"));
-        if (!context->argument(3).isQObject() || qscriptvalue_cast<QPoint3D *>(context->argument(3)) == NULL)
+        if (!context->argument(3).isQObject() || qscriptvalue_cast<QPoint3D *>(context->argument(3)) == nullptr)
             return context->throwError(typeError.arg("origin"));
         if (!context->argument(4).isNumber())
             return context->throwError(typeError.arg("width"));
@@ -1324,11 +1359,36 @@ QScriptValue QZScriptEngine::createTetrahedralMesh(QScriptContext *context, QScr
     if (context->argumentCount() == 1)
     {
         QHexahedralMesh3D *hexahedra = qscriptvalue_cast<QHexahedralMesh3D *>(context->argument(0));
-        if (hexahedra == NULL)
+        if (hexahedra == nullptr)
             return context->throwError(tr("TetrahedralMesh(m: HexahedralMesh[, func: Function]): m is not a hexahedral mesh"));
         QTetrahedralMesh3D *tetrahedra = new QTetrahedralMesh3D();
         tetrahedra->convertHexahedralMesh(hexahedra);
         return engine->newQObject(tetrahedra, QScriptEngine::ScriptOwnership);
+    }
+    if (context->argumentCount() == 2)
+    {
+        Mesh *mesh = nullptr;
+        if (qscriptvalue_cast<QTetrahedralMesh3D *>(context->argument(0)) != nullptr)
+            mesh = qscriptvalue_cast<QTetrahedralMesh3D *>(context->argument(0));
+        if (mesh == nullptr)
+            return context->throwError(tr("TetrahedralMesh(mesh, func):  wrong type of the mesh argument"));
+        if (dynamic_cast<TetrahedralMesh3D *>(mesh) != nullptr)
+        {
+            TetrahedralMesh3D *tmesh = dynamic_cast<TetrahedralMesh3D *>(mesh);
+            std::list<msh::Point3D> pointList;
+            QScriptValue function = context->argument(1);
+            if (!function.isFunction())
+                return context->throwError(tr("HexahedralMesh(mesh, func): wrong type of the func argument"));
+            auto func = [&](double x, double y, double z)->double
+            {
+                QScriptValueList args;
+                args << x << y << z;
+                return function.call(QScriptValue(), args).toNumber();
+            };
+            QTetrahedralMesh3D *tet = new QTetrahedralMesh3D();
+            tet->backgroundGrid(tmesh, func, 0.0, engine->globalObject().property("SLEVEL").toInt32(), engine->globalObject().property("OLEVEL").toInt32());
+            return engine->newQObject(tet, QScriptEngine::ScriptOwnership);
+        }
     }
     return context->throwError(tr("TetrahedralMesh(): wrong number of arguments."));
 }
@@ -1359,14 +1419,14 @@ QScriptValue QZScriptEngine::createSweptMesh(QScriptContext *context, QScriptEng
         double phi1 = (context->argumentCount() >= 6) ? context->argument(5).toNumber() : 0.0;
         double k0 = (context->argumentCount() >= 7) ? context->argument(6).toNumber() : 1.0;
         double k1 = (context->argumentCount() >= 8) ? context->argument(7).toNumber() : 1.0;
-        if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != NULL)
+        if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != nullptr)
         {
             QTriangleMesh2D *mesh = qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0));
             QTetrahedralMesh3D *tetra = new QTetrahedralMesh3D();
             tetra->sweepBaseMesh(mesh, z0, z1, phi0, phi1, k0, k1, lCount);
             return engine->newQObject(tetra, QScriptEngine::ScriptOwnership);
         }
-        else if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != NULL) {
+        else if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != nullptr) {
             QQuadrilateralMesh2D *mesh = qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0));
             QHexahedralMesh3D *hex = new QHexahedralMesh3D();
             hex->sweepBaseMesh(mesh, z0, z1, phi0, phi1, k0, k1, lCount);
@@ -1385,7 +1445,7 @@ QScriptValue QZScriptEngine::createVoxelMesh(QScriptContext *context, QScriptEng
     QString typeError = tr("VoxelMesh(origin: Point, width: Floating, height: Floating, depth: Floating, h: Floating, func: Function[, filter: Function]: wrong argument (%1).");
     if (context->argumentCount() != 6 && context->argumentCount() != 7)
         return context->throwError(tr("VoxelMesh(origin: Point, width: Floating, height: Floating, depth: Floating, h: Floating, func: Function[, filter: Function]: wrong count of arguments"));
-    if (!context->argument(0).isQObject() || qscriptvalue_cast<QPoint3D *>(context->argument(0)) == NULL)
+    if (!context->argument(0).isQObject() || qscriptvalue_cast<QPoint3D *>(context->argument(0)) == nullptr)
         return context->throwError(typeError.arg("origin"));
     if (!context->argument(1).isNumber())
         return context->throwError(typeError.arg("width"));
@@ -1450,44 +1510,44 @@ QScriptValue QZScriptEngine::printStd(QScriptContext *context, QScriptEngine *en
 QScriptValue QZScriptEngine::setMesh(QScriptContext *context, QScriptEngine *engine)
 {
     QString typeError = QObject::tr("setMesh(mesh): argument must be a mesh object");
-    if (mesh_ != NULL)
+    if (mesh_ != nullptr)
     {
         delete mesh_;
-        mesh_ = NULL;
+        mesh_ = nullptr;
     }
     if (context->argumentCount() != 1)
         return context->throwError(QObject::tr("setMesh() takes exactly one argument: setMesh(mesh)"));
     if (!context->argument(0).isQObject())
         return context->throwError(typeError);
-    if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != NULL)
+    if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != nullptr)
     {
         mesh_ = new QuadrilateralMesh2D(qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)));
     }
-    else if (qscriptvalue_cast<QSegmentMesh2D *>(context->argument(0)) != NULL)
+    else if (qscriptvalue_cast<QSegmentMesh2D *>(context->argument(0)) != nullptr)
     {
         mesh_ = new SegmentMesh2D(qscriptvalue_cast<QSegmentMesh2D *>(context->argument(0)));
     }
-    else if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != NULL)
+    else if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != nullptr)
     {
         mesh_ = new TriangleMesh2D(qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)));
     }
-    else if (qscriptvalue_cast<QQuadrilateralMesh3D *>(context->argument(0)) != NULL)
+    else if (qscriptvalue_cast<QQuadrilateralMesh3D *>(context->argument(0)) != nullptr)
     {
         mesh_ = new QuadrilateralMesh3D(qscriptvalue_cast<QQuadrilateralMesh3D *>(context->argument(0)));
     }
-    else if (qscriptvalue_cast<QTriangleMesh3D *>(context->argument(0)) != NULL)
+    else if (qscriptvalue_cast<QTriangleMesh3D *>(context->argument(0)) != nullptr)
     {
         mesh_ = new TriangleMesh3D(qscriptvalue_cast<QTriangleMesh3D *>(context->argument(0)));
     }
-    else if (qscriptvalue_cast<QTetrahedralMesh3D *>(context->argument(0)) != NULL)
+    else if (qscriptvalue_cast<QTetrahedralMesh3D *>(context->argument(0)) != nullptr)
     {
         mesh_ = new TetrahedralMesh3D(qscriptvalue_cast<QTetrahedralMesh3D *>(context->argument(0)));
     }
-    else if (qscriptvalue_cast<QHexahedralMesh3D *>(context->argument(0)) != NULL)
+    else if (qscriptvalue_cast<QHexahedralMesh3D *>(context->argument(0)) != nullptr)
     {
         mesh_ = new HexahedralMesh3D(qscriptvalue_cast<QHexahedralMesh3D *>(context->argument(0)));
     }
-    else if (qscriptvalue_cast<QVoxelMesh *>(context->argument(0)) != NULL)
+    else if (qscriptvalue_cast<QVoxelMesh *>(context->argument(0)) != nullptr)
     {
         mesh_ = new QVoxelMesh(qscriptvalue_cast<QVoxelMesh *>(context->argument(0)));
     }
@@ -1510,6 +1570,8 @@ QScriptValue QZScriptEngine::currentMesh(QScriptContext *context, QScriptEngine 
         return engine->newQObject(new QTriangleMesh3D(dynamic_cast<msh::TriangleMesh3D *>(mesh_)), QScriptEngine::ScriptOwnership);
     else if (dynamic_cast<msh::QuadrilateralMesh3D *>(mesh_))
         return engine->newQObject(new QQuadrilateralMesh3D(dynamic_cast<msh::QuadrilateralMesh3D *>(mesh_)), QScriptEngine::ScriptOwnership);
+    else if (dynamic_cast<msh::HexahedralMesh3D *>(mesh_))
+        return engine->newQObject(new QHexahedralMesh3D(dynamic_cast<msh::HexahedralMesh3D *>(mesh_)), QScriptEngine::ScriptOwnership);
     else
         return context->throwError(QObject::tr("Type of current mesh is unusefull."));
 }
@@ -1530,7 +1592,7 @@ QScriptValue QZScriptEngine::smoothMesh(QScriptContext *context, QScriptEngine *
         return context->throwError(tr("Smooth(mesh: Mesh, func: Function, iter: Integer[, level=0]): wrong type of the argument: level"));
     int iter_num = context->argument(2).toInt32();
     double level = (context->argumentCount() == 4) ? context->argument(3).toNumber() : 0.0;
-    if ((mesh=qscriptvalue_cast<QSegmentMesh2D *>(context->argument(0))) != NULL)
+    if ((mesh=qscriptvalue_cast<QSegmentMesh2D *>(context->argument(0))) != nullptr)
     {
         auto func = [&](double x, double y)
         {
@@ -1558,10 +1620,10 @@ QScriptValue QZScriptEngine::sum(QScriptContext *context, QScriptEngine *engine)
     }
     if (context->argument(0).isQObject())
     {
-        if ( qscriptvalue_cast<QPoint2D*>(context->argument(0)) != NULL )
+        if ( qscriptvalue_cast<QPoint2D*>(context->argument(0)) != nullptr )
         {
             for (int i = 1; i < context->argumentCount(); i++)
-                if (qscriptvalue_cast<QPoint2D*>(context->argument(i)) == NULL)
+                if (qscriptvalue_cast<QPoint2D*>(context->argument(i)) == nullptr)
                     return context->throwError(typeError.arg("Point"));
             QPoint2D *p0 = qscriptvalue_cast<QPoint2D*>(context->argument(0));
             QPoint2D *sum = new QPoint2D(*p0);
@@ -1573,10 +1635,10 @@ QScriptValue QZScriptEngine::sum(QScriptContext *context, QScriptEngine *engine)
             }
             return engine->newQObject(sum, QScriptEngine::ScriptOwnership);
         }
-        if ( qscriptvalue_cast<QPoint3D*>(context->argument(0)) != NULL )
+        if ( qscriptvalue_cast<QPoint3D*>(context->argument(0)) != nullptr )
         {
             for (int i = 1; i < context->argumentCount(); i++)
-                if (qscriptvalue_cast<QPoint3D*>(context->argument(i)) == NULL)
+                if (qscriptvalue_cast<QPoint3D*>(context->argument(i)) == nullptr)
                     return context->throwError(typeError.arg("Point3D"));
             QPoint3D *p0 = qscriptvalue_cast<QPoint3D*>(context->argument(0));
             QPoint3D *sum = new QPoint3D(*p0);
@@ -1708,21 +1770,45 @@ QScriptValue QZScriptEngine::rectangle(QScriptContext *context, QScriptEngine *e
 {
     Q_UNUSED(engine);
     QString typeError = QObject::tr("rectangle(x, y, w, h [, r]): all arguments must have type Number. Argument # %1.");
-    if (context->argumentCount() != 4 && context->argumentCount() != 5)
-        return context->throwError(tr("Function rectangle has at least four arguments."));
+    if (context->argumentCount() < 4 || context->argumentCount() > 7 )
+        return context->throwError(tr("Function rectangle: wrong number of arguments. Possible signatures:\n\trectangle(x, y, w, h [, r])\n\trectangle(x, y, x_0, y_0, w, h [, r])"));
     for (int i = 0; i < context->argumentCount(); i++)
         if (!context->argument(i).isNumber())
             return context->throwError(typeError.arg(i + 1));
     double x = context->argument(0).toNumber();
     double y = context->argument(1).toNumber();
-    double w = context->argument(2).toNumber();
-    double h = context->argument(3).toNumber();
     if (context->argumentCount() == 4)
+    {
+        double w = context->argument(2).toNumber();
+        double h = context->argument(3).toNumber();
         return msh::rectangle(x, y, w, h);
-    double r = context->argument(4).toNumber();
-    if (r < 0.0)
-        return context->throwError(typeError.arg("r < 0"));
-    return msh::rectangle(x, y, w, h, r);
+    }
+    if (context->argumentCount() == 5)
+    {
+        double w = context->argument(2).toNumber();
+        double h = context->argument(3).toNumber();
+        double r = context->argument(4).toNumber();
+        if (r < 0.0)
+            return context->throwError(typeError.arg("r < 0"));
+        return msh::rectangle(x, y, w, h, r);
+    }
+    if (context->argumentCount() == 6)
+    {
+        double x0 = context->argument(2).toNumber();
+        double y0 = context->argument(3).toNumber();
+        double w = context->argument(4).toNumber();
+        double h = context->argument(5).toNumber();
+        return msh::rectangle(x - w/2.0 - x0, y - h/2.0 - y0,  w, h);
+    }
+    if (context->argumentCount() == 7)
+    {
+        double x0 = context->argument(2).toNumber();
+        double y0 = context->argument(3).toNumber();
+        double w = context->argument(4).toNumber();
+        double h = context->argument(5).toNumber();
+        double r = context->argument(6).toNumber();
+        return msh::rectangle(x - w/2.0 - x0, y - h/2.0 - y0,  w, h, r);
+    }
 }
 
 QScriptValue QZScriptEngine::convex(QScriptContext *context, QScriptEngine *engine)
@@ -1746,7 +1832,7 @@ QScriptValue QZScriptEngine::convex(QScriptContext *context, QScriptEngine *engi
             return context->throwError(typeError.arg("P is array of at least 3 points."));
         for (int i = 0; i < pcount; i++)
         {
-            if (qscriptvalue_cast<QPoint2D *>(array.property(i)) == NULL)
+            if (qscriptvalue_cast<QPoint2D *>(array.property(i)) == nullptr)
                 return context->throwError(typeError.arg(QString("Broken point value # ") + QString::number(i)));
         }
         QPoint2D *p1 = qscriptvalue_cast<QPoint2D*>(array.property(0));
@@ -1851,11 +1937,11 @@ QScriptValue QZScriptEngine::plane(QScriptContext *context, QScriptEngine *engin
     QPoint3D *p1 = qscriptvalue_cast<QPoint3D*>(context->argument(3));
     QPoint3D *p2 = qscriptvalue_cast<QPoint3D*>(context->argument(4));
     QPoint3D *p3 = qscriptvalue_cast<QPoint3D*>(context->argument(5));
-    if (p1 == NULL)
+    if (p1 == nullptr)
         return context->throwError(typeError.arg("p1: 3d point (Point)"));
-    if (p2 == NULL)
+    if (p2 == nullptr)
         return context->throwError(typeError.arg("p2: 3d point (Point)"));
-    if (p3 == NULL)
+    if (p3 == nullptr)
         return context->throwError(typeError.arg("p3: 3d point (Point)"));
     double x = context->argument(0).toNumber();
     double y = context->argument(1).toNumber();
@@ -1920,22 +2006,22 @@ QScriptValue QZScriptEngine::elasticFem(QScriptContext *context, QScriptEngine *
         return context->throwError(tr("The ElasticFem function has minimum 3 parameters."));
     if (!context->argument(0).isObject())
         return context->throwError(tr("The ElasticFem function: the first parameter is not an object."));
-    if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != NULL || qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != NULL)
+    if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != nullptr || qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != nullptr)
     {
         std::cout << "The two-dimensional elastic problem." << std::endl;
-        Mesh2D *mesh = NULL;
-        if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != NULL)
+        Mesh2D *mesh = nullptr;
+        if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != nullptr)
         {
             mesh = new QuadrilateralMesh2D(qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)));
         }
-        else if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != NULL)
+        else if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != nullptr)
         {
             mesh = new TriangleMesh2D(qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)));
         }
         if (!context->argument(1).isNumber())
             return context->throwError(tr("ElasticFem(mesh, h, D, ...): h is not a number"));
         double h = context->argument(1).toNumber();
-        if (qscriptvalue_cast<QDoubleMatrix *>(context->argument(2)) == NULL)
+        if (qscriptvalue_cast<QDoubleMatrix *>(context->argument(2)) == nullptr)
             return context->throwError(tr("ElasticFem(mesh, h, D, ...): D is not a matrix"));
         DoubleMatrix D(*(qscriptvalue_cast<QDoubleMatrix *>(context->argument(2))));
         if (D.rowCount() != 3 || D.colCount() != 3)
@@ -1944,11 +2030,11 @@ QScriptValue QZScriptEngine::elasticFem(QScriptContext *context, QScriptEngine *
         for (int i = 3; i < context->argumentCount(); i++)
         {
             QFemCondition *cond = qscriptvalue_cast<QFemCondition *>(context->argument(i));
-            if (cond == NULL)
+            if (cond == nullptr)
                 return context->throwError(tr("ElasticFem(mesh, h, D, ...): the parameter at the position #%1 is not a FEM condition").arg(i + 1));
             conditions.push_back(cond);
         }
-        if (fem_ != NULL) delete fem_;
+        if (fem_ != nullptr) delete fem_;
         fem_ = new PlaneStressStrain(mesh, h, D, conditions);
         fem_->solve();
         mesh->printDataExtremums();
@@ -1964,22 +2050,22 @@ QScriptValue QZScriptEngine::mindlinFem(QScriptContext *context, QScriptEngine *
         return context->throwError(tr("The MindlinFem function has minimum 3 parameters."));
     if (!context->argument(0).isObject())
         return context->throwError(tr("The MindlinFem function: the first parameter is not an object."));
-    if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != NULL || qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != NULL)
+    if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != nullptr || qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != nullptr)
     {
         std::cout << "The first-order shear deformation theory for plates." << std::endl;
-        Mesh2D *mesh = NULL;
-        if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != NULL)
+        Mesh2D *mesh = nullptr;
+        if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != nullptr)
         {
             mesh = new QuadrilateralMesh2D(qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)));
         }
-        else if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != NULL)
+        else if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != nullptr)
         {
             mesh = new TriangleMesh2D(qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)));
         }
         mesh->clearDataVectors();
-        if (fem_ != NULL) delete fem_;
+        if (fem_ != nullptr) delete fem_;
         int start = 3;
-        if (context->argument(1).isNumber() && qscriptvalue_cast<QDoubleMatrix *>(context->argument(2)) != NULL)
+        if (context->argument(1).isNumber() && qscriptvalue_cast<QDoubleMatrix *>(context->argument(2)) != nullptr)
         {
             double h = context->argument(1).toNumber();
             DoubleMatrix D(*(qscriptvalue_cast<QDoubleMatrix *>(context->argument(2))));
@@ -1987,7 +2073,7 @@ QScriptValue QZScriptEngine::mindlinFem(QScriptContext *context, QScriptEngine *
                 return context->throwError(tr("MindlinFem(mesh, h, D, ...): D is not a 3x3 matrix"));
             DoubleMatrix Dc(2, 0.0);
             Dc(0, 0) = D(2, 2); Dc(1, 1) = D(2, 2);
-            if (context->argumentCount() >= 4 && qscriptvalue_cast<QDoubleMatrix *>(context->argument(3)) != NULL)
+            if (context->argumentCount() >= 4 && qscriptvalue_cast<QDoubleMatrix *>(context->argument(3)) != nullptr)
             {
                 Dc = *(qscriptvalue_cast<QDoubleMatrix *>(context->argument(3)));
                 start = 4;
@@ -1998,7 +2084,7 @@ QScriptValue QZScriptEngine::mindlinFem(QScriptContext *context, QScriptEngine *
             for (int i = start; i < context->argumentCount(); i++)
             {
                 QFemCondition *cond = qscriptvalue_cast<QFemCondition *>(context->argument(i));
-                if (cond == NULL)
+                if (cond == nullptr)
                     return context->throwError(tr("MindlinFem(mesh, h, D, ...): the parameter at the position #%1 is not a FEM condition").arg(i + 1));
                 conditions.push_back(cond);
             }
@@ -2018,14 +2104,14 @@ QScriptValue QZScriptEngine::mindlinFem(QScriptContext *context, QScriptEngine *
             for (int i = 0; i < context->argument(1).property("length").toInteger(); i++)
             {
                 h.push_back(context->argument(1).property(i).toNumber());
-                if (qscriptvalue_cast<QDoubleMatrix *>(context->argument(2).property(i)) != NULL)
+                if (qscriptvalue_cast<QDoubleMatrix *>(context->argument(2).property(i)) != nullptr)
                 {
                     DoubleMatrix d = *(qscriptvalue_cast<QDoubleMatrix *>(context->argument(2).property(i)));
                     if (d.rowCount() != 3 || d.colCount() != 3)
                         return context->throwError(tr("MindlinFem(mesh, h, D, ...): D is not a 3x3 matrix"));
                     DoubleMatrix dc(2, 0.0);
                     dc(0, 0) = d(2, 2); dc(1, 1) = d(2, 2);
-                    if (context->argument(3).isArray() && qscriptvalue_cast<QDoubleMatrix *>(context->argument(3).property(i)) != NULL)
+                    if (context->argument(3).isArray() && qscriptvalue_cast<QDoubleMatrix *>(context->argument(3).property(i)) != nullptr)
                         dc = *(qscriptvalue_cast<QDoubleMatrix *>(context->argument(3).property(i)));
                     if (dc.rowCount() != 2 || dc.colCount() != 2)
                         return context->throwError(tr("MindlinFem(mesh, h, D, Dc, ...): Dc is not a 2x2 matrix"));
@@ -2039,7 +2125,7 @@ QScriptValue QZScriptEngine::mindlinFem(QScriptContext *context, QScriptEngine *
             for (int i = start; i < context->argumentCount(); i++)
             {
                 QFemCondition *cond = qscriptvalue_cast<QFemCondition *>(context->argument(i));
-                if (cond == NULL)
+                if (cond == nullptr)
                     return context->throwError(tr("MindlinFem(mesh, h, D, ...): the parameter at the position #%1 is not a FEM condition").arg(i + 1));
                 conditions.push_back(cond);
             }
@@ -2052,22 +2138,22 @@ QScriptValue QZScriptEngine::mindlinFem(QScriptContext *context, QScriptEngine *
         mesh->printDataExtremums();
         setMesh(mesh);
     }
-    else if (qscriptvalue_cast<QQuadrilateralMesh3D *>(context->argument(0)) != NULL || qscriptvalue_cast<QTriangleMesh3D *>(context->argument(0)) != NULL)
+    else if (qscriptvalue_cast<QQuadrilateralMesh3D *>(context->argument(0)) != nullptr || qscriptvalue_cast<QTriangleMesh3D *>(context->argument(0)) != nullptr)
     {
         std::cout << "The first-order shear deformation theory for shells." << std::endl;
-        Mesh3D *mesh = NULL;
-        if (qscriptvalue_cast<QQuadrilateralMesh3D *>(context->argument(0)) != NULL)
+        Mesh3D *mesh = nullptr;
+        if (qscriptvalue_cast<QQuadrilateralMesh3D *>(context->argument(0)) != nullptr)
         {
             mesh = new QuadrilateralMesh3D(qscriptvalue_cast<QQuadrilateralMesh3D *>(context->argument(0)));
         }
-        else if (qscriptvalue_cast<QTriangleMesh3D *>(context->argument(0)) != NULL)
+        else if (qscriptvalue_cast<QTriangleMesh3D *>(context->argument(0)) != nullptr)
         {
             mesh = new TriangleMesh3D(qscriptvalue_cast<QTriangleMesh3D *>(context->argument(0)));
         }
         mesh->clearDataVectors();
-        if (fem_ != NULL) delete fem_;
+        if (fem_ != nullptr) delete fem_;
         int start = 3;
-        if (context->argument(1).isNumber() && qscriptvalue_cast<QDoubleMatrix *>(context->argument(2)) != NULL)
+        if (context->argument(1).isNumber() && qscriptvalue_cast<QDoubleMatrix *>(context->argument(2)) != nullptr)
         {
             double h = context->argument(1).toNumber();
             DoubleMatrix D(*(qscriptvalue_cast<QDoubleMatrix *>(context->argument(2))));
@@ -2075,7 +2161,7 @@ QScriptValue QZScriptEngine::mindlinFem(QScriptContext *context, QScriptEngine *
                 return context->throwError(tr("MindlinFem(mesh, h, D, ...): D is not a 3x3 matrix"));
             DoubleMatrix Dc(2, 0.0);
             Dc(0, 0) = D(2, 2); Dc(1, 1) = D(2, 2);
-            if (context->argumentCount() >= 4 && qscriptvalue_cast<QDoubleMatrix *>(context->argument(3)) != NULL)
+            if (context->argumentCount() >= 4 && qscriptvalue_cast<QDoubleMatrix *>(context->argument(3)) != nullptr)
             {
                 Dc = *(qscriptvalue_cast<QDoubleMatrix *>(context->argument(3)));
                 start = 4;
@@ -2086,12 +2172,16 @@ QScriptValue QZScriptEngine::mindlinFem(QScriptContext *context, QScriptEngine *
             for (int i = start; i < context->argumentCount(); i++)
             {
                 QFemCondition *cond = qscriptvalue_cast<QFemCondition *>(context->argument(i));
-                if (cond == NULL)
+                if (cond == nullptr)
                     return context->throwError(tr("MindlinFem(mesh, h, D, ...): the parameter at the position #%1 is not a FEM condition").arg(i + 1));
                 conditions.push_back(cond);
             }
             fem_ = new MindlinShellBending(mesh, h, D, Dc, conditions);
-            fem_->solve();
+//            fem_->solve();
+            if (engine->globalObject().property("ADAPT").toBool())
+                dynamic_cast<MindlinShellBending*>(fem_)->solve(nullptr, engine->globalObject().property("ADELTA").toNumber(), engine->globalObject().property("ALEVEL").toInt32());
+            else
+                fem_->solve();
         }
         else if (context->argument(1).isArray() && context->argument(2).isArray())
         {
@@ -2106,14 +2196,14 @@ QScriptValue QZScriptEngine::mindlinFem(QScriptContext *context, QScriptEngine *
             for (int i = 0; i < context->argument(1).property("length").toInteger(); i++)
             {
                 h.push_back(context->argument(1).property(i).toNumber());
-                if (qscriptvalue_cast<QDoubleMatrix *>(context->argument(2).property(i)) != NULL)
+                if (qscriptvalue_cast<QDoubleMatrix *>(context->argument(2).property(i)) != nullptr)
                 {
                     DoubleMatrix d = *(qscriptvalue_cast<QDoubleMatrix *>(context->argument(2).property(i)));
                     if (d.rowCount() != 3 || d.colCount() != 3)
                         return context->throwError(tr("MindlinFem(mesh, h, D, ...): D is not a 3x3 matrix"));
                     DoubleMatrix dc(2, 0.0);
                     dc(0, 0) = d(2, 2); dc(1, 1) = d(2, 2);
-                    if (context->argument(3).isArray() && qscriptvalue_cast<QDoubleMatrix *>(context->argument(3).property(i)) != NULL)
+                    if (context->argument(3).isArray() && qscriptvalue_cast<QDoubleMatrix *>(context->argument(3).property(i)) != nullptr)
                         dc = *(qscriptvalue_cast<QDoubleMatrix *>(context->argument(3).property(i)));
                     if (dc.rowCount() != 2 || dc.colCount() != 2)
                         return context->throwError(tr("MindlinFem(mesh, h, D, Dc, ...): Dc is not a 2x2 matrix"));
@@ -2129,12 +2219,16 @@ QScriptValue QZScriptEngine::mindlinFem(QScriptContext *context, QScriptEngine *
             for (int i = start; i < context->argumentCount(); i++)
             {
                 QFemCondition *cond = qscriptvalue_cast<QFemCondition *>(context->argument(i));
-                if (cond == NULL)
+                if (cond == nullptr)
                     return context->throwError(tr("MindlinFem(mesh, h, D, ...): the parameter at the position #%1 is not a FEM condition").arg(i + 1));
                 conditions.push_back(cond);
             }
             fem_ = new MindlinShellLaminated(mesh, h, D, Dc, conditions);
-            fem_->solve();
+//            fem_->solve();
+            if (engine->globalObject().property("ADAPT").toBool())
+                dynamic_cast<MindlinShellLaminated*>(fem_)->solve(nullptr, engine->globalObject().property("ADELTA").toNumber(), engine->globalObject().property("ALEVEL").toInt32());
+            else
+                fem_->solve();
         }
         else if (context->argument(1).isFunction() && context->argument(2).isArray())
         {
@@ -2158,14 +2252,14 @@ QScriptValue QZScriptEngine::mindlinFem(QScriptContext *context, QScriptEngine *
             std::vector<DoubleMatrix> Dc;
             for (int i = 0; i < context->argument(2).property("length").toInteger(); i++)
             {
-                if (qscriptvalue_cast<QDoubleMatrix *>(context->argument(2).property(i)) != NULL)
+                if (qscriptvalue_cast<QDoubleMatrix *>(context->argument(2).property(i)) != nullptr)
                 {
                     DoubleMatrix d = *(qscriptvalue_cast<QDoubleMatrix *>(context->argument(2).property(i)));
                     if (d.rowCount() != 3 || d.colCount() != 3)
                         return context->throwError(tr("MindlinFem(mesh, h, D, ...): D is not a 3x3 matrix"));
                     DoubleMatrix dc(2, 0.0);
                     dc(0, 0) = d(2, 2); dc(1, 1) = d(2, 2);
-                    if (context->argument(3).isArray() && qscriptvalue_cast<QDoubleMatrix *>(context->argument(3).property(i)) != NULL)
+                    if (context->argument(3).isArray() && qscriptvalue_cast<QDoubleMatrix *>(context->argument(3).property(i)) != nullptr)
                         dc = *(qscriptvalue_cast<QDoubleMatrix *>(context->argument(3).property(i)));
                     if (dc.rowCount() != 2 || dc.colCount() != 2)
                         return context->throwError(tr("MindlinFem(mesh, h, D, Dc, ...): Dc is not a 2x2 matrix"));
@@ -2181,12 +2275,16 @@ QScriptValue QZScriptEngine::mindlinFem(QScriptContext *context, QScriptEngine *
             for (int i = start; i < context->argumentCount(); i++)
             {
                 QFemCondition *cond = qscriptvalue_cast<QFemCondition *>(context->argument(i));
-                if (cond == NULL)
+                if (cond == nullptr)
                     return context->throwError(tr("MindlinFem(mesh, h, D, ...): the parameter at the position #%1 is not a FEM condition").arg(i + 1));
                 conditions.push_back(cond);
             }
             fem_ = new MindlinShellLaminated(mesh, thickness_func, D, Dc, conditions);
-            fem_->solve();
+//            fem_->solve();
+            if (engine->globalObject().property("ADAPT").toBool())
+                dynamic_cast<MindlinShellLaminated*>(fem_)->solve(nullptr, engine->globalObject().property("ADELTA").toNumber(), engine->globalObject().property("ALEVEL").toInt32());
+            else
+                fem_->solve();
         }
         else
             return context->throwError(tr("MindlinFem(mesh, h, D[, Dc], ...): neither one layer nor multy layer model"));
@@ -2201,15 +2299,15 @@ QScriptValue QZScriptEngine::planeStressStrain(QScriptContext *context, QScriptE
 {
     if (context->argumentCount() > 3)
     {
-        Mesh2D *mesh = NULL;
+        Mesh2D *mesh = nullptr;
         QString typeError = QObject::tr("Fem2D(mesh: Mesh, h: Floating, M: Matrix, ...): argument type error (%1).");
         if (!context->argument(0).isQObject())
             return context->throwError(typeError.arg("mesh"));
-        if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != NULL)
+        if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != nullptr)
         {
             mesh = new QuadrilateralMesh2D(qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)));
         }
-        else if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != NULL)
+        else if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != nullptr)
         {
             mesh = new TriangleMesh2D(qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)));
         }
@@ -2221,7 +2319,7 @@ QScriptValue QZScriptEngine::planeStressStrain(QScriptContext *context, QScriptE
         if (!context->argument(1).isNumber())
             return context->throwError(typeError.arg("h"));
 
-        if (!context->argument(2).isObject() || (context->argument(2).isObject() && qscriptvalue_cast<QDoubleMatrix *>(context->argument(2)) == NULL))
+        if (!context->argument(2).isObject() || (context->argument(2).isObject() && qscriptvalue_cast<QDoubleMatrix *>(context->argument(2)) == nullptr))
             return context->throwError(typeError.arg("M"));
 
         std::list<FemCondition*> conditions;
@@ -2231,7 +2329,7 @@ QScriptValue QZScriptEngine::planeStressStrain(QScriptContext *context, QScriptE
             if (!context->argument(i).isQObject())
                 return context->throwError(typeError.arg("boundary condition"));
             QFemCondition *cond = qscriptvalue_cast<QFemCondition *>(context->argument(i));
-            if (cond == NULL)
+            if (cond == nullptr)
                 return context->throwError(typeError.arg("boundary condition"));
             conditions.push_back(cond);
         }
@@ -2244,7 +2342,7 @@ QScriptValue QZScriptEngine::planeStressStrain(QScriptContext *context, QScriptE
         if (D.rowCount() != 3 || D.colCount() != 3)
             return context->throwError(tr("Fem2D: wrong size of the stress-strain matrix."));
 
-        if (fem_ != NULL) delete fem_;
+        if (fem_ != nullptr) delete fem_;
 
         fem_ = new PlaneStressStrain(mesh, h, D, conditions);
         fem_->solve();
@@ -2257,19 +2355,237 @@ QScriptValue QZScriptEngine::planeStressStrain(QScriptContext *context, QScriptE
     return context->throwError(QObject::tr("Fem2D(mesh: Mesh, h: Floating, M: Matrix, ...): arguments count error."));
 }
 
+QScriptValue QZScriptEngine::planeStressStrainAdaptive(QScriptContext *context, QScriptEngine *engine)
+{
+    if (context->argumentCount() > 5)
+    {
+        Mesh2D *mesh = nullptr;
+        QString typeError = QObject::tr("FemA2D(mesh: Mesh, h: Floating, M: Matrix, delta, maxiter, [func,] ...): argument type error (%1).");
+        if (!context->argument(0).isQObject())
+            return context->throwError(typeError.arg("mesh"));
+        if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != nullptr)
+        {
+            mesh = new QuadrilateralMesh2D(qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)));
+        }
+        else if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != nullptr)
+        {
+            mesh = new TriangleMesh2D(qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)));
+        }
+        else
+        {
+            return context->throwError(typeError.arg("mesh"));
+        }
+
+        if (!context->argument(1).isNumber())
+            return context->throwError(typeError.arg("h"));
+
+        if (!context->argument(2).isObject() || (context->argument(2).isObject() && qscriptvalue_cast<QDoubleMatrix *>(context->argument(2)) == nullptr))
+            return context->throwError(typeError.arg("M"));
+
+        if (!context->argument(3).isNumber())
+            return context->throwError(typeError.arg("delta"));
+
+        if (!context->argument(4).isNumber())
+            return context->throwError(typeError.arg("maxiter"));
+
+        QScriptValue func_value;
+        if (context->argument(5).isFunction())
+        {
+            func_value = context->argument(5);
+
+        }
+        auto func = [&](double x, double y)
+        {
+            QScriptValueList args;
+            args << x << y;
+            return func_value.call(QScriptValue(), args).toNumber();
+        };
+        std::list<FemCondition*> conditions;
+        int start = (func_value.isFunction()) ? 6 : 5;
+        for (int i = start; i < context->argumentCount(); i++)
+        {
+            if (!context->argument(i).isQObject())
+                return context->throwError(typeError.arg("boundary condition"));
+            QFemCondition *cond = qscriptvalue_cast<QFemCondition *>(context->argument(i));
+            if (cond == nullptr)
+                return context->throwError(typeError.arg("boundary condition"));
+            conditions.push_back(cond);
+        }
+
+        double h = context->argument(1).toNumber();
+        QDoubleMatrix *pqdm = qscriptvalue_cast<QDoubleMatrix *>(context->argument(2));
+        DoubleMatrix D(*pqdm);
+        double delta = context->argument(3).toNumber();
+        int maxiter = context->argument(4).toInt32();
+
+        if (D.rowCount() != 3 || D.colCount() != 3)
+            return context->throwError(tr("Fem2D: wrong size of the stress-strain matrix."));
+
+        if (fem_ != nullptr) delete fem_;
+
+        PlaneStressStrain *fem = new PlaneStressStrain(mesh, h, D, conditions);
+        if (func_value.isFunction())
+            fem->solve(func, delta, maxiter);
+        else
+            fem->solve(nullptr, delta, maxiter);
+        fem_ = fem;
+        mesh->printDataExtremums();
+
+        setMesh(mesh);
+
+        return engine->undefinedValue();;
+    }
+    return context->throwError(QObject::tr("FemA2D(mesh: Mesh, h: Floating, M: Matrix, delta, maxiter, [func,] ...): arguments count error."));
+}
+
+QScriptValue QZScriptEngine::volumeStressStrain(QScriptContext *context, QScriptEngine *engine)
+{
+    if (context->argumentCount() > 2)
+    {
+        Mesh3D *mesh = nullptr;
+        QString typeError = QObject::tr("Fem3D(mesh: Mesh, M: Matrix, ...): argument type error (%1).");
+        if (!context->argument(0).isQObject())
+            return context->throwError(typeError.arg("mesh"));
+        if (qscriptvalue_cast<QHexahedralMesh3D *>(context->argument(0)) != nullptr)
+        {
+            mesh = new HexahedralMesh3D(qscriptvalue_cast<QHexahedralMesh3D *>(context->argument(0)));
+        }
+        else if (qscriptvalue_cast<QTetrahedralMesh3D *>(context->argument(0)) != nullptr)
+        {
+            mesh = new TetrahedralMesh3D(qscriptvalue_cast<QTetrahedralMesh3D *>(context->argument(0)));
+        }
+        else
+        {
+            return context->throwError(typeError.arg("mesh"));
+        }
+
+        if (!context->argument(1).isObject() || (context->argument(1).isObject() && qscriptvalue_cast<QDoubleMatrix *>(context->argument(1)) == nullptr))
+            return context->throwError(typeError.arg("M"));
+
+        std::list<FemCondition*> conditions;
+
+        for (int i = 2; i < context->argumentCount(); i++)
+        {
+            if (!context->argument(i).isQObject())
+                return context->throwError(typeError.arg("boundary condition"));
+            QFemCondition *cond = qscriptvalue_cast<QFemCondition *>(context->argument(i));
+            if (cond == nullptr)
+                return context->throwError(typeError.arg("boundary condition"));
+            conditions.push_back(cond);
+        }
+
+        QDoubleMatrix *pqdm = qscriptvalue_cast<QDoubleMatrix *>(context->argument(1));
+        DoubleMatrix D(*pqdm);
+
+        if (D.rowCount() != 6 || D.colCount() != 6)
+            return context->throwError(tr("Fem3D: wrong size of the stress-strain matrix."));
+
+        if (fem_ != nullptr) delete fem_;
+
+        fem_ = new VolumeStressStrain(mesh, D, conditions);
+        fem_->solve();
+        mesh->printDataExtremums();
+
+        setMesh(mesh);
+
+        return engine->undefinedValue();;
+    }
+    return context->throwError(QObject::tr("Fem3D(mesh: Mesh, h: Floating, M: Matrix, ...): arguments count error."));
+}
+
+QScriptValue QZScriptEngine::volumeStressStrainAdaptive(QScriptContext *context, QScriptEngine *engine)
+{
+    if (context->argumentCount() > 4)
+    {
+        Mesh3D *mesh = nullptr;
+        QString typeError = QObject::tr("FemA3D(mesh: Mesh, M: Matrix, delta, maxiter, [func,] ...): argument type error (%1).");
+        if (!context->argument(0).isQObject())
+            return context->throwError(typeError.arg("mesh"));
+        if (qscriptvalue_cast<QHexahedralMesh3D *>(context->argument(0)) != nullptr)
+        {
+            mesh = new HexahedralMesh3D(qscriptvalue_cast<QHexahedralMesh3D *>(context->argument(0)));
+        }
+        else if (qscriptvalue_cast<QTetrahedralMesh3D *>(context->argument(0)) != nullptr)
+        {
+            mesh = new TetrahedralMesh3D(qscriptvalue_cast<QTetrahedralMesh3D *>(context->argument(0)));
+        }
+        else
+        {
+            return context->throwError(typeError.arg("mesh"));
+        }
+
+        if (!context->argument(1).isObject() || (context->argument(1).isObject() && qscriptvalue_cast<QDoubleMatrix *>(context->argument(1)) == nullptr))
+            return context->throwError(typeError.arg("M"));
+
+        if (!context->argument(2).isNumber())
+            return context->throwError(typeError.arg("delta"));
+
+        if (!context->argument(3).isNumber())
+            return context->throwError(typeError.arg("maxiter"));
+
+        QScriptValue func_value;
+        if (context->argument(4).isFunction())
+        {
+            func_value = context->argument(4);
+
+        }
+        auto func = [&](double x, double y, double z)
+        {
+            QScriptValueList args;
+            args << x << y << z;
+            return func_value.call(QScriptValue(), args).toNumber();
+        };
+        std::list<FemCondition*> conditions;
+        int start = (func_value.isFunction()) ? 5 : 4;
+        for (int i = start; i < context->argumentCount(); i++)
+        {
+            if (!context->argument(i).isQObject())
+                return context->throwError(typeError.arg("boundary condition"));
+            QFemCondition *cond = qscriptvalue_cast<QFemCondition *>(context->argument(i));
+            if (cond == nullptr)
+                return context->throwError(typeError.arg("boundary condition"));
+            conditions.push_back(cond);
+        }
+
+
+        QDoubleMatrix *pqdm = qscriptvalue_cast<QDoubleMatrix *>(context->argument(1));
+        DoubleMatrix D(*pqdm);
+
+        if (D.rowCount() != 6 || D.colCount() != 6)
+            return context->throwError(tr("Fem3D: wrong size of the stress-strain matrix."));
+
+        double delta = context->argument(2).toNumber();
+        int maxiter = context->argument(3).toInt32();
+
+        if (fem_ != nullptr) delete fem_;
+
+        fem_ = new VolumeStressStrain(mesh, D, conditions);
+        if (func_value.isFunction())
+            dynamic_cast<VolumeStressStrain*>(fem_)->solve(func, delta, maxiter);
+        else
+            dynamic_cast<VolumeStressStrain*>(fem_)->solve(nullptr, delta, maxiter);
+        mesh->printDataExtremums();
+
+        setMesh(mesh);
+
+        return engine->undefinedValue();;
+    }
+    return context->throwError(QObject::tr("FemA3D(mesh: Mesh, M: Matrix, delta, maxiter, [func,] ...): arguments count error."));
+}
+
 QScriptValue QZScriptEngine::planeStress(QScriptContext *context, QScriptEngine *engine)
 {
     if (context->argumentCount() > 4)
     {
-        Mesh2D *mesh = NULL;
+        Mesh2D *mesh = nullptr;
         QString typeError = QObject::tr("PlaneStress(mesh: Mesh, h: Floating, E: Floating, nu: Floating, ...): argument type error (%1).");
         if (!context->argument(0).isQObject())
             return context->throwError(typeError.arg("mesh"));
-        if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != NULL)
+        if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != nullptr)
         {
             mesh = new QuadrilateralMesh2D(qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)));
         }
-        else if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != NULL)
+        else if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != nullptr)
         {
             mesh = new TriangleMesh2D(qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)));
         }
@@ -2294,7 +2610,7 @@ QScriptValue QZScriptEngine::planeStress(QScriptContext *context, QScriptEngine 
             if (!context->argument(i).isQObject())
                 return context->throwError(typeError.arg("boundary condition"));
             QFemCondition *cond = qscriptvalue_cast<QFemCondition *>(context->argument(i));
-            if (cond == NULL)
+            if (cond == nullptr)
                 return context->throwError(typeError.arg("boundary condition"));
             conditions.push_back(cond);
         }
@@ -2305,7 +2621,7 @@ QScriptValue QZScriptEngine::planeStress(QScriptContext *context, QScriptEngine 
 
         DoubleMatrix D = Fem2D::evalPlaneStressMatrix(E, nu);
 
-        if (fem_ != NULL) delete fem_;
+        if (fem_ != nullptr) delete fem_;
 
         fem_ = new PlaneStressStrain (mesh, //!
                                       h,
@@ -2325,15 +2641,15 @@ QScriptValue QZScriptEngine::planeStrain(QScriptContext *context, QScriptEngine 
 {
     if (context->argumentCount() > 4)
     {
-        Mesh2D *mesh = NULL;
+        Mesh2D *mesh = nullptr;
         QString typeError = QObject::tr("PlaneStrain(mesh: Mesh, h: Floating, E: Floating, nu: Floating, ...): argument type error (%1).");
         if (!context->argument(0).isQObject())
             return context->throwError(typeError.arg("mesh"));
-        if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != NULL)
+        if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != nullptr)
         {
             mesh = new QuadrilateralMesh2D(qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)));
         }
-        else if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != NULL)
+        else if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != nullptr)
         {
             mesh = new TriangleMesh2D(qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)));
         }
@@ -2358,7 +2674,7 @@ QScriptValue QZScriptEngine::planeStrain(QScriptContext *context, QScriptEngine 
             if (!context->argument(i).isQObject())
                 return context->throwError(typeError.arg("boundary condition"));
             QFemCondition *cond = qscriptvalue_cast<QFemCondition *>(context->argument(i));
-            if (cond == NULL)
+            if (cond == nullptr)
                 return context->throwError(typeError.arg("boundary condition"));
             conditions.push_back(cond);
         }
@@ -2369,7 +2685,7 @@ QScriptValue QZScriptEngine::planeStrain(QScriptContext *context, QScriptEngine 
 
         DoubleMatrix D = Fem2D::evalPlaneStrainMatrix(E, nu); //!
 
-        if (fem_ != NULL) delete fem_;
+        if (fem_ != nullptr) delete fem_;
 
         fem_ = new PlaneStressStrain (mesh, //!
                                       h,
@@ -2509,15 +2825,15 @@ QScriptValue QZScriptEngine::mindlinPlate(QScriptContext *context, QScriptEngine
 {
     if (context->argumentCount() > 4)
     {
-        Mesh2D *mesh = NULL;
+        Mesh2D *mesh = nullptr;
         QString typeError = QObject::tr("MindlinPlate(mesh: Mesh, h: Floating, E: Floating, nu: Floating, ...): argument type error (%1).");
         if (!context->argument(0).isQObject())
             return context->throwError(typeError.arg("mesh"));
-        if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != NULL)
+        if (qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)) != nullptr)
         {
             mesh = new QuadrilateralMesh2D(qscriptvalue_cast<QQuadrilateralMesh2D *>(context->argument(0)));
         }
-        else if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != NULL)
+        else if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != nullptr)
         {
             mesh = new TriangleMesh2D(qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)));
         }
@@ -2542,7 +2858,7 @@ QScriptValue QZScriptEngine::mindlinPlate(QScriptContext *context, QScriptEngine
             if (!context->argument(i).isQObject())
                 return context->throwError(typeError.arg("boundary condition"));
             QFemCondition *cond = qscriptvalue_cast<QFemCondition *>(context->argument(i));
-            if (cond == NULL)
+            if (cond == nullptr)
                 return context->throwError(typeError.arg("boundary condition"));
             conditions.push_back(cond);
         }
@@ -2556,7 +2872,7 @@ QScriptValue QZScriptEngine::mindlinPlate(QScriptContext *context, QScriptEngine
             DoubleMatrix Dc(2, 0.0);
             Dc(0, 0) = D(2, 2); Dc(1, 1) = D(2, 2);
 
-            if (fem_ != NULL) delete fem_;
+            if (fem_ != nullptr) delete fem_;
 
             fem_ = new MindlinPlateBending (mesh, //!
                                             h,
@@ -2585,7 +2901,7 @@ QScriptValue QZScriptEngine::mindlinPlate(QScriptContext *context, QScriptEngine
                 elasticMatrix.push_back(Fem2D::evalPlaneStressMatrix(e_array.property(i).toNumber(), nu_array.property(i).toNumber()));
             }
 
-            if (fem_ != NULL) delete fem_;
+            if (fem_ != nullptr) delete fem_;
 
             fem_ = new MindlinPlateLaminated (mesh, //!
                                             h,
@@ -2610,15 +2926,15 @@ QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine
 {
     if (context->argumentCount() > 4)
     {
-        Mesh3D *mesh = NULL;
+        Mesh3D *mesh = nullptr;
         QString typeError = QObject::tr("MindlinShell(mesh: Mesh, h: Floating, {E: Floating, nu: Floating[, G: Floating]} | {strain: Array, stress: Array, nu: Floating}, [, {boundary conditions, forces}]...): argument type error (%1).");
         if (!context->argument(0).isQObject())
             return context->throwError(typeError.arg("mesh"));
-        if (qscriptvalue_cast<QQuadrilateralMesh3D *>(context->argument(0)) != NULL)
+        if (qscriptvalue_cast<QQuadrilateralMesh3D *>(context->argument(0)) != nullptr)
         {
             mesh = new QuadrilateralMesh3D(qscriptvalue_cast<QQuadrilateralMesh3D *>(context->argument(0)));
         }
-        else if (qscriptvalue_cast<QTriangleMesh3D *>(context->argument(0)) != NULL)
+        else if (qscriptvalue_cast<QTriangleMesh3D *>(context->argument(0)) != nullptr)
         {
             mesh = new TriangleMesh3D(qscriptvalue_cast<QTriangleMesh3D *>(context->argument(0)));
         }
@@ -2649,7 +2965,7 @@ QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine
             if (!context->argument(i).isQObject())
                 return context->throwError(typeError.arg("boundary condition or force"));
             QFemCondition *cond = qscriptvalue_cast<QFemCondition *>(context->argument(i));
-            if (cond == NULL)
+            if (cond == nullptr)
                 return context->throwError(typeError.arg("boundary condition or force"));
             conditions.push_back(cond);
         }
@@ -2666,13 +2982,16 @@ QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine
             else
                 D = Fem2D::evalPlaneStressMatrix(E, nu);
 
-            if (fem_ != NULL) delete fem_;
+            if (fem_ != nullptr) delete fem_;
 
             fem_ = new MindlinShellBending (mesh, //!
                                             h,
                                             D,
                                             conditions);
-            fem_->solve();
+            if (engine->globalObject().property("ADAPT").toBool())
+                dynamic_cast<MindlinShellBending*>(fem_)->solve(nullptr, engine->globalObject().property("ADELTA").toNumber(), engine->globalObject().property("ALEVEL").toInt32());
+            else
+                fem_->solve();
             setMesh(mesh);
         }
         else if (context->argument(1).isFunction() && context->argument(2).isNumber() && context->argument(3).isNumber())
@@ -2696,13 +3015,16 @@ QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine
             else
                 D = Fem2D::evalPlaneStressMatrix(E, nu);
 
-            if (fem_ != NULL) delete fem_;
+            if (fem_ != nullptr) delete fem_;
 
             fem_ = new MindlinShellBending (mesh, //!
                                             thickness_func,
                                             D,
                                             conditions);
-            fem_->solve();
+            if (engine->globalObject().property("ADAPT").toBool())
+                dynamic_cast<MindlinShellBending*>(fem_)->solve(nullptr, engine->globalObject().property("ADELTA").toNumber(), engine->globalObject().property("ALEVEL").toInt32());
+            else
+                fem_->solve();
             setMesh(mesh);
         }
         else if (context->argument(1).isArray() && context->argument(2).isArray() && context->argument(3).isArray())
@@ -2741,13 +3063,16 @@ QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine
                 }
             }
 
-            if (fem_ != NULL) delete fem_;
+            if (fem_ != nullptr) delete fem_;
 
             fem_ = new MindlinShellLaminated (mesh, //!
                                             h,
                                             elasticMatrix,
                                             conditions);
-            fem_->solve();
+            if (engine->globalObject().property("ADAPT").toBool())
+                dynamic_cast<MindlinShellLaminated*>(fem_)->solve(nullptr, engine->globalObject().property("ADELTA").toNumber(), engine->globalObject().property("ALEVEL").toInt32());
+            else
+                fem_->solve();
             setMesh(mesh);
         }
         else if (context->argument(1).isFunction() && context->argument(2).isArray() && context->argument(3).isArray())
@@ -2796,13 +3121,16 @@ QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine
                 }
             }
 
-            if (fem_ != NULL) delete fem_;
+            if (fem_ != nullptr) delete fem_;
 
             fem_ = new MindlinShellLaminated (mesh, //!
                                             thickness_func,
                                             elasticMatrix,
                                             conditions);
-            fem_->solve();
+            if (engine->globalObject().property("ADAPT").toBool())
+                dynamic_cast<MindlinShellLaminated*>(fem_)->solve(nullptr, engine->globalObject().property("ADELTA").toNumber(), engine->globalObject().property("ALEVEL").toInt32());
+            else
+                fem_->solve();
             setMesh(mesh);
         }
         else if (context->argument(1).isNumber() && context->argument(2).isArray() && context->argument(3).isArray() && context->argument(4).isNumber())
@@ -2823,7 +3151,7 @@ QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine
                 stress.push_back(stress_array.property(i).toNumber());
             }
 
-            if (fem_ != NULL) delete fem_;
+            if (fem_ != nullptr) delete fem_;
 
 //            fem_ = new MindlinShellBending (mesh, h, strain, stress, nu, conditions);
 
@@ -2843,7 +3171,7 @@ QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine
 
 QScriptValue QZScriptEngine::reportValues(QScriptContext *context, QScriptEngine *engine)
 {
-     if (context->argumentCount() == 1 && fem_ != NULL)
+     if (context->argumentCount() == 1 && fem_ != nullptr)
      {
          QString typeError = QObject::tr("values(func: Function): argument type error (%1).");
          QScriptValue function = context->argument(0);
@@ -2903,6 +3231,13 @@ QScriptValue QZScriptEngine::createPlaneStressMatrix(QScriptContext *context, QS
         return engine->newQObject(new QDoubleMatrix(Fem2D::evalPlaneStressMatrix(E, nu, G)), QScriptEngine::ScriptOwnership);
     }
     return engine->newQObject(new QDoubleMatrix(Fem2D::evalPlaneStressMatrix(E, nu)), QScriptEngine::ScriptOwnership);
+}
+
+QScriptValue QZScriptEngine::createVolumeStressMatrix(QScriptContext *context, QScriptEngine *engine)
+{
+    double E = context->argument(0).toNumber();
+    double nu = context->argument(1).toNumber();
+    return engine->newQObject(new QDoubleMatrix(VolumeStressStrain::evalStressMatrix(E, nu)), QScriptEngine::ScriptOwnership);
 }
 
 QScriptValue QZScriptEngine::createLaminaStressMatrix(QScriptContext *context, QScriptEngine *engine)

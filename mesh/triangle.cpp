@@ -90,4 +90,11 @@ int Triangle::index(const UInteger &node) const
     return -1;
 }
 
+bool Triangle::isSame(const Triangle &t) const
+{
+    return (vertex_[0] == t.vertex_[0] || vertex_[0] == t.vertex_[1] || vertex_[0] == t.vertex_[2]) &&
+            (vertex_[1] == t.vertex_[0] || vertex_[1] == t.vertex_[1] || vertex_[1] == t.vertex_[2]) &&
+            (vertex_[2] == t.vertex_[0] || vertex_[2] == t.vertex_[1] || vertex_[2] == t.vertex_[2]);
+}
+
 }

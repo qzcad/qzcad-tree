@@ -43,7 +43,9 @@ SOURCES += hexahedralfem.cpp \
     fem2d.cpp \
     mindlinshellbending.cpp \
     mindlinplatelaminated.cpp \
-    mindlinshelllaminated.cpp
+    mindlinshelllaminated.cpp \
+    fem3d.cpp \
+    volumestressstrain.cpp
 
 HEADERS += hexahedralfem.h \
     globalmatrix.h \
@@ -62,7 +64,9 @@ HEADERS += hexahedralfem.h \
     fem2d.h \
     mindlinshellbending.h \
     mindlinplatelaminated.h \
-    mindlinshelllaminated.h
+    mindlinshelllaminated.h \
+    fem3d.h \
+    volumestressstrain.h
 unix {
     target.path = /usr/lib
     INSTALLS += target
