@@ -18,6 +18,10 @@ GLMeshPicture::GLMeshPicture(QWidget *parent) :
     isLighting_ = true;
     isUseVector_ = false;
     isShowInitialFrames = false;
+    isTwoSideLightModel_ = false;
+    isSliceX_ = false;
+    isSliceY_ = false;
+    isSliceZ_ = false;
 
 #ifdef Q_OS_WIN
     setFont(QFont("Courier New", 14, QFont::Bold));
@@ -686,6 +690,34 @@ void GLMeshPicture::setShowInitialFrames(bool isShow)
     updateGL();
 }
 
+void GLMeshPicture::activateTwoSideLightModel(bool activate)
+{
+    isTwoSideLightModel_ = activate;
+    if (isTwoSideLightModel_)
+        glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+    else
+        glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
+    updateGL();
+}
+
+void GLMeshPicture::activateSliceX(bool activate)
+{
+    isSliceX_ = activate;
+    updateGL();
+}
+
+void GLMeshPicture::activateSliceY(bool activate)
+{
+    isSliceY_ = activate;
+    updateGL();
+}
+
+void GLMeshPicture::activateSliceZ(bool activate)
+{
+    isSliceZ_ = activate;
+    updateGL();
+}
+
 void GLMeshPicture::initializeGL()
 {
     qglClearColor(backgroundColor_);
@@ -713,6 +745,9 @@ void GLMeshPicture::initializeGL()
     glEnable(GL_DEPTH_TEST);
 
     glShadeModel(GL_SMOOTH);
+
+    if (isTwoSideLightModel_)
+        glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
 #if defined(GL_MULTISAMPLE)
     glEnable(GL_MULTISAMPLE);
@@ -760,12 +795,46 @@ void GLMeshPicture::paintGL()
                 drawFace(face, GL_LINES, 1.0, 1.0);
                 drawFace(face, GL_POINTS, 1.0, 4.0);
             }
-            else if ((mesh_->dimesion() == 2 || mesh_->isBorderElement(element)) /*(mesh_->node(element->vertexNode(0))->x() > 0.01 || mesh_->node(element->vertexNode(1))->x() > 0.01 || mesh_->node(element->vertexNode(2))->x() > 0.01 || mesh_->node(element->vertexNode(3))->x() > 0.01 || mesh_->node(element->vertexNode(4))->x() > 0.01 || mesh_->node(element->vertexNode(5))->x() > 0.01 || mesh_->node(element->vertexNode(6))->x() > 0.01 || mesh_->node(element->vertexNode(7))->x() > 0.01)*/)
+            else //if (mesh_->dimesion() == 2 || mesh_->isBorderElement(element))
             {
+                if (mesh_->dimesion() == 3 && !mesh_->isBorderElement(element) && !isSliceX_ && !isSliceY_ && !isSliceZ_)
+                    continue;
+                if (mesh_->dimesion() == 3 && isSliceX_)
+                {
+                    bool filtered = true;
+                    for (int vn = 0; vn < element->verticesCount(); vn++)
+                    {
+                        filtered &= (mesh_->node(element->vertexNode(vn))->x() >= centerX_);
+                    }
+                    if (!filtered)
+                        continue;
+                }
+
+                if (mesh_->dimesion() == 3 && isSliceY_)
+                {
+                    bool filtered = true;
+                    for (int vn = 0; vn < element->verticesCount(); vn++)
+                    {
+                        filtered &= (mesh_->node(element->vertexNode(vn))->y() >= centerY_);
+                    }
+                    if (!filtered)
+                        continue;
+                }
+                if (mesh_->dimesion() == 3 && isSliceZ_)
+                {
+                    bool filtered = true;
+                    for (int vn = 0; vn < element->verticesCount(); vn++)
+                    {
+                        filtered &= (mesh_->node(element->vertexNode(vn))->z() >= centerZ_);
+                    }
+                    if (!filtered)
+                        continue;
+                }
+
                 for (int p = 0; p < element->facesCount(); p++)
                 {
                     msh::UIntegerVector face = element->face(p);
-                    if (mesh_->dimesion() == 3 && !mesh_->isBorderFace(face))
+                    if (mesh_->dimesion() == 3 && !mesh_->isBorderFace(face) && !isSliceX_ && !isSliceY_ && !isSliceZ_)
                     {
                         continue; // для трехмерных объектов рисуются только наружные грани
                     }

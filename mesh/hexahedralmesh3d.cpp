@@ -68,7 +68,7 @@ void HexahedralMesh3D::prismDomain(const UInteger &xCount, const UInteger &yCoun
     yMin_ = yMin;
     yMax_ = yMin + height;
     zMin_ = zMin;
-    zMax_ = xMin + depth;
+    zMax_ = zMin + depth;
     printStats();
 }
 

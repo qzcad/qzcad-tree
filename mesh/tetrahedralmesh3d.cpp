@@ -467,7 +467,7 @@ void TetrahedralMesh3D::backgroundGrid(const TetrahedralMesh3D *mesh, std::funct
         }
     }
     laplacianSmoothing(smooth);
-    localFubctionalOptimization(optimize);
+//    localFubctionalOptimization(optimize);
 //    std::list<UInteger> ee;
 //    ee.push_back(25943); ee.push_back(25942); ee.push_back(25941);
 //    subdivide(ee, func);
@@ -526,28 +526,29 @@ void TetrahedralMesh3D::localFubctionalOptimization(int maxiter)
 //                        double alpha = ((p[1] - p[0]).product(p[2] - p[0])) * (p[3] - p[0]);
 //                        f += alpha*alpha;
                         double alpha = 0.0;
+                        double t  = 10.0;
                         if (el.index(i) == 0)
                         {
                             alpha = ((p[1] - p[0]).product(p[2] - p[0])) * (p[3] - p[0]);
-                            f += exp(-20.0 * alpha);
+                            f += exp(-t * alpha);
                         }
 
                         if (el.index(i) == 1)
                         {
                             alpha = ((p[3] - p[1]).product(p[2] - p[1])) * (p[0] - p[1]);
-                            f += exp(-20.0 * alpha);
+                            f += exp(-t * alpha);
                         }
 
                         if (el.index(i) == 2)
                         {
                             alpha = ((p[1] - p[2]).product(p[3] - p[2])) * (p[0] - p[2]);
-                            f += exp(-20.0 * alpha);
+                            f += exp(-t * alpha);
                         }
 
                         if (el.index(i) == 3)
                         {
                             alpha = ((p[0] - p[3]).product(p[2] - p[3])) * (p[1] - p[3]);
-                            f += exp(-20.0 * alpha);
+                            f += exp(-t * alpha);
                         }
 //                        The length functional
 //                        f += (p[1] - p[0]) * (p[1] - p[0]) + (p[3] - p[0]) * (p[3] - p[0]) + (p[4] - p[0]) * (p[4] - p[0]);
@@ -567,7 +568,7 @@ void TetrahedralMesh3D::localFubctionalOptimization(int maxiter)
                 x0[0] = point.x();
                 x0[1] = point.y();
                 x0[2] = point.z();
-                x = conjugateGradient(functor, x0, 0.001 * avr_dist, 0.00001 * avr_dist, 40, false);
+                x = conjugateGradient(functor, x0, 0.001 * avr_dist, 0.000001 * avr_dist, 40, false);
 //                node_[i].point.print();
                 if (!isnan(x[0]) && !isnan(x[1]) && !isnan(x[2]))
                     node_[i].point.set(x[0], x[1], x[2]);

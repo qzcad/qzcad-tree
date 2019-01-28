@@ -250,7 +250,10 @@ public slots:
      * @param isShow true для включения
      */
     void setShowInitialFrames(bool isShow);
-
+    void activateTwoSideLightModel(bool activate);
+    void activateSliceX(bool activate);
+    void activateSliceY(bool activate);
+    void activateSliceZ(bool activate);
 protected:
     /**
      * @brief Инициализация состояния openGL
@@ -333,7 +336,10 @@ private:
     bool isUseVector_; //!< Применить вектор при визуализации
     double vectorScale_; //!< Множитель вектора
     bool isShowInitialFrames; //!< Фглаг включения/выключения отображения каркаса исходного состояния в режиме использования вектора
-
+    bool isTwoSideLightModel_; //!< Флаг включения/выключения двусторонней отрисовки цвета в многоугольниках
+    bool isSliceX_; //!< Флаг разреза сцены плоскостью, ортогональной оси X
+    bool isSliceY_; //!< Флаг разреза сцены плоскостью, ортогональной оси Y
+    bool isSliceZ_; //!< Флаг разреза сцены плоскостью, ортогональной оси Z
 private:
     /**
      * @brief Установить настройки изображения по умолчанию

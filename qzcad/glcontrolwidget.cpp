@@ -35,6 +35,26 @@ void GLControlWidget::activateDoubleBufferGL(bool activate)
     ui->picture->activateDoubleBufferGL(activate);
 }
 
+void GLControlWidget::activateTwoSideLightModel(bool activate)
+{
+    ui->picture->activateTwoSideLightModel(activate);
+}
+
+void GLControlWidget::activateSliceX(bool activate)
+{
+    ui->picture->activateSliceX(activate);
+}
+
+void GLControlWidget::activateSliceY(bool activate)
+{
+    ui->picture->activateSliceY(activate);
+}
+
+void GLControlWidget::activateSliceZ(bool activate)
+{
+    ui->picture->activateSliceZ(activate);
+}
+
 void GLControlWidget::on_mouseMode_currentIndexChanged(int index)
 {
     if (index == 1)

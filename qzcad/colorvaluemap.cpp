@@ -24,9 +24,9 @@ QColor ColorValueMap::color(const double &value, int colors)
     QColor result;
     switch (colorMap_) {
     case GREYSCALE:
-        result.setRgbF(scaleOn(value, 0.2, 0.975, colors),
-                       scaleOn(value, 0.2, 0.975, colors),
-                       scaleOn(value, 0.2, 0.975, colors));
+        result.setRgbF(scaleOn(value, 0.1, 0.9, colors),
+                       scaleOn(value, 0.1, 0.9, colors),
+                       scaleOn(value, 0.1, 0.9, colors));
         break;
     case SPRING:
         result.setRgbF(1.0,

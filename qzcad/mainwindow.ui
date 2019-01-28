@@ -239,6 +239,12 @@
      <string>&amp;Настройки</string>
     </property>
     <addaction name="actionDoubleBufferGL"/>
+    <addaction name="actionTwoSideLightModel"/>
+    <addaction name="separator"/>
+    <addaction name="actionSliceX"/>
+    <addaction name="actionSliceY"/>
+    <addaction name="actionSliceZ"/>
+    <addaction name="separator"/>
     <addaction name="actionChangePictureBackground"/>
     <addaction name="actionChangeMeshColor"/>
     <addaction name="actionChangeElementColor"/>
@@ -969,6 +975,38 @@
     <string>Максимальный угол</string>
    </property>
   </action>
+  <action name="actionTwoSideLightModel">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Освещение обеих сторон многоугольника</string>
+   </property>
+  </action>
+  <action name="actionSliceX">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Разрез плоскостью x = C</string>
+   </property>
+  </action>
+  <action name="actionSliceY">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Разрез плоскостью y = C</string>
+   </property>
+  </action>
+  <action name="actionSliceZ">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Разрез плоскостью z = C</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -979,6 +1017,10 @@
    <container>1</container>
    <slots>
     <slot>activateDoubleBufferGL(bool)</slot>
+    <slot>activateTwoSideLightModel(bool)</slot>
+    <slot>activateSliceX(bool)</slot>
+    <slot>activateSliceY(bool)</slot>
+    <slot>activateSliceZ(bool)</slot>
    </slots>
   </customwidget>
   <customwidget>
@@ -1021,6 +1063,70 @@
     <hint type="destinationlabel">
      <x>608</x>
      <y>231</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionTwoSideLightModel</sender>
+   <signal>triggered(bool)</signal>
+   <receiver>pictureControl</receiver>
+   <slot>activateTwoSideLightModel(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>617</x>
+     <y>323</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSliceX</sender>
+   <signal>triggered(bool)</signal>
+   <receiver>pictureControl</receiver>
+   <slot>activateSliceX(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>617</x>
+     <y>323</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSliceY</sender>
+   <signal>triggered(bool)</signal>
+   <receiver>pictureControl</receiver>
+   <slot>activateSliceY(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>617</x>
+     <y>323</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSliceZ</sender>
+   <signal>triggered(bool)</signal>
+   <receiver>pictureControl</receiver>
+   <slot>activateSliceZ(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>617</x>
+     <y>323</y>
     </hint>
    </hints>
   </connection>

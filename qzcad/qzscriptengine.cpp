@@ -22,6 +22,7 @@
 #include "mindlinplatelaminated.h"
 #include "mindlinshellbending.h"
 #include "mindlinshelllaminated.h"
+#include "mindlinshellplastic.h"
 #include "volumestressstrain.h"
 
 #include "qzscriptengine.h"
@@ -173,6 +174,7 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     globalObject().setProperty("AFUNC", 0); // функция для пероекции при адаптации
 
     globalObject().setProperty("MindlinShell", newFunction(mindlinShell));
+    globalObject().setProperty("MindlinShellPlastic", newFunction(mindlinShellPlastic));
 
     globalObject().setProperty("values", newFunction(reportValues));
 
@@ -1572,6 +1574,8 @@ QScriptValue QZScriptEngine::currentMesh(QScriptContext *context, QScriptEngine 
         return engine->newQObject(new QQuadrilateralMesh3D(dynamic_cast<msh::QuadrilateralMesh3D *>(mesh_)), QScriptEngine::ScriptOwnership);
     else if (dynamic_cast<msh::HexahedralMesh3D *>(mesh_))
         return engine->newQObject(new QHexahedralMesh3D(dynamic_cast<msh::HexahedralMesh3D *>(mesh_)), QScriptEngine::ScriptOwnership);
+    else if (dynamic_cast<msh::TetrahedralMesh3D *>(mesh_))
+        return engine->newQObject(new QTetrahedralMesh3D(dynamic_cast<msh::TetrahedralMesh3D *>(mesh_)), QScriptEngine::ScriptOwnership);
     else
         return context->throwError(QObject::tr("Type of current mesh is unusefull."));
 }
@@ -3167,6 +3171,88 @@ QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine
         return engine->undefinedValue();
     }
     return context->throwError(QObject::tr("MindlinShell(mesh: Mesh, h: Floating, E: Floating, nu: Floating, boundaryConditionType: Function, boundaryValue: Function, nodalForce: Function, surfaceForce: Function, volumeForce: Function): arguments count error."));
+}
+
+QScriptValue QZScriptEngine::mindlinShellPlastic(QScriptContext *context, QScriptEngine *engine)
+{
+    if (context->argumentCount() > 5)
+    {
+        Mesh3D *mesh = nullptr;
+        QString typeError = QObject::tr("MindlinShellPlastic(mesh: Mesh, h: Floating|Function, E: function, sigma_max: Floating, nu: Floating [, {boundary conditions, forces}]...): argument type error (%1).");
+        if (!context->argument(0).isQObject())
+            return context->throwError(typeError.arg("mesh"));
+        if (qscriptvalue_cast<QQuadrilateralMesh3D *>(context->argument(0)) != nullptr)
+        {
+            mesh = new QuadrilateralMesh3D(qscriptvalue_cast<QQuadrilateralMesh3D *>(context->argument(0)));
+        }
+        else if (qscriptvalue_cast<QTriangleMesh3D *>(context->argument(0)) != nullptr)
+        {
+            mesh = new TriangleMesh3D(qscriptvalue_cast<QTriangleMesh3D *>(context->argument(0)));
+        }
+        else
+        {
+            return context->throwError(typeError.arg("mesh"));
+        }
+
+        if (!context->argument(1).isNumber() && !context->argument(1).isArray() && !context->argument(1).isFunction())
+            return context->throwError(typeError.arg("h"));
+
+        if (!context->argument(2).isFunction())
+            return context->throwError(typeError.arg("E"));
+
+        if (!context->argument(3).isNumber())
+            return context->throwError(typeError.arg("sigma_max"));
+
+        if (!context->argument(4).isNumber())
+            return context->throwError(typeError.arg("nu"));
+
+        std::list<FemCondition*> conditions;
+
+        for (int i = 5; i < context->argumentCount(); i++)
+        {
+            if (!context->argument(i).isQObject())
+                return context->throwError(typeError.arg("boundary condition or force"));
+            QFemCondition *cond = qscriptvalue_cast<QFemCondition *>(context->argument(i));
+            if (cond == nullptr)
+                return context->throwError(typeError.arg("boundary condition or force"));
+            conditions.push_back(cond);
+        }
+
+        QScriptValue h_func = context->argument(1);
+        auto thickness_func = [&](double x, double y, double z) -> double
+        {
+            QScriptValueList args;
+            args << x << y << z;
+            QScriptValue value = h_func.call(QScriptValue(), args);
+            return value.toNumber();
+        };
+        QScriptValue e_func = context->argument(2);
+        auto young_func = [&](double sigma) -> double
+        {
+            QScriptValueList args;
+            args << sigma;
+            QScriptValue value = e_func.call(QScriptValue(), args);
+            return value.toNumber();
+        };
+
+        double sigma_max = context->argument(3).toNumber();
+        std::cout << "E(0) = " << young_func(0) << "; E(" << sigma_max << ") = " << young_func(sigma_max) << std::endl;
+        double nu = context->argument(4).toNumber();
+        if (fem_ != nullptr) delete fem_;
+
+        fem_ = new MindlinShellPlastic (mesh,
+                                        thickness_func,
+                                        young_func,
+                                        sigma_max,
+                                        nu,
+                                        conditions);
+        fem_->solve();
+        setMesh(mesh);
+        mesh->printDataExtremums();
+
+        return engine->undefinedValue();
+    }
+    return context->throwError(QObject::tr("MindlinShellPlastic: arguments count error."));
 }
 
 QScriptValue QZScriptEngine::reportValues(QScriptContext *context, QScriptEngine *engine)

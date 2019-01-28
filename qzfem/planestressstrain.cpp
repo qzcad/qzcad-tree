@@ -36,7 +36,7 @@ void PlaneStressStrain::solve(std::function<double (double, double)> func, doubl
         processInitialValues();
         DoubleVector solution = solveLinearSystem();
         char_vec = adaptationVector(solution);
-        double d = char_vec.max() - char_vec.min();
+        double d = fabs(char_vec.max() - char_vec.min());
         std::list<UInteger> elements;
         AdjacentSet elset;
         for (UInteger elnum = 0; elnum < mesh_->elementsCount(); elnum++)
@@ -46,7 +46,7 @@ void PlaneStressStrain::solve(std::function<double (double, double)> func, doubl
             for (int j = 0; j < element->verticesCount(); j++)
             {
                 for (int k = j + 1; k < element->verticesCount(); k++)
-                    if ((fabs(char_vec[element->vertexNode(j)] - char_vec[element->vertexNode(k)]) / fabs(d)) >= delta)
+                    if ((fabs(char_vec[element->vertexNode(j)] - char_vec[element->vertexNode(k)]) / d) >= delta)
                         needSubdivision = true;
             }
 //            double avr = 0.0;
@@ -57,9 +57,19 @@ void PlaneStressStrain::solve(std::function<double (double, double)> func, doubl
 //            avr /= static_cast<double>(element->verticesCount());
 //            for (int j = 0; j < element->verticesCount(); j++)
 //            {
+////                for (int k = j + 1; k < element->verticesCount(); k++)
+////                    if ((fabs(char_vec[element->vertexNode(j)] - char_vec[element->vertexNode(k)]) / fabs(avr)) >= delta)
+////                        needSubdivision = true;
+////                if ((fabs(char_vec[element->vertexNode(j)] - avr) / fabs(avr)) >= delta)
+////                    needSubdivision = true;
+//                PointPointer pj = mesh_->node(element->vertexNode(j));
 //                for (int k = j + 1; k < element->verticesCount(); k++)
-//                    if ((fabs(char_vec[element->vertexNode(j)] - char_vec[element->vertexNode(k)]) / fabs(avr)) >= delta)
+//                {
+//                    PointPointer pk = mesh_->node(element->vertexNode(k));
+//                    double dx = sqrt((pj->x() - pk->x()) * (pj->x() - pk->x()) + (pj->y() - pk->y()) * (pj->y() - pk->y()) + (pj->z() - pk->z()) * (pj->z() - pk->z()));
+//                    if ((fabs(char_vec[element->vertexNode(j)] - char_vec[element->vertexNode(k)]) / dx) >= delta)
 //                        needSubdivision = true;
+//                }
 //            }
 //            if (needSubdivision) elements.push_back(elnum);
             if (needSubdivision)

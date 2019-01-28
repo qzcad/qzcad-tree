@@ -446,6 +446,13 @@ private:
      */
     static QScriptValue mindlinShell(QScriptContext *context, QScriptEngine *engine);
     /**
+     * @brief МКЭ: Деформация оболочки с учетом пластичности (теория Миндлина)
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Если аргументы корректны, то будет найдено решение задачи, иначе engine->undefinedValue()
+     */
+    static QScriptValue mindlinShellPlastic(QScriptContext *context, QScriptEngine *engine);
+    /**
      * @brief Отчет о значениях
      * @param context Контекст скрипта
      * @param engine Двигатель скрипта

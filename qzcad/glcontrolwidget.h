@@ -31,6 +31,10 @@ public:
     GLMeshPicture *getGlMeshPicture();
 public slots:
     void activateDoubleBufferGL(bool activate);
+    void activateTwoSideLightModel(bool activate);
+    void activateSliceX(bool activate);
+    void activateSliceY(bool activate);
+    void activateSliceZ(bool activate);
 private slots:
     void on_mouseMode_currentIndexChanged(int index);
 

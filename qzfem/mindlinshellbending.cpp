@@ -72,7 +72,7 @@ void MindlinShellBending::solve(std::function<double (double, double, double)> f
         processInitialValues();
         DoubleVector solution = solveLinearSystem();
         char_vec = adaptationVector(solution);
-        double d = char_vec.max() - char_vec.min();
+        double d = fabs(char_vec.max() - char_vec.min());
         std::list<UInteger> elements;
         for (UInteger elnum = 0; elnum < mesh_->elementsCount(); elnum++)
         {
@@ -80,8 +80,11 @@ void MindlinShellBending::solve(std::function<double (double, double, double)> f
             bool needSubdivision = false;
             for (int j = 0; j < element->verticesCount(); j++)
             {
-                if ((fabs(char_vec[element->vertexNode(j)] - char_vec[element->vertexNode(j + 1)]) / fabs(d)) >= delta)
-                    needSubdivision = true;
+                for (int k = j + 1; k < element->verticesCount(); k++)
+                {
+                    if ((fabs(char_vec[element->vertexNode(j)] - char_vec[element->vertexNode(k)]) / d) >= delta)
+                        needSubdivision = true;
+                }
             }
             if (needSubdivision) elements.push_back(elnum);
         }
