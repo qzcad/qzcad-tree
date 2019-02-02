@@ -607,10 +607,24 @@ void TriangleMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vC
             {
                 double un = (i == uCount - 2) ? 1.0 : u + du;
                 double vn = (j == vCount - 2) ? 1.0 : v + dv;
-                ParametricTriangle t0 = {Point2D(u, v), Point2D(un, v), Point2D(un, vn)};
-                ParametricTriangle t1 = {Point2D(un, vn), Point2D(u, vn), Point2D(u, v)};
-                triangles.push_back(t0);
-                triangles.push_back(t1);
+//                ParametricTriangle t0 = {Point2D(u, v), Point2D(un, v), Point2D(un, vn)};
+//                ParametricTriangle t1 = {Point2D(un, vn), Point2D(u, vn), Point2D(u, v)};
+//                triangles.push_back(t0);
+//                triangles.push_back(t1);
+                if ((0.5 <= un && 0.5 <= vn && 0.5 <= u && 0.5 <= v) || (0.5 >= un && 0.5 >= vn && 0.5 >= u && 0.5 >= v))
+                {
+                    ParametricTriangle t0 = {Point2D(u, v), Point2D(un, v), Point2D(un, vn)};
+                    ParametricTriangle t1 = {Point2D(un, vn), Point2D(u, vn), Point2D(u, v)};
+                    triangles.push_back(t0);
+                    triangles.push_back(t1);
+                } // if
+                else
+                {
+                    ParametricTriangle t0 = {Point2D(u, v), Point2D(un, v), Point2D(u, vn)};
+                    ParametricTriangle t1 = {Point2D(un, vn), Point2D(u, vn), Point2D(un, v)};
+                    triangles.push_back(t0);
+                    triangles.push_back(t1);
+                } // else
                 v += dv;
             }
             u += du;
