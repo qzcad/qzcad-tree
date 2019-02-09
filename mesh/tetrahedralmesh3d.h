@@ -115,7 +115,11 @@ public:
      * @param optimize Количество итераций оптимизации
      */
     void backgroundGrid(const TetrahedralMesh3D *mesh, std::function<double(double, double, double)> func, double level = 0.0, int smooth = 0, int optimize = 0);
-    void localFubctionalOptimization(int maxiter=2);
+    /**
+     * @brief Метод оптимизации положений внутренних узлов с использованием локальной минизации функционала
+     * @param maxiter Количество итераций оптимизации
+     */
+    void localFunctionalOptimization(int maxiter=2);
     /**
      * @brief Вычислить соотношение длин сторон (минимальной к максимальной)
      * @param elnum Номер элемента

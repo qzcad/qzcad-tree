@@ -467,7 +467,7 @@ void TetrahedralMesh3D::backgroundGrid(const TetrahedralMesh3D *mesh, std::funct
         }
     }
     laplacianSmoothing(smooth);
-//    localFubctionalOptimization(optimize);
+    localFunctionalOptimization(optimize);
 //    std::list<UInteger> ee;
 //    ee.push_back(25943); ee.push_back(25942); ee.push_back(25941);
 //    subdivide(ee, func);
@@ -475,7 +475,7 @@ void TetrahedralMesh3D::backgroundGrid(const TetrahedralMesh3D *mesh, std::funct
     updateDomain();
 }
 
-void TetrahedralMesh3D::localFubctionalOptimization(int maxiter)
+void TetrahedralMesh3D::localFunctionalOptimization(int maxiter)
 {
     std::cout << "Local optimization smoothing...";
     std::clock_t start = std::clock();
