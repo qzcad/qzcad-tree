@@ -691,6 +691,40 @@ QScriptValue QZScriptEngine::createBoundaryMesh(QScriptContext *context, QScript
 
 QScriptValue QZScriptEngine::createTriangleMesh2D(QScriptContext *context, QScriptEngine *engine)
 {
+    if (context->argumentCount() == 3)
+    {
+        Mesh *mesh = nullptr;
+        if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != nullptr)
+            mesh = qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0));
+        if (mesh == nullptr)
+            return context->throwError(tr("Triangles2D(mesh, primary_func, secondary_func):  wrong type of the mesh argument"));
+        if (dynamic_cast<TriangleMesh2D *>(mesh) != nullptr)
+        {
+            TriangleMesh2D *tmesh = dynamic_cast<TriangleMesh2D *>(mesh);
+            std::list<msh::Point2D> pointList;
+            QScriptValue primary = context->argument(1);
+            if (!primary.isFunction())
+                return context->throwError(tr("Triangles2D(mesh, primary_func, secondary_func): wrong type of the primary_func argument"));
+            auto primary_func = [&](double x, double y)->double
+            {
+                QScriptValueList args;
+                args << x << y;
+                return primary.call(QScriptValue(), args).toNumber();
+            };
+            QScriptValue secondary = context->argument(2);
+            if (!secondary.isFunction())
+                return context->throwError(tr("Triangles2D(mesh, primary_func, secondary_func): wrong type of the secondary_func argument"));
+            auto secondary_func = [&](double x, double y)->double
+            {
+                QScriptValueList args;
+                args << x << y;
+                return secondary.call(QScriptValue(), args).toNumber();
+            };
+            QTriangleMesh2D *tri = new QTriangleMesh2D();
+            tri->backgroundGrid(tmesh, primary_func, secondary_func, pointList, 0.0, engine->globalObject().property("SLEVEL").toInt32(), engine->globalObject().property("OLEVEL").toInt32());
+            return engine->newQObject(tri, QScriptEngine::ScriptOwnership);
+        }
+    }
     if (context->argumentCount() == 5)
     {
         QString typeError = QObject::tr("Triangles2D(xCount: Integer, yCount: Integer, origin: Point, width: Floating, height: Floating): argument type error (%1).");

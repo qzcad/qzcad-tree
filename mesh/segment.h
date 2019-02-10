@@ -23,7 +23,7 @@ public:
      * @param left Левая (первая) вершина
      * @param right Правая (вторая) вершина
      */
-    Segment(const long &left, const long &right);
+    Segment(const UInteger &left, const UInteger &right);
     /**
      * @brief Segment Конструктор копирования
      * @param segment Сегмент-объект для копирования
@@ -64,6 +64,19 @@ public:
      * @return Номер (код) узла, на который ссылается вершина
      */
     const UInteger &operator [] (int i) const;
+    /**
+     * @brief Оператор присваивания
+     * @param segment Ссылка на экземпляр для присваивания
+     * @return Ссылка на копию
+     */
+    Segment &operator =(const Segment &segment);
+    /**
+     * @brief Оператор проверки на равенство
+     * @param left Ссылка на "левый" сегмент
+     * @param right Ссылка на "правый" сегмент
+     * @return true, если сегменты совпадают (с учетом ориентации)
+     */
+    friend bool operator ==(const Segment &left, const Segment &right);
     /**
      * @brief Проверка на совпадение пары соединенных узлов (без учета направления)
      * @param s Отрезок, с которым необходимо сравниться

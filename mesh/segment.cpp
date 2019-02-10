@@ -2,7 +2,7 @@
 
 namespace msh
 {
-Segment::Segment(const long &left, const long &right)
+Segment::Segment(const UInteger &left, const UInteger &right)
 {
     leftVertex_ = left;
     rightVertex_ = right;
@@ -51,6 +51,21 @@ const UInteger &Segment::operator [](int i) const
     if ((i % 2) == 0)
         return leftVertex_;
     return rightVertex_;
+}
+
+Segment &Segment::operator =(const Segment &segment)
+{
+    if (this != &segment)
+    {
+        leftVertex_ = segment.leftVertex_;
+        rightVertex_ = segment.rightVertex_;
+    }
+    return *this;
+}
+
+bool operator ==(const Segment &left, const Segment &right)
+{
+    return left.leftVertex_ == right.leftVertex_ && left.rightVertex_ == right.rightVertex_;
 }
 
 bool Segment::isSame(const Segment &s) const

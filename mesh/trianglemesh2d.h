@@ -48,8 +48,20 @@ public:
      * @param height Высота прямоугольной области
      * @param func Функция области
      * @param charPoint Список характерных точек
+     * @param smooth Количество итераций сглаживания
+     * @param optimize Количество итераций оптимизации
      */
     void functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, int smooth = 0, int optimize = 0);
+    /**
+     * @brief Метод построения модели с использованием фоновых треугольников для области, определеной парой функций
+     * @param primary Указатель на функцию, которая определяет границы области
+     * @param secondary Указатель на функцию для адаптации узлов (например, геометрия слоя материала)
+     * @param charPoint Список характерных точек
+     * @param level Значение функции, соответствующее границе
+     * @param smooth Количество итераций сглаживания
+     * @param optimize Количество итераций оптимизации
+     */
+    void backgroundGrid(const TriangleMesh2D *mesh, std::function<double(double, double)> primary, std::function<double(double, double)> secondary, std::list<Point2D> charPoint, double level = 0.0, int smooth = 0, int optimize = 0);
     /**
      * @brief Конструктор копирования
      * @param mesh Экземпляр объекта для копирования

@@ -13,10 +13,12 @@
 
 #include "consoleprogress.h"
 
+#include "segment.h"
+
 namespace msh
 {
 
-TriangleMesh2D::TriangleMesh2D() : Mesh2D(NULL)
+TriangleMesh2D::TriangleMesh2D() : Mesh2D(nullptr)
 {
 }
 
@@ -341,6 +343,324 @@ void TriangleMesh2D::functionalDomain(const UInteger &xCount, const UInteger &yC
     std::cout << "Создана сетка треугольных элементов для функционального объекта: узлов - " << nodesCount() << ", элементов - " << elementsCount() << "." << std::endl;
 }
 
+void TriangleMesh2D::backgroundGrid(const TriangleMesh2D *mesh, std::function<double(double, double)> primary, std::function<double(double, double)> secondary, std::list<Point2D> charPoint, double level, int smooth, int optimize)
+{
+    clear();
+    std::cout << "Background Grid Method (Triangles) for Domains from Different Materails" << std::endl;
+    std::cout << "Elements: " << mesh->elementsCount() << "; Nodes: " << mesh->nodesCount();
+    std::vector<Segment> edges;
+    std::vector<Node2D> nodes = mesh->node_;
+    for (UInteger i = 0; i < mesh->elementsCount(); i++)
+    {
+        Triangle triangle = mesh->triangle(i);
+        for (int j = 0; j < 3; j++)
+        {
+            Segment edge(triangle[j], triangle[j + 1]);
+            bool exist = false;
+            for(Segment e: edges)
+            {
+                if (e.isSame(edge))
+                {
+                    exist = true;
+                    break;
+                }
+            }
+            if (!exist) edges.push_back(edge);
+        }
+    }
+    std::cout << "; Edges: " << edges.size() << std::endl;
+    bool is_corrected = true;
+    std::vector<bool> is_node_corrected (mesh->nodesCount(), false);
+    while (primary != nullptr && is_corrected)
+    {
+        is_corrected = false;
+        double min_distance = mesh->xMax() - mesh->xMin();
+        Segment min_edge(0, 0);
+        for (Segment edge: edges)
+        {
+            Point2D p0 = nodes[edge[0]].point;
+            Point2D p1 = nodes[edge[1]].point;
+            double v0 = primary(p0.x(), p0.y());
+            double v1 = primary(p1.x(), p1.y());
+            double l = p0.distanceTo(p1);
+            if (fabs(v0 - level) >= epsilon_ && fabs(v1 - level) >= epsilon_ && signbit(v0) != signbit(v1)/* && !is_node_corrected[edge[0]] && !is_node_corrected[edge[1]]*/)
+            {
+                Point2D p = p0 + ((-v0) / (v1 - v0)) * (p1 - p0);
+//                Point2D p = binary(p0, p1, primary, level);
+                double d = p0.distanceTo(p);
+                d = (d < (l - d)) ? d : (l - d);
+                if (d < min_distance)
+                {
+                    min_distance = d;
+                    min_edge = edge;
+                    is_corrected = true;
+                }
+            }
+        }
+        if (is_corrected)
+        {
+            Point2D p0 = nodes[min_edge[0]].point;
+            Point2D p1 = nodes[min_edge[1]].point;
+            Point2D p = binary(p0, p1, primary, level);
+            std::cout << min_distance << ": ";
+            UInteger optimized_num = 0;
+            if (p0.distanceTo(p) < p1.distanceTo(p))
+            {
+                nodes[min_edge[0]].point = p;
+                std::cout << p0.distanceTo(p) << std::endl;
+                is_node_corrected[min_edge[0]] = true;
+                optimized_num = min_edge[0];
+            }
+            else
+            {
+                nodes[min_edge[1]].point = p;
+                std::cout << p1.distanceTo(p) << std::endl;
+                is_node_corrected[min_edge[1]] = true;
+                optimized_num = min_edge[1];
+            }
+            for (Segment edge: edges)
+            {
+                if (edge.in(optimized_num))
+                {
+                    UInteger i = (edge[0] == optimized_num) ? edge[1] : edge[0];
+                    if (nodes[i].type == INNER && !is_node_corrected[i])
+                    {
+                        Point2D nn(0.0, 0.0);
+                        AdjacentSet adjacent = nodes[i].adjacent;
+                        int acount = 0;
+                        for (UInteger elnum: adjacent)
+                        {
+                            ElementPointer eptr = mesh->element(elnum);
+                            int index = eptr->index(i);
+                            nn = nn + nodes[eptr->vertexNode(index - 1)].point;
+                            nn = nn + nodes[eptr->vertexNode(index + 1)].point;
+                            acount += 2;
+                        }
+                        nodes[i].point = (1.0 /  static_cast<double>(acount)) * nn;
+                    }
+                }
+
+            } // for i
+        }
+    }
+    std::cout << "Secondary function processing" << std::endl;
+    auto func = [&] (double x, double y) -> double
+    {
+        double p = primary(x, y);
+        double s = secondary(x, y);
+        return p + s - sqrt(p*p + s*s);
+    };
+    is_corrected = true;
+    while (secondary != nullptr && is_corrected)
+    {
+        is_corrected = false;
+        double min_distance = mesh->xMax() - mesh->xMin();
+        Segment min_edge(0, 0);
+        for (Segment edge: edges)
+        {
+            Point2D p0 = nodes[edge[0]].point;
+            Point2D p1 = nodes[edge[1]].point;
+            double v0 = func(p0.x(), p0.y());
+            double v1 = func(p1.x(), p1.y());
+            double l = p0.distanceTo(p1);
+            if (fabs(v0 - level) >= epsilon_ && fabs(v1 - level) >= epsilon_ && signbit(v0) != signbit(v1)/* && !is_node_corrected[edge[0]] && !is_node_corrected[edge[1]]*/)
+            {
+                Point2D p = p0 + ((-v0) / (v1 - v0)) * (p1 - p0);
+//                Point2D p = binary(p0, p1, primary, level);
+                double d = p0.distanceTo(p);
+                d = (d < (l - d)) ? d : (l - d);
+                if (d < min_distance)
+                {
+                    min_distance = d;
+                    min_edge = edge;
+                    is_corrected = true;
+                }
+            }
+        }
+        if (is_corrected)
+        {
+            Point2D p0 = nodes[min_edge[0]].point;
+            Point2D p1 = nodes[min_edge[1]].point;
+            Point2D p = binary(p0, p1, func, level);
+            std::cout << min_distance << ": ";
+            UInteger optimized_num = 0;
+            if (p0.distanceTo(p) < p1.distanceTo(p))
+            {
+                nodes[min_edge[0]].point = p;
+                std::cout << p0.distanceTo(p) << std::endl;
+                is_node_corrected[min_edge[0]] = true;
+                optimized_num = min_edge[0];
+            }
+            else
+            {
+                nodes[min_edge[1]].point = p;
+                std::cout << p1.distanceTo(p) << std::endl;
+                is_node_corrected[min_edge[1]] = true;
+                optimized_num = min_edge[1];
+            }
+            for (Segment edge: edges)
+            {
+                if (edge.in(optimized_num))
+                {
+                    UInteger i = (edge[0] == optimized_num) ? edge[1] : edge[0];
+                    if (nodes[i].type == INNER && !is_node_corrected[i])
+                    {
+                        Point2D nn(0.0, 0.0);
+                        AdjacentSet adjacent = nodes[i].adjacent;
+                        int acount = 0;
+                        for (UInteger elnum: adjacent)
+                        {
+                            ElementPointer eptr = mesh->element(elnum);
+                            int index = eptr->index(i);
+                            nn = nn + nodes[eptr->vertexNode(index - 1)].point;
+                            nn = nn + nodes[eptr->vertexNode(index + 1)].point;
+                            acount += 2;
+                        }
+                        nodes[i].point = (1.0 /  static_cast<double>(acount)) * nn;
+                    }
+                }
+
+            } // for i
+        }
+    }
+//    node_ = nodes;
+//    element_ = mesh->element_;
+    for (UInteger i = 0; i < mesh->elementsCount(); i++)
+    {
+        Triangle triangle = mesh->triangle(i);
+        Point2D p0 = nodes[triangle[0]].point;
+        Point2D p1 = nodes[triangle[1]].point;
+        Point2D p2 = nodes[triangle[2]].point;
+        double vp0 = primary(p0.x(), p0.y());
+        double vp1 = primary(p1.x(), p1.y());
+        double vp2 = primary(p2.x(), p2.y());
+        if (fabs(vp0 - level) < epsilon_ && fabs(vp1 - level) < epsilon_ && fabs(vp2 - level) < epsilon_)
+        {
+            double l0 = p0.distanceTo(p1);
+            double l1 = p1.distanceTo(p2);
+            double l2 = p2.distanceTo(p0);
+            if (l0 < l1 && l0 < l2)
+            {
+                nodes[triangle[0]].point = nodes[triangle[1]].point;
+            }
+            else if (l1 < l0 && l1 < l2)
+            {
+                nodes[triangle[1]].point = nodes[triangle[2]].point;
+            }
+            else
+            {
+                nodes[triangle[2]].point = nodes[triangle[0]].point;
+            }
+        }
+        else
+        {
+            double vs0 = func(p0.x(), p0.y());
+            double vs1 = func(p1.x(), p1.y());
+            double vs2 = func(p2.x(), p2.y());
+            if (fabs(vs0 - level) < epsilon_ && fabs(vs1 - level) < epsilon_ && fabs(vs2 - level) < epsilon_)
+            {
+                double l0 = p0.distanceTo(p1);
+                double l1 = p1.distanceTo(p2);
+                double l2 = p2.distanceTo(p0);
+                if (l0 < l1 && l0 < l2)
+                {
+                    nodes[triangle[0]].point = nodes[triangle[1]].point;
+                }
+                else if (l1 < l0 && l1 < l2)
+                {
+                    nodes[triangle[1]].point = nodes[triangle[2]].point;
+                }
+                else
+                {
+                    nodes[triangle[2]].point = nodes[triangle[0]].point;
+                }
+            }
+        }
+    }
+    std::vector<UInteger> index(nodes.size(), nodes.size()+1);
+    for (UInteger i = 0; i < nodes.size(); i++)
+    {
+        Point2D p = nodes[i].point;
+        double v = primary(p.x(), p.y());
+        if (fabs(v - level) < epsilon_)
+            index[i] = addNode(p, BORDER);
+        else if (v - level >= epsilon_)
+            index[i] = addNode(p, INNER);
+    }
+    for (UInteger i = 0; i < mesh->elementsCount(); i++)
+    {
+        Triangle triangle = mesh->triangle(i);
+//        Point2D p0 = nodes[triangle[0]].point;
+//        Point2D p1 = nodes[triangle[1]].point;
+//        Point2D p2 = nodes[triangle[2]].point;
+//        double v0 = primary(p0.x(), p0.y());
+//        double v1 = primary(p1.x(), p1.y());
+//        double v2 = primary(p2.x(), p2.y());
+//        NodeType t0 = OUTER;
+//        NodeType t1 = OUTER;
+//        NodeType t2 = OUTER;
+//        if (fabs(v0 - level) < epsilon_)
+//            t0 = BORDER;
+//        else if (v0 - level >= epsilon_)
+//            t0 = INNER;
+//        if (fabs(v1 - level) < epsilon_)
+//            t1 = BORDER;
+//        else if (v1 - level >= epsilon_)
+//            t1 = INNER;
+//        if (fabs(v2 - level) < epsilon_)
+//            t2 = BORDER;
+//        else if (v2 - level >= epsilon_)
+//            t2 = INNER;
+//        if ((t0 == BORDER || t0 == INNER || t0 == CHARACTER) &&
+//                (t1 == BORDER || t1 == INNER || t1 == CHARACTER) &&
+//                (t2 == BORDER || t2 == INNER || t2 == CHARACTER))
+        if (index[triangle[0]] < nodes.size() && index[triangle[1]] < nodes.size() && index[triangle[2]] < nodes.size() &&
+                index[triangle[0]] != index[triangle[1]] && index[triangle[1]] != index[triangle[2]] && index[triangle[2]] != index[triangle[0]])
+        {
+            addElement(index[triangle[0]], index[triangle[1]], index[triangle[2]]);
+        }
+    }
+    if (optimize > 0)
+    {
+        SegmentMesh2D smesh;
+        std::vector<UInteger> snum(nodesCount()); // изо-точки (номера)
+        for (UInteger i = 0; i < nodesCount(); i++)
+            if (node_[i].type == BORDER || node_[i].type == CHARACTER)
+                snum[i] = smesh.pushNode(node_[i].point, node_[i].type);
+            else
+                snum[i] = ULONG_MAX;
+
+        for (UInteger i = 0; i < elementsCount(); i++)
+        {
+            Triangle element = element_[i];
+            for (int j = 0; j < 3; j++)
+            {
+                if (snum[element[j]] < ULONG_MAX && snum[element[j + 1]] < ULONG_MAX)
+                {
+                    AdjacentSet adjacent = node_[element[j]].adjacent;
+                    int adjacentCount = 0;
+                    // обработка смежных элементов
+                    for (AdjacentSet::iterator it = adjacent.begin(); it != adjacent.end(); ++it)
+                    {
+                        Triangle adjacent_element = element_[*it];
+                        if (adjacent_element.in(element[j]) && adjacent_element.in(element[j + 1]))
+                            ++adjacentCount;
+                    }
+                    if (adjacentCount == 1)
+                    {
+                        smesh.addElement(snum[element[j+1]], snum[element[j]]);
+                    }
+                }
+            }
+        }
+        smesh.distlenSmoothing(primary, level, optimize);
+        for (UInteger i = 0; i < nodesCount(); i++)
+            if (snum[i] < ULONG_MAX) node_[i].point = smesh.point2d(snum[i]);
+    }
+    std::cout << "Done. Elements: " << elementsCount() << ", nodes: " << nodesCount() << std::endl;
+    updateDomain();
+}
+
 TriangleMesh2D::TriangleMesh2D(const TriangleMesh2D &mesh) : Mesh2D(&mesh)
 {
     element_ = mesh.element_;
@@ -658,7 +978,7 @@ void TriangleMesh2D::ruppert(const UInteger &xCount, const UInteger &yCount, con
     {
         areaRefinement(3.0 * (width /  static_cast<double>(xCount - 1) * height /  static_cast<double>(yCount - 1)), func_a, triangulation);
         areaRefinement(3.0 * (width /  static_cast<double>(xCount - 1) * height /  static_cast<double>(yCount - 1)), func_b, triangulation);
-        superRuppert(triangulation, &mesh, NULL);
+        superRuppert(triangulation, &mesh, nullptr);
     }
 
 
@@ -1037,9 +1357,9 @@ void TriangleMesh2D::splitSegments(TriangleMesh2D::Triangulation &triangulation)
             double rca = C.distanceTo(A) / 2.0;
             for (UInteger i = 4; i < triangulation.nodes.size(); i++)
             {
-                if (i != triangle->vertexNode(0) && i != triangle->vertexNode(1) && i != triangle->vertexNode(2))
+                if (!triangle->in(i))
                 {
-                    Point2D current = triangulation.nodes[triangle->vertexNode(i)];
+                    Point2D current = triangulation.nodes[i];
                     if (fabs(AB.distanceTo(current) - rab) < -epsilon_*1000.)
                     {
                         insertDelaunayNode(AB, INNER, triangulation);
