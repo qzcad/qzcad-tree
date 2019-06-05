@@ -240,6 +240,7 @@
     </property>
     <addaction name="actionDoubleBufferGL"/>
     <addaction name="actionTwoSideLightModel"/>
+    <addaction name="actionEnableGlSmoothing"/>
     <addaction name="separator"/>
     <addaction name="actionSliceX"/>
     <addaction name="actionSliceY"/>
@@ -1005,6 +1006,14 @@
    </property>
    <property name="text">
     <string>Разрез плоскостью z = C</string>
+   </property>
+  </action>
+  <action name="actionEnableGlSmoothing">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Сглаживание линий и полигонов</string>
    </property>
   </action>
  </widget>

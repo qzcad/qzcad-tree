@@ -174,6 +174,8 @@ private slots:
 
     void on_actionMaxAngleMetric_triggered();
 
+    void on_actionEnableGlSmoothing_triggered(bool checked);
+
 private:
     Ui::MainWindow *ui; //!< Контейнер элементов графического интерфейса
     QStdRedirector<> *stdRedirector; //!< Перехватчик сообщений стандартного потока

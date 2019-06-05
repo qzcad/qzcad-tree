@@ -26,16 +26,12 @@ void ConsoleProgress::restart(unsigned long expectedCount)
 
 unsigned long ConsoleProgress::operator+=(unsigned long increment)
 {
-    if ( (count_ += increment) >= nextTicCount_ )
-    {
-        displayTic();
-    }
-    return count_;
+    inc(increment);
 }
 
 unsigned long ConsoleProgress::operator++()
 {
-    return operator +=(1);
+    return inc(1);
 }
 
 unsigned long ConsoleProgress::count() const
@@ -51,6 +47,15 @@ unsigned long ConsoleProgress::expectedCount() const
 bool ConsoleProgress::isExpectedCount() const
 {
     return count_ == expectedCount_;
+}
+
+unsigned long ConsoleProgress::inc(unsigned long increment)
+{
+    if ( (count_ += increment) >= nextTicCount_ )
+    {
+        displayTic();
+    }
+    return count_;
 }
 
 void ConsoleProgress::displayTic()

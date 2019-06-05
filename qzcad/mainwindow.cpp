@@ -1365,3 +1365,8 @@ void MainWindow::on_actionMaxAngleMetric_triggered()
         std::cout << "Выполнено: " << min << " <= max(alpha) <= " << max << std::endl;
     }
 }
+
+void MainWindow::on_actionEnableGlSmoothing_triggered(bool checked)
+{
+    ui->pictureControl->getGlMeshPicture()->enableGlSmoothing(checked);
+}

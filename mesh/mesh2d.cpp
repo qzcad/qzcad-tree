@@ -189,6 +189,10 @@ void Mesh2D::updateDomain()
             if (yMin_ > y) yMin_ = y;
             if (yMax_ < y) yMax_ = y;
         }
+        if (fabs(xMin_) < epsilon_) xMin_ = 0.0;
+        if (fabs(xMax_) < epsilon_) xMax_ = 0.0;
+        if (fabs(yMin_) < epsilon_) yMin_ = 0.0;
+        if (fabs(yMax_) < epsilon_) yMax_ = 0.0;
     }
 }
 
@@ -236,7 +240,9 @@ Point2D Mesh2D::binary(Point2D p0, Point2D p1, std::function<double (double, dou
 
     if (signbit(val0) == signbit(val1))
     {
-        return p0; // значения в узлах отрезка одного знака => нет решения
+        if (0.0 <= val0 && val0 < epsilon_) return p0;
+        if (0.0 <= val1 && val1 < epsilon_) return p1;
+        return 0.5 * (p0 + p1); // значения в узлах отрезка одного знака => нет решения
     }
 
     Point2D center;
@@ -245,17 +251,21 @@ Point2D Mesh2D::binary(Point2D p0, Point2D p1, std::function<double (double, dou
     {
         center = 0.5 * (p0 + p1);
         val = func(center.x(), center.y()) - level;
-        if ( signbit(val0) != signbit(val) )
+        if ( signbit(val0) != signbit(val))
         {
             p1 = center;
             val1 = val;
         }
-        else
+        else if ( signbit(val1) != signbit(val))
         {
             p0 = center;
             val0 = val;
         }
-    } while (!(0.0 <= val && val < epsilon_));
+        else
+        {
+            p0 = p1 = center;
+        }
+    } while (!(0.0 <= val && val < epsilon_ /*&& p0.distanceTo(p1) < epsilon_*/));
     return center;
 }
 

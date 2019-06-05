@@ -494,6 +494,13 @@ private:
      * @return Если аргументы корректны, то матрица 2x2
      */
     static QScriptValue createLaminaShearMatrix(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief Функция для вычисления значений R-функций в узлах сетки
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return engine->undefinedValue()
+     */
+    static QScriptValue evalNodalValues(QScriptContext *context, QScriptEngine *engine);
 private:
     static double epsilon_; //!< Точность численных операций
     static msh::Mesh *mesh_; //!< Сетка, построенная в результате интерпретации скрипта

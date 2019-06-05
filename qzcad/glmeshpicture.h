@@ -254,6 +254,7 @@ public slots:
     void activateSliceX(bool activate);
     void activateSliceY(bool activate);
     void activateSliceZ(bool activate);
+    void enableGlSmoothing(bool enable);
 protected:
     /**
      * @brief Инициализация состояния openGL
@@ -340,6 +341,7 @@ private:
     bool isSliceX_; //!< Флаг разреза сцены плоскостью, ортогональной оси X
     bool isSliceY_; //!< Флаг разреза сцены плоскостью, ортогональной оси Y
     bool isSliceZ_; //!< Флаг разреза сцены плоскостью, ортогональной оси Z
+    char numberFormat_; //!< Формат преобразоания числа в строку при выоде на экран (@see QString::number)
 private:
     /**
      * @brief Установить настройки изображения по умолчанию

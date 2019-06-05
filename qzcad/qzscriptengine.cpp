@@ -183,6 +183,8 @@ QZScriptEngine::QZScriptEngine(QObject *parent) :
     globalObject().setProperty("LaminaStressMatrix", newFunction(createLaminaStressMatrix));
     globalObject().setProperty("LaminaShearMatrix", newFunction(createLaminaShearMatrix));
     globalObject().setProperty("VolumeStressMatrix", newFunction(createVolumeStressMatrix));
+    // evalValues
+    globalObject().setProperty("evalValues", newFunction(evalNodalValues));
 }
 
 double QZScriptEngine::epsilon()
@@ -691,7 +693,32 @@ QScriptValue QZScriptEngine::createBoundaryMesh(QScriptContext *context, QScript
 
 QScriptValue QZScriptEngine::createTriangleMesh2D(QScriptContext *context, QScriptEngine *engine)
 {
-    if (context->argumentCount() == 3)
+    if (context->argumentCount() == 2)
+    {
+        Mesh *mesh = nullptr;
+        if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != nullptr)
+            mesh = qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0));
+        if (mesh == nullptr)
+            return context->throwError(tr("Triangles2D(mesh, primary_func):  wrong type of the mesh argument"));
+        if (dynamic_cast<TriangleMesh2D *>(mesh) != nullptr)
+        {
+            TriangleMesh2D *tmesh = dynamic_cast<TriangleMesh2D *>(mesh);
+            std::list<msh::Point2D> pointList;
+            QScriptValue primary = context->argument(1);
+            if (!primary.isFunction())
+                return context->throwError(tr("Triangles2D(mesh, primary_func): wrong type of the primary_func argument"));
+            auto primary_func = [&](double x, double y)->double
+            {
+                QScriptValueList args;
+                args << x << y;
+                return primary.call(QScriptValue(), args).toNumber();
+            };
+            QTriangleMesh2D *tri = new QTriangleMesh2D();
+            tri->backgroundGrid(tmesh, primary_func, pointList, 0.0, engine->globalObject().property("SLEVEL").toInt32(), engine->globalObject().property("OLEVEL").toInt32());
+            return engine->newQObject(tri, QScriptEngine::ScriptOwnership);
+        }
+    }
+    else if (context->argumentCount() == 3)
     {
         Mesh *mesh = nullptr;
         if (qscriptvalue_cast<QTriangleMesh2D *>(context->argument(0)) != nullptr)
@@ -725,7 +752,7 @@ QScriptValue QZScriptEngine::createTriangleMesh2D(QScriptContext *context, QScri
             return engine->newQObject(tri, QScriptEngine::ScriptOwnership);
         }
     }
-    if (context->argumentCount() == 5)
+    else if (context->argumentCount() == 5)
     {
         QString typeError = QObject::tr("Triangles2D(xCount: Integer, yCount: Integer, origin: Point, width: Floating, height: Floating): argument type error (%1).");
         if (!context->argument(0).isNumber())
@@ -3386,4 +3413,31 @@ QScriptValue QZScriptEngine::createLaminaShearMatrix(QScriptContext *context, QS
     double G23 = context->argument(1).toNumber();
     double theta = context->argument(2).toNumber();
     return engine->newQObject(new QDoubleMatrix(Fem2D::evalLaminaShearMatrix(G13, G23, theta)), QScriptEngine::ScriptOwnership);
+}
+
+QScriptValue QZScriptEngine::evalNodalValues(QScriptContext *context, QScriptEngine *engine)
+{
+    if (context->argumentCount() != 1)
+        return context->throwError(tr("evalValues(func: Function): wrong number of aguments."));
+    QScriptValue function = context->argument(0);
+    if (!function.isFunction())
+        return context->throwError(tr("nodalValues(func: Function): wrong type of the func argument"));
+    auto func = [&](double x, double y, double z)->double
+    {
+        QScriptValueList args;
+        args << x << y << z;
+        return function.call(QScriptValue(), args).toNumber();
+    };
+    if (mesh_ == nullptr)
+           return context->throwError(tr("evalValues(func: Function): mesh is not set"));
+    if (mesh_->nodesCount() == 0)
+           return context->throwError(tr("evalValues(func: Function): the nodes count is equal to zero"));
+    std::vector<double> v(mesh_->nodesCount());
+    for (UInteger i = 0; i < mesh_->nodesCount(); i++)
+    {
+        PointPointer p = mesh_->node(i);
+        v[i] = func(p->x(), p->y(), p->z());
+    }
+    mesh_->addDataVector("", v);
+    return  engine->undefinedValue();
 }

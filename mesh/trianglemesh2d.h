@@ -52,6 +52,7 @@ public:
      * @param optimize Количество итераций оптимизации
      */
     void functionalDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height, std::function<double(double, double)> func, std::list<Point2D> charPoint, int smooth = 0, int optimize = 0);
+    void backgroundGrid(const TriangleMesh2D *mesh, std::function<double(double, double)> primary, std::list<Point2D> charPoint, double level = 0.0, int smooth = 0, int optimize = 0);
     /**
      * @brief Метод построения модели с использованием фоновых треугольников для области, определеной парой функций
      * @param primary Указатель на функцию, которая определяет границы области
@@ -189,7 +190,11 @@ public:
      * @brief Метод очищает информацию об елементах
      */
     virtual void clearElements();
-    void flip();
+    /**
+     * @brief Метод реализует операцию смены диагонали между парой треугольников
+     * @param print_messages если true, то будет выводится на экран информация о ходе выполнения
+     */
+    void flip(bool print_messages=true);
     /**
      * @brief Метод находит значение минимального угла в треугольнике, определенном координатами вершин
      * @param A Координаты вершины
@@ -296,6 +301,19 @@ public:
      * @param eNumbers Список номеров элементов
      */
     void subdivide(std::list<UInteger> eNumbers, std::function<double(double, double)> func);
+    /**
+     * @brief Метод построения массива ребер
+     * @return Массив ребер
+     */
+    std::vector<Segment> evalEdges();
+    /**
+     * @brief Метод вычисления оптимальных координат узла при помощи минимизации функционала експоненты площади с учтом знака
+     * @param i Номер (код) узла
+     * @param t Параметр экспоненты площади (по умолчанию -10)
+     * @return Координаты оптимального положения узлы
+     */
+    Point2D evalOptimalPosition(const UInteger &i, double t=3.0);
+    void optimizeBorder(std::function<double(double, double)> func, int iiter = 4, double level = 0.0);
 protected:
     std::vector<Triangle> element_; //!< Массив элементов
     typedef std::vector<Triangle>::iterator ElementIterator;

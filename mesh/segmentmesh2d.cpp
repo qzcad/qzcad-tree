@@ -644,6 +644,8 @@ void SegmentMesh2D::distlenSmoothing(std::function<double (double, double)> func
         const double beta = 1.0 - alpha;
         double d0 = o.distanceTo(a);
         double d1 = o.distanceTo(b);
+//        double e0c = std::max(std::max(distToBorder(o, a, func, 0.9, level), distToBorder(o, a, func, 0.1, level)), distToBorder(o, a, func, 0.5, level)) ;
+//        double e1c = std::max(std::max(distToBorder(o, b, func, 0.9, level), distToBorder(o, b, func, 0.1, level)), distToBorder(o, b, func, 0.5, level));
         double e0c = distToBorder(o, a, func, 0.5, level);
         double e1c = distToBorder(o, b, func, 0.5, level);
         return beta * (e0c*e0c + e1c*e1c) + alpha * (d0*d0 + d1*d1);
@@ -680,7 +682,7 @@ void SegmentMesh2D::distlenSmoothing(std::function<double (double, double)> func
                     }
                     ++iic;
                 } while (step >= 0.0001 && iic < 100);
-                if (!optimized)
+//                if (!optimized)
                 {
                     step = 0.1;
                     do {
@@ -699,7 +701,7 @@ void SegmentMesh2D::distlenSmoothing(std::function<double (double, double)> func
                         ++iic;
                     } while (step >= 0.0001 && iic < 100);
                 }
-                if (!optimized)
+//                if (!optimized)
                 {
                     step = 0.1;
                     do {
@@ -718,7 +720,7 @@ void SegmentMesh2D::distlenSmoothing(std::function<double (double, double)> func
                         ++iic;
                     } while (step >= 0.0001 && iic < 100);
                 }
-                if (!optimized)
+//                if (!optimized)
                 {
                     step = 0.1;
                     do {

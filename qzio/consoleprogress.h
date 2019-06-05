@@ -68,6 +68,12 @@ public:
      * @return true, если выполнено ожидаемое число итераций, false - иначе
      */
     bool isExpectedCount() const;
+    /**
+     * @brief Увеличивает количество выполненных итераций на заданный шаг. Если необходимо, то выводит новый символ в строку прогресса.
+     * @param increment Шаг для прироста итераций (по умолчанию 1)
+     * @return Актуальное количество итераций
+     */
+    unsigned long inc(unsigned long increment=1);
 protected:
     void displayTic();
 private:
