@@ -178,6 +178,13 @@ private:
      */
     static QScriptValue createParametricTriangles(QScriptContext *context, QScriptEngine *engine);
     /**
+     * @brief "Конструктор" сеток четурехугольных элементов для параметрических поверхностей
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return Объект для использования в скриптах
+     */
+    static QScriptValue createParametricQuads(QScriptContext *context, QScriptEngine *engine);
+    /**
      * @brief "Конструктор" сеток треугольных элементов (метод марширующих кубов)
      * @param context Контекст скрипта
      * @param engine Двигатель скрипта
@@ -501,6 +508,20 @@ private:
      * @return engine->undefinedValue()
      */
     static QScriptValue evalNodalValues(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief Функция получения статистики в формате CSV
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return статистика в формате CSV
+     */
+    static QScriptValue getCsvStats(QScriptContext *context, QScriptEngine *engine);
+    /**
+     * @brief Функция для добавления данных в указанный в первом параметре файл данных в одну строку
+     * @param context Контекст скрипта
+     * @param engine Двигатель скрипта
+     * @return engine->undefinedValue()
+     */
+    static QScriptValue appendToFile(QScriptContext *context, QScriptEngine *engine);
 private:
     static double epsilon_; //!< Точность численных операций
     static msh::Mesh *mesh_; //!< Сетка, построенная в результате интерпретации скрипта
