@@ -49,7 +49,7 @@ public:
      * @param messageStep Щаг печати сообщений (через сколько итеаций выводить сообщение
      * @return Решение СЛАУ
      */
-    DoubleVector conjugateGradient(const DoubleVector &B, double epsilon = 1.0E-7, unsigned int niter = 1000000U, bool printMessages = true, unsigned int messageStep = 500U) const;
+    DoubleVector conjugateGradient(const DoubleVector &B, double epsilon = 1.0E-8, unsigned int niter = 1000000U, bool printMessages = true, unsigned int messageStep = 500U) const;
     /**
      * @brief Метод сопряженных градиентов для решения предобусловленной СЛАУ, определенного матрицей и свободным вектором-столбцом
      * @param B Вектор-столбец СЛАУ
@@ -59,7 +59,7 @@ public:
      * @param messageStep Щаг печати сообщений (через сколько итеаций выводить сообщение
      * @return Решение СЛАУ
      */
-    DoubleVector preconditionedConjugateGradient(const DoubleVector &B, double epsilon = 1.0E-7, unsigned int niter = 1000000U, bool printMessages = true, unsigned int messageStep = 500U) const;
+    DoubleVector preconditionedConjugateGradient(const DoubleVector &B, double epsilon = 1.0E-8, unsigned int niter = 1000000U, bool printMessages = true, unsigned int messageStep = 500U) const;
 protected:
     /**
      * @brief Метод для очистки памяти

@@ -222,6 +222,7 @@ void Fem::processInitialValues()
     {
         if ((*condition)->type() == FemCondition::INITIAL_VALUE)
         {
+            UInteger processed = 0;
             ConsoleProgress progressBar(mesh_->nodesCount());
             for (UInteger i = 0; i < mesh_->nodesCount(); i++)
             {
@@ -247,9 +248,12 @@ void Fem::processInitialValues()
 
                     if ((dir & FemCondition::SIXTH) && freedom_ >= 6)
                         setInitialNodalValue(freedom_ * i + 5UL, (*condition)->value(point));
+
+                    ++processed;
                 }
                 ++progressBar;
             } // for i
+            std::cout << "Processed nodes: " << processed << std::endl;
         } // if
     } // iterator
 }
@@ -261,7 +265,7 @@ DoubleVector Fem::solveLinearSystem(bool cg)
     if(cg)
     {
         RowDoubleMatrix rdm(global_);
-        return rdm.conjugateGradient(force_);
+        return rdm.preconditionedConjugateGradient(force_);
     }
     return global_.cholesky(force_);
 }

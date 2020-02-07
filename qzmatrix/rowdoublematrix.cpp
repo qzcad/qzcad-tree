@@ -82,9 +82,13 @@ DoubleVector RowDoubleMatrix::conjugateGradient(const DoubleVector &B, double ep
 
     direction = resid;
 
-    resid_norm = resid.norm_2();
+    resid_norm = resid.norm_inf();
 
-    if (printMessages) std::cout << "Начальная невязка: " << resid_norm << std::endl;
+    if (printMessages)
+    {
+        std::cout << "Метод сопряженных градиентов для решения СЛАУ" << std::endl;
+        std::cout << "Начальная невязка: " << resid_norm << std::endl;
+    }
     if (resid_norm > epsilon)
     {
         resid_resid = resid * resid;
@@ -96,7 +100,7 @@ DoubleVector RowDoubleMatrix::conjugateGradient(const DoubleVector &B, double ep
             X += alpha * direction;
             resid -= alpha * temp;
             resid_resid_new = resid * resid;
-            resid_norm = sqrt(resid_resid_new);
+            resid_norm = resid.norm_inf();//sqrt(resid_resid_new);
             if (resid_norm <= epsilon)
             {
                 if (printMessages)
@@ -104,7 +108,7 @@ DoubleVector RowDoubleMatrix::conjugateGradient(const DoubleVector &B, double ep
                 break;
             }
             if (printMessages && (i % messageStep == 0))
-                std::cout << i << ", невязка: " << resid_norm << std::endl;
+                std::cout << i + 1 << ", невязка: " << resid_norm << std::endl;
 
             beta = (resid_resid_new) / (resid_resid);
             // d = r + d*beta
@@ -124,7 +128,7 @@ DoubleVector RowDoubleMatrix::preconditionedConjugateGradient(const DoubleVector
     DoubleVector M(size_); // предусловие
     DoubleVector Z(size_);
     DoubleVector P(size_);
-    DoubleVector temp(size_); // ременное хранилище
+    DoubleVector temp(size_); // временное хранилище
     double resid_norm;
     for (size_type i = 0; i < size_; i++)
     {
@@ -138,10 +142,10 @@ DoubleVector RowDoubleMatrix::preconditionedConjugateGradient(const DoubleVector
         }
     }
     residual(X, B, resid);
-    resid_norm = resid.norm_2();
+    resid_norm = resid.norm_inf();
     if (printMessages)
     {
-        std::cout << "Метод сопряженных градиентов для решения предобусловленной СЛАУ" << std::endl;
+        std::cout << "Метод сопряженных градиентов для решения предобусловленной СЛАУ (the Fletcher–Reeves formula)" << std::endl;
         std::cout << "Начальная невязка: " << resid_norm << std::endl;
     }
     if (resid_norm > epsilon)
@@ -160,19 +164,22 @@ DoubleVector RowDoubleMatrix::preconditionedConjugateGradient(const DoubleVector
 
             alpha = ha / (P * temp);
             X += alpha * P;
-            resid -= alpha * temp;
-            resid_norm = resid.norm_2();
+            temp.scale(-alpha);
+            resid += temp; //            resid -= alpha * temp;
+//            resid -= alpha * temp;
+            resid_norm = resid.norm_inf();
             if (resid_norm <= epsilon)
             {
                 if (printMessages)
-                    std::cout << "Решение найдено. Итераций: " << i << ", невязка: " << resid_norm << std::endl;
+                    std::cout << "Решение найдено. Итераций: " << i + 1 << ", невязка: " << resid_norm << std::endl;
                 return X;
             }
             if (printMessages && (i % messageStep == 0))
-                std::cout << i << ": " << resid_norm << std::endl;
+                std::cout << i + 1 << ": " << resid_norm << std::endl;
 
             Z = M.dotProduct( resid ); // z_i
-            hanew = (Z * resid);
+            hanew = (Z * resid); // the Fletcher–Reeves formula
+//            hanew = (Z * temp); // the Polak–Ribière formula
             beta = hanew / (ha);
             ha = hanew;
             // p = z + beta * p
