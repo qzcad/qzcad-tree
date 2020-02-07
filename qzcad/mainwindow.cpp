@@ -865,7 +865,7 @@ void MainWindow::on_actionExtremeValuesStatistica_triggered()
             msh::NamedDoubleVector::size_type index = 0;
             msh::PointPointer node;
             std::cout << ndv.name() << ": " << std::endl;
-            val = ndv.max(index);
+            val = ndv.min(index);
             node = mesh->node(index);
             std::cout << "Минимальное значение: " << val << " в узле с номером: " << index << std::endl;
             std::cout << "( " << node->x() << "; " << node->y() << "; " << node->z() << " )" << std::endl;
