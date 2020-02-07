@@ -219,6 +219,7 @@ public:
      * @param func Указатель на функции линии уровня границы
      */
     void subdivide(std::list<UInteger> eNumbers, std::function<double(double, double, double)> func);
+    void transformGrid(const TriangleMesh2D *mesh, std::function<Point3D(Point2D)> func);
 protected:
     /**
      * @brief Функция для подсчета значений углов треугольника

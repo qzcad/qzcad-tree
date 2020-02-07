@@ -183,7 +183,7 @@ protected:
      * @param etaCount Количество узлов по "направлению" eta
      */
     template<typename TopFunc, typename BottomFunc, typename LeftFunc, typename RightFunc>
-    void addTransfiniteMesh(TopFunc top, BottomFunc bottom, LeftFunc left, RightFunc right, const UInteger &xiCount, const UInteger &etaCount);
+    void addTransfiniteMesh(TopFunc top, BottomFunc bottom, LeftFunc left, RightFunc right, const UInteger &xiCount, const UInteger &etaCount, bool is_uniform=true);
 protected:
     std::vector<Quadrilateral> element_; //!< Массив элементов
 };

@@ -392,6 +392,23 @@ std::list<ElementPointer> QuadrilateralMesh3D::backgroundGrid(const HexahedralMe
     return inner;
 }
 
+void QuadrilateralMesh3D::transformGrid(const QuadrilateralMesh2D *mesh, std::function<Point3D (Point2D)> func)
+{
+    clear();
+
+    for (UInteger i = 0; i < mesh->nodesCount(); i++)
+        pushNode(func(mesh->point2d(i)), BORDER);
+
+    for (UInteger i = 0; i < mesh->elementsCount(); i++)
+    {
+        Quadrilateral q = mesh->quadrilateral(i);
+        std::swap(q[1], q[3]);
+        addElement(q);
+    }
+
+    updateDomain();
+}
+
 UInteger QuadrilateralMesh3D::elementsCount() const
 {
     return element_.size();
@@ -455,9 +472,11 @@ double QuadrilateralMesh3D::area(const UInteger &number) const
 void QuadrilateralMesh3D::add(const QuadrilateralMesh3D *mesh)
 {
     std::vector<UInteger> nodesPointers(mesh->nodesCount());
+    ConsoleProgress progress_bar(mesh->nodesCount());
     for (UInteger i = 0; i < mesh->nodesCount(); i++)
     {
         nodesPointers[i] = addNode(mesh->node_[i]);
+        ++progress_bar;
     }
     for (UInteger i = 0; i < mesh->elementsCount(); i++)
     {
@@ -465,15 +484,6 @@ void QuadrilateralMesh3D::add(const QuadrilateralMesh3D *mesh)
         addElement(nodesPointers[q[0]], nodesPointers[q[1]], nodesPointers[q[2]], nodesPointers[q[3]]);
     }
     updateDomain();
-}
-
-void QuadrilateralMesh3D::translate(const double &x, const double &y, const double &z)
-{
-    for (UInteger i = 0; i < nodesCount(); i++)
-    {
-        Point3D p = node_[i].point;
-        node_[i].point.set(p.x() + x, p.y() + y, p.z() + z);
-    }
 }
 
 void QuadrilateralMesh3D::clearElements()
@@ -789,8 +799,8 @@ void QuadrilateralMesh3D::flip()
                     Point3D p1 = node_[index1].point;
                     Point3D p2 = node_[index2].point;
                     Point3D p3 = node_[index3].point;
-                    UInteger index_of_flip_node2;
-                    UInteger index_of_flip_node3;
+                    UInteger index_of_flip_node2 = 0;
+                    UInteger index_of_flip_node3 = 0;
                     int subindex2 = -1, subindex3 = -1;
                     Point3D f2, f3;
                     UInteger flip_quad_index;
@@ -986,52 +996,103 @@ void QuadrilateralMesh3D::refineTopology(std::function<double(double, double, do
 
 void QuadrilateralMesh3D::subdivide(std::list<UInteger> eNumbers, std::function<double(double, double, double)> func)
 {
+//    int quad_table [][2][37] =
+//        {
+//            /*0*/{{0, 0, 3, 3, -1},
+//                  {0, 3, 3, 0, -1}
+//            },
+//            /*1*/{{0, 0, 1, 1, 0, 0, 3, 1, 1, 3, 3, 1, -1},
+//                  {0, 1, 1, 0, 1, 3, 3, 1, 1, 3, 0, 0, -1}
+//            },
+//            /*2*/{{0, 0, 2, 2, 0, 3, 3, 2, 2, 3, 3, 2, -1},
+//                  {0, 3, 1, 0, 3, 3, 1, 1, 1, 1, 0, 0, -1}
+//            },
+//            /*3*/{{0, 0, 1, 1, 0, 0, 1, 1, 0, 3, 2, 1, 3, 3, 2, 2, 3, 3, 2, 2, 2, 1, 1, 2, 1, 2, 2, 1, -1},
+//                  {0, 1, 1, 0, 1, 3, 2, 1, 3, 3, 2, 2, 3, 1, 1, 2, 1, 0, 0, 1, 1, 1, 2, 2, 1, 1, 0, 0, -1}
+//            },
+//            /*4*/{{0, 0, 2, 2, 2, 2, 3, 3, 3, 3, 0, 2, -1},
+//                  {0, 3, 3, 2, 2, 3, 3, 2, 2, 0, 0, 2, -1}
+//            },
+//            /*5*/{{0, 0, 1, 1, 0, 0, 1, 1, 0, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 1, 1, 2, 1, 2, 3, 1, -1},
+//                  {0, 1, 1, 0, 1, 3, 2, 1, 3, 3, 2, 2, 3, 3, 2, 2, 2, 2, 0, 1, 1, 1, 2, 2, 1, 1, 0, 0, -1}
+//            },
+//            /*6*/{{0, 0, 1, 1, 0, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 0, 1, 2, 2, 1, 1, 2, -1},
+//                  {0, 3, 2, 1, 3, 3, 2, 2, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, -1}
+//            },
+//            /*7*/{{0, 0, 1, 1, 0, 0, 1, 1, 0, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 1, 1, 2, 2, 1, 1, 2, -1},
+//                  {0, 1, 1, 0, 1, 3, 2, 1, 3, 3, 2, 2, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, -1}
+//            },
+//            /*8*/{{0, 0, 1, 3, 0, 0, 1, 1, 1, 1, 3, 3, -1},
+//                  {0, 2, 2, 0, 2, 3, 3, 2, 2, 3, 3, 0, -1}
+//            },
+//            /*9*/{{0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 3, 2, 2, 3, 3, 2, 2, 1, 1, 2, 1, 2, 3, 1, -1},
+//                  {0, 1, 1, 0, 1, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 0, 1, 1, 1, 2, 2, 1, 1, 0, 0, -1}
+//            },
+//            /*A*/{{0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 0, 1, 2, 2, 1, 1, 2, -1},
+//                  {0, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, -1}
+//            },
+//            /*B*/{{0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 1, 1, 2, 2, 1, 1, 2, -1},
+//                  {0, 1, 1, 0, 1, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, -1}
+//            },
+//            /*C*/{{0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 3, 0, 1, 2, 2, 1, 1, 2, -1},
+//                  {0, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 0, 1, 2, 0, 0, 1, 1, 1, 1, 2, 2, -1}
+//            },
+//            /*D*/{{0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 3, 1, 1, 2, 2, 1, 1, 2, -1},
+//                  {0, 1, 1, 0, 1, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 0, 1, 2, 0, 0, 1, 1, 1, 1, 2, 2, -1}
+//            },
+//            /*E*/{{0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 3, 3, 2, 2, 2, 2, 0, 1, 1, 1, 2, 2, -1},
+//                  {0, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 1, 1, 2, 1, 0, 0, 1, 1, 0, 0, 1, 1, 2, 2, 1, -1}
+//            },
+//            /*F*/{{0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, -1},
+//                  {0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, -1}
+//            },
+//        }; // the table of indexes
     int quad_table [][2][37] =
         {
             /*0*/{{0, 0, 3, 3, -1},
                   {0, 3, 3, 0, -1}
             },
-            /*1*/{{0, 0, 1, 1, 0, 0, 3, 1, 1, 3, 3, 1, -1},
-                  {0, 1, 1, 0, 1, 3, 3, 1, 1, 3, 0, 0, -1}
+            /*1*/{{0, 0, 3, 3, -1},
+                  {0, 3, 3, 0, -1}
             },
-            /*2*/{{0, 0, 2, 2, 0, 3, 3, 2, 2, 3, 3, 2, -1},
-                  {0, 3, 1, 0, 3, 3, 1, 1, 1, 1, 0, 0, -1}
+            /*2*/{{0, 0, 3, 3, -1},
+                  {0, 3, 3, 0, -1}
             },
-            /*3*/{{0, 0, 1, 1, 0, 0, 1, 1, 0, 3, 2, 1, 3, 3, 2, 2, 3, 3, 2, 2, 2, 1, 1, 2, 1, 2, 2, 1, -1},
-                  {0, 1, 1, 0, 1, 3, 2, 1, 3, 3, 2, 2, 3, 1, 1, 2, 1, 0, 0, 1, 1, 1, 2, 2, 1, 1, 0, 0, -1}
+            /*3*/{{0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 1, 0, 3, 2, -1},
+                  {0, 3, 2, 0, 0, 2, 2, 0, 0, 2, 3, 0, 2, 3, 3, 2, -1}
             },
-            /*4*/{{0, 0, 2, 2, 2, 2, 3, 3, 3, 3, 0, 2, -1},
-                  {0, 3, 3, 2, 2, 3, 3, 2, 2, 0, 0, 2, -1}
+            /*4*/{{0, 0, 3, 3, -1},
+                  {0, 3, 3, 0, -1}
             },
-            /*5*/{{0, 0, 1, 1, 0, 0, 1, 1, 0, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 1, 1, 2, 1, 2, 3, 1, -1},
-                  {0, 1, 1, 0, 1, 3, 2, 1, 3, 3, 2, 2, 3, 3, 2, 2, 2, 2, 0, 1, 1, 1, 2, 2, 1, 1, 0, 0, -1}
+            /*5*/{{0, 0, 3, 3, -1},
+                  {0, 3, 3, 0, -1}
             },
-            /*6*/{{0, 0, 1, 1, 0, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 0, 1, 2, 2, 1, 1, 2, -1},
-                  {0, 3, 2, 1, 3, 3, 2, 2, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, -1}
+            /*6*/{{0, 0, 1, 1, 0, 1, 3, 3, 3, 1, 1, 3, 3, 1, 0, 3, -1},
+                  {0, 3, 2, 1, 0, 1, 1, 0, 1, 1, 2, 2, 2, 2, 3, 3, -1}
             },
-            /*7*/{{0, 0, 1, 1, 0, 0, 1, 1, 0, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 1, 1, 2, 2, 1, 1, 2, -1},
-                  {0, 1, 1, 0, 1, 3, 2, 1, 3, 3, 2, 2, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, -1}
+            /*7*/{{0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 2, 1, 3, 3, 1, 0, 3, 3, -1},
+                  {0, 3, 2, 0, 0, 2, 1, 0, 0, 1, 1, 0, 1, 2, 2, 1, 2, 3, 3, 2, -1}
             },
-            /*8*/{{0, 0, 1, 3, 0, 0, 1, 1, 1, 1, 3, 3, -1},
-                  {0, 2, 2, 0, 2, 3, 3, 2, 2, 3, 3, 0, -1}
+            /*8*/{{0, 0, 3, 3, -1},
+                  {0, 3, 3, 0, -1}
             },
-            /*9*/{{0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 3, 2, 2, 3, 3, 2, 2, 1, 1, 2, 1, 2, 3, 1, -1},
-                  {0, 1, 1, 0, 1, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 0, 1, 1, 1, 2, 2, 1, 1, 0, 0, -1}
+            /*9*/{{0, 0, 2, 3, 0, 0, 2, 2, 0, 0, 3, 2, 3, 2, 2, 3, -1},
+                  {0, 1, 1, 0, 1, 2, 2, 1, 2, 3, 3, 2, 0, 1, 2, 3, -1}
             },
-            /*A*/{{0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 0, 1, 2, 2, 1, 1, 2, -1},
-                  {0, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, -1}
+            /*A*/{{0, 0, 3, 3, -1},
+                  {0, 3, 3, 0, -1}
             },
-            /*B*/{{0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 1, 1, 2, 2, 1, 1, 2, -1},
-                  {0, 1, 1, 0, 1, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, -1}
+            /*B*/{{0, 0, 1, 1, 0, 0, 2, 1, 0, 0, 3, 2, 1, 1, 2, 2, 2, 2, 3, 3, -1},
+                  {0, 1, 1, 0, 1, 2, 2, 1, 2, 3, 3, 2, 0, 1, 2, 0, 0, 2, 3, 0, -1}
             },
-            /*C*/{{0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 3, 0, 1, 2, 2, 1, 1, 2, -1},
-                  {0, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 0, 1, 2, 0, 0, 1, 1, 1, 1, 2, 2, -1}
+            /*C*/{{0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 0, 1, 2, 3, -1},
+                  {0, 3, 3, 1, 1, 3, 3, 1, 1, 3, 3, 0, 0, 1, 1, 0, -1}
             },
-            /*D*/{{0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 3, 1, 1, 2, 2, 1, 1, 2, -1},
-                  {0, 1, 1, 0, 1, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 0, 1, 2, 0, 0, 1, 1, 1, 1, 2, 2, -1}
+            /*D*/{{0, 0, 2, 3, 0, 0, 1, 2, 0, 0, 1, 1, 2, 1, 1, 2, 3, 2, 2, 3, -1},
+                  {0, 1, 1, 0, 1, 2, 2, 1, 2, 3, 3, 2, 1, 2, 3, 3, 0, 1, 3, 3, -1}
             },
-            /*E*/{{0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 3, 3, 2, 2, 2, 2, 0, 1, 1, 1, 2, 2, -1},
-                  {0, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, 2, 1, 1, 2, 1, 0, 0, 1, 1, 0, 0, 1, 1, 2, 2, 1, -1}
+            /*E*/{{0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 1, 2, 0, 1, 3, 3, -1},
+                  {0, 3, 3, 1, 1, 3, 3, 2, 2, 3, 3, 2, 2, 1, 1, 2, 0, 1, 1, 0, -1}
             },
             /*F*/{{0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, -1},
                   {0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 2, 2, 1, 1, 2, 2, 1, 1, 2, 2, 1, 2, 3, 3, 2, 2, 3, 3, 2, 2, 3, 3, 2, -1}
@@ -1076,8 +1137,8 @@ void QuadrilateralMesh3D::subdivide(std::list<UInteger> eNumbers, std::function<
             }
             else
             {
-                bottom.point = n0.point + static_cast<double>(i) * h * (n1.point - n0.point);
-                top.point = n3.point + static_cast<double>(i) * h * (n2.point - n3.point);
+                bottom.point = n0.point + (static_cast<double>(i) * h) * (n1.point - n0.point);
+                top.point = n3.point + (static_cast<double>(i) * h) * (n2.point - n3.point);
             }
 
             for (int j = 0; j < 4; j++)
@@ -1089,7 +1150,7 @@ void QuadrilateralMesh3D::subdivide(std::list<UInteger> eNumbers, std::function<
                 else if (j == 3)
                     current.point = top.point;
                 else
-                    current.point = bottom.point + static_cast<double>(j) * h * (top.point - bottom.point);
+                    current.point = bottom.point + (static_cast<double>(j) * h) * (top.point - bottom.point);
 
                 local_nodes[i][j] = current;
             }
@@ -1102,6 +1163,7 @@ void QuadrilateralMesh3D::subdivide(std::list<UInteger> eNumbers, std::function<
             code |= 4;
         if (refined_nodes.find(quad[3]) != refined_nodes.end())
             code |= 8;
+
         if (code != 0)
         {
             node_[quad[0]].adjacent.erase(elnum);
@@ -1110,23 +1172,33 @@ void QuadrilateralMesh3D::subdivide(std::list<UInteger> eNumbers, std::function<
             node_[quad[3]].adjacent.erase(elnum);
             for(int i = 0; quad_table[code][0][i] != -1; i += 4)
             {
-                quad[3] = addNode(local_nodes[quad_table[code][0][i + 0]][quad_table[code][1][i + 0]]);
-                quad[2] = addNode(local_nodes[quad_table[code][0][i + 1]][quad_table[code][1][i + 1]]);
-                quad[1] = addNode(local_nodes[quad_table[code][0][i + 2]][quad_table[code][1][i + 2]]);
-                quad[0] = addNode(local_nodes[quad_table[code][0][i + 3]][quad_table[code][1][i + 3]]);
+                Quadrilateral q = quad;
+                q[3] = addNode(local_nodes[quad_table[code][0][i + 0]][quad_table[code][1][i + 0]]);
+                q[2] = addNode(local_nodes[quad_table[code][0][i + 1]][quad_table[code][1][i + 1]]);
+                q[1] = addNode(local_nodes[quad_table[code][0][i + 2]][quad_table[code][1][i + 2]]);
+                q[0] = addNode(local_nodes[quad_table[code][0][i + 3]][quad_table[code][1][i + 3]]);
                 if (i == 0)
                 {
-                    element_[elnum] = quad;
-                    node_[quad[0]].adjacent.insert(elnum);
-                    node_[quad[1]].adjacent.insert(elnum);
-                    node_[quad[2]].adjacent.insert(elnum);
-                    node_[quad[3]].adjacent.insert(elnum);
+                    element_[elnum] = q;
+                    node_[q[0]].adjacent.insert(elnum);
+                    node_[q[1]].adjacent.insert(elnum);
+                    node_[q[2]].adjacent.insert(elnum);
+                    node_[q[3]].adjacent.insert(elnum);
                 }
                 else
                 {
-                    addElement(quad);
+                    addElement(q);
                 }
             }
+
+//            for (UInteger i = 0; i < elementsCount(); i++)
+//            {
+//                Quadrilateral q = element_[i];
+//                node_[q[0]].adjacent.insert(i);
+//                node_[q[1]].adjacent.insert(i);
+//                node_[q[2]].adjacent.insert(i);
+//                node_[q[3]].adjacent.insert(i);
+//            }
         }
     }
 
@@ -1139,5 +1211,30 @@ void QuadrilateralMesh3D::subdivide(std::list<UInteger> eNumbers, std::function<
                 node_[i].point = findBorder(node_[i].point, func, h);
         }
     }
+}
+
+void QuadrilateralMesh3D::parametricDomain(const UInteger &uCount, const UInteger &vCount, std::function<Point3D (double, double)> domainFunction, std::function<double (double, double, double)> rfunc)
+{
+    clear();
+    double du = 1.0 / static_cast<double>(uCount - 1);
+    double dv = 1.0 / static_cast<double>(vCount - 1);
+    double u = 0.0;
+    for (UInteger i = 0; i < uCount - 1; i++)
+    {
+        double un = (i == uCount - 2) ? 1.0 : u + du;
+        double v = 0.0;
+        for (UInteger j = 0; j < vCount - 1; j++)
+        {
+            double vn = (j == vCount - 2) ? 1.0 : v + dv;
+            UInteger p0 = addNode(domainFunction(u, v), BORDER);
+            UInteger p1 = addNode(domainFunction(un, v), BORDER);
+            UInteger p2 = addNode(domainFunction(un, vn), BORDER);
+            UInteger p3 = addNode(domainFunction(u, vn), BORDER);
+            addElement(p0, p1, p2, p3);
+            v += dv;
+        }
+        u += du;
+    }
+    updateDomain();
 }
 }

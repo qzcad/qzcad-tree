@@ -13,6 +13,7 @@
 #include "mesh3d.h"
 #include "quadrilateral.h"
 #include "hexahedralmesh3d.h"
+#include "quadrilateralmesh2d.h"
 
 namespace msh {
 /**
@@ -63,6 +64,12 @@ public:
      */
     std::list<ElementPointer> backgroundGrid(const HexahedralMesh3D *mesh, std::function<double(double, double, double)> func, double level = 0.0, int smooth = 0, int optimize = 0, bool useFlip = true);
     /**
+     * @brief Метод построения сетки при помощи отображения точек двумерной.
+     * @param mesh Двумерная сетка четырехугольников
+     * @param func Функция-отображение 2D -> 3D
+     */
+    void transformGrid(const QuadrilateralMesh2D *mesh, std::function<Point3D(Point2D)> func);
+    /**
      * @brief Количество элементов
      * @return Количество элементов в сетке
      */
@@ -110,13 +117,6 @@ public:
      */
     void add(const QuadrilateralMesh3D *mesh);
     /**
-     * @brief Операция перемещения сетки на заданный радиус вектор
-     * @param x Абсцисса радиус вектора перемещения
-     * @param y Ордината радиус вектора перемещения
-     * @param y Аппликата радиус вектора перемещения
-     */
-    void translate(const double &x, const double &y, const double &z);
-    /**
      * @brief Метод очищает информацию об елементах
      */
     virtual void clearElements();
@@ -155,6 +155,7 @@ public:
      * @param func Указатель на функции линии уровня границы
      */
     void subdivide(std::list<UInteger> eNumbers, std::function<double(double, double, double)> func);
+    void parametricDomain(const UInteger &uCount, const UInteger &vCount, std::function<Point3D(double, double)> domainFunction, std::function<double(double, double, double)> rfunc);
 protected:
     std::vector<Quadrilateral> element_; //!< Массив элементов
 };

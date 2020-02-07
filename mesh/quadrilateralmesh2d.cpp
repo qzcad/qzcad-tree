@@ -184,7 +184,7 @@ void QuadrilateralMesh2D::circleDomain(const UInteger &count, const Point2D &cen
             return Point2D(center.x() + 0.5 * radius + 0.5 * radius * eta,
                            center.y());
         };
-        addTransfiniteMesh(topCircle, bottomCircle, leftCircle, rightCircle, count, count);
+        addTransfiniteMesh(topCircle, bottomCircle, leftCircle, rightCircle, count, count, false);
 
 
         // Отражение по вертикали
@@ -999,6 +999,7 @@ void QuadrilateralMesh2D::subdivide(std::list<UInteger> eNumbers, std::function<
             code |= 4;
         if (refined_nodes.find(quad[3]) != refined_nodes.end())
             code |= 8;
+
         if (code != 0)
         {
             node_[quad[0]].adjacent.erase(elnum);
@@ -1236,33 +1237,35 @@ double QuadrilateralMesh2D::functional(const std::vector<double> &vars)
 }
 
 template<typename TopFunc, typename BottomFunc, typename LeftFunc, typename RightFunc>
-void QuadrilateralMesh2D::addTransfiniteMesh(TopFunc top, BottomFunc bottom, LeftFunc left, RightFunc right, const UInteger &xiCount, const UInteger &etaCount)
+void QuadrilateralMesh2D::addTransfiniteMesh(TopFunc top, BottomFunc bottom, LeftFunc left, RightFunc right, const UInteger &xiCount, const UInteger &etaCount, bool is_uniform)
 {
     const double hXi = 1.0 /  static_cast<double>(xiCount - 1);
     const double hEta = 1.0 /  static_cast<double>(etaCount - 1);
     double xi = 0.0;
     double eta = 0.0;
     UInteger nodeNumber[xiCount * etaCount];
-    Point2D rb0 = bottom (0.0);
-    Point2D rb1 = bottom (1.0);
-    Point2D rt0 = top (0.0);
-    Point2D rt1 = top (1.0);
+    Point2D rb0 = bottom(0.0);
+    Point2D rb1 = bottom(1.0);
+    Point2D rt0 = top(0.0);
+    Point2D rt1 = top(1.0);
+    double pp = 1.9;
+    double q = 2.0;
     for (UInteger i = 0; i < xiCount; i++)
     {
         eta = 0.0;
         if (i == xiCount - 1) xi = 1.0;
+        Point2D rt = top (xi);
+        Point2D rb = bottom (xi);
         for (UInteger j = 0; j < etaCount; j++)
         {
-            Point2D rt = top (xi);
-            Point2D rb = bottom (xi);
-            Point2D rl = left (eta);
-            Point2D rr = right (eta);
-            Point2D p;
             if (j == etaCount - 1) eta = 1.0;
-            p = (1.0 - xi) * rl + xi * rr + (1.0 - eta) * rb + eta * rt -
-                    (1.0 - xi) * (1.0 - eta) * rb0 - (1.0 - xi) * eta * rt0 -
-                    xi * (1.0 - eta) * rb1 - xi * eta * rt1;
-            if (i == 0 || j ==0 || i == xiCount - 1 || j == etaCount - 1)
+//            double s = pow(eta, 0.25);
+            double s = (is_uniform) ? eta : pp * eta + (1.0 - pp) * (1.0 - tanh(q * (1.0 - eta)) / tanh(q)); // формула растяжения Эйземана, Флетчер, Вычислительные методы в динамике жидкостей, том 2, стр. 123
+            Point2D rl = left(s);
+            Point2D rr = right(s);
+            Point2D p;
+            p = (1.0 - xi) * rl + xi * rr + (1.0 - s) * rb + s * rt - (1.0 - xi) * (1.0 - s) * rb0 - (1.0 - xi) * s * rt0 - xi * (1.0 - s) * rb1 - xi * s * rt1;
+            if (i == 0 || j == 0 || i == xiCount - 1 || j == etaCount - 1)
                 nodeNumber[i * etaCount + j] = addNode(p, INNER);
             else
                 nodeNumber[i * etaCount + j] = pushNode(p, INNER);
@@ -1275,10 +1278,7 @@ void QuadrilateralMesh2D::addTransfiniteMesh(TopFunc top, BottomFunc bottom, Lef
     {
         for (UInteger j = 0; j < etaCount - 1; j++)
         {
-            addElement(nodeNumber[i * etaCount + j],
-                    nodeNumber[(i + 1) * etaCount + j],
-                    nodeNumber[(i + 1) * etaCount + j + 1],
-                    nodeNumber[i * etaCount + j + 1]);
+            addElement(nodeNumber[i * etaCount + j], nodeNumber[(i + 1) * etaCount + j], nodeNumber[(i + 1) * etaCount + j + 1], nodeNumber[i * etaCount + j + 1]);
         }
     }
 }

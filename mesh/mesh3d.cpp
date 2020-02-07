@@ -443,6 +443,15 @@ double Mesh3D::faceArea(const UIntegerVector &face) const
     }
     return  0.0;
 }
+
+void Mesh3D::translate(const double &x, const double &y, const double &z)
+{
+    for (UInteger i = 0; i < nodesCount(); i++)
+    {
+        Point3D p = node_[i].point;
+        node_[i].point.set(p.x() + x, p.y() + y, p.z() + z);
+    }
+}
 }
 
 

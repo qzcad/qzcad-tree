@@ -228,6 +228,13 @@ public:
      * @return Площадь грани
      */
     virtual double faceArea(const UIntegerVector &face) const;
+    /**
+     * @brief Операция перемещения сетки на заданный радиус вектор
+     * @param x Абсцисса радиус вектора перемещения
+     * @param y Ордината радиус вектора перемещения
+     * @param y Аппликата радиус вектора перемещения
+     */
+    virtual void translate(const double &x, const double &y, const double &z);
 protected:
     std::vector<Node3D> node_; //!< массив узлов
     double xMin_; //!< минимальное значение ординаты

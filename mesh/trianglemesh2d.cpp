@@ -23,6 +23,36 @@ TriangleMesh2D::TriangleMesh2D() : Mesh2D(nullptr)
 {
 }
 
+void TriangleMesh2D::fromQuadrilateralMesh(const QuadrilateralMesh2D *mesh)
+{
+    for (UInteger i = 0; i < mesh->nodesCount(); i++)
+    {
+        pushNode(mesh->point2d(i), mesh->nodeType(i));
+    }
+    for (UInteger i = 0; i < mesh->elementsCount(); i++)
+    {
+        Quadrilateral q = mesh->quadrilateral(i);
+        Point2D p[4];
+        for (UInteger j = 0; j < 4; j++)
+        {
+            p[j] = node_[q[j]].point;
+        }
+        if (std::min(minAngle(p[0], p[1], p[2]), minAngle(p[0], p[2], p[3])) > std::min(minAngle(p[0], p[1], p[3]), minAngle(p[1], p[2], p[3])))
+        {
+            addElement(q[0], q[1], q[2]);
+            addElement(q[0], q[2], q[3]);
+//            std::cout << '+';
+        }
+        else
+        {
+            addElement(q[0], q[1], q[3]);
+            addElement(q[1], q[2], q[3]);
+//            std::cout << '-';
+        }
+    }
+    updateDomain();
+}
+
 void TriangleMesh2D::rectangleDomain(const UInteger &xCount, const UInteger &yCount, const double &xMin, const double &yMin, const double &width, const double &height)
 {
     clear();

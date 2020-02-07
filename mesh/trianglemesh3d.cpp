@@ -1765,11 +1765,13 @@ void TriangleMesh3D::add(const TriangleMesh3D *mesh)
 {
     UInteger count = 0;
     std::vector<UInteger> nodesPointers(mesh->nodesCount());
+    ConsoleProgress progress_bar(mesh->nodesCount());
     for (UInteger i = 0; i < mesh->nodesCount(); i++)
     {
         UInteger nc = nodesCount();
         nodesPointers[i] = addNode(mesh->node_[i]);
         if (nc <= nodesPointers[i]) count++;
+        ++progress_bar;
     }
     for (UInteger i = 0; i < mesh->elementsCount(); i++)
     {
@@ -2217,6 +2219,23 @@ void TriangleMesh3D::subdivide(std::list<UInteger> eNumbers, std::function<doubl
     }
 
     flip();
+}
+
+void TriangleMesh3D::transformGrid(const TriangleMesh2D *mesh, std::function<Point3D (Point2D)> func)
+{
+    clear();
+
+    for (UInteger i = 0; i < mesh->nodesCount(); i++)
+        pushNode(func(mesh->point2d(i)), BORDER);
+
+    for (UInteger i = 0; i < mesh->elementsCount(); i++)
+    {
+        Triangle t = mesh->triangle(i);
+        std::swap(t[0], t[2]);
+        addElement(t);
+    }
+
+    updateDomain();
 }
 
 bool TriangleMesh3D::angles(const Point3D &A, const Point3D &B, const Point3D &C, double &alpha, double &beta, double &gamma) const

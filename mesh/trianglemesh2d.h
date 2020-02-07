@@ -14,6 +14,7 @@
 #include "mesh2d.h"
 #include "triangle.h"
 #include "segmentmesh2d.h"
+#include "quadrilateralmesh2d.h"
 
 namespace msh
 {
@@ -28,6 +29,7 @@ public:
      * Создается пустая сетка.
      */
     TriangleMesh2D();
+    void fromQuadrilateralMesh(const QuadrilateralMesh2D *mesh);
     /**
      * @brief Метод создает равномерную структурированную секту в прямоугольной области
      * @param xCount Количество узлов вдоль оси абсцисс
