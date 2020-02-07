@@ -83,6 +83,12 @@ void DoubleVector::resize(size_type size)
     alloc();
 }
 
+void DoubleVector::resize(size_type size, const_reference initValue)
+{
+    resize(size);
+    set(initValue);
+}
+
 double DoubleVector::min() const
 {
     double minValue = DBL_MAX;
@@ -103,6 +109,16 @@ double DoubleVector::max() const
     return maxValue;
 }
 
+double DoubleVector::norm_1() const
+{
+    double sum = 0.0;
+    for (const_pointer p = begin(); p != end(); p++)
+    {
+        sum += fabs(*p);
+    }
+    return sum;
+}
+
 double DoubleVector::norm_2() const
 {
     double sum = 0.0;
@@ -112,6 +128,18 @@ double DoubleVector::norm_2() const
         sum += val * val;
     }
     return sqrt(sum);
+}
+
+double DoubleVector::norm_inf() const
+{
+    double n = 0.0;
+    for (const_pointer p = begin(); p != end(); p++)
+    {
+        double val = fabs(*p);
+        if (val > n)
+            n = val;
+    }
+    return n;
 }
 
 DoubleVector DoubleVector::dotProduct(const DoubleVector &dv) const
@@ -226,6 +254,13 @@ void DoubleVector::print(char separator) const
         std::cout << *p << separator;
     }
     std::cout << "]" << std::endl;
+}
+
+std::vector<double> DoubleVector::to_std()
+{
+    std::vector<double> vec;
+    vec.assign(data_, data_ + size_);
+    return vec;
 }
 
 void DoubleVector::alloc()

@@ -8,6 +8,8 @@
 #ifndef DOUBLEVECTOR_H
 #define DOUBLEVECTOR_H
 
+#include <vector>
+
 #include "mtx_types.h"
 
 namespace mtx {
@@ -80,6 +82,12 @@ public:
      */
     void resize(size_type size);
     /**
+     * @brief Изменить размер массива и присвоить всем элементам массива заданное
+     * @param size Новый размер массива
+     * @param initValue Значение, которое будет установлено всем элементам
+     */
+    void resize(size_type size, const_reference initValue);
+    /**
      * @brief Метод для поиска значения минимального элемента
      * @return Значение минимального элемента
      */
@@ -90,10 +98,20 @@ public:
      */
     double max() const;
     /**
-     * @brief Вычислить евклидову норму вектора
+     * @brief Вычислить норму l1
+     * @return l1 норма вектора
+     */
+    double norm_1() const;
+    /**
+     * @brief Вычислить евклидову норму
      * @return Евклидова норма вектора
      */
     double norm_2() const;
+    /**
+     * @brief Вычислить норму Чебышёва (равнорменую норму)
+     * @return Норма Чебышёва
+     */
+    double norm_inf() const;
     /**
      * @brief Поэлементное произведение векторов
      * @param dv Ссылка на объект-вектор, на который умножается текущий
@@ -159,6 +177,11 @@ public:
      * @param separator Разделитель между элементами
      */
     void print(char separator = '\t') const;
+    /**
+     * @brief Вернуть копию вектора в формате std::vector<double>
+     * @return Копия вектора в формате std::vector<double>
+     */
+    std::vector<double> to_std();
 protected:
     /**
      * @brief Метод для выделения памяти под массив без инициализации элементов
