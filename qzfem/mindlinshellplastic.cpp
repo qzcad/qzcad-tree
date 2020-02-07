@@ -24,8 +24,21 @@ MindlinShellPlastic::MindlinShellPlastic(Mesh3D *mesh, std::function<double (dou
 void MindlinShellPlastic::solve()
 {
     UInteger nodesCount = mesh_->nodesCount();
-    mises_.resize(nodesCount);
-    mises_.set(0.0);
+
+    x_.resize(nodesCount, 0.0);
+    y_.resize(nodesCount, 0.0);
+    z_.resize(nodesCount, 0.0);
+    theta_x_.resize(nodesCount, 0.0);
+    theta_y_.resize(nodesCount, 0.0);
+    theta_z_.resize(nodesCount, 0.0);
+    sigma_x_.resize(nodesCount, 0.0);
+    sigma_y_.resize(nodesCount, 0.0);
+    sigma_z_.resize(nodesCount, 0.0);
+    tau_xy_.resize(nodesCount, 0.0);
+    tau_xz_.resize(nodesCount, 0.0);
+    tau_yz_.resize(nodesCount, 0.0);
+    mises_.resize(nodesCount, 0.0);
+
     buildGlobalMatrix();
     buildGlobalVector();
     processInitialValues();
@@ -57,12 +70,21 @@ void MindlinShellPlastic::solve()
         m = mises_.max();
         std::cout << f << ": Current Sigma: " << m << ". Elastic Modulus: " << E_(m) << std::endl;
     } while (m < sigma_max_);
-    std::vector<double> mises(nodesCount);
-    for (UInteger i = 0; i < nodesCount; i++)
-    {
-        mises[i] = mises_[i];
-    }
-    mesh_->addDataVector("mises", mises);
+
+    mesh_->clearDataVectors();
+    mesh_->addDataVector("X", x_.to_std());
+    mesh_->addDataVector("Y", y_.to_std());
+    mesh_->addDataVector("Z", z_.to_std());
+    mesh_->addDataVector("Theta X", theta_x_.to_std());
+    mesh_->addDataVector("Theta Y", theta_y_.to_std());
+    mesh_->addDataVector("Theta Z", theta_z_.to_std());
+    mesh_->addDataVector("Sigma X", sigma_x_.to_std());
+    mesh_->addDataVector("Sigma Y", sigma_y_.to_std());
+    mesh_->addDataVector("Sigma Z", sigma_z_.to_std());
+    mesh_->addDataVector("Tau XY", tau_xy_.to_std());
+    mesh_->addDataVector("Tau XZ", tau_xz_.to_std());
+    mesh_->addDataVector("Tau YZ", tau_yz_.to_std());
+    mesh_->addDataVector("mises", mises_.to_std());
     std::cout << "Mises stress: " << m << ". Force factor: " << f << std::endl;
 }
 
@@ -120,7 +142,8 @@ void MindlinShellPlastic::buildGlobalMatrix()
     // построение глобальной матрицы жесткости
     std::cout << "Stiffness Matrix...";
     ConsoleProgress progressBar(elementsCount);
-    UInteger plastic=0;
+    double min_e = E_(0.0), max_e = min_e;
+
     for (UInteger elNum = 0; elNum < elementsCount; elNum++)
     {
 
@@ -133,6 +156,7 @@ void MindlinShellPlastic::buildGlobalMatrix()
         DoubleMatrix lambda = cosinuses(A, B, C);
         DoubleMatrix lambdaT = lambda.transpose();
         DoubleMatrix T(freedom_ * elementNodes, freedom_ * elementNodes, 0.0);
+        DoubleMatrix W(freedom_ * elementNodes, freedom_ * elementNodes, 0.0);
         DoubleVector epsilonForce(freedom_ * elementNodes, 0.0);
         for (UInteger i = 0; i <= (freedom_ * elementNodes - 3); i += 3)
         {
@@ -143,7 +167,11 @@ void MindlinShellPlastic::buildGlobalMatrix()
 
         DoubleVector x(elementNodes);
         DoubleVector y(elementNodes);
+        DoubleVector z(elementNodes);
+        DoubleVector nodal_thickness(elementNodes);
+        double thickness = 0.0;
         double sigma=0.0;
+        double elastic_modulus;
         // извлечение координат узлов
 
         for (UInteger i = 0; i < elementNodes; i++)
@@ -152,14 +180,37 @@ void MindlinShellPlastic::buildGlobalMatrix()
             Point3D pp = point - A;
             x[i] = lambda(0, 0) * pp.x() + lambda(0, 1) * pp.y() + lambda(0, 2) * pp.z();
             y[i] = lambda(1, 0) * pp.x() + lambda(1, 1) * pp.y() + lambda(1, 2) * pp.z();
+            z[i] = lambda(2, 0) * pp.x() + lambda(2, 1) * pp.y() + lambda(2, 2) * pp.z();
+
+            if (thickness_func_ != nullptr)
+                nodal_thickness[i] = thickness_func_(point.x(), point.y(), point.z());
+            else
+                nodal_thickness[i] = thickness_;
+
             if (sigma < mises_[element->vertexNode(i)])
                 sigma = mises_[element->vertexNode(i)];
         }
-        D_ = evalPlaneStressMatrix(E_(sigma), nu_);
+
+        for (UInteger i = 0; i < elementNodes; i++)
+        {
+            UInteger offset = i * freedom_;
+            for (UInteger ii = 0; ii < freedom_; ii++)
+                    W(ii + offset, ii + offset) = 1.0;
+
+            W(3 + offset, 1 + offset) = z[i];
+            W(4 + offset, 0 + offset) = -z[i];
+        }
+
+        elastic_modulus = E_(sigma);
+        D_ = evalPlaneStressMatrix(elastic_modulus, nu_);
         Dc_(0, 0) = D_(2, 2); Dc_(0, 1) = 0.0;
         Dc_(1, 0) = 0.0; Dc_(1, 1) = D_(2, 2);
 
-        if (sigma >= 90.0) plastic++;
+        if (elastic_modulus > max_e)
+            max_e = elastic_modulus;
+
+        if (elastic_modulus < min_e)
+            min_e = elastic_modulus;
 
         for (int ig = 0; ig < gaussPoints; ig++)
         {
@@ -199,39 +250,47 @@ void MindlinShellPlastic::buildGlobalMatrix()
                 Bc(0, i * freedom_ + 2) = dNdX(i);  Bc(0, i * freedom_ + 3) = N(i);
                 Bc(1, i * freedom_ + 2) = dNdY(i);  Bc(1, i * freedom_ + 4) = N(i);
             }
-            if (thickness_func_ != nullptr)
-            {
-                double xLocal = x * N;
-                double yLocal = y * N;
-                Point3D pl(lambdaT(0, 0) * xLocal + lambdaT(0, 1) * yLocal,
-                           lambdaT(1, 0) * xLocal + lambdaT(1, 1) * yLocal,
-                           lambdaT(2, 0) * xLocal + lambdaT(2, 1) * yLocal);
-                Point3D pLocal = pl + A;
-                thickness_ = thickness_func_(pLocal.x(), pLocal.y(), pLocal.z());
-            }
+//            if (thickness_func_ != nullptr)
+//            {
+//                double xLocal = x * N;
+//                double yLocal = y * N;
+//                double zLocal = z * N;
+//                Point3D pl(lambdaT(0, 0) * xLocal + lambdaT(0, 1) * yLocal + lambdaT(0, 2) * zLocal,
+//                           lambdaT(1, 0) * xLocal + lambdaT(1, 1) * yLocal + lambdaT(1, 2) * zLocal,
+//                           lambdaT(2, 0) * xLocal + lambdaT(2, 1) * yLocal + lambdaT(2, 2) * zLocal);
+//                Point3D pLocal = pl + A;
+//                thickness_ = thickness_func_(pLocal.x(), pLocal.y(), pLocal.z());
+//            }
 
+            thickness = nodal_thickness * N;
 
+            local += jacobian * w * thickness * (Bm.transpose() * D_ * Bm);
+            local += jacobian * w * thickness*thickness*thickness / 12.0 * (Bf.transpose() * D_ * Bf);
+            local += jacobian * w * kappa * thickness * (Bc.transpose() * Dc_ * Bc);
 
-            local += jacobian * w * thickness_ * (Bm.transpose() * D_ * Bm);
-            local += jacobian * w * thickness_*thickness_*thickness_ / 12.0 * (Bf.transpose() * D_ * Bf);
-            local += jacobian * w * kappa * thickness_ * (Bc.transpose() * Dc_ * Bc);
-
-            epsilonForce += jacobian * w * thickness_ * ((Bm.transpose() * D_) * epsilon0);
+            epsilonForce += jacobian * w * thickness * ((Bm.transpose() * D_) * epsilon0);
         } // ig
-        double max_local = -1.0E20;
+//        It is noted that when an isoparametric membrane element is used as a part of
+//        the flat shell element, there is no stiffness associated with the rotation degree
+//        of freedom θz . This lack of stiffness lead to singularity in the global stiffness
+//        matrix when all the elements are coplanar. A simple method for remedying this
+//        singularity is to insert a small fictitious stiffness to each drilling degree of freedom
+//        (Zienkiewicz and Taylor, 2000). This is done by simply replacing the null values of
+//        the stiffness corresponding to the drilling degree of freedom by a value of 1/1000
+//        of the largest diagonal term of the element stiffness matrix.
+//        My observation: max_local * 1.0E+3 is the best
+        double max_local = local(0, 0);
         for (UInteger i = 0; i < freedom_ * elementNodes; i++)
         {
-            for (UInteger j = 0; j < freedom_ * elementNodes; j++)
-            {
-                if (max_local < local(i, j)) max_local = local(i, j);
-            }
+            if (max_local < local(i, i)) max_local = local(i, i);
         }
         for (UInteger i = 0; i < elementNodes; i++)
         {
-            local(i * freedom_ + 5, i * freedom_ + 5) = max_local * 1.0E-3;
+            if (fabs(local(i * freedom_ + 5, i * freedom_ + 5)) < 1.0E-3)
+                local(i * freedom_ + 5, i * freedom_ + 5) = max_local * 1.0;
         }
 
-        DoubleMatrix surf = T.transpose() * local * T;
+        DoubleMatrix surf = T.transpose() * (W * local * W.transpose()) * T;
         // Ансамблирование
         assembly(element, surf);
         DoubleVector localForce = T.transpose() * epsilonForce;
@@ -243,7 +302,7 @@ void MindlinShellPlastic::buildGlobalMatrix()
     } //for elNum
 
     std::cout << "force norm: " << force_.norm_2() << std::endl;
-    std::cout << "Number of plastic element: " << plastic << std::endl;
+    std::cout << min_e << " <= Elastic Modulus <= " << max_e << std::endl;
 }
 
 void MindlinShellPlastic::processSolution(const DoubleVector &displacement)
@@ -259,12 +318,12 @@ void MindlinShellPlastic::processSolution(const DoubleVector &displacement)
     {
         elementNodes = 4;
     }
-    std::vector<double> xxx(nodesCount);
-    std::vector<double> yyy(nodesCount);
-    std::vector<double> zzz(nodesCount);
-    std::vector<double> theta_x(nodesCount);
-    std::vector<double> theta_y(nodesCount);
-    std::vector<double> theta_z(nodesCount);
+    DoubleVector xxx(nodesCount);
+    DoubleVector yyy(nodesCount);
+    DoubleVector zzz(nodesCount);
+    DoubleVector theta_x(nodesCount);
+    DoubleVector theta_y(nodesCount);
+    DoubleVector theta_z(nodesCount);
     for (UInteger i = 0; i < nodesCount; i++)
     {
         xxx[i] = displacement[freedom_ * i];
@@ -292,9 +351,17 @@ void MindlinShellPlastic::processSolution(const DoubleVector &displacement)
     }
 
     std::cout << "Stresses Recovery...";
+    DoubleVector SigmaX(nodesCount, 0.0);
+    DoubleVector SigmaY(nodesCount, 0.0);
+    DoubleVector SigmaZ(nodesCount, 0.0);
+    DoubleVector TauXY(nodesCount, 0.0);
+    DoubleVector TauXZ(nodesCount, 0.0);
+    DoubleVector TauYZ(nodesCount, 0.0);
     DoubleVector mises(nodesCount, 0.0);
-    UInteger plastic = 0;
+
     ConsoleProgress progressBar(elementsCount);
+    double min_e = E_(0.0), max_e = min_e;
+
     for (UInteger elNum = 0; elNum < elementsCount; elNum++)
     {
 
@@ -318,7 +385,11 @@ void MindlinShellPlastic::processSolution(const DoubleVector &displacement)
 
         DoubleVector x(elementNodes);
         DoubleVector y(elementNodes);
-        double s=0.0;
+        DoubleVector z(elementNodes);
+        DoubleVector nodal_thickness(elementNodes);
+        double thickness = 0.0;
+        double s = 0.0;
+        double elastic_modulus;
         // извлечение координат узлов
         for (UInteger i = 0; i < elementNodes; i++)
         {
@@ -326,14 +397,27 @@ void MindlinShellPlastic::processSolution(const DoubleVector &displacement)
             Point3D pp = point - A;
             x[i] = lambda(0, 0) * pp.x() + lambda(0, 1) * pp.y() + lambda(0, 2) * pp.z();
             y[i] = lambda(1, 0) * pp.x() + lambda(1, 1) * pp.y() + lambda(1, 2) * pp.z();
+            z[i] = lambda(2, 0) * pp.x() + lambda(2, 1) * pp.y() + lambda(2, 2) * pp.z();
+
+            if (thickness_func_ != nullptr)
+                nodal_thickness[i] = thickness_func_(point.x(), point.y(), point.z());
+            else
+                nodal_thickness[i] = thickness_;
+
             if (s < mises_[element->vertexNode(i)])
                 s = mises_[element->vertexNode(i)];
         }
-        D_ = evalPlaneStressMatrix(E_(s), nu_);
+
+        elastic_modulus = E_(s);
+        D_ = evalPlaneStressMatrix(elastic_modulus, nu_);
         Dc_(0, 0) = D_(2, 2); Dc_(0, 1) = 0.0;
         Dc_(1, 0) = 0.0; Dc_(1, 1) = D_(2, 2);
 
-        if (s >= 90.0) plastic++;
+        if (elastic_modulus > max_e)
+            max_e = elastic_modulus;
+
+        if (elastic_modulus < min_e)
+            min_e = elastic_modulus;
 
         for (UInteger inode = 0; inode < elementNodes; inode++)
         {
@@ -385,22 +469,26 @@ void MindlinShellPlastic::processSolution(const DoubleVector &displacement)
 
             DoubleVector dLocal = T * dis;
 
-            if (thickness_func_ != nullptr)
-            {
-                double xLocal = x * N;
-                double yLocal = y * N;
+//            if (thickness_func_ != nullptr)
+//            {
+//                double xLocal = x * N;
+//                double yLocal = y * N;
+//                double zLocal = z * N;
+//                Point3D pl(lambdaT(0, 0) * xLocal + lambdaT(0, 1) * yLocal + lambdaT(0, 2) * zLocal,
+//                           lambdaT(1, 0) * xLocal + lambdaT(1, 1) * yLocal + lambdaT(1, 2) * zLocal,
+//                           lambdaT(2, 0) * xLocal + lambdaT(2, 1) * yLocal + lambdaT(2, 2) * zLocal);
 
-                Point3D pl(lambdaT(0, 0) * xLocal + lambdaT(0, 1) * yLocal,
-                           lambdaT(1, 0) * xLocal + lambdaT(1, 1) * yLocal,
-                           lambdaT(2, 0) * xLocal + lambdaT(2, 1) * yLocal);
-                // вычисление объемных сил
-                Point3D pLocal = pl + A;
-                thickness_ = thickness_func_(pLocal.x(), pLocal.y(), pLocal.z());
-            }
-
+////                Point3D pl(lambdaT(0, 0) * xLocal + lambdaT(0, 1) * yLocal,
+////                           lambdaT(1, 0) * xLocal + lambdaT(1, 1) * yLocal,
+////                           lambdaT(2, 0) * xLocal + lambdaT(2, 1) * yLocal);
+//                // вычисление объемных сил
+//                Point3D pLocal = pl + A;
+//                thickness_ = thickness_func_(pLocal.x(), pLocal.y(), pLocal.z());
+//            }
+            thickness = nodal_thickness * N;
 
             sigma_membrane = (D_ * Bm) * dLocal;
-            sigma_plate = thickness_ / 2.0 * ((D_ * Bf) * dLocal);
+            sigma_plate = thickness / 2.0 * ((D_ * Bf) * dLocal);
             sigma[0] = sigma_membrane[0] + sigma_plate[0];
             sigma[1] = sigma_membrane[1] + sigma_plate[1];
             sigma[2] = sigma_membrane[2] + sigma_plate[2];
@@ -417,13 +505,38 @@ void MindlinShellPlastic::processSolution(const DoubleVector &displacement)
                                           (SG(1, 1) - SG(2, 2)) * (SG(1, 1) - SG(2, 2)) +
                                           (SG(2, 2) - SG(0, 0)) * (SG(2, 2) - SG(0, 0)) +
                                           6.0 * (SG(0, 1) * SG(0, 1) + SG(1, 2) * SG(1, 2) + SG(0, 2) * SG(0, 2)));
+
+            SigmaX[element->vertexNode(inode)] += SG(0, 0);
+            SigmaY[element->vertexNode(inode)] += SG(1, 1);
+            SigmaZ[element->vertexNode(inode)] += SG(2, 2);
+            TauXY[element->vertexNode(inode)] += SG(0, 1);
+            TauXZ[element->vertexNode(inode)] += SG(0, 2);
+            TauYZ[element->vertexNode(inode)] += SG(1, 2);
             mises[element->vertexNode(inode)] += von;
         }
     } //for elNum
     for (UInteger i = 0; i < nodesCount; i++)
     {
+        SigmaX[i] /= (double)mesh_->adjacentCount(i);
+        SigmaY[i] /= (double)mesh_->adjacentCount(i);
+        SigmaZ[i] /= (double)mesh_->adjacentCount(i);
+        TauXY[i] /= (double)mesh_->adjacentCount(i);
+        TauXZ[i] /= (double)mesh_->adjacentCount(i);
+        TauYZ[i] /= (double)mesh_->adjacentCount(i);
         mises[i] /= (double)mesh_->adjacentCount(i);
     }
+    x_ += xxx;
+    y_ += yyy;
+    z_ += zzz;
+    theta_x_ += theta_x;
+    theta_y_ += theta_y;
+    theta_z_ += theta_z;
+    sigma_x_ += SigmaX;
+    sigma_y_ += SigmaY;
+    sigma_z_ += SigmaZ;
+    tau_xy_ += TauXY;
+    tau_xz_ += TauXZ;
+    tau_yz_ += TauYZ;
     mises_ += mises;
-    std::cout << "Number of plastic element: " << plastic << std::endl;
+    std::cout << min_e << " <= Elastic Modulus <= " << max_e << std::endl;
 }

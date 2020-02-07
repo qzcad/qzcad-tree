@@ -70,6 +70,7 @@ protected:
     DoubleMatrix Dc_; //!< Матрица упругости
     double alpha_; //!< Коэффициент температурного напряжения
     std::function<double(double, double, double)> thickness_func_;
+    DoubleVector mises_;
 };
 
 #endif // MINDLINSHELLBENDING_H

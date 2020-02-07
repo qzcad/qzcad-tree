@@ -67,12 +67,16 @@ void MindlinShellBending::solve(std::function<double (double, double, double)> f
         force_.resize(dimension_);
         force_.set(0.0);
         std::cout << "Iteration " << i + 1 << " from " << maxiter << std::endl;
-        buildGlobalMatrix();
-        buildGlobalVector();
-        processInitialValues();
-        DoubleVector solution = solveLinearSystem();
-        char_vec = adaptationVector(solution);
-        double d = fabs(char_vec.max() - char_vec.min());
+        Fem2D::solve();
+        char_vec = mises_;
+//        buildGlobalMatrix();
+//        buildGlobalVector();
+//        processInitialValues();
+//        DoubleVector solution = solveLinearSystem();
+//        char_vec = adaptationVector(solution);
+        double min_value = char_vec.min();
+        double max_value = char_vec.max();
+        double d = fabs(max_value - min_value);
         std::list<UInteger> elements;
         for (UInteger elnum = 0; elnum < mesh_->elementsCount(); elnum++)
         {
@@ -85,6 +89,8 @@ void MindlinShellBending::solve(std::function<double (double, double, double)> f
                     if ((fabs(char_vec[element->vertexNode(j)] - char_vec[element->vertexNode(k)]) / d) >= delta)
                         needSubdivision = true;
                 }
+                if ((fabs(max_value - char_vec[element->vertexNode(j)]) / d) <= delta)
+                    needSubdivision = true;
             }
             if (needSubdivision) elements.push_back(elnum);
         }
@@ -98,7 +104,7 @@ void MindlinShellBending::solve(std::function<double (double, double, double)> f
         }
         else
         {
-            processSolution(solution);
+//            processSolution(solution);
             break;
         }
     }
@@ -366,6 +372,7 @@ void MindlinShellBending::buildGlobalMatrix()
         DoubleMatrix lambda = cosinuses(A, B, C);
         DoubleMatrix lambdaT = lambda.transpose();
         DoubleMatrix T(freedom_ * elementNodes, freedom_ * elementNodes, 0.0);
+        DoubleMatrix W(freedom_ * elementNodes, freedom_ * elementNodes, 0.0);
         DoubleVector epsilonForce(freedom_ * elementNodes, 0.0);
         for (UInteger i = 0; i <= (freedom_ * elementNodes - 3); i += 3)
         {
@@ -376,6 +383,9 @@ void MindlinShellBending::buildGlobalMatrix()
 
         DoubleVector x(elementNodes);
         DoubleVector y(elementNodes);
+        DoubleVector z(elementNodes);
+        DoubleVector nodal_thickness(elementNodes);
+        double thickness = 0.0;
         // извлечение координат узлов
 
         for (UInteger i = 0; i < elementNodes; i++)
@@ -384,8 +394,23 @@ void MindlinShellBending::buildGlobalMatrix()
             Point3D pp = point - A;
             x[i] = lambda(0, 0) * pp.x() + lambda(0, 1) * pp.y() + lambda(0, 2) * pp.z();
             y[i] = lambda(1, 0) * pp.x() + lambda(1, 1) * pp.y() + lambda(1, 2) * pp.z();
+            z[i] = lambda(2, 0) * pp.x() + lambda(2, 1) * pp.y() + lambda(2, 2) * pp.z();
+            if (thickness_func_ != nullptr)
+                nodal_thickness[i] = thickness_func_(point.x(), point.y(), point.z());
+            else
+                nodal_thickness[i] = thickness_;
         }
 
+        for (UInteger i = 0; i < elementNodes; i++)
+        {
+            UInteger offset = i * freedom_;
+            for (UInteger ii = 0; ii < freedom_; ii++)
+                    W(ii + offset, ii + offset) = 1.0;
+
+            W(3 + offset, 1 + offset) = z[i];
+            W(4 + offset, 0 + offset) = -z[i];
+        }
+//        W.print();
         for (int ig = 0; ig < gaussPoints; ig++)
         {
             double xi = gxi(ig);
@@ -424,36 +449,45 @@ void MindlinShellBending::buildGlobalMatrix()
                 Bc(0, i * freedom_ + 2) = dNdX(i);  Bc(0, i * freedom_ + 3) = N(i);
                 Bc(1, i * freedom_ + 2) = dNdY(i);  Bc(1, i * freedom_ + 4) = N(i);
             }
-            if (thickness_func_ != nullptr)
-            {
-                double xLocal = x * N;
-                double yLocal = y * N;
-                Point3D pl(lambdaT(0, 0) * xLocal + lambdaT(0, 1) * yLocal,
-                           lambdaT(1, 0) * xLocal + lambdaT(1, 1) * yLocal,
-                           lambdaT(2, 0) * xLocal + lambdaT(2, 1) * yLocal);
-                Point3D pLocal = pl + A;
-                thickness_ = thickness_func_(pLocal.x(), pLocal.y(), pLocal.z());
-            }
-            local += jacobian * w * thickness_ * (Bm.transpose() * D_ * Bm);
-            local += jacobian * w * thickness_*thickness_*thickness_ / 12.0 * (Bf.transpose() * D_ * Bf);
-            local += jacobian * w * kappa * thickness_ * (Bc.transpose() * Dc_ * Bc);
+//            if (thickness_func_ != nullptr)
+//            {
+//                double xLocal = x * N;
+//                double yLocal = y * N;
+//                double zLocal = z * N;
+//                Point3D pl(lambdaT(0, 0) * xLocal + lambdaT(0, 1) * yLocal + lambdaT(0, 2) * zLocal,
+//                           lambdaT(1, 0) * xLocal + lambdaT(1, 1) * yLocal + lambdaT(1, 2) * zLocal,
+//                           lambdaT(2, 0) * xLocal + lambdaT(2, 1) * yLocal + lambdaT(2, 2) * zLocal);
+//                Point3D pLocal = pl + A;
+//                thickness_ = thickness_func_(pLocal.x(), pLocal.y(), pLocal.z());
+//            }
+            thickness = nodal_thickness * N;
+            local += jacobian * w * thickness * (Bm.transpose() * D_ * Bm);
+            local += jacobian * w * thickness*thickness*thickness / 12.0 * (Bf.transpose() * D_ * Bf);
+            local += jacobian * w * kappa * thickness * (Bc.transpose() * Dc_ * Bc);
 
-            epsilonForce += jacobian * w * thickness_ * ((Bm.transpose() * D_) * epsilon0);
+            epsilonForce += jacobian * w * thickness * ((Bm.transpose() * D_) * epsilon0);
         } // ig
-        double max_local = -1.0E20;
+//        It is noted that when an isoparametric membrane element is used as a part of
+//        the flat shell element, there is no stiffness associated with the rotation degree
+//        of freedom θz . This lack of stiffness lead to singularity in the global stiffness
+//        matrix when all the elements are coplanar. A simple method for remedying this
+//        singularity is to insert a small fictitious stiffness to each drilling degree of freedom
+//        (Zienkiewicz and Taylor, 2000). This is done by simply replacing the null values of
+//        the stiffness corresponding to the drilling degree of freedom by a value of 1/1000
+//        of the largest diagonal term of the element stiffness matrix.
+//        My observation: max_local * 1.0E+3 is the best
+        double max_local = local(0, 0);
         for (UInteger i = 0; i < freedom_ * elementNodes; i++)
         {
-            for (UInteger j = 0; j < freedom_ * elementNodes; j++)
-            {
-                if (max_local < local(i, j)) max_local = local(i, j);
-            }
+            if (max_local < local(i, i)) max_local = local(i, i);
         }
         for (UInteger i = 0; i < elementNodes; i++)
         {
-            local(i * freedom_ + 5, i * freedom_ + 5) = max_local * 1.0E-3;
+            if (fabs(local(i * freedom_ + 5, i * freedom_ + 5)) < 1.0E-3)
+                local(i * freedom_ + 5, i * freedom_ + 5) = max_local * 1.0;
         }
 
-        DoubleMatrix surf = T.transpose() * local * T;
+        DoubleMatrix surf = T.transpose() * (W * local * W.transpose()) * T;
         // Ансамблирование
         assembly(element, surf);
         DoubleVector localForce = T.transpose() * epsilonForce;
@@ -464,7 +498,7 @@ void MindlinShellBending::buildGlobalMatrix()
         }
     } //for elNum
 
-    std::cout << "force norm: " << force_.norm_2() << std::endl;
+    std::cout << "Epsilon force norm: " << force_.norm_2() << std::endl;
 
 }
 
@@ -630,6 +664,8 @@ void MindlinShellBending::buildGlobalVector()
                 DoubleMatrix lambdaT = lambda.transpose();
                 DoubleVector x(elementNodes);
                 DoubleVector y(elementNodes);
+                DoubleVector z(elementNodes);
+                DoubleVector nodal_forces(elementNodes);
                 // извлечение координат узлов
                 for (UInteger i = 0; i < elementNodes; i++)
                 {
@@ -637,6 +673,8 @@ void MindlinShellBending::buildGlobalVector()
                     Point3D pp = point - A;
                     x[i] = lambda(0, 0) * pp.x() + lambda(0, 1) * pp.y() + lambda(0, 2) * pp.z();
                     y[i] = lambda(1, 0) * pp.x() + lambda(1, 1) * pp.y() + lambda(1, 2) * pp.z();
+                    z[i] = lambda(2, 0) * pp.x() + lambda(2, 1) * pp.y() + lambda(2, 2) * pp.z();
+                    nodal_forces[i] = (*condition)->value(&point);
                 }
 
                 double element_force[elementNodes];
@@ -665,14 +703,21 @@ void MindlinShellBending::buildGlobalVector()
                     {
                         jacobian = isoQuad4(xi, eta, x, y, N, dNdX, dNdY);
                     }
-                    double xLocal = x * N;
-                    double yLocal = y * N;
-                    Point3D pl(lambdaT(0, 0) * xLocal + lambdaT(0, 1) * yLocal,
-                               lambdaT(1, 0) * xLocal + lambdaT(1, 1) * yLocal,
-                               lambdaT(2, 0) * xLocal + lambdaT(2, 1) * yLocal);
-                    // вычисление объемных сил
-                    Point3D pLocal = pl + A;
-                    double fLocal = (*condition)->value(&pLocal);
+//                    double xLocal = x * N;
+//                    double yLocal = y * N;
+//                    Point3D pl(lambdaT(0, 0) * xLocal + lambdaT(0, 1) * yLocal,
+//                               lambdaT(1, 0) * xLocal + lambdaT(1, 1) * yLocal,
+//                               lambdaT(2, 0) * xLocal + lambdaT(2, 1) * yLocal);
+//                    double xLocal = x * N;
+//                    double yLocal = y * N;
+//                    double zLocal = z * N;
+//                    Point3D pl(lambdaT(0, 0) * xLocal + lambdaT(0, 1) * yLocal + lambdaT(0, 2) * zLocal,
+//                               lambdaT(1, 0) * xLocal + lambdaT(1, 1) * yLocal + lambdaT(1, 2) * zLocal,
+//                               lambdaT(2, 0) * xLocal + lambdaT(2, 1) * yLocal + lambdaT(2, 2) * zLocal);
+//                    // вычисление объемных сил
+//                    Point3D pLocal = pl + A;
+//                    double fLocal = (*condition)->value(&pLocal);
+                    double fLocal = nodal_forces * N;
 
                     for (unsigned int i = 0; i < elementNodes; i++)
                     {
@@ -725,12 +770,12 @@ void MindlinShellBending::processSolution(const DoubleVector &displacement)
     {
         elementNodes = 4;
     }
-    std::vector<double> xxx(nodesCount);
-    std::vector<double> yyy(nodesCount);
-    std::vector<double> zzz(nodesCount);
-    std::vector<double> theta_x(nodesCount);
-    std::vector<double> theta_y(nodesCount);
-    std::vector<double> theta_z(nodesCount);
+    DoubleVector xxx(nodesCount);
+    DoubleVector yyy(nodesCount);
+    DoubleVector zzz(nodesCount);
+    DoubleVector theta_x(nodesCount);
+    DoubleVector theta_y(nodesCount);
+    DoubleVector theta_z(nodesCount);
     for (UInteger i = 0; i < nodesCount; i++)
     {
         xxx[i] = displacement[freedom_ * i];
@@ -741,21 +786,15 @@ void MindlinShellBending::processSolution(const DoubleVector &displacement)
         theta_z[i] = displacement[freedom_ * i + 5UL];
     }
 
-    mesh_->addDataVector("X", xxx);
-    mesh_->addDataVector("Y", yyy);
-    mesh_->addDataVector("Z", zzz);
-    mesh_->addDataVector("Theta X", theta_x);
-    mesh_->addDataVector("Theta Y", theta_y);
-    mesh_->addDataVector("Theta Z", theta_z);
-
     // вычисление напряжений
-    std::vector<double> SigmaX(nodesCount, 0.0);
-    std::vector<double> SigmaY(nodesCount, 0.0);
-    std::vector<double> SigmaZ(nodesCount, 0.0);
-    std::vector<double> TauXY(nodesCount, 0.0);
-    std::vector<double> TauXZ(nodesCount, 0.0);
-    std::vector<double> TauYZ(nodesCount, 0.0);
-    std::vector<double> mises(nodesCount, 0.0);
+    DoubleVector SigmaX(nodesCount, 0.0);
+    DoubleVector SigmaY(nodesCount, 0.0);
+    DoubleVector SigmaZ(nodesCount, 0.0);
+    DoubleVector TauXY(nodesCount, 0.0);
+    DoubleVector TauXZ(nodesCount, 0.0);
+    DoubleVector TauYZ(nodesCount, 0.0);
+    DoubleVector mises(nodesCount, 0.0);
+//    DoubleVector adj(nodesCount, 0.0);
 
     double xi[elementNodes];
     double eta[elementNodes];
@@ -771,6 +810,10 @@ void MindlinShellBending::processSolution(const DoubleVector &displacement)
         xi[1] =  1.0; eta[1] = -1.0;
         xi[2] =  1.0; eta[2] =  1.0;
         xi[3] = -1.0; eta[3] =  1.0;
+//        xi[0] = 0.0; eta[0] = 0.0;
+//        xi[1] =  0.0; eta[1] = 0.0;
+//        xi[2] =  0.0; eta[2] =  0.0;
+//        xi[3] = 0.0; eta[3] =  0.0;
     }
 
     std::cout << "Stresses Recovery...";
@@ -786,6 +829,7 @@ void MindlinShellBending::processSolution(const DoubleVector &displacement)
         Point3D C = *(dynamic_cast<const Point3D *>(mesh_->node(element->vertexNode(2))));
         DoubleMatrix lambda = cosinuses(A, B, C);
         DoubleMatrix T(freedom_ * elementNodes, freedom_ * elementNodes, 0.0);
+        DoubleMatrix W(freedom_ * elementNodes, freedom_ * elementNodes, 0.0);
 
         for (UInteger i = 0; i <= (freedom_ * elementNodes - 3); i += 3)
         {
@@ -798,6 +842,9 @@ void MindlinShellBending::processSolution(const DoubleVector &displacement)
 
         DoubleVector x(elementNodes);
         DoubleVector y(elementNodes);
+        DoubleVector z(elementNodes);
+        DoubleVector nodal_thickness(elementNodes);
+        double thickness = 0.0;
         // извлечение координат узлов
         for (UInteger i = 0; i < elementNodes; i++)
         {
@@ -805,6 +852,22 @@ void MindlinShellBending::processSolution(const DoubleVector &displacement)
             Point3D pp = point - A;
             x[i] = lambda(0, 0) * pp.x() + lambda(0, 1) * pp.y() + lambda(0, 2) * pp.z();
             y[i] = lambda(1, 0) * pp.x() + lambda(1, 1) * pp.y() + lambda(1, 2) * pp.z();
+            z[i] = lambda(2, 0) * pp.x() + lambda(2, 1) * pp.y() + lambda(2, 2) * pp.z();
+
+            if (thickness_func_ != nullptr)
+                nodal_thickness[i] = thickness_func_(point.x(), point.y(), point.z());
+            else
+                nodal_thickness[i] = thickness_;
+        }
+
+        for (UInteger i = 0; i < elementNodes; i++)
+        {
+            UInteger offset = i * freedom_;
+            for (UInteger ii = 0; ii < freedom_; ii++)
+                    W(ii + offset, ii + offset) = 1.0;
+
+            W(3 + offset, 1 + offset) = z[i];
+            W(4 + offset, 0 + offset) = -z[i];
         }
 
         for (UInteger inode = 0; inode < elementNodes; inode++)
@@ -855,23 +918,28 @@ void MindlinShellBending::processSolution(const DoubleVector &displacement)
                 dis(freedom_ * i + 5) = displacement[freedom_ * element->vertexNode(i) + 5UL];
             }
 
-            DoubleVector dLocal = T * dis;
+            DoubleVector dLocal = W.transpose() * (T * dis);
 
-            if (thickness_func_ != NULL)
-            {
-                double xLocal = x * N;
-                double yLocal = y * N;
+//            if (thickness_func_ != NULL)
+//            {
+//                double xLocal = x * N;
+//                double yLocal = y * N;
+//                double zLocal = z * N;
+//                Point3D pl(lambdaT(0, 0) * xLocal + lambdaT(0, 1) * yLocal + lambdaT(0, 2) * zLocal,
+//                           lambdaT(1, 0) * xLocal + lambdaT(1, 1) * yLocal + lambdaT(1, 2) * zLocal,
+//                           lambdaT(2, 0) * xLocal + lambdaT(2, 1) * yLocal + lambdaT(2, 2) * zLocal);
+////                Point3D pl(lambdaT(0, 0) * xLocal + lambdaT(0, 1) * yLocal,
+////                           lambdaT(1, 0) * xLocal + lambdaT(1, 1) * yLocal,
+////                           lambdaT(2, 0) * xLocal + lambdaT(2, 1) * yLocal);
+//                // вычисление объемных сил
+//                Point3D pLocal = pl + A;
+//                thickness_ = thickness_func_(pLocal.x(), pLocal.y(), pLocal.z());
+//            }
 
-                Point3D pl(lambdaT(0, 0) * xLocal + lambdaT(0, 1) * yLocal,
-                           lambdaT(1, 0) * xLocal + lambdaT(1, 1) * yLocal,
-                           lambdaT(2, 0) * xLocal + lambdaT(2, 1) * yLocal);
-                // вычисление объемных сил
-                Point3D pLocal = pl + A;
-                thickness_ = thickness_func_(pLocal.x(), pLocal.y(), pLocal.z());
-            }
+            thickness = nodal_thickness * N;
 
             sigma_membrane = (D_ * Bm) * dLocal;
-            sigma_plate = thickness_ / 2.0 * ((D_ * Bf) * dLocal);
+            sigma_plate = thickness / 2.0 * ((D_ * Bf) * dLocal);
             sigma[0] = sigma_membrane[0] + sigma_plate[0];
             sigma[1] = sigma_membrane[1] + sigma_plate[1];
             sigma[2] = sigma_membrane[2] + sigma_plate[2];
@@ -888,6 +956,7 @@ void MindlinShellBending::processSolution(const DoubleVector &displacement)
                                           (SG(1, 1) - SG(2, 2)) * (SG(1, 1) - SG(2, 2)) +
                                           (SG(2, 2) - SG(0, 0)) * (SG(2, 2) - SG(0, 0)) +
                                           6.0 * (SG(0, 1) * SG(0, 1) + SG(1, 2) * SG(1, 2) + SG(0, 2) * SG(0, 2)));
+
             SigmaX[element->vertexNode(inode)] += SG(0, 0);
             SigmaY[element->vertexNode(inode)] += SG(1, 1);
             SigmaZ[element->vertexNode(inode)] += SG(2, 2);
@@ -895,6 +964,14 @@ void MindlinShellBending::processSolution(const DoubleVector &displacement)
             TauXZ[element->vertexNode(inode)] += SG(0, 2);
             TauYZ[element->vertexNode(inode)] += SG(1, 2);
             mises[element->vertexNode(inode)] += von;
+
+//            SigmaX[element->vertexNode(inode)] += SG(0, 0) * N[inode];
+//            SigmaY[element->vertexNode(inode)] += SG(1, 1) * N[inode];
+//            SigmaZ[element->vertexNode(inode)] += SG(2, 2) * N[inode];
+//            TauXY[element->vertexNode(inode)] += SG(0, 1) * N[inode];
+//            TauXZ[element->vertexNode(inode)] += SG(0, 2) * N[inode];
+//            TauYZ[element->vertexNode(inode)] += SG(1, 2) * N[inode];
+//            mises[element->vertexNode(inode)] += von * N[inode];
         }
     } //for elNum
     for (UInteger i = 0; i < nodesCount; i++)
@@ -908,13 +985,20 @@ void MindlinShellBending::processSolution(const DoubleVector &displacement)
         mises[i] /= (double)mesh_->adjacentCount(i);
     }
 
-    mesh_->addDataVector("Sigma X", SigmaX);
-    mesh_->addDataVector("Sigma Y", SigmaY);
-    mesh_->addDataVector("Sigma Z", SigmaZ);
-    mesh_->addDataVector("Tau XY", TauXY);
-    mesh_->addDataVector("Tau XZ", TauXZ);
-    mesh_->addDataVector("Tau YZ", TauYZ);
-    mesh_->addDataVector("von Mises", mises);
+    mesh_->addDataVector("X", xxx.to_std());
+    mesh_->addDataVector("Y", yyy.to_std());
+    mesh_->addDataVector("Z", zzz.to_std());
+    mesh_->addDataVector("Theta X", theta_x.to_std());
+    mesh_->addDataVector("Theta Y", theta_y.to_std());
+    mesh_->addDataVector("Theta Z", theta_z.to_std());
+    mesh_->addDataVector("Sigma X", SigmaX.to_std());
+    mesh_->addDataVector("Sigma Y", SigmaY.to_std());
+    mesh_->addDataVector("Sigma Z", SigmaZ.to_std());
+    mesh_->addDataVector("Tau XY", TauXY.to_std());
+    mesh_->addDataVector("Tau XZ", TauXZ.to_std());
+    mesh_->addDataVector("Tau YZ", TauYZ.to_std());
+    mesh_->addDataVector("von Mises", mises.to_std());
+    mises_ = mises;
 
     std::vector<double> ForceX(nodesCount, 0.0);
     std::vector<double> ForceY(nodesCount, 0.0);
@@ -944,6 +1028,11 @@ void MindlinShellBending::processSolution(const DoubleVector &displacement)
         }
         mesh_->addDataVector("Thickness", thickness);
     }
+
+//    DoubleVector adj(nodesCount, 0.0);
+//    for (UInteger i = 0; i < mesh_->nodesCount(); i++)
+//        adj[i] = mesh_->adjacentCount(i);
+//    mesh_->addDataVector("adj", adj.to_std());
 }
 /*
 MindlinShellBending::MindlinShellBending(Mesh3D *mesh,
@@ -1529,12 +1618,19 @@ DoubleVector MindlinShellBending::adaptationVector(const DoubleVector &displacem
                                           (SG(1, 1) - SG(2, 2)) * (SG(1, 1) - SG(2, 2)) +
                                           (SG(2, 2) - SG(0, 0)) * (SG(2, 2) - SG(0, 0)) +
                                           6.0 * (SG(0, 1) * SG(0, 1) + SG(1, 2) * SG(1, 2) + SG(0, 2) * SG(0, 2)));
-            mises[element->vertexNode(inode)] += von;
+//            mises[element->vertexNode(inode)] = von;
+            if (mises[element->vertexNode(inode)] < 1.0E-9)
+                mises[element->vertexNode(inode)] = von;
+            else
+            {
+                mises[element->vertexNode(inode)] += von;
+                mises[element->vertexNode(inode)] /= 2.0;
+            }
         }
     } //for elNum
-    for (UInteger i = 0; i < nodesCount; i++)
-    {
-        mises[i] /= (double)mesh_->adjacentCount(i);
-    }
+//    for (UInteger i = 0; i < nodesCount; i++)
+//    {
+//        mises[i] /= (double)mesh_->adjacentCount(i);
+//    }
     return mises;
 }

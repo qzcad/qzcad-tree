@@ -36,6 +36,18 @@ protected:
 protected:
     std::function<double(double)> E_;
     double nu_;
+    DoubleVector x_;
+    DoubleVector y_;
+    DoubleVector z_;
+    DoubleVector theta_x_;
+    DoubleVector theta_y_;
+    DoubleVector theta_z_;
+    DoubleVector sigma_x_;
+    DoubleVector sigma_y_;
+    DoubleVector sigma_z_;
+    DoubleVector tau_xy_;
+    DoubleVector tau_xz_;
+    DoubleVector tau_yz_;
     DoubleVector mises_;
     double sigma_max_;
 };
