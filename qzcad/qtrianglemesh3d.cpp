@@ -29,3 +29,8 @@ double QTriangleMesh3D::cfunction(const double &x, const double &y, const double
 {
     return TriangleMesh3D::cfunction(x, y, z);
 }
+
+void QTriangleMesh3D::translate(const double &x, const double &y, const double &z)
+{
+    Mesh3D::translate(x, y, z);
+}

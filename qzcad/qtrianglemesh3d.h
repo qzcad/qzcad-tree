@@ -56,6 +56,13 @@ public:
      * @return Расстояние до ближайшей точки границы со знаком "+" для внутренних точек
      */
     Q_INVOKABLE double cfunction(const double &x, const double &y, const double &z);
+    /**
+     * @brief Операция перемещения сетки на заданный радиус вектор
+     * @param x Абсцисса радиус вектора перемещения
+     * @param y Ордината радиус вектора перемещения
+     * @param y Аппликата радиус вектора перемещения
+     */
+    Q_INVOKABLE void translate(const double &x, const double &y, const double &z);
 signals:
 
 public slots:

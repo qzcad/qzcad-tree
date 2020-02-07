@@ -27,5 +27,5 @@ void QQuadrilateralMesh3D::add(const QQuadrilateralMesh3D *mesh)
 
 void QQuadrilateralMesh3D::translate(const double &x, const double &y, const double &z)
 {
-    QuadrilateralMesh3D::translate(x, y, z);
+    Mesh3D::translate(x, y, z);
 }
