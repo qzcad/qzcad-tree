@@ -10,6 +10,12 @@
 VolumeStressStrain::VolumeStressStrain(Mesh3D *mesh, const DoubleMatrix &D, const std::list<FemCondition *> &conditions) : Fem3D(mesh, 3, conditions)
 {
     D_ = D;
+    D_func_ = nullptr;
+}
+
+VolumeStressStrain::VolumeStressStrain(Mesh3D *mesh, std::function<DoubleMatrix (double, double, double)> func, const std::list<FemCondition *> &conditions) : Fem3D(mesh, 3, conditions)
+{
+    D_func_ = func;
 }
 
 void VolumeStressStrain::solve(std::function<double (double, double, double)> func, double delta, int maxiter)
@@ -79,7 +85,8 @@ void VolumeStressStrain::buildGlobalMatrix()
     DoubleVector line_weights;
     UInteger elementNodes = 0; // количество узлов в элементе
 
-    D_.print();
+    if (D_func_ == nullptr)
+        D_.print();
 
     quadrature(line_count, line_points, line_weights);
 
@@ -166,7 +173,8 @@ void VolumeStressStrain::buildGlobalMatrix()
                                               B(4, i * freedom_ + 1) = dNdZ(i); B(4, i * freedom_ + 2) = dNdY(i);
                 B(5, i * freedom_) = dNdZ(i);                                   B(5, i * freedom_ + 2) = dNdX(i);
             }
-
+            if (D_func_ != nullptr)
+                D_ = D_func_(x * N, y * N, z * N);
             local += jacobian * w * (B.transpose() * D_ * B);
         } // ig
         // Ансамблирование
@@ -258,7 +266,7 @@ void VolumeStressStrain::buildGlobalVector()
                 ElementPointer element = mesh_->element(elNum);
                 for (int j = 0; j < element->facesCount(); j++)
                 {
-                    UIntegerVector face = element->face(j);\
+                    UIntegerVector face = element->face(j);
                     bool is_border_face = mesh_->isBorderFace(face);
                     for (UInteger ee = 0; ee < elementsCount && is_border_face; ee++)
                         if (ee != elNum)
@@ -393,14 +401,23 @@ void VolumeStressStrain::processSolution(const DoubleVector &displacement)
     std::vector<double> u(nodesCount);
     std::vector<double> v(nodesCount);
     std::vector<double> w(nodesCount);
-//    std::vector<double> fx(nodesCount);
+    std::vector<double> fx(nodesCount);
+    std::vector<double> fy(nodesCount);
+    std::vector<double> fz(nodesCount);
+
+    double s = 0.0;
     for (UInteger i = 0; i < nodesCount; i++)
     {
         u[i] = displacement[freedom_ * i];
         v[i] = displacement[freedom_ * i + 1];
         w[i] = displacement[freedom_ * i + 2];
-//        fx[i] = force_[freedom_ * i];
+        fx[i] = force_[freedom_ * i];
+        fy[i] = force_[freedom_ * i + 1];
+        fz[i] = force_[freedom_ * i + 2];
+        s += fabs(fz[i]);
     }
+
+    std::cout << "Force sum: " << s << std::endl;
 
     mesh_->addDataVector("X", u);
     mesh_->addDataVector("Y", v);
@@ -491,6 +508,9 @@ void VolumeStressStrain::processSolution(const DoubleVector &displacement)
                 dis(i * freedom_ + 2, 0) = displacement[freedom_ * element->vertexNode(i) + 2];
             }
 
+            if (D_func_ != nullptr)
+                D_ = D_func_(x * N, y * N, z * N);
+
             sigma = (D_ * B) * dis;
             SigmaX[element->vertexNode(inode)] += sigma(0, 0);
             SigmaY[element->vertexNode(inode)] += sigma(1, 0);
@@ -521,7 +541,51 @@ void VolumeStressStrain::processSolution(const DoubleVector &displacement)
     mesh_->addDataVector("Tau XZ", TauXZ);
     mesh_->addDataVector("Tau YZ", TauYZ);
     mesh_->addDataVector("von Mises", mises);
-    //    mesh_->addDataVector("Fx", fx);
+
+    mesh_->addDataVector("Fx", fx);
+    mesh_->addDataVector("Fy", fy);
+    mesh_->addDataVector("Fz", fz);
+
+//    double load_z = 0.0;
+//    for (UInteger elNum = 0; elNum < elementsCount; elNum++)
+//    {
+//        ElementPointer element = mesh_->element(elNum);
+//        for (int j = 0; j < element->facesCount(); j++)
+//        {
+//            UIntegerVector face = element->face(j);
+//            bool is_border_face = mesh_->isBorderFace(face);
+//            for (UInteger ee = 0; ee < elementsCount && is_border_face; ee++)
+//                if (ee != elNum)
+//                {
+//                    ElementPointer inner = mesh_->element(ee);
+//                    unsigned int k = 0;
+//                    for (unsigned int ii = 0; ii < face.size(); ii++)
+//                        if (inner->in(face[ii])) k++;
+//                    if (k == face.size()) is_border_face = false;
+//                }
+//            if (is_border_face)
+//            {
+//                double faceArea = mesh_->faceArea(face); // площадь грани
+//                bool is_applied = true;
+//                double val = 0.0;
+//                for (int k = 0; k < face.size(); k++)
+//                {
+//                    Point3D fp = dynamic_cast<Mesh3D *>(mesh_)->point3d(face[k]);
+//                    if (!(fabs(fp.z()) < 1.0E-7))
+//                        is_applied = false;
+//                    else
+//                        val += SigmaZ[face[k]];
+//                }
+
+//                if (is_applied)
+//                {
+//                    double f = val * faceArea / static_cast<double>(face.size());
+//                    load_z += f;
+//                }
+//            }// if
+//        } // for j
+//    } // for elNum
+//    std::cout << "!!!!!!!!!!!!!!!!!!! Edge load is " << load_z << std::endl;
 }
 
 DoubleVector VolumeStressStrain::adaptationVector(const DoubleVector &displacement)
@@ -637,6 +701,8 @@ DoubleVector VolumeStressStrain::adaptationVector(const DoubleVector &displaceme
                 dis(i * freedom_ + 2, 0) = displacement[freedom_ * element->vertexNode(i) + 2];
             }
 
+            if (D_func_ != nullptr)
+                D_ = D_func_(x * N, y * N, z * N);
             sigma = (D_ * B) * dis;
 //            SigmaX[element->vertexNode(inode)] += sigma(0, 0);
 //            SigmaY[element->vertexNode(inode)] += sigma(1, 0);
@@ -665,15 +731,21 @@ DoubleVector VolumeStressStrain::adaptationVector(const DoubleVector &displaceme
 
 DoubleMatrix VolumeStressStrain::evalStressMatrix(const double &E, const double &nu)
 {
-    DoubleMatrix S(6, 6, 0.0);
+//    DoubleMatrix S(6, 6, 0.0);
 
-    S(0, 0) = 1.0 / E;    S(0, 1) = - nu / E;    S(0, 2) = - nu / E;
-    S(1, 0) = - nu / E;    S(1, 1) = 1.0 / E;    S(1, 2) = - nu / E;
-    S(2, 0) = - nu / E;    S(2, 1) = - nu / E;    S(2, 2) = 1.0 / E;
-    double G = E / (2.0 * (1.0 + nu));
-    S(3, 3) = 1.0 / G;
-    S(4, 4) = 1.0 / G;
-    S(5, 5) = 1.0 / G;
+//    S(0, 0) = 1.0 / E;    S(0, 1) = - nu / E;    S(0, 2) = - nu / E;
+//    S(1, 0) = - nu / E;    S(1, 1) = 1.0 / E;    S(1, 2) = - nu / E;
+//    S(2, 0) = - nu / E;    S(2, 1) = - nu / E;    S(2, 2) = 1.0 / E;
+//    double G = E / (2.0 * (1.0 + nu));
+//    S(3, 3) = 1.0 / G;
+//    S(4, 4) = 1.0 / G;
+//    S(5, 5) = 1.0 / G;
 
-    return S.inverted();
+//    return S.inverted();
+    DoubleMatrix D(6, 6, 0.0);
+    D(0, 0) = 1.0;  D(0, 1) = nu / (1.0 - nu);  D(0, 2) = nu / (1.0 - nu);
+    D(1, 0) = nu / (1.0 - nu);  D(1, 1) = 1.0;  D(1, 2) = nu / (1.0 - nu);
+    D(2, 0) = nu / (1.0 - nu);  D(2, 1) = nu / (1.0 - nu);  D(2, 2) = 1.0;
+    D(3, 3) = D(4, 4) = D(5, 5) = (1.0 - 2.0 * nu) / (2.0 * (1.0 - nu));
+    return  E * (1.0 - nu) / ((1.0 + nu) * (1.0 - 2.0 * nu)) * D;
 }
