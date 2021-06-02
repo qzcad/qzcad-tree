@@ -50,6 +50,7 @@ protected:
     DoubleVector tau_yz_;
     DoubleVector mises_;
     double sigma_max_;
+    double f_;
 };
 
 #endif // MINDLINSHELLPLASTIC_H

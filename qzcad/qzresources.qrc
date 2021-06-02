@@ -68,4 +68,7 @@
         <file>qzicons/16x16/stl.png</file>
         <file>qzicons/24x24/stl.png</file>
     </qresource>
+    <qresource prefix="/">
+        <file>qzicons/24x24/save_png.png</file>
+    </qresource>
 </RCC>

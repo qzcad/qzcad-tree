@@ -176,6 +176,8 @@ private slots:
 
     void on_actionEnableGlSmoothing_triggered(bool checked);
 
+    void on_actionSaveImageAs_triggered();
+
 private:
     Ui::MainWindow *ui; //!< Контейнер элементов графического интерфейса
     QStdRedirector<> *stdRedirector; //!< Перехватчик сообщений стандартного потока

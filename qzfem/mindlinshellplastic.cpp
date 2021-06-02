@@ -44,21 +44,67 @@ void MindlinShellPlastic::solve()
     processInitialValues();
     DoubleVector solution = solveLinearSystem();
     processSolution(solution);
-    double f = 1.0;
+    f_ = 1.0;
+    double f_max[] = {6.26,	32.34,	64.28,	96.22,	130.82,	165.6,	196.24};
     double m = mises_.max();
     double E0 = E_(m);
+    int idx = 0;
     std::cout << "Plastic analysis" << std::endl;
     std::cout << "Initial Elastic Modulus: " << E0 << std::endl;
     std::cout << "Initial von Mises Stress: " << m << "(linear fracture load factor is " << sigma_max_ / m << ")" << std::endl;
-    while (fabs(E0 - E_(f * m)) < 1.0E-7)
+    while (fabs(E0 - E_(f_ * m)) < 1.0E-7 && f_ < f_max[0])
     {
-        f += 1.0;
+        f_ += 1.0;
     }
-    mises_.scale(f);
-    std::cout << "Yield Elastic Modulus: " << E_(f * m) << std::endl;
-    std::cout << f << ": Current Sigma: " << f * m << std::endl;
+    x_.scale(f_);
+    y_.scale(f_);
+    z_.scale(f_);
+    theta_x_.scale(f_);
+    theta_y_.scale(f_);
+    theta_z_.scale(f_);
+    sigma_x_.scale(f_);
+    sigma_y_.scale(f_);
+    sigma_z_.scale(f_);
+    tau_xy_.scale(f_);
+    tau_xz_.scale(f_);
+    tau_yz_.scale(f_);
+    mises_.scale(f_);
+    std::cout << "Initial Force Factor: " << f_ << std::endl;
+    std::cout << "Yield Elastic Modulus: " << E_(f_ * m) << std::endl;
+    std::cout << "Current Sigma: " << f_ * m << std::endl;
     do
     {
+        if (idx < 7 && (f_ > f_max[idx]))
+        {
+            double factor = f_max[idx] / f_;
+            std::cout << "f_max: " << f_max[idx] << std::endl;
+            std::cout << "Factor: " << factor << std::endl;
+            double polus = 1000.0, shpan = 1000.0;
+            UInteger ip=0, is=0;
+            for (UInteger i = 0; i < mesh_->nodesCount(); i++)
+            {
+                PointPointer p = mesh_->node(i);
+                if (fabs(0.11 + 0.0435 + 1.037 - p->y()) < polus)
+                {
+                    polus = fabs(0.11 + 0.0435 + 1.037 - p->y());
+                    ip = i;
+                }
+                if (fabs(0.11 + 0.0435 - p->y()) < shpan)
+                {
+                    shpan = fabs(0.11 + 0.0435 - p->y());
+                    is = i;
+                }
+            }
+            std::cout << "=================================================================================" << endl;
+            std::cout << "Polus distance: " << polus << " Polus displacement: " << y_[ip] * factor << endl;
+            std::cout << "Shpangout distance: " << shpan << " Shpangout displacement: " << y_[is] * factor << endl;
+            std::cout << "=================================================================================" << endl;
+            idx++;
+        }
+        if (idx >= 7)
+        {
+            break;
+        }
         alpha_ = 0; // !!!!
         buildGlobalMatrix();
         force_.set(0.0);
@@ -66,10 +112,15 @@ void MindlinShellPlastic::solve()
         processInitialValues();
         DoubleVector solution = solveLinearSystem();
         processSolution(solution);
-        f += 1.0;
+        f_ += 1.0;
         m = mises_.max();
-        std::cout << f << ": Current Sigma: " << m << ". Elastic Modulus: " << E_(m) << std::endl;
-    } while (m < sigma_max_);
+        std::cout << "Current Force Factor: " << f_ << std::endl;
+        std::cout << "Current Sigma: " << m << ". Elastic Modulus: " << E_(m) << std::endl;
+        if(m >= sigma_max_)
+        {
+            std::cout << "DAMAGE FORCE: " << f_ << std::endl;
+        }
+    } while(1);// while (m < sigma_max_);
 
     mesh_->clearDataVectors();
     mesh_->addDataVector("X", x_.to_std());
@@ -85,7 +136,7 @@ void MindlinShellPlastic::solve()
     mesh_->addDataVector("Tau XZ", tau_xz_.to_std());
     mesh_->addDataVector("Tau YZ", tau_yz_.to_std());
     mesh_->addDataVector("mises", mises_.to_std());
-    std::cout << "Mises stress: " << m << ". Force factor: " << f << std::endl;
+    std::cout << "Mises stress: " << m << ". Force factor: " << f_ << std::endl;
 }
 
 void MindlinShellPlastic::buildGlobalMatrix()

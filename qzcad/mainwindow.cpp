@@ -1370,3 +1370,13 @@ void MainWindow::on_actionEnableGlSmoothing_triggered(bool checked)
 {
     ui->pictureControl->getGlMeshPicture()->enableGlSmoothing(checked);
 }
+
+void MainWindow::on_actionSaveImageAs_triggered()
+{
+    QImage image = ui->pictureControl->getGlMeshPicture()->grabFrameBuffer();
+    QString fileName = QFileDialog::getSaveFileName(this, "qMesher: Сохранить изображение", "", tr("Файлы изображения (*.png);;Любой файл (*)"));
+    if (!fileName.isEmpty())
+    {
+        image.save(fileName);
+    }
+}

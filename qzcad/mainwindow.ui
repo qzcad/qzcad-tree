@@ -146,6 +146,7 @@
     <addaction name="actionOpenScript"/>
     <addaction name="actionSaveScript"/>
     <addaction name="actionSaveAsScript"/>
+    <addaction name="actionSaveImageAs"/>
     <addaction name="separator"/>
     <addaction name="actionLoadMesh"/>
     <addaction name="actionSaveMesh"/>
@@ -373,6 +374,7 @@
    <addaction name="actionOpenScript"/>
    <addaction name="actionSaveScript"/>
    <addaction name="actionSaveAsScript"/>
+   <addaction name="actionSaveImageAs"/>
    <addaction name="separator"/>
    <addaction name="actionRunScript"/>
    <addaction name="separator"/>
@@ -1014,6 +1016,15 @@
    </property>
    <property name="text">
     <string>Сглаживание линий и полигонов</string>
+   </property>
+  </action>
+  <action name="actionSaveImageAs">
+   <property name="icon">
+    <iconset resource="qzresources.qrc">
+     <normaloff>:/qzicons/24x24/save_png.png</normaloff>:/qzicons/24x24/save_png.png</iconset>
+   </property>
+   <property name="text">
+    <string>Сохранить изображение как...</string>
    </property>
   </action>
  </widget>
