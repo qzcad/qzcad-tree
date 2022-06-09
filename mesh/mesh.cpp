@@ -1,6 +1,7 @@
 #include "mesh.h"
 #include <iostream>
 #include <algorithm>
+#include <limits>
 
 namespace msh {
 

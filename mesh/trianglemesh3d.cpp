@@ -8,6 +8,7 @@
 #include <climits>
 #include <iostream>
 #include <algorithm>
+#include <limits>
 #include "funcopt.h"
 #include "rfunctions.h"
 #include "consoleprogress.h"
