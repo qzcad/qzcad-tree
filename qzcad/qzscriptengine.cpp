@@ -3374,10 +3374,10 @@ QScriptValue QZScriptEngine::mindlinShell(QScriptContext *context, QScriptEngine
 QScriptValue QZScriptEngine::mindlinShellPlastic(QScriptContext *context, QScriptEngine *engine)
 {
     setMesh(nullptr);
-    if (context->argumentCount() > 5)
+    if (context->argumentCount() > 6)
     {
         Mesh3D *mesh = nullptr;
-        QString typeError = QObject::tr("MindlinShellPlastic(mesh: Mesh, h: Floating|Function, E: function, sigma_max: Floating, nu: Floating [, {boundary conditions, forces}]...): argument type error (%1).");
+        QString typeError = QObject::tr("MindlinShellPlastic(mesh: Mesh, h: Floating|Function, E: function, sigma_yield: Floating, sigma_max: Floating, nu: Floating [, {boundary conditions, forces}]...): argument type error (%1).");
         if (!context->argument(0).isQObject())
             return context->throwError(typeError.arg("mesh"));
         if (qscriptvalue_cast<QQuadrilateralMesh3D *>(context->argument(0)) != nullptr)
@@ -3400,14 +3400,17 @@ QScriptValue QZScriptEngine::mindlinShellPlastic(QScriptContext *context, QScrip
             return context->throwError(typeError.arg("E"));
 
         if (!context->argument(3).isNumber())
-            return context->throwError(typeError.arg("sigma_max"));
+            return context->throwError(typeError.arg("sigma_yield"));
 
         if (!context->argument(4).isNumber())
+            return context->throwError(typeError.arg("sigma_max"));
+
+        if (!context->argument(5).isNumber())
             return context->throwError(typeError.arg("nu"));
 
         std::list<FemCondition*> conditions;
 
-        for (int i = 5; i < context->argumentCount(); i++)
+        for (int i = 6; i < context->argumentCount(); i++)
         {
             if (!context->argument(i).isQObject())
                 return context->throwError(typeError.arg("boundary condition or force"));
@@ -3434,14 +3437,18 @@ QScriptValue QZScriptEngine::mindlinShellPlastic(QScriptContext *context, QScrip
             return value.toNumber();
         };
 
-        double sigma_max = context->argument(3).toNumber();
+        double sigma_yield = context->argument(3).toNumber();
+        double sigma_max = context->argument(4).toNumber();
+        double nu = context->argument(5).toNumber();
+        std::cout << "SIGMA_yield = " << sigma_yield << "; E(" << sigma_yield << ") = " << young_func(sigma_yield) << std::endl;
         std::cout << "E(0) = " << young_func(0) << "; E(" << sigma_max << ") = " << young_func(sigma_max) << std::endl;
-        double nu = context->argument(4).toNumber();
+        std::cout << "nu = " << nu << std::endl;
         if (fem_ != nullptr) delete fem_;
 
         fem_ = new MindlinShellPlastic (mesh,
                                         thickness_func,
                                         young_func,
+                                        sigma_yield,
                                         sigma_max,
                                         nu,
                                         conditions);

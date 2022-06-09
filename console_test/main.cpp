@@ -1,6 +1,8 @@
 /**
   * Проект для консольного тестирования конечно элементных расчетов
   * */
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include <iostream>
 #include <fstream>
 #include <iomanip>

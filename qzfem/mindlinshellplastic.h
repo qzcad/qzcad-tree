@@ -20,8 +20,8 @@ using namespace mtx;
 class MindlinShellPlastic : public MindlinShellBending
 {
 public:
-    MindlinShellPlastic(Mesh3D *mesh, double thickness, std::function<double(double)> E, const double  &sigma_max, const double &nu, const std::list<FemCondition *> &conditions, double alphaT = 0.0);
-    MindlinShellPlastic(Mesh3D *mesh, std::function<double(double, double, double)> thickness_func, std::function<double(double)> E, const double  &sigma_max, const double &nu, const std::list<FemCondition *> &conditions, double alphaT = 0.0);
+    MindlinShellPlastic(Mesh3D *mesh, double thickness, std::function<double(double)> E, const double &sigma_yield, const double  &sigma_max, const double &nu, const std::list<FemCondition *> &conditions, double alphaT = 0.0);
+    MindlinShellPlastic(Mesh3D *mesh, std::function<double(double, double, double)> thickness_func, std::function<double(double)> E, const double &sigma_yield, const double  &sigma_max, const double &nu, const std::list<FemCondition *> &conditions, double alphaT = 0.0);
     virtual void solve();
 protected:
     /**
@@ -36,6 +36,7 @@ protected:
 protected:
     std::function<double(double)> E_;
     double nu_;
+    double sigma_yield_;
     DoubleVector x_;
     DoubleVector y_;
     DoubleVector z_;

@@ -1,30 +1,46 @@
 #include "mindlinshellplastic.h"
 
+#include <vector>
 #include <iostream>
 #include <math.h>
 
 #include "consoleprogress.h"
 
-MindlinShellPlastic::MindlinShellPlastic(Mesh3D *mesh, double thickness, std::function<double(double)> E, const double  &sigma_max, const double &nu, const std::list<FemCondition *> &conditions, double alphaT) :
+MindlinShellPlastic::MindlinShellPlastic(Mesh3D *mesh, double thickness, std::function<double(double)> E, const double &sigma_yield, const double  &sigma_max, const double &nu, const std::list<FemCondition *> &conditions, double alphaT) :
     MindlinShellBending(mesh, thickness, evalPlaneStressMatrix(E(0), nu), conditions, alphaT)
 {
     E_ = E;
     nu_ = nu;
+    sigma_yield_ = sigma_yield;
     sigma_max_ = sigma_max;
 }
 
-MindlinShellPlastic::MindlinShellPlastic(Mesh3D *mesh, std::function<double (double, double, double)> thickness_func, std::function<double (double)> E, const double  &sigma_max, const double &nu, const std::list<FemCondition *> &conditions, double alphaT) :
+MindlinShellPlastic::MindlinShellPlastic(Mesh3D *mesh, std::function<double (double, double, double)> thickness_func, std::function<double (double)> E, const double &sigma_yield, const double  &sigma_max, const double &nu, const std::list<FemCondition *> &conditions, double alphaT) :
     MindlinShellBending(mesh, thickness_func, evalPlaneStressMatrix(E(0), nu), conditions, alphaT)
 {
     E_ = E;
     nu_ = nu;
+    sigma_yield_ = sigma_yield;
     sigma_max_ = sigma_max;
 }
 
 void MindlinShellPlastic::solve()
 {
     UInteger nodesCount = mesh_->nodesCount();
-
+    std::vector<double> factors;
+    std::vector<double> sigma_values;
+    double prev_sigma = 0.0;
+    std::cout << "Mindlin Shell Plastic Analysis" << std::endl;
+    std::cout << "nu = " << nu_ << std::endl;
+    std::cout << "E(" << 0 << ") = " << E_(0.0) << std::endl;
+    std::cout << "E(" << sigma_yield_ << ") = " << E_(sigma_yield_) << std::endl;
+    std::cout << "E(" << sigma_max_ << ") = " << E_(sigma_max_) << std::endl;
+    std::cout << "alpha_T = " << alpha_ << std::endl;
+    std::cout << "The total number of conditions: " << conditions_.size() << std::endl;
+    if (thickness_func_ == nullptr)
+        std::cout << "h = " << thickness_ << std::endl;
+    else
+        std::cout << "thickness is a function of coordinates" << std::endl;
     x_.resize(nodesCount, 0.0);
     y_.resize(nodesCount, 0.0);
     z_.resize(nodesCount, 0.0);
@@ -45,17 +61,20 @@ void MindlinShellPlastic::solve()
     DoubleVector solution = solveLinearSystem();
     processSolution(solution);
     f_ = 1.0;
-    double f_max[] = {6.26,	32.34,	64.28,	96.22,	130.82,	165.6,	196.24};
+//    double f_max[] = {6.26,	32.34,	64.28,	96.22,	130.82,	165.6,	196.24};
     double m = mises_.max();
     double E0 = E_(m);
     int idx = 0;
     std::cout << "Plastic analysis" << std::endl;
     std::cout << "Initial Elastic Modulus: " << E0 << std::endl;
     std::cout << "Initial von Mises Stress: " << m << "(linear fracture load factor is " << sigma_max_ / m << ")" << std::endl;
-    while (fabs(E0 - E_(f_ * m)) < 1.0E-7 && f_ < f_max[0])
-    {
-        f_ += 1.0;
-    }
+//    while (fabs(E0 - E_(f_ * m)) < 1.0E-7 && f_ < f_max[0])
+//    {
+//        f_ += 1.0;
+//    }
+    factors.push_back(f_);
+    sigma_values.push_back(m);
+    f_ = sigma_yield_ / m;
     x_.scale(f_);
     y_.scale(f_);
     z_.scale(f_);
@@ -72,55 +91,64 @@ void MindlinShellPlastic::solve()
     std::cout << "Initial Force Factor: " << f_ << std::endl;
     std::cout << "Yield Elastic Modulus: " << E_(f_ * m) << std::endl;
     std::cout << "Current Sigma: " << f_ * m << std::endl;
+    factors.push_back(f_);
+    sigma_values.push_back(f_ * m );
+    prev_sigma = f_ * m;
     do
     {
-        if (idx < 7 && (f_ > f_max[idx]))
-        {
-            double factor = f_max[idx] / f_;
-            std::cout << "f_max: " << f_max[idx] << std::endl;
-            std::cout << "Factor: " << factor << std::endl;
-            double polus = 1000.0, shpan = 1000.0;
-            UInteger ip=0, is=0;
-            for (UInteger i = 0; i < mesh_->nodesCount(); i++)
-            {
-                PointPointer p = mesh_->node(i);
-                if (fabs(0.11 + 0.0435 + 1.037 - p->y()) < polus)
-                {
-                    polus = fabs(0.11 + 0.0435 + 1.037 - p->y());
-                    ip = i;
-                }
-                if (fabs(0.11 + 0.0435 - p->y()) < shpan)
-                {
-                    shpan = fabs(0.11 + 0.0435 - p->y());
-                    is = i;
-                }
-            }
-            std::cout << "=================================================================================" << endl;
-            std::cout << "Polus distance: " << polus << " Polus displacement: " << y_[ip] * factor << endl;
-            std::cout << "Shpangout distance: " << shpan << " Shpangout displacement: " << y_[is] * factor << endl;
-            std::cout << "=================================================================================" << endl;
-            idx++;
-        }
-        if (idx >= 7)
-        {
-            break;
-        }
-        alpha_ = 0; // !!!!
-        buildGlobalMatrix();
+//        if (idx < 7 && (f_ > f_max[idx]))
+//        {
+//            double factor = f_max[idx] / f_;
+//            std::cout << "f_max: " << f_max[idx] << std::endl;
+//            std::cout << "Factor: " << factor << std::endl;
+//            double polus = 1000.0, shpan = 1000.0;
+//            UInteger ip=0, is=0;
+//            for (UInteger i = 0; i < mesh_->nodesCount(); i++)
+//            {
+//                PointPointer p = mesh_->node(i);
+//                if (fabs(0.11 + 0.0435 + 1.037 - p->y()) < polus)
+//                {
+//                    polus = fabs(0.11 + 0.0435 + 1.037 - p->y());
+//                    ip = i;
+//                }
+//                if (fabs(0.11 + 0.0435 - p->y()) < shpan)
+//                {
+//                    shpan = fabs(0.11 + 0.0435 - p->y());
+//                    is = i;
+//                }
+//            }
+//            std::cout << "=================================================================================" << endl;
+//            std::cout << "Polus distance: " << polus << " Polus displacement: " << y_[ip] * factor << endl;
+//            std::cout << "Shpangout distance: " << shpan << " Shpangout displacement: " << y_[is] * factor << endl;
+//            std::cout << "=================================================================================" << endl;
+//            idx++;
+//        }
+//        if (idx >= 7)
+//        {
+//            break;
+//        }
+//        alpha_ = 0; // !!!!
         force_.set(0.0);
+        buildGlobalMatrix();
         buildGlobalVector();
         processInitialValues();
         DoubleVector solution = solveLinearSystem();
         processSolution(solution);
         f_ += 1.0;
         m = mises_.max();
+        factors.push_back(f_);
+        sigma_values.push_back(m);
         std::cout << "Current Force Factor: " << f_ << std::endl;
         std::cout << "Current Sigma: " << m << ". Elastic Modulus: " << E_(m) << std::endl;
+        std::cout << "Sigma Increase: " << m - prev_sigma << std::endl;
+        std::cout << "the estimated number of iterations: " << int((sigma_max_ - m) / (m - prev_sigma)) << std::endl;
+        std::cout << "the estimated force factor: " << f_ + (sigma_max_ - m) / (m - prev_sigma) << std::endl;
+        prev_sigma = m;
         if(m >= sigma_max_)
         {
             std::cout << "DAMAGE FORCE: " << f_ << std::endl;
         }
-    } while(1);// while (m < sigma_max_);
+    } while (m < sigma_max_);
 
     mesh_->clearDataVectors();
     mesh_->addDataVector("X", x_.to_std());
@@ -137,6 +165,14 @@ void MindlinShellPlastic::solve()
     mesh_->addDataVector("Tau YZ", tau_yz_.to_std());
     mesh_->addDataVector("mises", mises_.to_std());
     std::cout << "Mises stress: " << m << ". Force factor: " << f_ << std::endl;
+    std::cout << "factors: ";
+    for(int i = 0; i < factors.size(); i++)
+        std::cout << factors[i] << " ";
+    std::cout << std::endl;
+    std::cout << "sigmas: ";
+    for(int i = 0; i < sigma_values.size(); i++)
+        std::cout << sigma_values[i] << " ";
+    std::cout << std::endl;
 }
 
 void MindlinShellPlastic::buildGlobalMatrix()
@@ -438,8 +474,9 @@ void MindlinShellPlastic::processSolution(const DoubleVector &displacement)
         DoubleVector y(elementNodes);
         DoubleVector z(elementNodes);
         DoubleVector nodal_thickness(elementNodes);
+        DoubleVector nodal_elastic_modulus(elementNodes);
         double thickness = 0.0;
-        double s = 0.0;
+//        double s = 0.0;
         double elastic_modulus;
         // извлечение координат узлов
         for (UInteger i = 0; i < elementNodes; i++)
@@ -455,20 +492,22 @@ void MindlinShellPlastic::processSolution(const DoubleVector &displacement)
             else
                 nodal_thickness[i] = thickness_;
 
-            if (s < mises_[element->vertexNode(i)])
-                s = mises_[element->vertexNode(i)];
+//            if (s < mises_[element->vertexNode(i)])
+//                s = mises_[element->vertexNode(i)];
+
+            nodal_elastic_modulus[i] = E_(mises_[element->vertexNode(i)]);
         }
 
-        elastic_modulus = E_(s);
-        D_ = evalPlaneStressMatrix(elastic_modulus, nu_);
-        Dc_(0, 0) = D_(2, 2); Dc_(0, 1) = 0.0;
-        Dc_(1, 0) = 0.0; Dc_(1, 1) = D_(2, 2);
+//        elastic_modulus = E_(s);
+//        D_ = evalPlaneStressMatrix(elastic_modulus, nu_);
+//        Dc_(0, 0) = D_(2, 2); Dc_(0, 1) = 0.0;
+//        Dc_(1, 0) = 0.0; Dc_(1, 1) = D_(2, 2);
 
-        if (elastic_modulus > max_e)
-            max_e = elastic_modulus;
+//        if (elastic_modulus > max_e)
+//            max_e = elastic_modulus;
 
-        if (elastic_modulus < min_e)
-            min_e = elastic_modulus;
+//        if (elastic_modulus < min_e)
+//            min_e = elastic_modulus;
 
         for (UInteger inode = 0; inode < elementNodes; inode++)
         {
@@ -480,6 +519,17 @@ void MindlinShellPlastic::processSolution(const DoubleVector &displacement)
             DoubleVector sigma_plate((size_type)3, 0.0);
             DoubleVector sigma((size_type)3, 0.0);
             DoubleVector tau((size_type)2, 0.0);
+
+            elastic_modulus = nodal_elastic_modulus[inode];
+            D_ = evalPlaneStressMatrix(elastic_modulus, nu_);
+            Dc_(0, 0) = D_(2, 2); Dc_(0, 1) = 0.0;
+            Dc_(1, 0) = 0.0; Dc_(1, 1) = D_(2, 2);
+
+            if (elastic_modulus > max_e)
+                max_e = elastic_modulus;
+
+            if (elastic_modulus < min_e)
+                min_e = elastic_modulus;
 
             // якобиан
             if (dynamic_cast<TriangleMesh3D*>(mesh_) != NULL)

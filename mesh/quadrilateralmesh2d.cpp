@@ -1,4 +1,6 @@
 #include "quadrilateralmesh2d.h"
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include <iostream>
 #undef __STRICT_ANSI__
 #include <math.h>
